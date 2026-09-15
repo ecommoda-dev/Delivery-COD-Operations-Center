@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<!-- skills: html-builder v6.6.0 · worker-builder v3.3.0 · constants v2.6.0 · order-lifecycle v1.8.0 — 15-09-2026 -->
+<!-- ══════════════════════════════════════════════════════════════
+     🔴 **الملف ده متولّد من `docs/build-pages.py`.**
+     الصفحتان (`ready-orders.html` · `shipped-orders.html`) **متطابقتان
+     بالحرف** فيما عدا المعاملات في أول المولّد (الحالة · الـ endpoint ·
+     العمود الزيادة). ده تطبيق مباشر لدرس R1: نسختان بتتعدّلا بالإيد
+     بيفترقا مع أول تعديل، واتصلح في واحدة وفضل مكسور في التانية لشهور.
+     ⛔ **متعدّلش الملف ده** — عدّل المولّد وشغّله، وبعدها شغّل
+        `docs/rules-check.mjs` و`docs/queues-check.mjs`.
+     ⚠️ أي تعديل يدوي هنا **بيضيع في صمت** مع أول تشغيل للمولّد.
+     ══════════════════════════════════════════════════════════════ -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>طابور الجاهز للشحن — مركز عمليات الشحن والتحصيل</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
+  <link rel="stylesheet" href="shared/shell.css">
+<style>
+/* ══════════════════════════════════════════════════════════════
+   §STYLES — الصفحة دي بس. مفيش كتلة توكنز هنا (كلها في الـ shell).
+   ⚠️ الملفين (`ready-orders.html` · `shipped-orders.html`) **متطابقين
+      بالحرف** في الكتلة دي — أي تعديل يتعمل في الاتنين في نفس التمريرة
+      (درس R1).
+   ══════════════════════════════════════════════════════════════ */
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; }
+.card-body { padding: 14px 16px; }
+
+/* ── صندوق العدّ — نسخة من `.count-box` بتاعة هب المخزن بالحرف ──
+   الموظف بيتنقّل بين الهبين، ولوحة بشكلين مختلفين لنفس المعلومة
+   معناها إنه يتعلّمها مرتين. */
+.count-box { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 13px 16px; }
+.cb-ico { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-size: 24px; background: var(--accent-light); border: 1px solid var(--accent-border); flex-shrink: 0; }
+.cb-num { font-family: var(--font-mono); font-size: 38px; font-weight: 900; line-height: 1; color: var(--accent); direction: ltr; font-variant-numeric: tabular-nums; }
+.cb-num.pending { color: var(--text-muted); }
+.cb-num.failed  { color: var(--red); font-size: 22px; }
+.cb-unit { font-size: 11.5px; font-weight: 700; color: var(--text-muted); }
+.cb-title { font-size: 13.5px; font-weight: 800; }
+.cb-sub { font-size: 11px; color: var(--text-muted); line-height: 1.7; }
+.cb-mid { flex: 1 1 260px; min-width: 240px; display: flex; flex-direction: column; gap: 7px; }
+/* ⚠️ `flex:1` على `.cb-mid` بس — لو اتحطّت على منطقة تانية، منطقة الأكشن
+   بتتزحلق من `margin-inline-start:auto` وبتقع في نص الصندوق. */
+.cb-act { margin-inline-start: auto; display: flex; align-items: stretch; gap: 9px; flex-wrap: wrap; }
+
+/* ── مربعات الفلترة — نفس لغة `.zchip` في صفحة التغليف ─────────
+   🔴 **بتعدّ من القايمة الكاملة مش المفلترة.** لو العدّ على المفلتر،
+      أول ضغطة كانت هتصفّر باقي المربعات فما حدش يقدر يرجّع منها. */
+.fchips { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface-2); font-family: var(--font-body); font-size: 11.5px; font-weight: 800; color: var(--text-secondary); cursor: pointer; transition: border-color .12s, background .12s, color .12s; }
+.fchip b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; direction: ltr; }
+.fchip:hover { border-color: var(--border-strong); }
+.fchip.qc-bosta    { background: var(--red-light);    color: var(--red-dark);    border-color: var(--red-border); }
+.fchip.qc-showroom { background: var(--teal-light);   color: var(--teal-dark);   border-color: var(--teal-border); }
+.fchip.qc-courier  { background: var(--accent-light); color: var(--accent-dark); border-color: var(--accent-border); }
+.fchip.qc-flag     { background: var(--amber-light);  color: var(--amber-dark);  border-color: var(--amber-border); }
+/* المختار بياخد حد مصمت + علامة ✕ — «دوس تاني عشان ترجّع الكل».
+   ⚠️ الفلتر **أحادي**: مربع واحد مختار على الأكثر. فلتر مركّب على
+   مربعات متلاصقة بيخلّي الموظف مش عارف هو شايف إيه بالظبط. */
+.fchip.on { box-shadow: 0 0 0 2px var(--focus-ring); border-width: 2px; }
+.fchip .x { font-size: 10px; opacity: .8; }
+
+.cb-money { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* ── البحث ─────────────────────────────────────────────────── */
+.srch-row { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; padding: 11px 16px; border-bottom: 1px solid var(--border); }
+.srch-input { flex: 1 1 260px; min-width: 200px; padding: 9px 13px; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 13px; color: var(--text-primary); background: var(--surface); }
+.srch-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus-ring); }
+.srch-note { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); }
+.srch-note b { font-family: var(--font-mono); color: var(--text-primary); }
+
+/* ── الجدول — المعيار الموحّد: كل خلية متوسّطة + خطوط رأسية ──── */
+.table-wrap { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.data-table thead th { padding: 10px 11px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: .3px; white-space: nowrap; text-align: center; }
+.data-table tbody tr { border-bottom: 1px solid var(--border); }
+.data-table tbody tr:last-child { border-bottom: none; }
+.data-table tbody tr:hover { background: var(--surface-2); }
+.data-table tbody td { padding: 9px 11px; font-size: 13px; color: var(--text-primary); text-align: center; vertical-align: middle; }
+.data-table thead th, .data-table tbody td { border-inline-start: 1px solid var(--border); }
+.data-table thead th:first-child, .data-table tbody td:first-child { border-inline-start: none; }
+/* صف عليه علامة مراجعة — خلفية خفيفة جدًا.
+   ⚠️ **خفيفة عن قصد**: الصف ده **مش مرفوض** — هو في الطابور وبيتعدّ،
+      والعلامة معناها «راجعه» مش «تجاهله». لون قوي كان هيخلّيه يتقري رفض. */
+.data-table tbody tr.flagged { background: color-mix(in srgb, var(--amber-light) 55%, transparent); }
+.data-table tbody tr.flagged:hover { background: var(--amber-light); }
+.col-num  { font-family: var(--font-mono); direction: ltr; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cell-sub { display: block; font-size: 10.5px; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
+
+/* «نوع الأوردر» — نسخة طبق الأصل من صفحة التغليف في هب المخزن بالحرف:
+   نص عادي بلون بدل بادج (عادي = أزرق التفاعل · استبدال = بنفسجي). */
+.type-text { font-weight: 800; white-space: nowrap; }
+.type-text.type-s1 { color: var(--accent-dark); }
+.type-text.type-s2 { color: var(--purple-dark); }
+
+/* بادج الوقت — الدرجة بتيجي من `dcoDayLevel` في الـ shell فمستحيل تفترق
+   بين الصفحتين؛ **اللون هو اللي مكرّر** هنا. */
+.time-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 800; white-space: nowrap; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-secondary); }
+.time-badge.tb-d0 { background: var(--green-light);  color: var(--green-dark);  border-color: var(--green-border); }
+.time-badge.tb-d1 { background: var(--amber-light);  color: var(--amber-dark);  border-color: var(--amber-border); }
+.time-badge.tb-d2 { background: var(--orange-light); color: var(--orange-dark); border-color: var(--orange-border); }
+.time-badge.tb-d3 { background: var(--red-light);    color: var(--red-dark);    border-color: var(--red-border); }
+.time-badge.tb-d7 { background: var(--crit);         color: var(--on-accent);   border-color: var(--crit); }
+.time-badge.tb-none { background: var(--surface-2);  color: var(--text-muted); }
+
+/* الحالة المالية — `PENDING` هي اللي معناها «تحصيل»، وأي قيمة تانية
+   معناها الفلوس اتدفعت (أو اترجعت) و**مش** داخلة في المستحق. */
+.fin { display: inline-block; font-size: 10.5px; font-weight: 800; padding: 1px 7px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-secondary); margin-top: 3px; }
+.fin.fin-cod  { background: var(--green-light); color: var(--green-dark); border-color: var(--green-border); }
+.fin.fin-paid { background: var(--accent-light); color: var(--accent-dark); border-color: var(--accent-border); }
+
+/* زرار علامة المراجعة — بيفتح نافذة بالسبب والفعل المطلوب */
+.flag-btn { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; border: 1.5px solid var(--amber-border); background: var(--amber-light); color: var(--amber-dark); font-family: var(--font-body); font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.flag-btn:hover { border-color: var(--amber); }
+.flag-ok { color: var(--text-muted); font-size: 12px; }
+
+/* نافذة تفاصيل العلامات */
+.fl-item { border: 1px solid var(--amber-border); background: var(--amber-light); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 9px; }
+.fl-item:last-child { margin-bottom: 0; }
+.fl-lbl { font-size: 13px; font-weight: 800; color: var(--amber-dark); }
+.fl-det { font-size: 12px; font-weight: 700; color: var(--text-primary); margin-top: 4px; line-height: 1.7; }
+.fl-act { font-size: 12px; color: var(--text-secondary); margin-top: 5px; line-height: 1.7; }
+.fl-act b { color: var(--text-primary); }
+
+/* بانرات — الفشل والاقتطاع **منفصلين عن بعض عن قصد**:
+   «الطابور ما اتجابش» حاجة، و«الطابور أطول من اللي بيتعرض» حاجة تانية خالص. */
+.q-fail { margin: 0 16px 12px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--red-light); border: 1px solid var(--red-border); color: var(--red-dark); font-size: 12.5px; font-weight: 700; line-height: 1.7; }
+.q-warn { margin: 0 16px 12px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--amber-light); border: 1px solid var(--amber-border); color: var(--amber-dark); font-size: 12.5px; font-weight: 700; line-height: 1.7; }
+.q-empty { padding: 30px 16px; text-align: center; color: var(--text-muted); font-size: 13.5px; }
+.q-empty .ico { font-size: 28px; margin-bottom: 7px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div id="headerMount"></div>
+
+  <!-- ══ صندوق العدّ ══════════════════════════════════════════
+       🔴 **الرقم الكبير = عدد الصفوف اللي رجعت من الطابور بالحرف**، وهو
+          **نفس** رقم الصف على الشاشة الرئيسية لأن الاتنين بيعدّوا من
+          `dcoQueueRows` في الـ shell على نفس الرد.
+          ⛔ رقمان مختلفان على شاشتين للموظف الواحد = الرقم بيفقد معناه
+             (باج v1.11.0 في هب المخزن · درس R1).
+       ⚠️ وقبل أول جلب ناجح الرقم **`—` مش `0`** — «ما اتحدّثش» ≠ «مفيش شغل». -->
+  <div class="card count-box">
+    <span class="cb-ico">📋</span>
+    <div>
+      <div class="cb-title">📋 جاهز للشحن</div>
+      <div class="cb-sub">حالته <code>Ready</code> — الشحنة الأصلية أو دورة الاستبدال/الاسترجاع</div>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:8px">
+      <span class="cb-num pending" id="qCount">—</span><span class="cb-unit">أوردر</span>
+    </div>
+    <div class="cb-mid">
+      <div class="fchips" id="qChips"></div>
+      <div class="cb-money" id="qMoney"></div>
+    </div>
+    <div class="cb-act">
+      <div class="dco-fresh">
+        <div class="dco-fresh-row">
+          <span class="dco-fresh-lbl">آخر تحديث</span>
+          <span class="dco-ago" id="qAgo">لسه ما اتحدّثش</span>
+        </div>
+        <div class="dco-fresh-row" id="qStamp"><span class="dco-stamp-chip">—</span></div>
+      </div>
+      <button class="dco-rbtn" id="qBtn" type="button" onclick="qLoad(false)">
+        <span class="dco-rbtn-ico">↺</span><span>تحديث</span>
+        <span class="dco-rbtn-badge" id="qBadge">—</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="srch-row">
+      <!-- ⚠️ من غير `placeholder` — الشرح في الـ label والسطر الثابت،
+           مش نص رمادي جوّه الحقل بيختفي أول ما الموظف يكتب حرف
+           (`ecommoda-html-builder` Step 2 بند ٧). و`aria-label` هو
+           الوصف الوحيد الباقي لقارئ الشاشة. -->
+      <label class="srch-note" for="qSearch">بحث برقم الأوردر أو اسم العميل</label>
+      <input type="text" class="srch-input" id="qSearch" aria-label="بحث برقم الأوردر أو اسم العميل" autocomplete="off">
+      <!-- 🔴 «معروض N من M» — الفلتر أو البحث **لازم يقول إنه شغّال**.
+           جدول مفلتر من غير سطر بيقول كده بيتقري «الطابور قلّ». -->
+      <span class="srch-note" id="qShown"></span>
+    </div>
+    <div id="qFail" class="q-fail" style="display:none;"></div>
+    <div id="qTrunc" class="q-warn" style="display:none;"></div>
+    <div id="qEmpty" class="q-empty"><div class="ico">⏳</div><div>جاري تحميل الطابور…</div></div>
+    <div class="table-wrap" id="qTableWrap" style="display:none;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>رقم الأوردر</th>
+            <th>العميل</th>
+            <th>نوع الأوردر</th>
+            <th>المندوب</th>
+            <th>القناة</th>
+            <th>عهدة الطرد</th>
+            <th>عدد القطع</th>
+            <th>الإجمالي</th>
+            <th>تاريخ الأوردر</th>
+            <th>الوقت منذ التغليف</th>
+            <th>مراجعة</th>
+          </tr>
+        </thead>
+        <tbody id="qBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة تفاصيل علامات المراجعة -->
+<div class="eco-overlay" id="flagsOverlay">
+  <div class="eco-modal">
+    <div class="eco-modal-hdr"><span id="flagsTitle">⚠️ محتاج مراجعة</span><button class="modal-close-x" onclick="closeFlags()">✕</button></div>
+    <div class="eco-modal-body" id="flagsBody"></div>
+    <div class="eco-modal-ftr"><button class="btn-ghost" onclick="closeFlags()">إغلاق</button></div>
+  </div>
+</div>
+
+<div class="eco-overlay" id="aboutOverlay">
+  <div class="eco-modal">
+    <div class="eco-modal-hdr"><span>ℹ️ عن طابور الجاهز للشحن</span><button class="modal-close-x" onclick="closeAbout()">✕</button></div>
+    <div class="eco-modal-body">
+      <details class="about-sec" open>
+        <summary>الصفحة بتعرض إيه</summary>
+        <div class="about-sec-body">
+          <p>الأوردرات اللي حالتها <code>Ready</code> — يعني اتأكدت وجاهزة تخرج،
+             ولسه ما اتسجّلش عليها شحن.</p>
+          <p>🔴 <b>عرض بحت</b> — الصفحة دي <b>مابتكتبش أي حاجة</b>: لا على شوبيفاي ولا
+             في السجل. الـ Worker بتاعها قراءة بحتة ومالوش <code>[[d1_databases]]</code>.</p>
+          <h4>الـ Workers</h4>
+          <div id="aboutWorkers"></div>
+          <h4>الأعمدة</h4>
+          <ul>
+            <li><b>نوع الأوردر</b> — «عادي» يعني الشحنة الأصلية (S1)، و«استبدال/استرجاع»
+                يعني دورة الـ R/E (S2). الصف بياخد <b>بيانات ماكينته هو</b>: وقت التغليف
+                واسم اللي غلّف ورقم التتبع كلهم من حقول الماكينة الصح.</li>
+            <li><b>الإجمالي</b> — <code>currentTotalPriceSet</code>: الرقم بعد أي تعديل أو
+                مرتجع، وهو اللي المندوب بيحصّله فعلاً. وتحته الحالة المالية:
+                <b>تحصيل</b> (<code>PENDING</code>) أو <b>مدفوع</b>.</li>
+            <li><b>مراجعة</b> — الصف اللي عليه شذوذ بياخد علامة، والضغط عليها بيفتح
+                <b>السبب والقيمة الغلط والفعل المطلوب</b>. 🔴 والصف <b>بيفضل في الطابور
+                وبيتعدّ في الرقم</b> — علّم عليه متشيلوش (قاعدة ١٣).</li>
+          </ul>
+          <h4>الترتيب والتحديث</h4>
+          <ul>
+            <li>الترتيب <b>الأقدم فوق</b> — الأوردر اللي قاعد من أطول مدة هو اللي محتاج
+                تحرّك دلوقتي.</li>
+            <li>التحديث التلقائي كل ١٥ دقيقة، <b>بيقف والتاب مقفول</b>، وعدّاد «منذ كام»
+                بيتحدّث كل نص دقيقة <b>بلا أي نداء شبكة</b>.</li>
+            <li>مربعات المندوب <b>بتعدّ من القايمة الكاملة</b> مش المفلترة — ضغطة عليها
+                بتفلتر، وضغطة تانية بترجّع الكل.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+    <div class="eco-modal-ftr"><button class="btn-ghost" onclick="closeAbout()">إغلاق</button></div>
+  </div>
+</div>
+
+<div class="eco-overlay" id="changelogOverlay">
+  <div class="eco-modal">
+    <div class="eco-modal-hdr"><span>📋 سجل التحديثات</span><button class="modal-close-x" onclick="closeChangelog()">✕</button></div>
+    <div class="eco-modal-body">
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.0.0</span>
+          <span class="cl-ver-date">15-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>أول إصدار — <b>طابور الجاهز للشحن</b> جوّه مركز عمليات الشحن والتحصيل.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="eco-modal-ftr"><button class="btn-ghost" onclick="closeChangelog()">إغلاق</button></div>
+  </div>
+</div>
+
+<div id="sharedMount"></div>
+
+<!-- 🔴 نسخة واحدة مضمّنة — ممنوع محتوى الملف ده يتنسخ هنا -->
+<script src="shared/shell.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script>
+// ══════════════════════════════════════════════════════════════
+// §INIT — الجلسة أولاً، قبل أي حاجة تانية
+// ══════════════════════════════════════════════════════════════
+// 🔴 `requireSession()` **بترمي** لو مفيش جلسة — من غير الرمي، باقي
+//    السكربت بيكمّل تنفيذ وبينادي الـ Worker وبيرسم جدول **أثناء** ما
+//    التحويل لشاشة الدخول شغّال.
+const session = requireSession();
+
+const { apiGet } = dcoApi(DCO_WORKERS.ready);
+const PAGE_WORKERS = ['ready'];
+
+// ══════════════════════════════════════════════════════════════
+// §QUEUE-JS — الطابور
+// ══════════════════════════════════════════════════════════════
+//
+// 🔴 **صفر قاعدة اشتقاق في الملف ده.** الماكينة والعلامات والمربعات
+//    والفلوس كلهم من `shared/shell.js` §QUEUE-RULES — **نفس** الدوال اللي
+//    الشاشة الرئيسية بتعدّ بيها. ⛔ أي شرط أهلية يتكتب هنا بيخلّي الرقم في
+//    الصفحة يخالف الرقم في الرئيسية **في صمت** (درس R1 · v1.11.0).
+//
+// ⚠️ **التحديث التلقائي بنفس حراس الشاشة الرئيسية التلاتة** — التسليح بعد
+//    كل جلب ناجح، و`document.hidden` = صفر استعلام، والنبضة بتحدّث «منذ
+//    كام» بلا أي نداء شبكة.
+const Q_STATUS          = 'Ready';
+const Q_KIND            = 'ready';
+const Q_AUTO_REFRESH_MS = 15 * 60 * 1000;
+const Q_TICK_MS         = 30 * 1000;
+
+const qState = { rows: [], at: null, loading: false, dirty: false, timer: null,
+                 failed: false, truncated: false, filter: null, search: '' };
+
+// ─── الرسم ───
+function qSetFresh() {
+  const info  = agoInfo(qState.at, Date.now());
+  const agoEl = document.getElementById('qAgo');
+  const btn   = document.getElementById('qBtn');
+  if (agoEl) { agoEl.className = 'dco-ago ' + info.cls; agoEl.textContent = info.text; }
+  if (btn)   btn.classList.toggle('is-stale', info.stale);
+  const stamp = document.getElementById('qStamp');
+  if (stamp) {
+    stamp.innerHTML = qState.at
+      ? `<span class="dco-stamp-chip">${esc(formatDate(qState.at.toISOString()))}</span>` +
+        `<span class="dco-stamp-chip">${esc(formatTimeOnly(qState.at.toISOString()))}</span>`
+      : '<span class="dco-stamp-chip">—</span>';
+  }
+}
+
+// 🔴 **المربعات بتعدّ من `qState.rows` الكاملة** — مش من المعروض.
+//    العدّ على المفلتر كان هيصفّر باقي المربعات بعد أول ضغطة، فالموظف
+//    مايقدرش يرجع منها.
+function qRenderChips() {
+  const box = document.getElementById('qChips');
+  if (!box) return;
+  const chips = dcoChips(qState.rows);
+  box.innerHTML = chips.map(ch => {
+    const key = ch.cls === 'qc-flag' ? 'flag'
+      : (DCO_COURIER_GROUPS.find(g => g.cls === ch.cls)?.key || '');
+    const on  = qState.filter === key;
+    return `<button type="button" class="fchip ${esc(ch.cls)}${on ? ' on' : ''}" data-fk="${esc(key)}"`
+         + ` aria-pressed="${on ? 'true' : 'false'}">${esc(ch.label)} <b>${ch.n}</b>`
+         + (on ? '<span class="x" aria-hidden="true">✕</span>' : '') + '</button>';
+  }).join('');
+
+  // ⚠️ الفلوس **بتتحسب على المعروض**، مش على القايمة الكاملة — الموظف
+  //    اللي فلتر على «بوسطة» عايز يعرف بوسطة عليها كام، مش المتجر كله.
+  //    والفرق ده لازم يبان، فالليبل بيقول «(مفلتر)» لما الفلتر شغّال.
+  const shown = qVisible();
+  const cod = dcoCod(shown);
+  const filtered = (qState.filter || qState.search) ? ' <span style="opacity:.7">(مفلتر)</span>' : '';
+  const parts = [`<span class="dco-money${cod.due ? '' : ' is-zero'}">💰 مستحق التحصيل <b>${esc(dcoMoney(cod.due, cod.currency))}</b>`
+               + ` <span style="opacity:.7">(${cod.dueCount} أوردر)</span>${filtered}</span>`];
+  if (cod.prepaidCount) parts.push(`<span class="fchip" style="cursor:default">مدفوع مقدمًا <b>${cod.prepaidCount}</b></span>`);
+  if (cod.unknownCount) parts.push(`<span class="fchip qc-flag" style="cursor:default">حالة مالية مش معروفة <b>${cod.unknownCount}</b></span>`);
+  document.getElementById('qMoney').innerHTML = parts.join('');
+}
+
+// اللي بيتعرض فعلاً بعد الفلتر والبحث.
+function qVisible() {
+  const term = qState.search.trim().toLowerCase();
+  return qState.rows.filter(o => {
+    if (qState.filter === 'flag') { if (!o.flags.length) return false; }
+    else if (qState.filter)       { if (o.courierGroup !== qState.filter) return false; }
+    if (!term) return true;
+    return String(o.orderName || '').toLowerCase().includes(term)
+        || String(o.customer  || '').toLowerCase().includes(term);
+  });
+}
+
+function financeCell(o) {
+  const amt = dcoMoney(o.total, o.currency);
+  if (!o.financial) return `<span class="col-num">${esc(amt)}</span><span class="fin">حالة مالية مش معروفة</span>`;
+  const cod = o.financial === 'PENDING';
+  return `<span class="col-num">${esc(amt)}</span>`
+       + `<span class="fin ${cod ? 'fin-cod' : 'fin-paid'}">${cod ? 'تحصيل (COD)' : 'مدفوع — ' + esc(o.financial)}</span>`;
+}
+
+// ⚠️ «مش معروفة» **مش** «فاضية»: الحقل اللي مالوش قيمة بيقول كده صراحةً،
+//    عشان الموظف ما يقراش الفراغ على إنه عطل في الشاشة.
+function whereaboutsCell(o) {
+  const map = { Warehouse: 'المخزن', Office: 'المكتب', Courier: 'مع المندوب' };
+  if (!o.whereabouts) return '<span class="flag-ok">لسه مش مسجّلة</span>';
+  return esc(map[o.whereabouts] || o.whereabouts);
+}
+
+function qRender() {
+  const rows  = qVisible();
+  const tbody = document.getElementById('qBody');
+  const wrap  = document.getElementById('qTableWrap');
+  const empty = document.getElementById('qEmpty');
+  if (!tbody) return;
+
+  // 🔴 **حالة الرقم الكبير تتحسب هنا لوحدها.** الفرع ده كان مكتوب جوّه
+  //    `catch` بتاع `qLoad`، و`qRender()` اللي في `finally` كانت **بتدهسه
+  //    بعده بجزء من الثانية** — فالفشل كان بيتحوّل لـ«—» في صمت.
+  //    اتمسك في `docs/queues-check.mjs` (بند «الرقم تعذّر مش 0»)، **مش**
+  //    في مراجعة كود: الشاشة كانت بتفتح والكونسول نضيف.
+  //    ⚠️ والتلات حالات مختلفة فعلاً: «ما اتحدّثش» (—) · «اتحدّث» (رقم) ·
+  //       **«حاولنا وما عرفناش»** (تعذّر). دمج التالتة في الأولى بيخلّي
+  //       الفشل يبان زي أول تحميل.
+  const cEl = document.getElementById('qCount');
+  const total = qState.at ? String(qState.rows.length) : (qState.failed ? 'تعذّر' : '—');
+  cEl.textContent = total;
+  cEl.classList.toggle('pending', !qState.at && !qState.failed);
+  cEl.classList.toggle('failed',  !qState.at && qState.failed);
+  // ⚠️ بادج الزرار **مايقولش «تعذّر»** — رقم على زرار بيتقرا وعد بشغل،
+  //    و«تعذّر» على بادج صغير بتتقص. الرقم الكبير هو اللي بيحمل الحالة.
+  document.getElementById('qBadge').textContent = qState.at ? String(qState.rows.length) : '—';
+
+  // 🔴 «معروض N من M» بتظهر **بس لما يكون فيه فلتر** — سطر دايم بيتحوّل
+  //    لديكور، وسطر بيظهر وقت الفلتر بس بيتقري.
+  const note = document.getElementById('qShown');
+  note.innerHTML = (qState.filter || qState.search.trim())
+    ? `معروض <b>${rows.length}</b> من <b>${qState.rows.length}</b>`
+    : '';
+
+  qRenderChips();
+
+  if (!rows.length) {
+    wrap.style.display  = 'none';
+    empty.style.display = '';
+    empty.innerHTML = !qState.at
+      ? (qState.failed ? '<div class="ico">⚠️</div><div>تعذّر تحميل الطابور — اضغط «تحديث»</div>'
+                       : '<div class="ico">⏳</div><div>جاري تحميل الطابور…</div>')
+      : (qState.rows.length
+          ? '<div class="ico">🔎</div><div>مفيش صفوف مطابقة للفلتر — امسح الفلتر أو البحث</div>'
+          : '<div class="ico">✅</div><div>مفيش أوردرات جاهزة للشحن دلوقتي</div>');
+    return;
+  }
+
+  empty.style.display = 'none';
+  wrap.style.display  = '';
+  const now = new Date();
+  tbody.innerHTML = rows.map((o, i) => {
+    const isS2  = o.machine === 's2';
+    const since = o.packedAt ? dcoWaiting(o.packedAt, now) : { cls: 'tb-none', text: '— ما اتغلّفش' };
+    const qty   = (o.itemsQty === null || o.itemsQty === undefined) ? '—' : o.itemsQty;
+    const g     = DCO_COURIER_GROUPS.find(x => x.key === o.courierGroup);
+    return `<tr class="${o.flags.length ? 'flagged' : ''}">
+      <td>${orderLink(o.orderName, o.orderId)}</td>
+      <td>${esc(o.customer || '—')}${o.province ? `<span class="cell-sub">${esc(o.province)}</span>` : ''}</td>
+      <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(isS2 ? 'استبدال/استرجاع' : 'عادي')}</span></td>
+      <td>${esc(o.courier || '—')}<span class="cell-sub">${esc(g ? g.label : '—')}</span></td>
+      <td>${esc(o.zone || '—')}</td>
+      <td>${whereaboutsCell(o)}</td>
+      <td class="col-num">${esc(String(qty))}</td>
+      <td>${financeCell(o)}</td>
+      <td>${esc(formatDate(o.createdAt))} <span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
+      <td>${o.packedAt ? esc(formatDate(o.packedAt)) : '—'}
+          <span class="time-badge ${since.cls}" data-q-pack="${o.packedAt ? esc(o.packedAt) : ''}">${esc(since.text)}</span></td>
+      <td>${o.flags.length
+            ? `<button type="button" class="flag-btn" data-flag-idx="${i}">⚠️ ${o.flags.length}</button>`
+            : '<span class="flag-ok">—</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  // ⚠️ **التفويض بدل `onclick` بنص** — اسم الأوردر وسبب العلامة بيتحطّوا
+  //    في نص HTML، و`onclick="showFlags('...')"` كان بيسرّب أي علامة
+  //    تنصيص فيهم. والصف بيتربط بـ**فهرس المعروض** مش بالاسم.
+  tbody.querySelectorAll('[data-flag-idx]').forEach(btn => {
+    btn.addEventListener('click', () => showFlags(rows[Number(btn.dataset.flagIdx)]));
+  });
+}
+
+// ─── نافذة العلامات ───
+// 🔴 كل علامة بتقول **تلات حاجات**: إيه اللي حصل · القيمة الغلط بالحرف ·
+//    الفعل المطلوب. بند مراجعة بيقول «فيه مشكلة» وبس تكلفته فحص يدوي لكل
+//    صف على شوبيفاي (`ecommoda-order-lifecycle` قاعدة ١٤).
+function showFlags(o) {
+  if (!o) return;
+  document.getElementById('flagsTitle').textContent = `⚠️ ${o.orderName || 'الأوردر'} — محتاج مراجعة`;
+  document.getElementById('flagsBody').innerHTML = o.flags.map(f => `
+    <div class="fl-item">
+      <div class="fl-lbl">${esc(f.label)}</div>
+      <div class="fl-det">${esc(f.detail)}</div>
+      <div class="fl-act">🛠️ <b>المطلوب:</b> ${esc(f.action)}</div>
+    </div>`).join('')
+    + `<p style="font-size:12px;color:var(--text-secondary);line-height:1.8;margin-top:10px">
+         ℹ️ الصف ده <b>لسه في الطابور وبيتعدّ في الرقم</b> — العلامة معناها «راجعه»، مش «اتشال».
+       </p>`;
+  document.getElementById('flagsOverlay').classList.add('open');
+}
+function closeFlags() { document.getElementById('flagsOverlay').classList.remove('open'); }
+
+// ─── الجلب ───
+// ⚠️ `loading` بيمنع نداءين متوازيين (ضغطة + نبضة)، و`dirty` مابيتصفّرش
+//    غير بعد جلب ناجح — لو الجلب فشل، أول رجوع تاني للتاب بيحاول.
+async function qLoad(silent) {
+  if (qState.loading) return;
+  qState.loading = true;
+  const btn = document.getElementById('qBtn');
+  if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+
+  try {
+    const data = await apiGet('get_ready_queue');
+    // 🔴 **المصدر الوحيد للاشتقاق** — الـ shell، مش الصفحة.
+    qState.rows      = dcoQueueRows(data.orders || [], Q_STATUS, Q_KIND);
+    qState.at        = new Date();
+    qState.dirty     = false;
+    qState.failed    = false;
+    qState.truncated = !!data.truncated;
+    cacheSet(DCO_CACHE_READY, data);
+    document.getElementById('qFail').style.display = 'none';
+
+    // ⚠️ الاقتطاع بانر **منفصل** عن بانر الفشل — «الطابور أطول من اللي
+    //    بيتعرض» حاجة تانية خالص عن «الطابور ما اتجابش»، والخلط بينهم
+    //    بيخلّي الموظف يفتكر إن القايمة كاملة.
+    const trunc = document.getElementById('qTrunc');
+    trunc.style.display = qState.truncated ? '' : 'none';
+    if (qState.truncated) trunc.textContent =
+      '⚠️ الطابور أطول من الحد المعروض — فيه أوردرات مش ظاهرة في القايمة دي. الرقم فوق بيعدّ المعروض بس.';
+  } catch (err) {
+    // 🔴 **الفشل بيتقال، والرقم القديم بيفضل معروض لو كان فيه واحد.**
+    //    و«تعذّر» بتتعرض بس لو مافيش أي جلب ناجح قبل كده.
+    qState.failed = true;
+    const fail = document.getElementById('qFail');
+    fail.style.display = '';
+    fail.textContent = `⚠️ تعذّر تحميل الطابور — ${err.message}`;
+    // ⚠️ **الرقم مابيتكتبش هنا** — `qRender()` في الـ `finally` هي اللي
+    //    بتحسب حالته من `qState.failed`. كتابته هنا كانت بتتدهس بعدها
+    //    على طول (الباج اللي فحص المتصفح مسكه).
+    if (!silent) showToast(err.message, 'error', 6000);
+  } finally {
+    qState.loading = false;
+    if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+    qRender();
+    qSetFresh();
+    qArmAuto();
+  }
+}
+
+// التسليح **بعد كل جلب** — «١٥ دقيقة من آخر تحديث فعلي» مش من فتح الصفحة
+function qArmAuto() {
+  if (qState.timer) clearTimeout(qState.timer);
+  qState.timer = setTimeout(() => {
+    if (document.hidden) { qState.dirty = true; return; }   // مخفي = صفر استعلام
+    qLoad(true);
+  }, Q_AUTO_REFRESH_MS);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && qState.dirty) qLoad(true);
+});
+
+// ─── الفلتر والبحث ───
+// ⚠️ الفلتر **أحادي**: ضغطة على مربع تانية بتبدّل، وضغطة على نفس المربع
+//    بترجّع الكل. فلتر مركّب على مربعات متلاصقة بيخلّي الموظف مش عارف
+//    هو شايف إيه بالظبط.
+document.getElementById('qChips').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-fk]');
+  if (!btn) return;
+  const k = btn.dataset.fk;
+  qState.filter = (qState.filter === k) ? null : k;
+  qRender();
+});
+document.getElementById('qSearch').addEventListener('input', (e) => {
+  qState.search = e.target.value || '';
+  qRender();
+});
+
+// ─── النبضة — عرض بحت، **صفر نداء شبكة** ───
+// ⚠️ إعادة رسم الجدول كل نص دقيقة كانت هتصفّر التمرير تحت إيد الموظف،
+//    فالبادجات بتتحدّث **في مكانها** بالـ ISO المخزّن على الخلية نفسها
+//    (مش بترتيب الصفوف — الترتيب بيتغيّر مع الفلتر).
+setInterval(() => {
+  qSetFresh();
+  const now = new Date();
+  document.querySelectorAll('#qBody [data-q-age]').forEach(el => {
+    const iso = el.dataset.qAge;
+    if (!iso) return;
+    const age = dcoOrderAge(iso, now);
+    el.className = `time-badge age-badge ${age.cls}`;
+    el.textContent = age.text;
+  });
+  document.querySelectorAll('#qBody [data-q-pack]').forEach(el => {
+    const iso = el.dataset.qPack;
+    if (!iso) return;
+    const s = dcoWaiting(iso, now);
+    el.className = `time-badge ${s.cls}`;
+    el.textContent = s.text;
+  });
+}, Q_TICK_MS);
+
+// ⚠️ مكرّرة في التلات صفحات عن قصد — فحص Step 9 بيطلب وجود الاسمين في كل
+//    صفحة، والقايمة (`PAGE_WORKERS`) بتفرق من صفحة للتانية.
+async function renderAboutWorkers() {
+  const box = document.getElementById('aboutWorkers');
+  if (!box) return;
+  const rows = await Promise.all(PAGE_WORKERS.map(async k => {
+    const w = DCO_WORKERS[k];
+    let got = '—', mark = '⏳';
+    try {
+      const cfg = await dcoApi(w).apiGet('get_config');
+      got = cfg.version || cfg.WORKER_VERSION || '—';
+      mark = cmpVersion(got, w.min) < 0 ? '⚠️' : '✅';
+    } catch { mark = '❌'; got = 'تعذّر الوصول'; }
+    return `<tr><td>${mark} ${esc(w.label)}</td><td><code>${esc(got)}</code></td><td><code>${esc(w.min)}</code></td></tr>`;
+  }));
+  box.innerHTML =
+    `<table><tr><th>الأداة</th><th>نسخة الـ Worker</th><th>الحد الأدنى</th></tr>${rows.join('')}</table>
+     <p>نسخة الواجهة (الهب كله): <code>${esc(TOOL_VERSION)}</code></p>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// §INIT — التحميل (الجلسة اتأكدت فوق)
+// ══════════════════════════════════════════════════════════════
+document.getElementById('headerMount').innerHTML = dcoHeader({
+  icon: '📋', title: 'طابور الجاهز للشحن', subtitle: 'مركز عمليات الشحن والتحصيل', session,
+});
+renderVersionUI();                 // بعد ما الهيدر يتحقن — زرار النسخة جوّاه
+checkWorkerVersion(PAGE_WORKERS);  // حارس نسخة الـ Worker (حد أدنى، مش تطابق)
+renderAboutWorkers();
+
+// ⚠️ **الكاش بيترسم قبل الجلب** — الشاشة الفاضية أسوأ من شاشة قديمة
+//    **مختومة بوقتها**. والختم بيقول عمرها الحقيقي، فالموظف عارف إنها قديمة.
+(function drawFromCache() {
+  const c = cacheGet(DCO_CACHE_READY);
+  if (!c || !c.data || !Array.isArray(c.data.orders)) return;
+  qState.rows      = dcoQueueRows(c.data.orders, Q_STATUS, Q_KIND);
+  qState.at        = new Date(c.at);
+  qState.truncated = !!c.data.truncated;
+  qRender();
+  qSetFresh();
+})();
+
+qLoad(true);
+</script>
+</body>
+</html>
