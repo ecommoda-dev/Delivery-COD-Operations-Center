@@ -45,7 +45,7 @@ PAGES = [
     boxTitle='📋 جاهز للشحن',
     boxSub='حالته <code>Ready</code> — الشحنة الأصلية أو دورة الاستبدال/الاسترجاع',
     emptyOk='مفيش أوردرات جاهزة للشحن دلوقتي',
-    packCol='الوقت منذ التغليف',
+    packCol='تاريخ التغليف',
     extraHead='<th>عهدة الطرد</th>',
     extraCell="""      <td>${whereaboutsCell(o)}</td>\n""",
     extraFn=WA_FN,
@@ -60,7 +60,7 @@ PAGES = [
     boxTitle='🚚 مشحون بلا نتيجة',
     boxSub='حالته <code>Shipped</code> — خرج ولسه ما اتسجّلش <code>Delivered</code> ولا <code>Returned</code>',
     emptyOk='مفيش شحنات مفتوحة دلوقتي',
-    packCol='الوقت منذ التغليف',
+    packCol='تاريخ التغليف',
     extraHead='<th>رقم التتبع</th>',
     extraCell="""      <td>${trackingCell(o)}</td>\n""",
     extraFn=TR_FN,
@@ -274,6 +274,10 @@ TPL = r'''<!DOCTYPE html>
             <th>عدد القطع</th>
             <th>الإجمالي</th>
             <th>تاريخ الأوردر</th>
+            <!-- ⚠️ الاسم **«تاريخ التغليف»** مش «الوقت منذ التغليف» — الخلية
+                 فيها التاريخ **والبادج** مع بعض، بالظبط زي عمود «تاريخ
+                 الأوردر» اللي جنبه. اسم العمود لازم يوصف اللي جوّاه، والبادج
+                 هو اللي بيقول «قاعد من إمتى» في العمودين. -->
             <th>__PACK_COL__</th>
             <th>مراجعة</th>
           </tr>
