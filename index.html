@@ -243,6 +243,9 @@
           <p>🔴 <b>الطابورين دول عرض بحت.</b> مفيش أي فعل بيتكتب على شوبيفاي ولا في
              السجل — لا تغيير حالة ولا إلغاء ولا تسجيل تحصيل. الـ Workers بتوعهم
              <b>قراءة بحتة</b>، ومالهمش <code>[[d1_databases]]</code> أصلاً.</p>
+          <p>⚠️ <b>والـ Worker الوحيد اللي بيكتب في الهب ده هو Worker الدخول</b> —
+             بيكتب صفّي <code>login</code>/<code>logout</code> وبس، ومالوش أي نداء
+             لشوبيفاي (مفيش عليه مفاتيح المتجر أصلاً).</p>
           <h4>الصفحات والـ Workers</h4>
           <div id="aboutWorkers"></div>
           <h4>الأعداد في الشاشة الرئيسية</h4>
@@ -284,12 +287,12 @@
             <li>الريفريش <b>مابيطلّعكش</b>، وقفل التاب بيطلّعك. مفيش انتهاء صلاحية بالوقت.</li>
             <li>ده <b>مابيضيفش</b> أي صلاحية: <code>employee</code> بيتبعت من العميل،
                 والـ Worker بيتحقق من السر مش من هوية الموظف.</li>
-            <li>السر <b>نفس سر مجموعة <code>warehouse_ops</code></b> وبنفس المفتاح
-                (<code>warehouse_ops_worker_secret</code>) — فالجهاز المضبوط على محطة
-                المخزن <b>مضبوط هنا من غير أي خطوة</b>.</li>
-            <li>صف الدخول في D1 المفروض يتسجّل باسم <code>delivery_cod_ops_center</code> —
-                ⚠️ لحد ما القيمة دي تتضاف لقايمة <code>AUTH_APPS</code> في Worker التغليف،
-                الصف بيتكتب <code>pack_checker</code> <b>من غير أي خطأ</b>.</li>
+            <li>السر لمجموعة <b><code>delivery_cod_ops</code></b> — <b>مستقلة عن محطة المخزن</b>،
+                وقيمة واحدة للتلات Workers. الجهاز اللي عليه المخزن محتاج يلزق السر الجديد
+                <b>مرة واحدة</b>.</li>
+            <li>الدخول على <b>Worker الهب نفسه</b> (عايش في نفس الريبو) — مش على Worker
+                أداة تانية. وصف الدخول في D1 بيتسجّل باسم
+                <code>delivery_cod_ops_center</code> <b>من أول يوم</b>.</li>
           </ul>
         </div>
       </details>
@@ -336,12 +339,12 @@
 // ⚠️ الصفحة دي **مافيهاش حارس جلسة** — دي شاشة الدخول نفسها.
 //    باقي الصفحات بتنادي الحارس في أول سطر عندها.
 
-// الدخول على Worker التغليف — الهب ده مالوش Worker خاص بيه
-const { apiGet, apiPost } = dcoApi(DCO_WORKERS.pack);
+// الدخول على Worker الهب نفسه — عايش في **نفس الريبو** (`index.js`)
+const { apiGet, apiPost } = dcoApi(DCO_WORKERS.auth);
 
 // ⚠️ القايمة دي بتغذّي **حارس النسخة و🩺 فحص النظام** كمان — Worker مش
 //    فيها بيختفي من الفحص خالص. والفحص من الشاشة الرئيسية هو الفحص الشامل.
-const PAGE_WORKERS = ['ready', 'shipped', 'pack'];
+const PAGE_WORKERS = ['auth', 'ready', 'shipped'];
 
 // §AUTH-JS — Unified Login UI (منقولة من أداة التغليف)
 // ══════════════════════════════════════════════════════════════
@@ -468,13 +471,11 @@ async function verifyExistingPin() {
   const pin = pinDigits.join('');
   setLoginBusy(true, '⏳ جاري التحقق...');
   try {
-    // ⚠️ `appId` — من غيره الدخول بيتسجّل `pack_checker` والصف المسجّل
-    //    لـ `delivery_cod_ops_center` في `ecommoda-constants` §7 يفضل فاضي.
-    // 🔴 **وبند حاجز:** القيمة دي لسه مش في `AUTH_APPS` بتاع Worker
-    //    التغليف — القايمة **بيضا مقفولة**، واللي مش فيها بيرجع للاسم
-    //    الافتراضي **من غير أي خطأ**. يعني الدخول هيشتغل والصف هيتكتب
-    //    `pack_checker`. البند مكتوب في `CLAUDE.md`.
-    const data = await apiPost('verify_employee', { username: selectedUsername, pin, appId: DCO_APP_ID });
+    // ⚠️ **بلا `appId`** — الـ Worker بتاع الهب بيخدم واجهة واحدة، فاسم
+    //    الأداة في D1 (`delivery_cod_ops_center`) متحدّد في كوده مش جاي من
+    //    العميل. ده مش تبسيط: قيمة جاية من العميل معناها أي طلب معاه السر
+    //    يقدر يكتب صفوف بأي اسم أداة في جدول `logs` المشترك.
+    const data = await apiPost('verify_employee', { username: selectedUsername, pin });
     if (!data.ok) { await presentLoginPinError('PIN خطأ — حاول مرة أخرى'); return; }
     await finishLogin(selectedUsername, data.displayName || selectedDisplayName, data.logged);
   } catch (err) { await presentLoginPinError(err.message || 'PIN خطأ'); }
@@ -487,7 +488,7 @@ async function registerNewPinAndLogin() {
   try {
     const reg = await apiPost('register_pin', { username: selectedUsername, pin: pendingNewPin });
     if (reg && reg.ok === false) { await presentLoginPinError(reg.error || 'تعذّر تسجيل الـ PIN'); return; }
-    const data = await apiPost('verify_employee', { username: selectedUsername, pin: pendingNewPin, appId: DCO_APP_ID });
+    const data = await apiPost('verify_employee', { username: selectedUsername, pin: pendingNewPin });
     if (!data.ok) { await presentLoginPinError(data.error || 'تعذّر تسجيل الدخول'); return; }
     await finishLogin(selectedUsername, data.displayName || selectedDisplayName, data.logged);
   } catch (err) { await presentLoginPinError(err.message || 'تعذّر تسجيل الـ PIN'); }

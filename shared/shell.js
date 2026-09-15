@@ -44,48 +44,44 @@ const DCO_WORKERS = {
   // بيسمّي الأداة بالاسم بدل ما الموظف يدوّر.
   ready:   { url: 'https://ready-orders-worker.ecommoda-dev.workers.dev',   min: '1.0.0', label: 'طابور الجاهز للشحن' },
   shipped: { url: 'https://shipped-orders-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'طابور المشحون' },
-  // 🔴 **Worker التغليف — للدخول بس.** الهب ده مالوش Worker خاص بيه
-  //    (زي هب المخزن بالظبط)، والدخول الموحّد بيحصل عبر
-  //    `orders-packing-checker-worker`: `get_employees` · `check_employee`
-  //    · `verify_employee` · `log_logout`.
-  // ⚠️ **و`min` هنا `2.5.0` مش `2.6.0`** — الهب ده **مش** معتمد على
-  //    `eligibility`/`profile` (دول بتوع شاشة التغليف في هب المخزن).
-  //    اللي الهب ده معتمد عليه فعلاً هو باراميتر `appId` (أول نسخة فيها
-  //    `2.5.0`) — من غيره الدخول بيتسجّل تحت `pack_checker` **في صمت**.
-  //    ترفيعه لـ`2.6.0` كان هيولّع تحذير كاذب على rollback مشروع
-  //    (Standards #29).
-  // 🔴 **بند حاجز مفتوح:** `delivery_cod_ops_center` لازم تتضاف لـ`AUTH_APPS`
-  //    في Worker التغليف — القايمة **بيضا مقفولة**، والقيمة اللي مش فيها
-  //    بترجع للاسم الافتراضي **بدون خطأ**. يعني الدخول هيشتغل والصف هيتكتب
-  //    `pack_checker`. لما تتضاف، `pack.min` يترفع في **نفس التسليم**
-  //    (`worker-builder` §appId قاعدة ٤).
-  pack:    { url: 'https://orders-packing-checker-worker.ecommoda-dev.workers.dev', min: '2.5.0', label: 'التغليف (الدخول)' },
+  // 🔴 **Worker الدخول — بتاع الهب نفسه، وعايش في **نفس الريبو**.**
+  //    الهب واجهة + Worker دخول = الشكل القياسي (قرار ٨ في
+  //    `ecommoda-tool-migration-playbook`). بيخدم: `get_employees` ·
+  //    `check_employee` · `register_pin` · `verify_employee` · `log_logout`.
+  // ⛔ **ومالوش أي endpoint تشغيلي** — الطابورين على Workers بتوعهم.
+  // ⚠️ والهب **مابيبعتش `appId`** خالص: الـ Worker بيخدم واجهة واحدة
+  //    فاسم الأداة في D1 (`delivery_cod_ops_center`) متحدّد في كوده.
+  auth:    { url: 'https://delivery-cod-operations-center-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'الدخول' },
 };
 
 const TOOL_VERSION = 'v1.0.0';                       // الهب كله — مصدر واحد (#24)
 
-// 🔴 **مفتاح سر مجموعة `warehouse_ops` — مش مفتاح جديد، والقرار ده متعمّد.**
-//    الهب ده بينادي `orders-packing-checker-worker` للدخول، وهو **عضو في
-//    المجموعة دي** — يعني الهب محتاج سرها غصب عنه. لو الأداتين الجديدتين
-//    أخدوا مجموعة تانية، شاشة الإعدادات كان لازم يبقى فيها **حقلين سر**،
-//    والموظف يلزق قيمتين على كل جهاز — وده بالظبط البديل اللي **اتّرفض**
-//    في هب المخزن (Standards #39: سر واحد للمحطة).
-// ✅ **والمكسب:** الهبين على **نفس الـ origin**
-//    (`https://ecommoda-dev.github.io`)، و`localStorage` مشترك بين المسارات
-//    — فأي جهاز مضبوط على هب المخزن بيبقى **مضبوط هنا من غير أي خطوة**.
-// ⛔ **والثمن مكتوب:** الأداتين الجديدتين بينضموا لمجموعة `warehouse_ops`،
-//    والانضمام **لازم يتسجّل** في `ecommoda-constants` →
-//    `references/secret-groups.md` (قاعدة ٢). عضو غير مسجّل = إجراء
-//    التدوير بيتكسر **بصمت**: تغيّر ٧ وتنسى التامن، والنتيجة `401` في أداة
-//    محدش هيعرف سببها.
-const LS_SECRET    = 'warehouse_ops_worker_secret';
+// 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
+//    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
+//    الطابورين)، فمفيش أي سبب يشارك سر محطة تانية.
+// ✅ **والمكسب الحقيقي إن المحطتين منفصلتين فعلاً:** تسريب من جهاز
+//    (لقطة شاشة · جهاز مسروق) بيمسّ محطة واحدة بس.
+// ⚠️ **وشرط المكسب ده لازم يتقال:** الهبين على **نفس الـ origin**
+//    (`ecommoda-dev.github.io`) و`localStorage` مشترك بين المسارات — فالعزل
+//    ده حقيقي **بس لو أجهزة الشحن غير أجهزة المخزن**. الجهاز اللي بيفتح
+//    الاتنين بيبقى شايل السرّين.
+// ⛔ **والانضمام لازم يتسجّل** في `ecommoda-constants` →
+//    `references/secret-groups.md` (قاعدة ٢): المجموعة = ٣ Workers + الهب
+//    كمستهلك رابع. عضو غير مسجّل = إجراء التدوير بيتكسر **بصمت**.
+// ⚠️ **وثمن تشغيلي مُعلَن:** الجهاز اللي عليه محطة المخزن **مش** هيبقى
+//    مضبوط هنا تلقائيًا — السر الجديد بيتلزق مرة واحدة على كل جهاز.
+const LS_SECRET    = 'delivery_cod_ops_worker_secret';
 
-// 🔴 قيمة `tool` في D1 — **للدخول والخروج بس**. الأداتين دول **قراءة بحتة**
-//    ومابيكتبوش ولا صف، فمفيش أي قيمة `type` تشغيلية هنا.
-// ⚠️ والقيمة دي لازم تتسجّل في `ecommoda-constants` §7 **قبل أول
-//    `writeLog`** (Rule 7) — والقاعدة دي اتخرقت **ست مرات** في الستاك ده،
-//    وكل مرة الادعاء كان مكتوب في `CLAUDE.md`. التحقق الوحيد المقبول
-//    `grep` على المهارة نفسها.
+// 🔴 قيمة `tool` في D1 — **للدخول والخروج بس**. الطابورين **قراءة بحتة**
+//    ومابيكتبوش ولا صف، فمفيش أي قيمة `type` تشغيلية في الهب ده.
+// ⚠️ **والقيمة دي متحدّدة في كود Worker الدخول، مش بتتبعت من هنا.** الثابت
+//    ده متساب **للتوثيق والفحص بس** — الواجهة مابتبعتش `appId` خالص، لأن
+//    الـ Worker بيخدم واجهة واحدة فالاسم مايحتاجش يجي من العميل.
+//    ⛔ والفرق ده مهم: قيمة جاية من العميل معناها أي طلب معاه السر يقدر
+//       يكتب صفوف بأي اسم أداة في جدول `logs` المشترك.
+// ⚠️ ولازم تتسجّل في `ecommoda-constants` §7 **قبل أول `writeLog`**
+//    (Rule 7) — والقاعدة دي اتخرقت **ست مرات** في الستاك، وكل مرة الادعاء
+//    كان مكتوب في `CLAUDE.md`. التحقق الوحيد المقبول `grep` على المهارة.
 const DCO_APP_ID   = 'delivery_cod_ops_center';
 const SHOP_HANDLE  = '6c7e1a-53';
 
@@ -926,15 +922,15 @@ function showWorkerStale() {
 }
 
 // ── الخروج ────────────────────────────────────────────────────
-// ⚠️ `appId` بيتبعت هنا كمان — من غيره صف الـ `logout` بيتسجّل
-//    `pack_checker` والدخول `delivery_cod_ops_center`، فالزوج مايتقفلش.
+// ⚠️ **بلا `appId`** — الـ Worker بيحدد الاسم بنفسه، فالزوج (دخول/خروج)
+//    بيتقفل تحت اسم واحد غصب عنه.
 // ⚠️ الجلسة والكاش بيتمسحوا **حتى لو** نداء التسجيل فشل — الخروج فعل
 //    محلي، ومانسيبش موظف داخل عشان D1 ما ردّتش.
 async function doLogout() {
   const s = getSession();
   try {
     if (s?.username) {
-      await dcoApi(DCO_WORKERS.pack).apiGet('log_logout', { username: s.username, appId: DCO_APP_ID });
+      await dcoApi(DCO_WORKERS.auth).apiGet('log_logout', { username: s.username });
     }
   } catch { /* الخروج بيتم برضه */ }
   clearSession();
@@ -1005,11 +1001,11 @@ function dcoSharedModals() {
                  والسطر الثابت تحت، مش نص رمادي جوّه الحقل بيختفي أول ما
                  الموظف يكتب حرف. -->
             <input type="password" class="settings-input" id="cfgSecret" autocomplete="off">
-            <div class="settings-static">السر المشترك لمجموعة <code>warehouse_ops</code> — نفس القيمة بتاعة محطة المخزن بالظبط، ونفس المفتاح على نفس الجهاز</div>
+            <div class="settings-static">السر المشترك لمجموعة <code>delivery_cod_ops</code> — قيمة واحدة للتلات Workers، ومستقلة عن سر محطة المخزن</div>
           </div>
           <div class="settings-field">
             <label class="settings-label">الـ Workers</label>
-            <div class="settings-static">ready-orders-worker · shipped-orders-worker · orders-packing-checker-worker (الدخول)</div>
+            <div class="settings-static">delivery-cod-operations-center-worker (الدخول) · ready-orders-worker · shipped-orders-worker</div>
           </div>
           <div class="settings-field">
             <label class="settings-label">فحص النظام</label>

@@ -177,16 +177,15 @@ function makeStub() {
     else if (action === 'diag')       body = DIAG;
     else if (action === 'get_employees')
       body = { ok:true, employees:[{ username:'tester', display_name:'الموظف التجريبي' }] };
-    else if (action === 'check_employee')
-      body = { ok:true, exists:true, isActive:true, hasPin:true };
     else if (action === 'verify_employee') {
       // 🔴 **جسم الطلب بيتسجّل عشان بند `appId`** — القيمة دي هي اللي
       //    بتحدد `tool` في صف الدخول في D1. غيابها = الصف بيتكتب
       //    `pack_checker` **من غير أي خطأ**.
-      state.authBodies.push(JSON.parse(route.request().postData() || '{}'));
+      state.authBodies.push({ host: url.host, body: JSON.parse(route.request().postData() || '{}') });
       body = { ok:true, displayName:'الموظف التجريبي', logged:true };
     }
     else if (action === 'log_logout') { state.logoutUrls.push(url.toString()); body = { ok:true }; }
+    else if (action === 'check_employee') body = { ok:true, exists:true, isActive:true, hasPin:true };
     else if (action === 'get_ready_queue') {
       if (state.readyFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
       else body = { ok:true, queue:'ready', orders:READY_RAW, truncated:state.truncated,
@@ -211,7 +210,7 @@ async function newPage({ withSession = true } = {}) {
   page.on('console', m => { if (m.type() === 'error' && !/net::ERR_/.test(m.text())) errors.push(m.text()); });
   await page.addInitScript((sess) => {
     try {
-      localStorage.setItem('warehouse_ops_worker_secret', 'test-secret-0123456789');
+      localStorage.setItem('delivery_cod_ops_worker_secret', 'test-secret-0123456789');
       if (sess) sessionStorage.setItem('dco_session', JSON.stringify(
         { v:1, username:'tester', displayName:'الموظف التجريبي', loginAt:new Date().toISOString() }));
     } catch {}
@@ -566,10 +565,16 @@ console.log('\n══ ⑧ الدخول ══');
   for (const d of ['1','2','3','4']) { await page.click(`.pin-key:has-text("${d}")`); }
   await page.waitForTimeout(900);
 
-  const b = state.authBodies[0] || {};
-  is(b.appId === 'delivery_cod_ops_center',
-     '🔴 `appId` اتبعت بقيمة الهب — من غيره صف الدخول بيتكتب `pack_checker` في صمت', JSON.stringify(b.appId));
-  is(b.pin === '1234' && !('pin' in new URL(page.url()).searchParams),
+  const call = state.authBodies[0] || { host:'', body:{} };
+  // 🔴 الدخول لازم يروح لـ **Worker الهب نفسه** — مش لأي Worker أداة تانية
+  is(call.host.startsWith('delivery-cod-operations-center-worker.'),
+     '🔴 الدخول راح لـ Worker الهب نفسه', call.host);
+  // 🔴 و**بلا `appId`** — الاسم متحدّد في كود الـ Worker، وقيمة جاية من
+  //    العميل معناها أي طلب معاه السر يكتب صفوف بأي اسم أداة
+  is(!('appId' in call.body),
+     '🔴 `appId` **ما اتبعتش** — اسم الأداة في D1 متحدّد في الـ Worker مش في العميل',
+     JSON.stringify(call.body));
+  is(call.body.pin === '1234' && !('pin' in new URL(page.url()).searchParams),
      'الـ PIN في الـ body مش في الـ URL (Standards #5)');
 
   // 🔴 `?next=` بيحوّل للوجهة بعد الدخول — وبيتفحص بـ regex قبل التحويل
@@ -596,8 +601,10 @@ console.log('\n══ ⑧ الدخول ══');
   await page.waitForSelector('#qBody tr');
   await page.click('#activeUserBtn');
   await page.waitForTimeout(900);
-  const hit = state.logoutUrls.find(u => u.includes('appId=delivery_cod_ops_center'));
-  is(!!hit, 'الخروج بيبعت نفس `appId` — الزوج (دخول/خروج) بيتقفل تحت اسم واحد', state.logoutUrls[0] || 'مفيش نداء');
+  const hit = state.logoutUrls.find(u => new URL(u).host.startsWith('delivery-cod-operations-center-worker.'));
+  is(!!hit, 'الخروج راح لنفس Worker الدخول — الزوج بيتقفل تحت اسم واحد', state.logoutUrls[0] || 'مفيش نداء');
+  is(!!hit && !hit.includes('appId'),
+     'و**بلا `appId`** — نفس قاعدة الدخول');
   is(page.url().endsWith('index.html'), 'وبعد الخروج بيرجع لشاشة الدخول');
   await ctx.close();
 }
