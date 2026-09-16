@@ -19,6 +19,7 @@
 
   <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
   <link rel="stylesheet" href="shared/shell.css">
+
 <style>
 /* ══════════════════════════════════════════════════════════════
    §STYLES — الصفحة دي بس. مفيش كتلة توكنز هنا (كلها في الـ shell).
@@ -272,12 +273,19 @@
 .q-warn { margin: 0 16px 12px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--amber-light); border: 1px solid var(--amber-border); color: var(--amber-dark); font-size: 12.5px; font-weight: 700; line-height: 1.7; }
 .q-empty { padding: 30px 16px; text-align: center; color: var(--text-muted); font-size: 13.5px; }
 .q-empty .ico { font-size: 28px; margin-bottom: 7px; }
+
 </style>
 </head>
 <body>
 
 <div class="container">
   <div id="headerMount"></div>
+
+  <!-- 🔴 **الغلاف ده هو اللي التاب بيخفيه/بيظهره** — والطابور جوّه بالكامل
+       (صندوق العدّ + القسم الموحّد). ⚠️ وفي صفحة بلا تابات الغلاف موجود
+       برضه ومفتوح دايمًا: غلاف بيتحقن في صفحة وميتشقنش في التانية معناه
+       ملفين مختلفين في البنية، وده بالظبط اللي المولّد اتعمل ضده. -->
+  <div id="viewQueue">
 
   <!-- ══ صندوق العدّ ══════════════════════════════════════════
        🔴 **الرقم الكبير = عدد الصفوف اللي رجعت من الطابور بالحرف**، وهو
@@ -463,6 +471,9 @@
       </div>
     </div>
   </div>
+
+  </div><!-- /#viewQueue -->
+
 </div>
 
 <!-- نافذة تفاصيل علامات المراجعة -->
@@ -519,6 +530,7 @@
           </ul>
         </div>
       </details>
+
     </div>
     <div class="eco-modal-ftr"><button class="btn-ghost" onclick="closeAbout()">إغلاق</button></div>
   </div>
@@ -528,9 +540,22 @@
   <div class="eco-modal">
     <div class="eco-modal-hdr"><span>📋 سجل التحديثات</span><button class="modal-close-x" onclick="closeChangelog()">✕</button></div>
     <div class="eco-modal-body">
+      <!-- ⚠️ بادج أول كتلة **بيتكتب من `TOOL_VERSION`** (مصدر واحد · #24)،
+           فالبنود اللي تحته لازم تكون بنود النسخة الحالية فعلاً — كتلة
+           بنسخة جديدة وبنود قديمة أسوأ من مفيش سجل. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.0.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.3.0</span>
+          <span class="cl-ver-date">16-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>بلا تغيير في الصفحة دي</b> — تحديث v1.3.0 كان تاب «جرد المكتب» في <b>«قسم الجاهز للشحن»</b>. والنسخة <b>واحدة للهب كله</b> (مصدر واحد · #24)، فالرقم بيترفع هنا كمان.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.0.0</span>
           <span class="cl-ver-date">15-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -1258,6 +1283,7 @@ async function renderAboutWorkers() {
     `<table><tr><th>الأداة</th><th>نسخة الـ Worker</th><th>الحد الأدنى</th></tr>${rows.join('')}</table>
      <p>نسخة الواجهة (الهب كله): <code>${esc(TOOL_VERSION)}</code></p>`;
 }
+
 
 // ══════════════════════════════════════════════════════════════
 // §INIT — التحميل (الجلسة اتأكدت فوق)

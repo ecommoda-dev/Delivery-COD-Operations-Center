@@ -36,6 +36,8 @@ const API = [
   'dcoDayDiff', 'dcoDayLevel', 'dcoOrderAge', 'dcoWaiting', 'dcoMoney', 'dcoCod',
   'dcoMachineOf', 'dcoFlags', 'dcoShapeRow', 'dcoQueueRows', 'dcoCourierGroup',
   'dcoCourierCounts', 'dcoChips', 'dcoFlaggedCount', 'cmpVersion', 'esc',
+  // §AUDIT-RULES — جرد المكتب (v1.3.0)
+  'dcoScanParse', 'dcoScanKey', 'dcoScanFind', 'dcoAuditBuckets', 'dcoAuditReason',
 ];
 const T = eval(`${src}\n;({ ${API.join(', ')} })`);
 
@@ -173,6 +175,126 @@ is(chips.length === 4 && chips[3].cls === 'qc-flag' && chips[3].n === 1,
 is(T.dcoChips(T.dcoQueueRows([raw[0]], 'Ready', 'ready', now)).length === 3,
    'ومابيظهرش وهو صفر — تحذير دايم بيتحوّل لديكور');
 is(T.dcoQueueRows(null, 'Ready', 'ready', now).length === 0, 'و`null` بيرجّع طابور فاضي مش رمي');
+
+
+// ══ ⑧ §AUDIT-RULES — جرد المكتب ═════════════════════════════
+//
+// 🔴 **العيلة اللي البنود دي بتمسكها:** جرد بيقول «مظبوط» على طرد غلط، أو
+//    «مفقود» على طرد اتعمله سكان فعلاً. الاتنين **رقم غلط شكله سليم** —
+//    الشاشة بتفتح، والكونسول نضيف، والموظف بيدوّر على طرد موجود.
+console.log('\n══ ⑧ جرد المكتب ══');
+
+// ── التطبيع ──
+is(T.dcoScanParse('6959895839042')?.kind === 'id',
+   '🔴 الكود الطويل (١٣ رقم) = **Order ID** — ده اللي في الباركود',
+   JSON.stringify(T.dcoScanParse('6959895839042')));
+is(T.dcoScanParse('#55001')?.kind === 'name' && T.dcoScanParse('#55001')?.name === '#55001',
+   'و`#55001` = رقم أوردر');
+is(T.dcoScanParse('55001')?.name === '#55001',
+   'والرقم القصير بلا `#` بياخد `#` — الموظف بيكتبه من غيرها');
+is(T.dcoScanParse('gid://shopify/Order/6959895839042')?.id === '6959895839042',
+   'والـ `gid` الكامل بيطلّع الرقم منه');
+// 🔴 التفسيرين مع بعض — العتبة لوحدها كانت بتضيّع أوردر اسمه رقم طويل
+const long = T.dcoScanParse('6959895839042');
+is(long?.id === '6959895839042' && long?.name === '#6959895839042',
+   '🔴 التفسيرين (`id` و`name`) بيرجعوا **مع بعض** — عتبة لوحدها كانت بتضيّع أوردر اسمه رقم طويل');
+is(T.dcoScanParse('55001')?.id === null,
+   '⚠️ و`id` بيتساب `null` تحت ٦ أرقام — الـ Worker بيرفضه أصلاً، فإرساله استعلام مضمون إنه بلا نتيجة');
+// المدخلات الباظة
+is(T.dcoScanParse(null) === null && T.dcoScanParse('') === null && T.dcoScanParse('   ') === null,
+   '`null` و الفاضي بيرجّعوا `null` — مابيرميش');
+is(T.dcoScanParse('ABC-XYZ') === null,
+   'وكود بلا أي رقم بيرجّع `null` — مش سكانة');
+is(T.dcoScanParse('  #55001\n')?.name === '#55001',
+   '⚠️ ورموز السكانر (Enter · مسافات · شرطة) بتتشال', JSON.stringify(T.dcoScanParse('  #55001\n')));
+
+// ── المفتاح ──
+is(T.dcoScanKey(T.dcoScanParse('6959895839042')) === 'id:6959895839042'
+   && T.dcoScanKey(T.dcoScanParse('#55001')) === 'name:#55001',
+   'المفتاح بيقول الصيغة والقيمة — والـ Worker بيرجّع بنفس الشكل');
+is(T.dcoScanKey(null) === '', 'ومفتاح `null` نص فاضي مش رمي');
+
+// ── المطابقة ──
+const AR = [
+  { orderId: '7212000000001', orderName: '#55001', tracking: null },
+  { orderId: '7212000000002', orderName: '#55002', tracking: '1234567' },
+  { orderId: '7212000000003', orderName: '6959895839042', tracking: null },
+];
+is(T.dcoScanFind(AR, T.dcoScanParse('7212000000001'))?.orderName === '#55001',
+   'المطابقة بالـ ID');
+is(T.dcoScanFind(AR, T.dcoScanParse('#55002'))?.orderId === '7212000000002',
+   'والمطابقة بالاسم');
+// 🔴 الترتيب: الـ ID الأول
+is(T.dcoScanFind(AR, T.dcoScanParse('6959895839042'))?.orderName === '6959895839042',
+   '⚠️ كود مالوش ID مطابق بيقع على **الاسم** — فأوردر اسمه رقم طويل مايضيعش');
+// 🔴 البند ده مسك عطل حقيقي وقت البناء: المقارنة كانت حرفية على `#`.
+is(T.dcoScanFind([{ orderId: 'x', orderName: '#55001' }], T.dcoScanParse('55001'))?.orderName === '#55001',
+   '🔴 و`55001` (بلا `#`) بيطابق `#55001` — نفس قاعدة مربع البحث بالحرف');
+is(T.dcoScanFind(AR, T.dcoScanParse('1234567'))?.orderId === '7212000000002',
+   'ورقم التتبع بيطابق لما يكون مسجّل على الصف');
+is(T.dcoScanFind(AR, T.dcoScanParse('123'))  === null,
+   '🔴 و`123` **مابيطابقش** `1234567` — المطابقة بالتساوي الكامل مش `includes`');
+is(T.dcoScanFind(null, T.dcoScanParse('#55001')) === null
+   && T.dcoScanFind(AR, null) === null,
+   'و`null` في أي طرف بيرجّع `null`');
+is(T.dcoScanFind([null, undefined, { orderName: '#55009' }], T.dcoScanParse('#55009'))?.orderName === '#55009',
+   '⚠️ وصف `null` جوّه القايمة مابيوقّعش المطابقة');
+
+// ── التلات أقسام ──
+const SC = [
+  { orderId: '1', orderName: '#1' },
+  { orderId: '2', orderName: '#2' },
+  { orderId: '3', orderName: '#3' },
+];
+const b1 = T.dcoAuditBuckets(SC, [{ orderId: '1', key: 'id:1', hit: 'scope' }]);
+is(b1.counts.scope === 3 && b1.counts.matched === 1 && b1.counts.missing === 2 && b1.counts.extra === 0,
+   'سكانة واحدة في النطاق: ١ مظبوط · ٢ مفقود · ٠ خطأ', JSON.stringify(b1.counts));
+is(b1.counts.pending === b1.counts.missing,
+   '⚠️ «لسه ما اتعملّهاش سكان» **نفس الرقم** بالظبط — الاسم هو الفرق مش الحساب');
+// 🔴 نفس الأوردر مرتين بصيغتين
+const b2 = T.dcoAuditBuckets(SC, [
+  { orderId: '1', key: 'id:1', hit: 'scope' },
+  { orderId: '1', key: 'name:#1', hit: 'scope' },
+]);
+is(b2.counts.matched === 1,
+   '🔴 نفس الأوردر بصيغتين بيتعدّ **مرة واحدة** — وإلا «مضبوطة» بتبقى أكبر من النطاق');
+// موجود خطأ
+const b3 = T.dcoAuditBuckets(SC, [
+  { orderId: '9', key: 'id:9', hit: 'queue', row: { orderId: '9', orderName: '#9' } },
+  { orderId: null, key: 'id:6959895839042', hit: 'none' },
+]);
+is(b3.counts.extra === 2 && b3.counts.matched === 0 && b3.counts.missing === 3,
+   'السكانة اللي مش في النطاق بتروح «موجودة خطأ» — والنطاق مايتأثرش', JSON.stringify(b3.counts));
+is(T.dcoAuditBuckets([{ orderName: '#x' }], []).counts.scope === 0,
+   '🔴 الصف اللي مالوش `orderId` **مابيدخلش النطاق** — كان بيبقى مفقود للأبد (مفيش كود يطابقه)');
+is(T.dcoAuditBuckets(null, null).counts.scope === 0,
+   'و`null` في الطرفين بيرجّع أصفار مش رمي');
+is(T.dcoAuditBuckets(SC, [{ orderId: 1, key: 'id:1', hit: 'scope' }]).counts.matched === 1,
+   '⚠️ و`orderId` رقمي بيطابق النصّي — الـ Worker بيرجّع نص، والكاش بيرجّع اللي اتخزّن');
+
+// ── السبب ──
+const r1 = T.dcoAuditReason({ hit: 'queue', row: { orderName: '#9' }, parsed: { display: '#9' } });
+is(r1.code === 'out_of_scope' && /Ready/.test(r1.detail) && r1.action.length > 10,
+   '🔴 «بره الفلتر» سبب **مستقل** — الطرد مكانه صح، والفعل مختلف تمامًا', JSON.stringify(r1));
+const r2 = T.dcoAuditReason({ hit: 'none', parsed: { display: '695' } });
+is(r2.code === 'unknown' && /مش معروفة/.test(r2.detail),
+   '⚠️ و«لسه ما استعلمناش» حالة صريحة — مش «مش موجود على شوبيفاي»');
+const r3 = T.dcoAuditReason({ hit: 'none', parsed: { display: '695' }, lookup: { found: false } });
+is(r3.code === 'not_found', 'وبعد الاستعلام الفاشل بتبقى «مالوش أوردر على شوبيفاي»');
+const r4 = T.dcoAuditReason({ hit: 'none', parsed: { display: '695' },
+  lookup: { found: true, order: { s1: 'Shipped', s2: null } } });
+is(r4.code === 'already_shipped' && /Shipped/.test(r4.detail),
+   'وحالة `Shipped` بتقول إن الشحنة مسجّلة إنها خرجت وهي في المكتب');
+const r5 = T.dcoAuditReason({ hit: 'none', parsed: { display: '695' },
+  lookup: { found: true, order: { s1: 'Ready', s2: null, cancelledAt: '2026-09-14T18:00:00Z' } } });
+is(r5.code === 'cancelled',
+   '🔴 والإلغاء **بيغلب** أي حالة تانية — طرد أوردره ملغي مش شغل شحن');
+const r6 = T.dcoAuditReason({ hit: 'none', parsed: { display: '695' },
+  lookup: { found: true, order: { s1: 'Confirmed', s2: null } } });
+is(r6.code === 'not_ready' && /Confirmed/.test(r6.detail),
+   'وأي حالة تانية بتتعرض **بالحرف** في السبب — بند بيقول «فيه حاجة» تكلفته فحص يدوي');
+for (const r of [r1, r2, r3, r4, r5, r6])
+  is(!!(r.label && r.detail && r.action), `وكل سبب بيقول التلاتة (label · detail · action) — ${r.code}`);
 
 // ══ ⑦ متفرقات ══════════════════════════════════════════════
 console.log('\n══ ⑦ متفرقات ══');

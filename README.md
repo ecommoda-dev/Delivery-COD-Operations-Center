@@ -27,14 +27,14 @@
 index.js              🔴 Worker الدخول (دخول/خروج بس · binding DB)
 wrangler.toml         إعدادات الـ Worker
 index.html            الدخول + الشاشة الرئيسية
-ready-orders.html     طابور الجاهز للشحن
+ready-orders.html     قسم الجاهز للشحن + 🧮 تاب جرد المكتب
 shipped-orders.html   طابور المشحون
 shared/shell.css      التوكنز + الـ chrome (نسخة واحدة)
-shared/shell.js       الإعدادات + الجلسة + §QUEUE-RULES (مصدر الاشتقاق الوحيد)
+shared/shell.js       الإعدادات + الجلسة + §QUEUE-RULES + §AUDIT-RULES (مصدر الاشتقاق الوحيد)
 docs/build-pages.py   مولّد الصفحتين — 🔴 الـ HTML **متولّد**، عدّل هنا
 docs/css-check.js     فحص CSS بـ parser حقيقي
-docs/rules-check.mjs  فحص منطق §QUEUE-RULES — ٥٢ بند (بلا تنصيب)
-docs/queues-check.mjs فحص متصفح فعلي — ٨٠ بند
+docs/rules-check.mjs  فحص منطق §QUEUE-RULES و§AUDIT-RULES — ٩٠ بند (بلا تنصيب)
+docs/queues-check.mjs فحص متصفح فعلي — ١٦٩ بند
 ```
 
 ## الفحوص — قبل أي تسليم

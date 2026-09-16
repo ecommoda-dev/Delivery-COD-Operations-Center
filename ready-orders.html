@@ -19,6 +19,14 @@
 
   <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
   <link rel="stylesheet" href="shared/shell.css">
+
+  <!-- 🔴 **أول مكتبة خارجية في الهب كله** — تصدير XLSX لنتيجة الجرد
+       (قرار أحمد 16-09-2026). ⚠️ والاستخدام كله **محروس بـ
+       `typeof ExcelJS === 'undefined'`**: الشبكة اللي بتقع أو CDN محجوب
+       بيخلّي الزرار يقول «المكتبة ما اتحمّلتش» بدل ما الضغطة ترمي
+       `ReferenceError` و**الصفحة كلها تسكت**. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" defer></script>
+
 <style>
 /* ══════════════════════════════════════════════════════════════
    §STYLES — الصفحة دي بس. مفيش كتلة توكنز هنا (كلها في الـ shell).
@@ -272,12 +280,105 @@
 .q-warn { margin: 0 16px 12px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--amber-light); border: 1px solid var(--amber-border); color: var(--amber-dark); font-size: 12.5px; font-weight: 700; line-height: 1.7; }
 .q-empty { padding: 30px 16px; text-align: center; color: var(--text-muted); font-size: 13.5px; }
 .q-empty .ico { font-size: 28px; margin-bottom: 7px; }
+
+/* ── §AUDIT — تاب «جرد المكتب» (v1.3.0) ─────────────────────────
+   ⚠️ الكتلة دي **في صفحة الجاهز للشحن بس** — المولّد مابيحقنهاش في صفحة
+      المشحون. CSS بلا ماركب بيستهلكه = ضوضاء في ملف بيتقري بالعين. */
+.aud-ctl-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.aud-title { font-size: 15px; font-weight: 800; color: var(--text-primary); }
+.aud-sub { font-size: 12px; font-weight: 600; color: var(--text-secondary); line-height: 1.8; margin-top: 4px; max-width: 620px; }
+.aud-sub b { color: var(--text-primary); }
+.aud-btns { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* 🔴 مربع السكانر **مقفول بصريًا** قبل بدء الجرد — مربع شكله شغّال والموظف
+   بيسكن فيه ومحصلش حاجة هو بالظبط الحالة اللي بتخلّيه يعيد الجرد كله. */
+.aud-scan { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border: 2px dashed var(--accent-border); border-radius: var(--radius-sm); background: var(--accent-light); transition: opacity .15s, border-color .15s; }
+.aud-scan.inactive { border-color: var(--border-strong); background: var(--surface-2); opacity: .55; }
+.aud-scan-lbl { font-size: 13px; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
+.aud-scan-input { flex: 1; min-width: 200px; padding: 11px 12px; border: 2px solid var(--accent-border); border-radius: var(--radius-sm); font-family: inherit; font-size: 17px; font-weight: 800; letter-spacing: .5px; direction: ltr; text-align: center; background: var(--surface); color: var(--text-primary); }
+.aud-scan-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-hover); }
+.aud-scan-input:disabled { background: var(--surface-2); color: var(--text-muted); }
+.aud-scan-hint { font-size: 11.5px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+
+/* آخر سكانة — بتقول **الكود والنتيجة** مع بعض. التوست بيختفي بعد ٣ ثواني،
+   والموظف اللي بيسكن ٥٠ طرد ورا بعض محتاج يشوف آخر واحدة قاعدة قدامه. */
+.aud-last { margin-top: 10px; min-height: 22px; font-size: 12.5px; font-weight: 700; line-height: 1.7; }
+.aud-last .ok    { color: var(--green-dark); }
+.aud-last .dup   { color: var(--text-secondary); }
+.aud-last .extra { color: var(--amber-dark); }
+
+.aud-prog-wrap { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.aud-prog { flex: 1; height: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.aud-prog-bar { height: 100%; width: 0%; background: var(--green); transition: width .25s; }
+.aud-prog-txt { font-size: 12px; font-weight: 800; color: var(--text-secondary); min-width: 38px; text-align: left; direction: ltr; }
+
+.aud-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; margin-top: 14px; }
+.aud-card { padding: 12px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); text-align: center; }
+.aud-card.clickable { cursor: pointer; }
+.aud-card.clickable:hover { background: var(--surface-hover); }
+.aud-card .aud-n { font-size: 24px; font-weight: 800; color: var(--text-primary); direction: ltr; }
+.aud-card .aud-l { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); margin-top: 2px; }
+.aud-card.ok    { background: var(--green-light); border-color: var(--green-border); }
+.aud-card.ok    .aud-n { color: var(--green-dark); }
+.aud-card.pend  { background: var(--blue-light);  border-color: var(--blue-border); }
+.aud-card.pend  .aud-n { color: var(--accent-dark); }
+.aud-card.miss  { background: var(--red-light);   border-color: var(--red-border); }
+.aud-card.miss  .aud-n { color: var(--red-dark); }
+.aud-card.extra { background: var(--amber-light); border-color: var(--amber-border); }
+.aud-card.extra .aud-n { color: var(--amber-dark); }
+
+/* هيدر قسم النتيجة — نفس `.tbl-bar` في الشكل، بلون القسم */
+.aud-sec { margin-bottom: 16px; }
+.aud-sec-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none; border-radius: var(--radius) var(--radius) 0 0; }
+.aud-sec-bar-right { display: flex; align-items: center; gap: 9px; }
+.aud-sec-title { font-size: 13.5px; font-weight: 800; }
+.aud-sec-n { font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); direction: ltr; }
+.aud-sec.s-ok    .aud-sec-bar { background: var(--green-light); }
+.aud-sec.s-ok    .aud-sec-title { color: var(--green-dark); }
+.aud-sec.s-miss  .aud-sec-bar { background: var(--red-light); }
+.aud-sec.s-miss  .aud-sec-title { color: var(--red-dark); }
+.aud-sec.s-extra .aud-sec-bar { background: var(--amber-light); }
+.aud-sec.s-extra .aud-sec-title { color: var(--amber-dark); }
+.aud-sec-body.collapsed { display: none; }
+.aud-toggle { font-size: 11px; color: var(--text-secondary); transition: transform .15s; display: inline-block; }
+.aud-toggle.open { transform: rotate(180deg); }
+
+/* كروت «موجودة خطأ» — مش جدول عن قصد: كل صف فيه **سبب وفعل مطلوب**،
+   وده نص بيلف، والجدول بيخلّي الخلية دي تاكل عرض الشاشة. */
+.aud-x-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+.aud-x { border: 1px solid var(--amber-border); border-radius: var(--radius-sm); background: var(--amber-light); padding: 11px 13px; }
+.aud-x-code { font-size: 14px; font-weight: 800; color: var(--text-primary); direction: ltr; text-align: right; }
+.aud-x-lbl { font-size: 12.5px; font-weight: 800; color: var(--amber-dark); margin-top: 3px; }
+.aud-x-det { font-size: 12px; font-weight: 600; color: var(--text-mid); line-height: 1.8; margin-top: 3px; }
+.aud-x-act { font-size: 12px; font-weight: 700; color: var(--text-primary); line-height: 1.8; margin-top: 5px; }
+.aud-x.is-scope { border-color: var(--blue-border); background: var(--blue-light); }
+.aud-x.is-scope .aud-x-lbl { color: var(--accent-dark); }
+
 </style>
 </head>
 <body>
 
 <div class="container">
   <div id="headerMount"></div>
+
+  <!-- ══ تابين: الطابور · الجرد ══════════════════════════════════
+       🔴 **تاب مش صفحة تانية** (قرار 16-09-2026) — الجرد نطاقه هو **نفس
+          الصفوف المعروضة** في الطابور، فصفحة مستقلة كانت هتجيب نفس
+          الطابور تاني من نفس الـ Worker، والرقمين ممكن يفترقوا لو الجلبتين
+          حصلوا في وقتين. تاب واحد = **جلب واحد ومصدر واحد**.
+       ⚠️ و`switchMainTab` **في الصفحة مش في الـ shell** — القايمة السودا
+          في أول `shared/shell.js` بتسمّيها بالاسم: منطق التابات بيفرق من
+          صفحة للتانية فعلاً. -->
+  <div class="main-tabs-bar">
+    <button class="main-tab-btn active" id="tabQueueBtn" type="button" onclick="switchMainTab('queue')">📋 الطابور</button>
+    <button class="main-tab-btn" id="tabAuditBtn" type="button" onclick="switchMainTab('audit')">🧮 جرد المكتب</button>
+  </div>
+
+  <!-- 🔴 **الغلاف ده هو اللي التاب بيخفيه/بيظهره** — والطابور جوّه بالكامل
+       (صندوق العدّ + القسم الموحّد). ⚠️ وفي صفحة بلا تابات الغلاف موجود
+       برضه ومفتوح دايمًا: غلاف بيتحقن في صفحة وميتشقنش في التانية معناه
+       ملفين مختلفين في البنية، وده بالظبط اللي المولّد اتعمل ضده. -->
+  <div id="viewQueue">
 
   <!-- ══ صندوق العدّ ══════════════════════════════════════════
        🔴 **الرقم الكبير = عدد الصفوف اللي رجعت من الطابور بالحرف**، وهو
@@ -463,6 +564,117 @@
       </div>
     </div>
   </div>
+
+  </div><!-- /#viewQueue -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     §AUDIT-VIEW — تاب «جرد المكتب»
+     🔴 **الجرد كله محلي على الجهاز** — صفر كتابة على شوبيفاي وصفر صف في
+        D1. النداء الوحيد الزيادة هو `lookup_orders` (قراءة) لقسم «موجودة
+        خطأ»، وبيتم **بضغطة الموظف** مش تلقائي.
+     ══════════════════════════════════════════════════════════════ -->
+<div id="viewAudit" style="display:none">
+
+  <div class="card">
+    <div class="aud-ctl-head">
+      <div>
+        <div class="aud-title">🧮 جرد المكتب</div>
+        <!-- 🔴 **نطاق الجرد بيتكتب بالنص** — «المعروض بعد الفلتر» نطاق
+             شرعي (قرار أحمد 16-09-2026)، بس نطاق **مش مكتوب** معناه إن
+             الموظف مش عارف «المفقودة» دي مفقودة من إيه بالظبط. -->
+        <div class="aud-sub" id="audScope">—</div>
+      </div>
+      <div class="aud-btns">
+        <button class="btn-primary" id="audStartBtn" type="button" onclick="audStart()">▶ بدء الجرد</button>
+        <button class="btn-green"   id="audEndBtn"   type="button" onclick="audEnd()"   style="display:none">✔ إنهاء الجرد</button>
+        <button class="btn-outline" id="audResetBtn" type="button" onclick="audReset()" style="display:none">↺ جرد جديد</button>
+        <button class="btn-outline" id="audExportBtn" type="button" onclick="audExport()" style="display:none">⬇️ تصدير XLSX</button>
+      </div>
+    </div>
+
+    <!-- السكانر — 🔴 النمط الإلزامي: الـ listener بيعمل `setTimeout` **بس**،
+         و`audScan()` هي اللي بتقرا وبتفضّي وبتنفّذ. قراءة القيمة جوّه
+         الـ listener بتلزّق باركودين ورا بعض في قيمة واحدة. -->
+    <div class="aud-scan inactive" id="audScanArea">
+      <label class="aud-scan-lbl" for="audScanInput">📷 سكان باركود الطرد</label>
+      <!-- ⚠️ بلا `placeholder` (Step 2 بند ٧) — النص الرمادي جوّه المربع
+           بيتقري **قيمة مكتوبة** من بعيد، والليبل جنبه هو الوصف. -->
+      <input type="text" id="audScanInput" class="aud-scan-input" autocomplete="off"
+             inputmode="numeric" aria-label="سكان باركود الطرد" disabled>
+      <span class="aud-scan-hint">السكانر أو اكتب الكود + Enter</span>
+    </div>
+    <div class="aud-last" id="audLast"></div>
+
+    <div class="aud-prog-wrap" id="audProgWrap" style="display:none">
+      <div class="aud-prog"><div class="aud-prog-bar" id="audProgBar"></div></div>
+      <span class="aud-prog-txt" id="audProgTxt">0%</span>
+    </div>
+
+    <!-- المربعات — 🔴 «لسه ما اتعملّهاش سكان» و«مفقودة» **مربعين
+         مختلفين، وواحد بس بيتعرض في المرة**: الأول حالة وسط الجرد
+         والتاني نتيجة بعد ما يتقفل. مربع «مفقودة» وهو لسه بيسكن بيقول
+         للموظف إن فيه طرود ضايعة وهي لسه في إيده. -->
+    <div class="aud-cards">
+      <div class="aud-card"       id="audCardScope"><div class="aud-n" id="audNScope">—</div><div class="aud-l">نطاق الجرد</div></div>
+      <div class="aud-card ok"    id="audCardOk"><div class="aud-n" id="audNOk">—</div><div class="aud-l">مضبوطة</div></div>
+      <div class="aud-card pend"  id="audCardPend"><div class="aud-n" id="audNPend">—</div><div class="aud-l">لسه ما اتعملّهاش سكان</div></div>
+      <div class="aud-card miss"  id="audCardMiss" style="display:none"><div class="aud-n" id="audNMiss">—</div><div class="aud-l">مفقودة</div></div>
+      <div class="aud-card extra" id="audCardExtra"><div class="aud-n" id="audNExtra">—</div><div class="aud-l">موجودة خطأ</div></div>
+    </div>
+  </div>
+
+  <!-- قسم ① مضبوطة -->
+  <div class="unified-section aud-sec s-ok" id="audSecOk" style="display:none">
+    <div class="aud-sec-bar" onclick="audToggleSec('Ok')">
+      <div class="aud-sec-bar-right">
+        <span class="aud-toggle" id="audTogOk">▲</span>
+        <span class="aud-sec-title">✅ أوردرات مظبوطة</span>
+        <span class="aud-sec-n" id="audSecNOk">0</span>
+      </div>
+    </div>
+    <div class="aud-sec-body collapsed" id="audBodyOk">
+      <div class="tbl-scroll"><table class="data-table"><thead><tr>
+        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>المندوب</th>
+        <th>موقع الشحنة</th><th>نوع الأوردر</th><th>مراجعة</th>
+      </tr></thead><tbody id="audBodyOkRows"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- قسم ② مفقودة -->
+  <div class="unified-section aud-sec s-miss" id="audSecMiss" style="display:none">
+    <div class="aud-sec-bar" onclick="audToggleSec('Miss')">
+      <div class="aud-sec-bar-right">
+        <span class="aud-toggle open" id="audTogMiss">▲</span>
+        <span class="aud-sec-title">❌ أوردرات مفقودة — مفروض تكون موجودة</span>
+        <span class="aud-sec-n" id="audSecNMiss">0</span>
+      </div>
+    </div>
+    <div class="aud-sec-body" id="audBodyMiss">
+      <div class="tbl-scroll"><table class="data-table"><thead><tr>
+        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>المندوب</th>
+        <th>موقع الشحنة</th><th>نوع الأوردر</th><th>مراجعة</th>
+      </tr></thead><tbody id="audBodyMissRows"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- قسم ③ موجودة خطأ -->
+  <div class="unified-section aud-sec s-extra" id="audSecExtra" style="display:none">
+    <div class="aud-sec-bar" onclick="audToggleSec('Extra')">
+      <div class="aud-sec-bar-right">
+        <span class="aud-toggle open" id="audTogExtra">▲</span>
+        <span class="aud-sec-title">⚠️ أوردرات موجودة خطأ — اتعمل لها سكان ومش المفروض تكون هنا</span>
+        <span class="aud-sec-n" id="audSecNExtra">0</span>
+      </div>
+      <!-- ⚠️ `stopPropagation` إلزامية — من غيرها الضغطة بتطوي القسم -->
+      <button class="act-btn" id="audLookupBtn" type="button"
+        onclick="event.stopPropagation(); audLookup();">🔍 استعلام عن الحالة الفعلية</button>
+    </div>
+    <div class="aud-sec-body" id="audBodyExtra"><div class="aud-x-list" id="audXList"></div></div>
+  </div>
+
+  <div class="q-empty" id="audEmpty"></div>
+</div>
+
 </div>
 
 <!-- نافذة تفاصيل علامات المراجعة -->
@@ -522,6 +734,52 @@
           </ul>
         </div>
       </details>
+      <details class="about-sec">
+        <summary>تاب «جرد المكتب» — إزاي بيشتغل</summary>
+        <div class="about-sec-body">
+          <p>الجرد بيجاوب على سؤال واحد: <b>كل طرد المفروض يكون في المكتب — موجود فعلاً؟</b>
+             الموظف بيعمل سكان لباركود كل طرد، والنتيجة <b>تلات أقسام</b>.</p>
+          <ul>
+            <li><b>أوردرات مظبوطة</b> — في نطاق الجرد واتعمل لها سكان.</li>
+            <li><b>أوردرات مفقودة</b> — في النطاق و<b>ما اتعملّهاش سكان</b>: الطرد ده
+                المفروض في المكتب ومش لاقيينه.</li>
+            <li><b>أوردرات موجودة خطأ</b> — اتعمل لها سكان و<b>مش في النطاق</b>. وكل
+                واحدة بتقول <b>السبب والفعل المطلوب</b>: يا إما الأوردر جاهز للشحن فعلاً
+                بس <b>بره الفلتر</b> اللي بدأت بيه (الطرد مكانه صح)، يا إما مش في القسم
+                خالص — وساعتها زرار <b>«استعلام عن الحالة الفعلية»</b> بيجيب حالته
+                الحقيقية من شوبيفاي (S1 · S2 · الإلغاء).</li>
+          </ul>
+          <h4>النطاق</h4>
+          <ul>
+            <li>النطاق هو <b>الصفوف المعروضة بعد الفلتر</b> وقت الضغط على «بدء الجرد»
+                (قرار أحمد 16-09-2026) — فتقدر تجرد «بوسطة بس» مثلاً.</li>
+            <li>🔴 والنطاق <b>بيتثبّت لقطة وقت البدء</b>: أي فلتر أو تحديث بعد كده
+                <b>مالوش أي أثر</b> على قايمة المفقود. الفلتر اللي اتثبت بيه مكتوب
+                بالنص فوق الجرد وجوّه ملف التصدير.</li>
+            <li>⚠️ <b>«لسه ما اتعملّهاش سكان» مش «مفقودة»</b> — الأولى حالة وانت لسه
+                بتسكن، والتانية نتيجة بعد «إنهاء الجرد».</li>
+          </ul>
+          <h4>الباركود</h4>
+          <ul>
+            <li>الباركود على الطرد فيه <b>Order ID الطويل</b> (١٣ رقم). والمربع بياخد كمان
+                <b>رقم الأوردر</b> (<code>#55001</code>) والـ <code>gid</code> الكامل
+                ورقم التتبع لو مسجّل على الصف.</li>
+            <li>الأوردر اللي اتعمله سكان مرتين <b>بيتعدّ مرة واحدة</b> — والشاشة بتقول
+                «اتعمله سكان قبل كده» بنغمة محايدة، مش إنذار.</li>
+            <li>كود أقل من ٤ أرقام <b>مابيتحسبش سكانة</b> — دي قراءة مقطوعة من السكانر،
+                وجزء من الكود ممكن يطابق أوردر تاني بالغلط.</li>
+          </ul>
+          <h4>الحفظ والتصدير</h4>
+          <ul>
+            <li>الجرد <b>محفوظ في الجلسة</b> — refresh وسط الجرد مابيضيّعش السكانات.
+                ⚠️ بس <b>قفل التاب بيمسحه</b> (نفس عقد الجلسة — مفيش تخزين دائم غير السر).</li>
+            <li>🔴 الجرد <b>مابيكتبش أي حاجة</b>: لا على شوبيفاي ولا في سجل D1. النتيجة
+                على الشاشة + <b>تصدير XLSX</b> بأربع شيتات (مظبوطة · مفقودة · موجودة خطأ ·
+                الملخص).</li>
+          </ul>
+        </div>
+      </details>
+
     </div>
     <div class="eco-modal-ftr"><button class="btn-ghost" onclick="closeAbout()">إغلاق</button></div>
   </div>
@@ -531,9 +789,26 @@
   <div class="eco-modal">
     <div class="eco-modal-hdr"><span>📋 سجل التحديثات</span><button class="modal-close-x" onclick="closeChangelog()">✕</button></div>
     <div class="eco-modal-body">
+      <!-- ⚠️ بادج أول كتلة **بيتكتب من `TOOL_VERSION`** (مصدر واحد · #24)،
+           فالبنود اللي تحته لازم تكون بنود النسخة الحالية فعلاً — كتلة
+           بنسخة جديدة وبنود قديمة أسوأ من مفيش سجل. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.0.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.3.0</span>
+          <span class="cl-ver-date">16-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>تاب «جرد المكتب»</b> — سكان لباركود كل طرد، والنتيجة <b>تلات أقسام</b>: مظبوطة · <b>مفقودة</b> (في النطاق وما اتعملّهاش سكان) · <b>موجودة خطأ</b> (اتعمل لها سكان ومش في النطاق).</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>كل «موجود خطأ» بيقول السبب والفعل</b> — «جاهز للشحن بس بره الفلتر» ≠ «مش في القسم خالص»، وزرار <b>«استعلام عن الحالة الفعلية»</b> بيجيب S1/S2 والإلغاء من شوبيفاي (محتاج <code>ready-orders-worker</code> <b>v1.2.0</b>).</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>النطاق = المعروض بعد الفلتر</b>، و<b>بيتثبّت لقطة وقت البدء</b> — أي فلتر بعد كده مالوش أثر على قايمة المفقود، والفلتر اللي اتثبت بيه مكتوب بالنص.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>الجرد محفوظ في الجلسة</b> — refresh وسط جرد مئات الطرود مابيضيّعش السكانات. و<b>تصدير XLSX</b> بأربع شيتات (مظبوطة · مفقودة · موجودة خطأ · الملخص بالنطاق والفلتر).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>الصفحة بقت <b>تابين</b>: «📋 الطابور» و«🧮 جرد المكتب» — جلب واحد ومصدر واحد للاتنين.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.0.0</span>
           <span class="cl-ver-date">15-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -559,7 +834,7 @@
 //    التحويل لشاشة الدخول شغّال.
 const session = requireSession();
 
-const { apiGet } = dcoApi(DCO_WORKERS.ready);
+const { apiGet, apiPost } = dcoApi(DCO_WORKERS.ready);
 const PAGE_WORKERS = ['ready'];
 
 // ══════════════════════════════════════════════════════════════
@@ -1281,6 +1556,481 @@ async function renderAboutWorkers() {
     `<table><tr><th>الأداة</th><th>نسخة الـ Worker</th><th>الحد الأدنى</th></tr>${rows.join('')}</table>
      <p>نسخة الواجهة (الهب كله): <code>${esc(TOOL_VERSION)}</code></p>`;
 }
+
+
+// ══════════════════════════════════════════════════════════════
+// §AUDIT — جرد المكتب (v1.3.0 · طلب أحمد 16-09-2026)
+// ══════════════════════════════════════════════════════════════
+//
+// 🔴 **صفر قاعدة اشتقاق هنا.** التطبيع (`dcoScanParse`) والمطابقة
+//    (`dcoScanFind`) والتلات أقسام (`dcoAuditBuckets`) والسبب
+//    (`dcoAuditReason`) كلهم في `shared/shell.js` §AUDIT-RULES — عشان
+//    `docs/rules-check.mjs` يقدر يدّيهم **مدخلات باظة**: كود بحروف بس ·
+//    صف بلا `orderId` · نفس الأوردر مرتين بصيغتين. الحالات دي مستحيل
+//    تتزرع في بيانات وهمية معقولة، وهي بالظبط اللي بتنتج رقم غلط شكله سليم.
+//
+// 🔴 **الجرد مابيكتبش أي حاجة** — لا على شوبيفاي ولا في D1. النتيجة على
+//    الشاشة + XLSX. أي كتابة (سجل جرد مثلاً) محتاجة تسجيل `tool`/`type`
+//    في `ecommoda-constants` §7 **قبل** أول `writeLog` (Rule 7).
+const AUD_KEY     = DCO_AUDIT_READY;
+
+// حارس معقولية — السكانر اللي بيقطع القراءة بيدّي جزء من الكود، والجزء
+// ده ممكن يطابق أوردر تاني بالغلط. أقل من ٤ أرقام **مابيتحسبش سكانة**.
+const AUD_MIN_LEN = 4;
+
+const audState = { phase: 'idle', startedAt: null, endedAt: null,
+                   scopeLabel: '', scope: [], scans: [] };
+let audResult = dcoAuditBuckets([], []);
+
+// ── التابات — 🔴 في الصفحة مش في الـ shell (القايمة السودا) ──
+function switchMainTab(tab) {
+  const isAudit = tab === 'audit';
+  document.getElementById('viewQueue').style.display = isAudit ? 'none' : '';
+  document.getElementById('viewAudit').style.display = isAudit ? '' : 'none';
+  document.getElementById('tabQueueBtn').classList.toggle('active', !isAudit);
+  document.getElementById('tabAuditBtn').classList.toggle('active', isAudit);
+  if (isAudit) { audRender(); audFocus(); }
+}
+function audFocus() {
+  const el = document.getElementById('audScanInput');
+  if (el && !el.disabled) el.focus();
+}
+
+// ── وصف النطاق — 🔴 بيتكتب بالنص، مش متروك للموظف يفتكره ──────
+//
+// أحمد اختار «المعروض بعد الفلتر» نطاقًا للجرد (16-09-2026). النطاق ده
+// **بيتثبّت وقت البدء** (لقطة) عشان ضغطة فلتر وسط الجرد ماتغيّرش قايمة
+// المفقود، والسطر ده هو اللي بيقول الموظف اتثبت على إيه.
+function audFilterDesc() {
+  const parts = [];
+  for (const f of Q_FILTERS) {
+    const sel = qMsState[f.key].selected;
+    if (sel.size) parts.push(`${f.label}: ${[...sel].join(' + ')}`);
+  }
+  if (qSearchTerm.trim())  parts.push(`بحث: ${qSearchTerm.trim()}`);
+  if (qDateFilterActive)   parts.push(`تاريخ: ${qDateFrom || '…'} → ${qDateTo || '…'}`);
+  return parts.length ? parts.join(' · ') : 'بلا فلتر — الطابور كله';
+}
+
+// ── الحفظ في الجلسة ──────────────────────────────────────────
+// 🔴 refresh وسط جرد ١٢٦ طرد كان بيمسح ساعة شغل بلا أي تحذير.
+// ⚠️ والفشل بيتبلع بصمت (`cacheSet`) — الحفظ **تحسين مش شرط**، والجرد
+//    بيكمّل شغّال في الذاكرة لو التخزين مرفوض.
+function audPersist() {
+  cacheSet(AUD_KEY, { phase: audState.phase, startedAt: audState.startedAt,
+                      endedAt: audState.endedAt, scopeLabel: audState.scopeLabel,
+                      scope: audState.scope, scans: audState.scans });
+}
+function audRestore() {
+  const c = cacheGet(AUD_KEY);
+  const d = c && c.data;
+  // ⚠️ الشكل بيتفحص بند بند — جلسة من نسخة أقدم بشكل مختلف بتترفض
+  //    بدل ما تتقري غلط (نفس قاعدة `v` في عقد الجلسة).
+  if (!d || (d.phase !== 'running' && d.phase !== 'ended')) return false;
+  if (!Array.isArray(d.scope) || !Array.isArray(d.scans) || !d.scope.length) return false;
+  audState.phase     = d.phase;
+  audState.startedAt = d.startedAt || null;
+  audState.endedAt   = d.endedAt   || null;
+  audState.scopeLabel = d.scopeLabel || '';
+  audState.scope     = d.scope;
+  audState.scans     = d.scans;
+  return true;
+}
+
+// ── دورة الجرد ───────────────────────────────────────────────
+function audStart() {
+  // 🔴 **ممنوع جرد قبل أول جلب ناجح** — نطاق من طابور ما اتجابش معناه
+  //    «كل حاجة مفقودة» على شاشة الموظف، وهي مش مفقودة: إحنا اللي
+  //    ماجبناهاش.
+  if (!qState.at) { showToast('الطابور لسه ما اتجابش — استنى أول تحديث ناجح', 'warn'); return; }
+  const scope = qVisible();
+  if (!scope.length) { showToast('مفيش صفوف معروضة — امسح الفلتر الأول', 'warn'); return; }
+  audState.phase      = 'running';
+  audState.startedAt  = new Date().toISOString();
+  audState.endedAt    = null;
+  audState.scopeLabel = audFilterDesc();
+  // ⚠️ **لقطة بالقيمة** — `qState.rows` بتتبدل بالكامل مع كل جلب (كل ١٥
+  //    دقيقة)، والمرجع كان هيخلّي النطاق يتغيّر تحت إيد الموظف.
+  audState.scope      = scope.map(r => ({ ...r }));
+  audState.scans      = [];
+  audPersist();
+  audRender();
+  audFocus();
+  showToast(`بدأ الجرد على ${scope.length} أوردر — ابدأ السكان 📷`, 'success');
+}
+
+function audEnd() {
+  if (audState.phase !== 'running') return;
+  audState.phase   = 'ended';
+  audState.endedAt = new Date().toISOString();
+  audPersist();
+  audRender();
+  const c = audResult.counts;
+  showToast(`انتهى الجرد — ✅ ${c.matched} مظبوطة · ❌ ${c.missing} مفقودة · ⚠️ ${c.extra} موجودة خطأ`, 'neutral', 6000);
+}
+
+// ⛔ **تأكيد إلزامي** — «جرد جديد» بيمسح كل السكانات، وده فعل **مالوش
+//    رجعة**: الطرود اللي اتعمل لها سكان مش هتتعاد بضغطة.
+function audReset() {
+  if (audState.scans.length && !confirm(`تمسح الجرد الحالي؟ فيه ${audState.scans.length} سكانة وهتضيع.`)) return;
+  audState.phase = 'idle'; audState.startedAt = null; audState.endedAt = null;
+  audState.scopeLabel = ''; audState.scope = []; audState.scans = [];
+  audPersist();
+  audSetLast('', '');
+  audRender();
+}
+
+// ── السكان — 🔴 النمط الإلزامي ───────────────────────────────
+//   الـ listener بيعمل `setTimeout` **بس**، و`audScan()` هي اللي بتقرا
+//   وبتفضّي وبتنفّذ. قراءة القيمة جوّه الـ listener بتلزّق باركودين ورا
+//   بعض في قيمة واحدة (`ecommoda-html-builder` §SCAN).
+let audTimer;
+function audScan() {
+  const el  = document.getElementById('audScanInput');
+  const raw = el.value.trim();      // ✅ القراءة هنا
+  el.value  = '';                   // ✅ والتفضية هنا
+  audFocus();
+  if (!raw) return;
+  if (audState.phase !== 'running') { showToast('ابدأ الجرد الأول', 'warn'); return; }
+
+  // حارس المعقولية — قراءة مقطوعة مش سكانة
+  if (raw.replace(/\D/g, '').length < AUD_MIN_LEN) {
+    playBeep('fail');
+    audSetLast('extra', `«${esc(raw)}» — كود قصير، السكانر قطع القراءة. اعمل سكان تاني.`);
+    return;
+  }
+
+  const parsed = dcoScanParse(raw);
+  if (!parsed) {
+    playBeep('fail');
+    audSetLast('extra', `«${esc(raw)}» — مش كود أوردر. اعمل سكان تاني.`);
+    return;
+  }
+
+  // 🔴 **النطاق الأول، وبعده الطابور الكامل.** الفرق بين «بره الفلتر» و
+  //    «مش في القسم خالص» هو الفرق بين «الطرد مكانه صح» و«الطرد غلط» —
+  //    ودمجهم في سبب واحد كان بيدّي الموظف حكم غلط على طرد سليم.
+  const inScope = dcoScanFind(audState.scope, parsed);
+  const row     = inScope || dcoScanFind(qState.rows, parsed);
+  const orderId = row ? String(row.orderId) : null;
+  const key     = dcoScanKey(parsed);
+
+  // ⚠️ التفريد على `orderId` لما نعرفه، وعلى المفتاح لما مانعرفوش — نفس
+  //    الأوردر ممكن يتعمله سكان بالاسم مرة وبالـ ID مرة، والعدّ مرتين
+  //    كان بيخلّي «مضبوطة» أكبر من النطاق نفسه.
+  const dupe = audState.scans.find(s => (orderId && s.orderId === orderId) || (!orderId && s.key === key));
+  if (dupe) {
+    dupe.count = (dupe.count || 1) + 1;
+    dupe.at    = new Date().toISOString();
+    // ⚠️ نغمة **محايدة** للمكرر مش نغمة فشل — التكرار حالة عادية في جرد
+    //    مئات الطرود، ونغمة إنذار على كل تكرار بتخلّي الموظف يتعلّم
+    //    يعدّي على الإنذار كله (نفس درس `already` الأحمر في سكانرات بوسطة).
+    playBeep('scan');
+    audSetLast('dup', `${esc(dupe.parsed?.display || key)} — اتعمله سكان قبل كده (${dupe.count} مرات)`);
+    audPersist(); audRender();
+    return;
+  }
+
+  const scan = { key, parsed, at: new Date().toISOString(), orderId,
+                 hit: inScope ? 'scope' : (row ? 'queue' : 'none'),
+                 row: row ? { ...row } : null, count: 1, lookup: null };
+  audState.scans.push(scan);
+
+  if (scan.hit === 'scope') {
+    playBeep('success');
+    audSetLast('ok', `✅ ${esc(row.orderName || parsed.display)} — موجود ومظبوط`);
+  } else {
+    playBeep('warn');
+    audSetLast('extra', `⚠️ ${esc((row && row.orderName) || parsed.display)} — مش في نطاق الجرد`);
+  }
+  audPersist(); audRender();
+}
+
+function audSetLast(cls, html) {
+  const el = document.getElementById('audLast');
+  if (el) el.innerHTML = html ? `<span class="${cls}">${html}</span>` : '';
+}
+
+// ── الرسم ────────────────────────────────────────────────────
+function audRender() {
+  audResult = dcoAuditBuckets(audState.scope, audState.scans);
+  const c        = audResult.counts;
+  const idle     = audState.phase === 'idle';
+  const running  = audState.phase === 'running';
+  const ended    = audState.phase === 'ended';
+
+  // النطاق بالنص
+  const scopeEl = document.getElementById('audScope');
+  if (idle) {
+    const n = qState.at ? qVisible().length : null;
+    scopeEl.innerHTML = qState.at
+      ? `النطاق هيبقى <b>المعروض دلوقتي بعد الفلتر: ${n} أوردر</b> (${esc(audFilterDesc())}).`
+        + ` النطاق <b>بيتثبّت وقت البدء</b> — أي فلتر بعد كده مش بيغيّره.`
+      : 'الطابور لسه ما اتجابش — استنى أول تحديث ناجح قبل ما تبدأ الجرد.';
+  } else {
+    scopeEl.innerHTML = `النطاق <b>${c.scope} أوردر</b> — اتثبت ${esc(formatDateTime(audState.startedAt))}`
+      + ` على (${esc(audState.scopeLabel)}).`
+      + (ended ? ` وانتهى ${esc(formatDateTime(audState.endedAt))}.` : ' الفلتر بعد البدء مالوش أي أثر على القايمة دي.');
+  }
+
+  // الزراير والسكانر
+  document.getElementById('audStartBtn').style.display  = idle ? '' : 'none';
+  document.getElementById('audEndBtn').style.display    = running ? '' : 'none';
+  document.getElementById('audResetBtn').style.display  = idle ? 'none' : '';
+  document.getElementById('audExportBtn').style.display = ended ? '' : 'none';
+  const scanEl = document.getElementById('audScanInput');
+  scanEl.disabled = !running;
+  document.getElementById('audScanArea').classList.toggle('inactive', !running);
+
+  // المربعات — 🔴 «—» مش «0» قبل البدء: «ما اتجردش» ≠ «مفيش»
+  const dash = v => idle ? '—' : String(v);
+  document.getElementById('audNScope').textContent = idle ? (qState.at ? String(qVisible().length) : '—') : String(c.scope);
+  document.getElementById('audNOk').textContent    = dash(c.matched);
+  document.getElementById('audNPend').textContent  = dash(c.pending);
+  document.getElementById('audNMiss').textContent  = dash(c.missing);
+  document.getElementById('audNExtra').textContent = dash(c.extra);
+  // 🔴 مربع واحد بس بيتعرض: «لسه ما اتعملّهاش سكان» وسط الجرد، و«مفقودة»
+  //    بعد ما يتقفل. الاتنين نفس الرقم — والاسم هو الفرق.
+  document.getElementById('audCardPend').style.display = ended ? 'none' : '';
+  document.getElementById('audCardMiss').style.display = ended ? '' : 'none';
+
+  // التقدم
+  const pw = document.getElementById('audProgWrap');
+  if (idle || !c.scope) { pw.style.display = 'none'; }
+  else {
+    pw.style.display = '';
+    const pct = Math.round((c.matched / c.scope) * 100);
+    document.getElementById('audProgBar').style.width  = pct + '%';
+    document.getElementById('audProgTxt').textContent  = pct + '%';
+  }
+
+  // رسالة الحالة
+  const emptyEl = document.getElementById('audEmpty');
+  if (idle) {
+    emptyEl.style.display = '';
+    emptyEl.innerHTML = '<div class="ico">🧮</div><div>اضغط <b>«بدء الجرد»</b> وابدأ سكان باركود الطرود.'
+      + '<br>الباركود على الطرد فيه <b>رقم الأوردر الطويل</b> — والمربع بياخد الاسم (<code>#55001</code>) كمان.</div>';
+  } else if (running) {
+    emptyEl.style.display = '';
+    emptyEl.innerHTML = `<div class="ico">📷</div><div>الجرد شغّال — <b>${c.matched}</b> من <b>${c.scope}</b>.`
+      + '<br>النتيجة التفصيلية بتظهر بعد <b>«إنهاء الجرد»</b>.'
+      + '<br>⚠️ <b>«لسه ما اتعملّهاش سكان» مش «مفقودة»</b> — لسه بتسكن.</div>';
+  } else {
+    emptyEl.style.display = 'none';
+  }
+
+  audRenderSections(ended);
+}
+
+function audRowHtml(o, tag, i) {
+  const isS2 = o.machine === 's2';
+  return `<tr class="${o.flags && o.flags.length ? 'flagged' : ''}">
+    <td>${orderLink(o.orderName, o.orderId)}</td>
+    <td>${esc(o.customer || '—')}</td>
+    <td class="addr-cell">${addressCell(o)}</td>
+    <td>${esc(o.courier || '—')}</td>
+    <td>${whereaboutsCell(o)}</td>
+    <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(o.machineLabel || '—')}</span></td>
+    <td>${o.flags && o.flags.length
+          ? `<button type="button" class="flag-btn" data-aud-flag="${esc(tag)}:${i}">⚠️ ${o.flags.length}</button>`
+          : '<span class="flag-ok">—</span>'}</td>
+  </tr>`;
+}
+
+function audRenderSections(show) {
+  for (const s of ['Ok', 'Miss', 'Extra'])
+    document.getElementById('audSec' + s).style.display = show ? '' : 'none';
+  if (!show) return;
+
+  const { matched, missing, extra } = audResult;
+  document.getElementById('audSecNOk').textContent    = matched.length;
+  document.getElementById('audSecNMiss').textContent  = missing.length;
+  document.getElementById('audSecNExtra').textContent = extra.length;
+
+  document.getElementById('audBodyOkRows').innerHTML = matched.length
+    ? matched.map((o, i) => audRowHtml(o, 'ok', i)).join('')
+    : '<tr><td colspan="7" class="q-empty">مفيش أوردر اتعمله سكان</td></tr>';
+
+  // 🔴 «مفيش مفقود» **بتتقال صراحةً** — قسم فاضي بيتقري «ما اتحسبش».
+  document.getElementById('audBodyMissRows').innerHTML = missing.length
+    ? missing.map((o, i) => audRowHtml(o, 'miss', i)).join('')
+    : '<tr><td colspan="7" class="q-empty">✅ ولا أوردر مفقود — كل النطاق اتعمله سكان</td></tr>';
+
+  // ⚠️ كل مدخل بيقول **السبب والفعل** — «موجود خطأ» لوحدها بند بيقول
+  //    «فيه حاجة» وبس، وتكلفته فحص يدوي لكل طرد (قاعدة ١٤).
+  document.getElementById('audXList').innerHTML = extra.length
+    ? extra.map(s => {
+        const r = dcoAuditReason(s);
+        return `<div class="aud-x ${r.code === 'out_of_scope' ? 'is-scope' : ''}">
+          <div class="aud-x-code">${esc(s.parsed && s.parsed.display || s.key)}${s.count > 1 ? ` <span style="font-size:11px;font-weight:700">(${s.count} سكانات)</span>` : ''}</div>
+          <div class="aud-x-lbl">${esc(r.label)}</div>
+          <div class="aud-x-det">${esc(r.detail)}</div>
+          <div class="aud-x-act">🛠️ <b>المطلوب:</b> ${esc(r.action)}</div>
+        </div>`;
+      }).join('')
+    : '<div class="q-empty">✅ مفيش أي طرد موجود خطأ</div>';
+
+  // زرار الاستعلام بيظهر **بس** لما يكون فيه صف محتاجه فعلاً
+  const need = extra.filter(s => s.hit === 'none' && !s.lookup).length;
+  document.getElementById('audLookupBtn').style.display = need ? '' : 'none';
+
+  // التفويض — نفس سبب جدول الطابور: اسم العميل وسبب العلامة بيتحطّوا في
+  // نص HTML، و`onclick` بنص كان بيسرّب أي علامة تنصيص فيهم.
+  const map = { ok: matched, miss: missing };
+  document.getElementById('viewAudit').querySelectorAll('[data-aud-flag]').forEach(btn => {
+    const [tag, idx] = btn.dataset.audFlag.split(':');
+    btn.addEventListener('click', () => showFlags(map[tag][Number(idx)]));
+  });
+}
+
+function audToggleSec(s) {
+  const body = document.getElementById('audBody' + s);
+  const tog  = document.getElementById('audTog' + s);
+  const open = !body.classList.contains('collapsed');
+  body.classList.toggle('collapsed', open);
+  tog.classList.toggle('open', !open);
+}
+
+// ── الاستعلام عن الحالة الفعلية ──────────────────────────────
+//
+// 🔴 **بضغطة الموظف مش تلقائي** — الاستعلام ده نداء شوبيفاي لكل كود،
+//    والجرد ممكن يطلّع عشرات الأكواد. التلقائي كان بيحوّل كل سكانة غلط
+//    لنداء شبكة وسط شغل السكان.
+async function audLookup() {
+  const pend = audResult.extra.filter(s => s.hit === 'none' && !s.lookup);
+  if (!pend.length) { showToast('مفيش صفوف محتاجة استعلام', 'neutral'); return; }
+  const btn = document.getElementById('audLookupBtn');
+  btn.disabled = true; btn.textContent = '⏳ جاري الاستعلام…';
+  try {
+    const ids   = pend.filter(s => s.parsed.kind === 'id' && s.parsed.id).map(s => s.parsed.id);
+    const names = pend.filter(s => s.parsed.kind !== 'id').map(s => s.parsed.name);
+    const data  = await apiPost('lookup_orders', { ids, names });
+    // 🔴 الربط **بالمفتاح مش بالترتيب** — الـ Worker بيرجّع مدخل لكل كود
+    //    (حتى اللي مالقيناهوش)، بس الربط بالترتيب كان بيزحلق كل النتايج
+    //    لو مدخل واحد اتغيّر مكانه: حالة أوردر بتتعرض على أوردر تاني.
+    const byKey = {};
+    for (const r of (data.results || [])) byKey[`${r.kind}:${r.key}`] = r;
+    let hits = 0;
+    for (const s of pend) {
+      const r = byKey[s.key];
+      if (!r) continue;
+      s.lookup = { found: !!r.found, order: r.order || null };
+      hits++;
+    }
+    if (data.truncated) showToast('القايمة أطول من سقف الاستعلام — الباقي ما اتستعلمش', 'warn', 6000);
+    audPersist(); audRender();
+    showToast(`اتستعلم على ${hits} كود`, 'success');
+  } catch (e) {
+    // ⚠️ الرسالة **بتسمّي الأداة والنسخة** — «تعذّر الاستعلام» لوحدها
+    //    بتخلّي الموظف يدوّر، والسبب الأشهر هنا Worker ما اتعملّهوش Promote.
+    if (e.status === 404 || e.status === 405)
+      showToast('Worker «قسم الجاهز للشحن» نسخة أقدم من 1.2.0 — الاستعلام محتاج نسخة فيها lookup_orders', 'error', 7000);
+    else
+      showToast('تعذّر الاستعلام: ' + e.message, 'error', 6000);
+  } finally {
+    btn.disabled = false; btn.textContent = '🔍 استعلام عن الحالة الفعلية';
+  }
+}
+
+// ── تصدير XLSX ───────────────────────────────────────────────
+//
+// 🔴 **محروس بـ`typeof ExcelJS`** — CDN محجوب أو شبكة واقعة بتخلّي
+//    الضغطة ترمي `ReferenceError`، والرمي ده **بيسكّت باقي السكربت**.
+async function audExport() {
+  if (typeof ExcelJS === 'undefined') {
+    showToast('مكتبة التصدير ما اتحمّلتش — راجع الاتصال وحدّث الصفحة', 'error', 6000);
+    return;
+  }
+  const btn = document.getElementById('audExportBtn');
+  btn.disabled = true; btn.textContent = '⏳ جاري التصدير…';
+  try {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'EcomModa — مركز عمليات الشحن والتحصيل';
+    wb.created  = new Date();
+    const head = ['رقم الأوردر', 'العميل', 'العنوان', 'المحافظة', 'المندوب',
+                  'موقع الشحنة', 'نوع الأوردر', 'تاريخ التغليف', 'علامات المراجعة'];
+    const rowOf = o => [
+      o.orderName || '—', o.customer || '—',
+      [o.address1, o.address2].filter(Boolean).join(' — ') || 'بلا عنوان',
+      o.province || o.city || '—', o.courier || '—',
+      o.whereabouts || '—', o.machineLabel || '—',
+      o.packedAt ? `${formatDateForExport(o.packedAt)} ${formatTimeForExport(o.packedAt)}` : '—',
+      (o.flags || []).map(f => f.label).join(' · ') || '—',
+    ];
+    // ⚠️ `rightToLeft` على كل شيت — شيت عربي بترتيب LTR بيتقري معكوس.
+    const sheet = (name, rows) => {
+      const ws = wb.addWorksheet(name, { views: [{ rightToLeft: true }] });
+      ws.addRow(head);
+      ws.getRow(1).font = { bold: true };
+      rows.forEach(o => ws.addRow(rowOf(o)));
+      ws.columns.forEach(col => { col.width = 20; });
+      return ws;
+    };
+    sheet('مظبوطة', audResult.matched);
+    sheet('مفقودة', audResult.missing);
+
+    // شيت «موجودة خطأ» — أعمدة مختلفة تمامًا: ده **كود اتعمله سكان**
+    // مش صف طابور، والسبب والفعل هما المحتوى الأساسي.
+    const wx = wb.addWorksheet('موجودة خطأ', { views: [{ rightToLeft: true }] });
+    wx.addRow(['الكود', 'عدد السكانات', 'السبب', 'التفصيل', 'المطلوب',
+               'رقم الأوردر', 'S1', 'S2']);
+    wx.getRow(1).font = { bold: true };
+    audResult.extra.forEach(s => {
+      const r = dcoAuditReason(s);
+      const o = (s.row || (s.lookup && s.lookup.order)) || {};
+      wx.addRow([s.parsed && s.parsed.display || s.key, s.count || 1,
+                 r.label, r.detail, r.action,
+                 o.orderName || '—', o.s1 || '—', o.s2 || '—']);
+    });
+    wx.columns.forEach(col => { col.width = 22; });
+
+    // شيت الملخص — 🔴 النطاق والفلتر **جوّه الملف**: ملف بلا نطاقه
+    //    بيتقري «الجرد كله» بعد أسبوع من تصديره.
+    const ws = wb.addWorksheet('الملخص', { views: [{ rightToLeft: true }] });
+    ws.addRow(['البند', 'القيمة']);
+    ws.getRow(1).font = { bold: true };
+    const c = audResult.counts;
+    [['نطاق الجرد (أوردر)', c.scope], ['مظبوطة', c.matched], ['مفقودة', c.missing],
+     ['موجودة خطأ', c.extra], ['الفلتر وقت البدء', audState.scopeLabel || '—'],
+     ['بدأ', audState.startedAt ? `${formatDateForExport(audState.startedAt)} ${formatTimeForExport(audState.startedAt)}` : '—'],
+     ['انتهى', audState.endedAt ? `${formatDateForExport(audState.endedAt)} ${formatTimeForExport(audState.endedAt)}` : '—'],
+     ['الموظف', session.displayName || session.username || '—'],
+    ].forEach(r => ws.addRow(r));
+    ws.columns.forEach(col => { col.width = 30; });
+
+    const p  = cairoParts(new Date());
+    const ts = p ? `${p.year}${p.month}${p.day}_${p.hour}${p.minute}` : 'now';
+    const buf  = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `جرد_المكتب_${ts}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('تم التصدير ✅', 'success');
+  } catch (e) {
+    showToast('تعذّر التصدير: ' + e.message, 'error', 6000);
+  } finally {
+    btn.disabled = false; btn.textContent = '⬇️ تصدير XLSX';
+  }
+}
+
+// ── التسليح ──────────────────────────────────────────────────
+(function audInit() {
+  const el = document.getElementById('audScanInput');
+  // 🔴 الـ listener بيعمل `setTimeout` **بس** — الشرح فوق في §AUDIT.
+  el.addEventListener('input', () => {
+    clearTimeout(audTimer);
+    audTimer = setTimeout(audScan, el.value.length > 3 ? 120 : 400);
+  });
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { clearTimeout(audTimer); audScan(); }
+  });
+  if (audRestore()) {
+    showToast(`جرد متساب في الجلسة دي اترجع — ${audState.scans.length} سكانة`, 'neutral', 6000);
+  }
+  audRender();
+})();
 
 // ══════════════════════════════════════════════════════════════
 // §INIT — التحميل (الجلسة اتأكدت فوق)
