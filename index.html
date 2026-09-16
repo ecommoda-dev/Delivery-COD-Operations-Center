@@ -159,7 +159,9 @@
           <span class="dco-card-ico ico-blue">📋</span>
           <div>
             <div class="dco-card-name">جاهز للشحن</div>
-            <div class="dco-card-desc">حالته Ready ولسه ما خرجش</div>
+            <!-- ⚠️ ذكر الجرد هنا **مش تزويق** — التاب جوّه الصفحة، والموظف
+                 اللي مابيفتحش الصفحة مش هيعرف إن فيه جرد أصلاً. -->
+            <div class="dco-card-desc">حالته Ready ولسه ما خرجش · وجوّاها 🧮 <b>جرد المكتب</b></div>
           </div>
         </div>
         <div class="dco-row-num dco-num">
@@ -309,7 +311,19 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.2.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.3.0</span>
+          <span class="cl-ver-date">16-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>تاب «جرد المكتب»</b> جوّه «قسم الجاهز للشحن» — سكان لباركود كل طرد، والنتيجة <b>تلات أقسام</b>: مظبوطة · <b>مفقودة</b> (في النطاق وما اتعملّهاش سكان) · <b>موجودة خطأ</b> (اتعمل لها سكان ومش في النطاق، وكل واحدة بسببها والفعل المطلوب).</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>النطاق = المعروض بعد الفلتر، ولقطة وقت البدء</b> — أي فلتر أو تحديث بعد كده مالوش أثر على قايمة المفقود، والجرد <b>محفوظ في الجلسة</b> (refresh مابيضيّعهوش) مع <b>تصدير XLSX</b>.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><code>ready-orders-worker</code> <b>v1.2.0</b> — endpoint <code>lookup_orders</code> (قراءة بحتة) بيقول حالة الأوردر الحقيقية للطرد اللي مش المفروض يكون في المكتب. و<code>ready.min</code> اترفع لـ<code>1.2.0</code> في نفس التسليم.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.2.0</span>
           <span class="cl-ver-date">16-09-2026</span>
         </div>
         <ul class="cl-items">

@@ -9,6 +9,11 @@
 //    في الملف ده إن **الرقم في الرئيسية == عدد صفوف الصفحة**، ومستحيل
 //    تقيسه لو كل صفحة بتشوف بيانات مختلفة.
 //
+// ⚠️ **وبقى فيه تاب تاني في `ready-orders.html`** — «جرد المكتب» (v1.3.0).
+//    بنوده في §⑨ تحت، وكلها بتشغّل **الدورة الفعلية**: بدء · سكان · مكرر ·
+//    كود غلط · إنهاء · استعلام · refresh. ⛔ وفيه بند بيمنع إن التاب يتحقن
+//    في صفحة المشحون «بالقياس».
+//
 // 🔴 **عيلات الفشل اللي الملف ده اتكتب عشانها — كلها صامتة:**
 //    ① قاعدة اشتقاق اتكتبت في صفحة بدل الـ shell → الرئيسية بتقول رقم
 //      والصفحة بتفتح على رقم تاني، **وصفر خطأ في الكونسول**
@@ -165,7 +170,7 @@ const DIAG = { ok:false, version:'1.0.0', checks:[
 
 // حالة قابلة للتبديل من كل اختبار — عشان نقيس الفشل والاقتطاع كمان
 const state = { readyFail:false, shippedFail:false, truncated:false, calls:[],
-                authBodies:[], logoutUrls:[] };
+                authBodies:[], logoutUrls:[], lookupBodies:[] };
 
 function makeStub() {
   return async (route) => {
@@ -173,12 +178,12 @@ function makeStub() {
     const action = url.searchParams.get('action');
     state.calls.push(action);
     let body = { ok:true }, status = 200;
-    // 🔴 **نسخة لكل Worker لوحده** — `ready.min` بقى `1.1.0` (عمود العنوان)
-    //    و`shipped.min` لسه `1.0.0`. رقم واحد للاتنين كان بيولّع «Worker
+    // 🔴 **نسخة لكل Worker لوحده** — `ready.min` بقى `1.2.0` (تاب الجرد
+    //    بينادي `lookup_orders`) و`shipped.min` لسه `1.0.0`. رقم واحد للاتنين كان بيولّع «Worker
     //    نسخة قديمة» على صفحة الجاهز في **كل** بند، فالبنود بتفشل لسبب
     //    مالوش علاقة باللي بتقيسه.
     if (action === 'get_config')
-      body = { ok:true, version: url.host.startsWith('ready-orders') ? '1.1.0' : '1.0.0' };
+      body = { ok:true, version: url.host.startsWith('ready-orders') ? '1.2.0' : '1.0.0' };
     else if (action === 'diag')       body = DIAG;
     else if (action === 'get_employees')
       body = { ok:true, employees:[{ username:'tester', display_name:'الموظف التجريبي' }] };
@@ -190,6 +195,21 @@ function makeStub() {
       body = { ok:true, displayName:'الموظف التجريبي', logged:true };
     }
     else if (action === 'log_logout') { state.logoutUrls.push(url.toString()); body = { ok:true }; }
+    // ⑨ `lookup_orders` — 🔴 **POST**، والجسم بيتسجّل: البند بيقيس إن
+    //    الواجهة بعتت الكود في `ids` (الباركود = Order ID) مش في الـ URL.
+    else if (action === 'lookup_orders') {
+      const b = JSON.parse(route.request().postData() || '{}');
+      state.lookupBodies.push(b);
+      const results = [];
+      for (const id of (b.ids || []))
+        results.push({ key:id, kind:'id', found:true, order:{
+          orderId:id, orderName:'#77001', createdAt:'2026-09-01T08:00:00Z', cancelledAt:null,
+          fulfillment:'FULFILLED', financial:'PENDING', customer:'عميل بره الطابور',
+          city:'Cairo', province:'Cairo', zone:'Cairo+Giza', courier:'Saif',
+          s1:'Shipped', s2:null, whereaboutsS1:'Courier', whereaboutsS2:null } });
+      for (const nm of (b.names || [])) results.push({ key:nm, kind:'name', found:false, order:null });
+      body = { ok:true, results, truncated:false };
+    }
     else if (action === 'check_employee') body = { ok:true, exists:true, isActive:true, hasPin:true };
     else if (action === 'get_ready_queue') {
       if (state.readyFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
@@ -250,8 +270,8 @@ console.log('\n══ ① الجلسة والهيدر ══');
      'زرار الموظف عليه aria-label="تسجيل الخروج" (الـ ✕ لوحده مايتقريش)');
   const ver = (await page.textContent('#verBtn')).trim();
   const cl  = (await page.textContent('#clLatestVerBadge')).trim();
-  is(ver.startsWith('v1.2.0'), 'زرار النسخة بيقول نسخة الهب', ver);
-  is(cl === 'v1.2.0', 'بادج سجل التحديثات **مطابق** لزرار النسخة (مصدر واحد · #24)', cl);
+  is(ver.startsWith('v1.3.0'), 'زرار النسخة بيقول نسخة الهب', ver);
+  is(cl === 'v1.3.0', 'بادج سجل التحديثات **مطابق** لزرار النسخة (مصدر واحد · #24)', cl);
   is(!(await page.isVisible('#verStaleBtn')), 'مفيش تحذير نسخة قديمة والـ Worker مطابق للحد الأدنى');
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
@@ -276,14 +296,18 @@ console.log('\n══ ② ready-orders.html ══');
 
   // خلايا الصف == أعمدة الهيدر — صف بخلية ناقصة بيزحلق كل القيم عمود ورا
   // التاني **من غير أي خطأ**
-  const th = await page.$$eval('.data-table thead th', e => e.length);
+  // 🔴 **السيليكتور على `#qTable` مش على `.data-table`** — الصفحة بقى فيها
+  //    جداول نتيجة الجرد بنفس الكلاس (والشكل ده مقصود: جدول واحد في الهب
+  //    كله). سيليكتور بالكلاس بيجمع أعمدة تلات جداول في مصفوفة واحدة،
+  //    والبند بيفشل **لسبب مالوش علاقة باللي بيقيسه**.
+  const th = await page.$$eval('#qTable thead th', e => e.length);
   const td = await page.$$eval('#qBody tr:first-child td', e => e.length);
   is(th === td, `خلايا الصف == أعمدة الهيدر (${th})`, `th=${th} td=${td}`);
 
   // ══ تمريرة الأعمدة (طلب أحمد 16-09-2026) ══════════════════════
   // 🔴 البنود دي بتقرا **الهيدر الفعلي** مش الكود — عمود اتشال من القالب
   //    وفضل في الصفحة (أو العكس) بيعدّي على أي مراجعة كود.
-  const heads = await page.$$eval('.data-table thead th', e => e.map(x => x.textContent.trim()));
+  const heads = await page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim()));
   is(JSON.stringify(heads) === JSON.stringify(
        ['رقم الأوردر','العميل','العنوان','المندوب','موقع الشحنة','تاريخ الأوردر',
         'تاريخ التغليف','نوع الأوردر','مراجعة']),
@@ -572,14 +596,14 @@ console.log('\n══ ⑤ shipped-orders.html ══');
   const rows = await page.$$eval('#qBody tr', e => e.length);
   is(rows === SHIPPED_TOTAL, `صفوف الجدول == اللي رجع (${SHIPPED_TOTAL})`, `شفت ${rows}`);
 
-  const th = await page.$$eval('.data-table thead th', e => e.length);
+  const th = await page.$$eval('#qTable thead th', e => e.length);
   const td = await page.$$eval('#qBody tr:first-child td', e => e.length);
   is(th === td, `خلايا الصف == أعمدة الهيدر (${th})`, `th=${th} td=${td}`);
 
   // 🔴 **مفيش عمود عنوان هنا** — `shipped-orders-worker` لسه مابيرجّعش
   //    `address1`. العمود اللي بيقول `—` على كل صف بيتقري عطل في الشاشة،
   //    فبيتضاف **في نفس تسليم الـ Worker** مش قبله.
-  const shHeads = await page.$$eval('.data-table thead th', e => e.map(x => x.textContent.trim()));
+  const shHeads = await page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim()));
   is(!shHeads.includes('العنوان'),
      '🔴 طابور المشحون **بلا عمود عنوان** لحد ما الـ Worker بتاعه يرجّعه', JSON.stringify(shHeads));
   is(shHeads.at(-2) === 'نوع الأوردر' && shHeads.at(-1) === 'مراجعة',
@@ -761,6 +785,232 @@ console.log('\n══ ⑧ الدخول ══');
   is(!!hit && !hit.includes('appId'),
      'و**بلا `appId`** — نفس قاعدة الدخول');
   is(page.url().endsWith('index.html'), 'وبعد الخروج بيرجع لشاشة الدخول');
+  await ctx.close();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ⑨ تاب «جرد المكتب» — الدورة كاملة على الشاشة الفعلية
+// ══════════════════════════════════════════════════════════════
+//
+// 🔴 **العيلات اللي البنود دي بتمسكها — كلها صامتة:**
+//    ① «مفقودة» بتتعرض وسط الجرد (والموظف لسه بيسكن) → بيدوّر على طرد
+//      في إيده.
+//    ② نفس الأوردر بصيغتين بيتعدّ مرتين → «مضبوطة» أكبر من النطاق نفسه.
+//    ③ النطاق بيتحسب حيًّا من الفلتر → ضغطة فلتر وسط الجرد تغيّر قايمة
+//      المفقود **فجأة**.
+//    ④ «موجود خطأ» بلا سبب → بند بيقول «فيه حاجة» وبس (قاعدة ١٤).
+//    ⑤ refresh وسط الجرد بيمسح ساعة سكان بلا أي تحذير.
+console.log('\n══ ⑨ تاب «جرد المكتب» ══');
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/ready-orders.html`);
+  await page.waitForSelector('#qBody tr');
+  const scan = async (code) => {
+    await page.fill('#audScanInput', code);
+    await page.press('#audScanInput', 'Enter');
+    await page.waitForTimeout(160);
+  };
+
+  is(await page.isVisible('#tabAuditBtn'), 'تاب «جرد المكتب» موجود جنب تاب الطابور');
+  is(await page.isVisible('#viewQueue') && !(await page.isVisible('#viewAudit')),
+     'والطابور هو المفتوح افتراضيًا — الجرد جلسة بتبدأ بقرار');
+  await page.click('#tabAuditBtn');
+  await page.waitForTimeout(250);
+  is(!(await page.isVisible('#viewQueue')) && await page.isVisible('#viewAudit'),
+     'الضغط على التاب بيبدّل العرض');
+
+  // ── قبل البدء ──
+  is((await page.textContent('#audNOk')).trim() === '—',
+     '🔴 قبل البدء العدّاد «—» مش «0» — «ما اتجردش» ≠ «مفيش»');
+  is(await page.$eval('#audScanInput', el => el.disabled),
+     '🔴 والسكانر **معطّل** — مربع شكله شغّال والسكانات بتضيع هو اللي بيخلّي الجرد يتعاد');
+  is((await page.textContent('#audScope')).includes(String(READY_TOTAL)),
+     'والنطاق المتوقّع مكتوب بعدده قبل البدء');
+  // 🔴 **حارسان مش واحد:** الـ `disabled` على المربع (فوق) والفحص على
+  //    `phase` جوّه `audScan`. البند ده بينادي الدالة **مباشرةً** عشان
+  //    يقيس التاني — السكانر بيكتب في المربع بلا حدث `input` في بعض
+  //    الموديلات، والحارس الأول لوحده مش كفاية.
+  await page.evaluate(() => {
+    document.getElementById('audScanInput').value = '7212000000001';
+    audScan();
+  });
+  await page.waitForTimeout(150);
+  is((await page.textContent('#audNOk')).trim() === '—',
+     '🔴 وسكانة قبل البدء مابتتحسبش — حتى بنداء مباشر على `audScan`');
+
+  // ── البدء ──
+  await page.click('#audStartBtn');
+  await page.waitForTimeout(250);
+  is(!(await page.$eval('#audScanInput', el => el.disabled)), 'بعد البدء السكانر شغّال');
+  is(num(await page.textContent('#audNScope')) === READY_TOTAL,
+     'والنطاق == اللي كان معروض وقت البدء', await page.textContent('#audNScope'));
+  is(num(await page.textContent('#audNPend')) === READY_TOTAL,
+     'و«لسه ما اتعملّهاش سكان» == النطاق كله');
+  is(!(await page.isVisible('#audCardMiss')) && await page.isVisible('#audCardPend'),
+     '🔴 مربع «مفقودة» **مخفي** وسط الجرد — الموظف لسه بيسكن');
+
+  // ── السكان ──
+  await scan('7212000000001');
+  is(num(await page.textContent('#audNOk')) === 1, 'سكان بالـ Order ID بيحسب الأوردر «مظبوط»');
+  is((await page.textContent('#audLast')).includes('#55001'),
+     'وآخر سكانة بتقول **رقم الأوردر** — الموظف بيسكن ٥٠ طرد ورا بعض والتوست بيختفي');
+  is(num(await page.textContent('#audNPend')) === READY_TOTAL - 1, 'و«لسه» نقص واحد');
+
+  await scan('#55001');
+  is(num(await page.textContent('#audNOk')) === 1,
+     '🔴 نفس الأوردر بالاسم **مابيتعدّش تاني** — التفريد على الأوردر مش على الكود');
+  is((await page.textContent('#audLast')).includes('قبل كده'),
+     'والشاشة بتقول «اتعمله سكان قبل كده» — مش إنذار');
+
+  await scan('12');
+  is(num(await page.textContent('#audNExtra')) === 0,
+     '🔴 كود أقل من ٤ أرقام **مابيتحسبش سكانة** — قراءة مقطوعة ممكن تطابق أوردر تاني');
+  is((await page.textContent('#audLast')).includes('قصير'), 'والسبب مكتوب: السكانر قطع القراءة');
+
+  await scan('9999000011112');
+  is(num(await page.textContent('#audNExtra')) === 1, 'وكود مش في القسم بيروح «موجودة خطأ»');
+
+  // الطابور نفسه مالوش أي علاقة بالجرد
+  await page.click('#tabQueueBtn');
+  await page.waitForTimeout(200);
+  is(num(await page.textContent('#qCount')) === READY_TOTAL,
+     '⚠️ والرقم الكبير بتاع الطابور **مابيتأثرش** بالجرد خالص');
+  await page.click('#tabAuditBtn');
+  await page.waitForTimeout(200);
+
+  // ── الإنهاء ──
+  await page.click('#audEndBtn');
+  await page.waitForTimeout(300);
+  is(await page.isVisible('#audCardMiss') && !(await page.isVisible('#audCardPend')),
+     '🔴 بعد الإنهاء «مفقودة» بتظهر و«لسه ما اتعملّهاش سكان» بتختفي — نفس الرقم واسمين مختلفين');
+  is(num(await page.textContent('#audNMiss')) === READY_TOTAL - 1,
+     'وعدد المفقود == النطاق ناقص المظبوط');
+  is(await page.isVisible('#audSecOk') && await page.isVisible('#audSecMiss')
+     && await page.isVisible('#audSecExtra'), 'والتلات أقسام بتظهر');
+  is(await page.$$eval('#audBodyMissRows tr', e => e.length) === READY_TOTAL - 1,
+     '🔴 صفوف قسم «مفقودة» == الرقم اللي المربع بيقوله بالحرف');
+  is(await page.$$eval('#audBodyOkRows tr', e => e.length) === 1, 'وصفوف «مظبوطة» == الرقم');
+  // الصف الشاذ في الجرد زي أي صف — علّم متشيلش (قاعدة ١٣)
+  const missTxt = await page.textContent('#audBodyMissRows');
+  is(missTxt.includes('#55004'),
+     '🔴 والصف المعلّم (ملغي) **في قايمة المفقود زي أي صف** — الجرد بيقول موجود/مفقود بس');
+  is(await page.$$eval('#audBodyMissRows [data-aud-flag]', e => e.length) > 0,
+     'وعلامة المراجعة لسه على الصف في جدول الجرد');
+
+  const x = await page.textContent('#audXList');
+  is(x.includes('المطلوب'), '🔴 كل «موجود خطأ» بيقول **الفعل المطلوب** (قاعدة ١٤)');
+  is(x.includes('مش معروفة'),
+     '⚠️ و«لسه ما استعلمناش» حالة صريحة — مش «مش موجود على شوبيفاي»');
+
+  // ── الاستعلام عن الحالة الفعلية ──
+  is(await page.isVisible('#audLookupBtn'), 'وزرار الاستعلام ظاهر لأن فيه صف محتاجه');
+  await page.click('#audLookupBtn');
+  await page.waitForTimeout(500);
+  is(state.lookupBodies.length === 1 && (state.lookupBodies[0].ids || []).includes('9999000011112'),
+     '🔴 `lookup_orders` اتنادى **بـ POST** والكود في `ids`', JSON.stringify(state.lookupBodies));
+  const x2 = await page.textContent('#audXList');
+  is(x2.includes('Shipped'),
+     '🔴 وبعد الاستعلام السبب بيقول **الحالة الحقيقية بالحرف** مش «فيه حاجة»');
+  is(!(await page.isVisible('#audLookupBtn')),
+     'والزرار بيختفي لما مايبقاش فيه صف محتاج استعلام');
+  is(await page.isVisible('#audExportBtn'), 'وزرار تصدير XLSX بيظهر بعد الإنهاء بس');
+
+  // علامة المراجعة جوّه جدول الجرد — 🔴 التفويض شغّال فعلاً
+  await page.click('#audBodyMissRows [data-aud-flag]');
+  await page.waitForTimeout(250);
+  const afb = await page.textContent('#flagsBody');
+  is(await page.isVisible('#flagsOverlay .eco-modal') && afb.includes('المطلوب'),
+     '🔴 والضغط على علامة الصف في جدول الجرد بيفتح نفس نافذة السبب والفعل');
+  await page.click('#flagsOverlay .btn-ghost');
+  await page.waitForTimeout(150);
+
+  // 🔴 **حارس المكتبة الخارجية** — CDN محجوب أو شبكة واقعة بيخلّي الضغطة
+  //    ترمي `ReferenceError`، والرمي ده **بيسكّت باقي السكربت**: الصفحة
+  //    بتفضل مفتوحة وكل زرار بعد كده مابيعملش حاجة.
+  await page.evaluate(() => { try { delete window.ExcelJS; } catch { window.ExcelJS = undefined; } });
+  await page.click('#audExportBtn');
+  await page.waitForTimeout(300);
+  const tst = await page.textContent('.toast-container');
+  is(tst.includes('ما اتحمّلتش'),
+     '🔴 والتصدير بلا مكتبة بيقول «المكتبة ما اتحمّلتش» — مش `ReferenceError` صامت', tst.trim().slice(0,60));
+
+  is(errors.length === 0, 'صفر خطأ في الكونسول في دورة الجرد كلها', errors.join(' | '));
+  await ctx.close();
+}
+
+// ── النطاق: مفلتر · لقطة · والحفظ في الجلسة ──────────────────
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/ready-orders.html`);
+  await page.waitForSelector('#qBody tr');
+
+  // فلتر «بوسطة» → النطاق المفروض يبقى صف واحد
+  await page.click('#qChips [data-fk="bosta"]');
+  await page.waitForTimeout(250);
+  await page.click('#tabAuditBtn');
+  await page.waitForTimeout(200);
+  await page.click('#audStartBtn');
+  await page.waitForTimeout(250);
+  is(num(await page.textContent('#audNScope')) === READY_COURIER.bosta,
+     '🔴 النطاق = **المعروض بعد الفلتر** (قرار أحمد 16-09-2026)',
+     await page.textContent('#audNScope'));
+  is((await page.textContent('#audScope')).includes('Bosta'),
+     '🔴 والفلتر اللي اتثبت بيه **مكتوب بالنص** — نطاق مش مكتوب معناه «مفقودة من إيه؟» بلا إجابة');
+
+  // مسح الفلتر بعد البدء — 🔴 المفروض **مالوش أي أثر**
+  await page.click('#tabQueueBtn');
+  await page.waitForTimeout(150);
+  await page.click('#qChips [data-fk="bosta"]');
+  await page.waitForTimeout(250);
+  is(await page.$$eval('#qBody tr', e => e.length) === READY_TOTAL, 'الفلتر اتمسح فعلاً من الطابور');
+  await page.click('#tabAuditBtn');
+  await page.waitForTimeout(200);
+  is(num(await page.textContent('#audNScope')) === READY_COURIER.bosta,
+     '🔴 والنطاق **لقطة** — الفلتر بعد البدء مابيغيّرش قايمة المفقود');
+
+  // سكان أوردر في الطابور بس بره النطاق → سبب مستقل
+  await page.fill('#audScanInput', '7212000000001');
+  await page.press('#audScanInput', 'Enter');
+  await page.waitForTimeout(200);
+  is(num(await page.textContent('#audNExtra')) === 1, 'وأوردر بره النطاق بيروح «موجودة خطأ»');
+  await page.click('#audEndBtn');
+  await page.waitForTimeout(250);
+  const xs = await page.textContent('#audXList');
+  is(xs.includes('بره نطاق الجرد'),
+     '🔴 «جاهز للشحن بس بره النطاق» **سبب مستقل** — الطرد مكانه صح والفعل مختلف');
+  is(!xs.includes('مش المفروض تكون'),
+     '⚠️ ومابيتقالش عليه إنه غلط — حكم غلط على طرد سليم أسوأ من مفيش حكم');
+
+  // 🔴 الحفظ في الجلسة — refresh وسط جرد ١٢٦ طرد كان بيمسح ساعة شغل
+  await page.reload();
+  await page.waitForSelector('#qBody tr');
+  await page.click('#tabAuditBtn');
+  await page.waitForTimeout(250);
+  is(num(await page.textContent('#audNScope')) === READY_COURIER.bosta
+     && num(await page.textContent('#audNExtra')) === 1,
+     '🔴 الجرد بيرجع بعد refresh — النطاق والسكانات مش بتضيع');
+  is(await page.isVisible('#audSecMiss'),
+     'وحالة «انتهى» بترجع كما هي — مش بترجع لأول الجرد');
+  is(errors.length === 0, 'وصفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+// ── صفحة المشحون: ⛔ بلا جرد خالص ────────────────────────────
+//
+// 🔴 البند ده بيمنع إن التاب يتحقن هناك «بالقياس» — أوردر `Shipped` خرج
+//    من المكتب بالتعريف، فجرده سؤال مالوش معنى. ولو اتقرر يوم، لازم الأول
+//    يتقرر **إيه المفروض يكون موجود** هناك (قرار أحمد مش قرار كود).
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/shipped-orders.html`);
+  await page.waitForSelector('#qBody tr');
+  is(!(await page.$('#tabAuditBtn')) && !(await page.$('#viewAudit')),
+     '⛔ صفحة المشحون **مالهاش** تاب جرد ولا ماركب جرد');
+  is(!(await page.$('#audScanInput')), 'ولا مربع سكان');
+  is(await page.evaluate(() => typeof ExcelJS === 'undefined'),
+     '⚠️ ومكتبة التصدير مش محمّلة فيها — مكتبة بلا مستهلك تكلفة على كل تحميل');
+  is(await page.isVisible('#viewQueue'), 'والطابور ظاهر عادي جوّه غلاف `#viewQueue`');
+  is(errors.length === 0, 'وصفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
 }
 
