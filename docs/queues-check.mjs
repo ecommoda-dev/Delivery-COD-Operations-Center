@@ -58,14 +58,14 @@ const browser = await chromium.launch(launchOpts);
 const READY_RAW = [
   // ✅ سليم — مندوب داخلي، تحصيل
   { orderId:'7212000000001', orderName:'#55001', createdAt:'2026-09-10T08:00:00Z', cancelledAt:null,
-    fulfillment:'UNFULFILLED', financial:'PENDING', customer:'أحمد سمير', province:'Cairo',
+    fulfillment:'UNFULFILLED', financial:'PENDING', customer:'أحمد سمير', address1:'١٢ شارع جامعة الدول العربية', address2:'الدور التالت — شقة ٧', city:'Cairo', province:'Cairo',
     itemsQty:2, total:'1000.00', currency:'EGP', zone:'Cairo+Giza', courier:'Saif',
     s1:'Ready', s2:null, packedAtS1:'2026-09-14T10:00:00Z', packedAtS2:null,
     packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:'Warehouse', whereaboutsS2:null,
     trackingS1:null, trackingS2:null, trackingLegacy:null },
   // ✅ سليم — بوسطة
   { orderId:'7212000000002', orderName:'#55002', createdAt:'2026-09-11T08:00:00Z', cancelledAt:null,
-    fulfillment:'UNFULFILLED', financial:'PENDING', customer:'سارة محمود', province:'Giza',
+    fulfillment:'UNFULFILLED', financial:'PENDING', customer:'سارة محمود', address1:'٤٤ شارع الهرم', address2:null, city:'Giza', province:'Giza',
     itemsQty:1, total:'500.00', currency:'EGP', zone:'Other_Regions', courier:'Bosta',
     s1:'Ready', s2:null, packedAtS1:'2026-09-14T11:00:00Z', packedAtS2:null,
     packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:null, whereaboutsS2:null,
@@ -75,7 +75,7 @@ const READY_RAW = [
   //    الصف أخد **بتاع S2**. لو أخد S1، الشاشة بتقول «متأخر ١٢ يوم» على
   //    طرد اتغلّف امبارح.
   { orderId:'7212000000003', orderName:'#55003', createdAt:'2026-09-09T08:00:00Z', cancelledAt:null,
-    fulfillment:'FULFILLED', financial:'PAID', customer:'كريم لطفي', province:'Cairo',
+    fulfillment:'FULFILLED', financial:'PAID', customer:'كريم لطفي', address1:'٩ شارع التحرير', address2:null, city:'Cairo', province:'Cairo',
     itemsQty:1, total:'2000.00', currency:'EGP', zone:'Show_Room', courier:'Show Room',
     s1:'Delivered', s2:'Ready', packedAtS1:'2026-09-01T09:00:00Z', packedAtS2:'2026-09-13T08:00:00Z',
     packedByS1:'Abo Selim', packedByS2:'Marwan Mohammed', whereaboutsS1:null, whereaboutsS2:'Warehouse',
@@ -83,21 +83,21 @@ const READY_RAW = [
   // ⚠️ شاذ — **ملغي وهو لسه في الطابور**
   { orderId:'7212000000004', orderName:'#55004', createdAt:'2026-09-08T08:00:00Z',
     cancelledAt:'2026-09-14T18:00:00Z',
-    fulfillment:'UNFULFILLED', financial:'PENDING', customer:'محمد جمال', province:'Cairo',
+    fulfillment:'UNFULFILLED', financial:'PENDING', customer:'محمد جمال', address1:'٢١ شارع النزهة', address2:'برج النور', city:'Cairo', province:'Cairo',
     itemsQty:1, total:'300.00', currency:'EGP', zone:'Cairo+Giza', courier:'Saif',
     s1:'Ready', s2:null, packedAtS1:'2026-09-13T09:00:00Z', packedAtS2:null,
     packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:'Warehouse', whereaboutsS2:null,
     trackingS1:null, trackingS2:null, trackingLegacy:null },
   // ⚠️ شاذ — **بلا قناة** (`BLANK` مش زون رابع · قاعدة ١٦)
   { orderId:'7212000000005', orderName:'#55005', createdAt:'2026-09-12T08:00:00Z', cancelledAt:null,
-    fulfillment:'UNFULFILLED', financial:'PENDING', customer:'هبة علي', province:'Qalyubia',
+    fulfillment:'UNFULFILLED', financial:'PENDING', customer:'هبة علي', address1:null, address2:null, city:'Banha', province:'Qalyubia',
     itemsQty:3, total:'250.00', currency:'EGP', zone:'BLANK', courier:null,
     s1:'Ready', s2:null, packedAtS1:'2026-09-14T12:00:00Z', packedAtS2:null,
     packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:'Courier', whereaboutsS2:null,
     trackingS1:null, trackingS2:null, trackingLegacy:null },
   // ⚠️ شاذ — دورة استبدال بدري (S1 لسه `Shipped` مش `Delivered`) **وما اتغلّفش**
   { orderId:'7212000000006', orderName:'#55006', createdAt:'2026-09-07T08:00:00Z', cancelledAt:null,
-    fulfillment:'FULFILLED', financial:'PENDING', customer:'نهى صبري', province:'Cairo',
+    fulfillment:'FULFILLED', financial:'PENDING', customer:'نهى صبري', address1:'٣ شارع سوريا', address2:null, city:'Cairo', province:'Cairo',
     itemsQty:1, total:'700.00', currency:'EGP', zone:'Cairo+Giza', courier:'Saif',
     s1:'Shipped', s2:'Ready', packedAtS1:'2026-09-06T09:00:00Z', packedAtS2:null,
     packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:null, whereaboutsS2:null,
@@ -173,7 +173,12 @@ function makeStub() {
     const action = url.searchParams.get('action');
     state.calls.push(action);
     let body = { ok:true }, status = 200;
-    if (action === 'get_config')      body = { ok:true, version:'1.0.0' };
+    // 🔴 **نسخة لكل Worker لوحده** — `ready.min` بقى `1.1.0` (عمود العنوان)
+    //    و`shipped.min` لسه `1.0.0`. رقم واحد للاتنين كان بيولّع «Worker
+    //    نسخة قديمة» على صفحة الجاهز في **كل** بند، فالبنود بتفشل لسبب
+    //    مالوش علاقة باللي بتقيسه.
+    if (action === 'get_config')
+      body = { ok:true, version: url.host.startsWith('ready-orders') ? '1.1.0' : '1.0.0' };
     else if (action === 'diag')       body = DIAG;
     else if (action === 'get_employees')
       body = { ok:true, employees:[{ username:'tester', display_name:'الموظف التجريبي' }] };
@@ -239,14 +244,14 @@ console.log('\n══ ① الجلسة والهيدر ══');
   const { page, ctx, errors } = await newPage();
   await page.goto(`${BASE}/ready-orders.html`);
   await page.waitForTimeout(900);
-  is(await page.textContent('.app-title-text h1') === 'طابور الجاهز للشحن', 'الهيدر الموحّد بعنوان الصفحة');
+  is(await page.textContent('.app-title-text h1') === 'قسم الجاهز للشحن', 'الهيدر الموحّد بعنوان الصفحة');
   is(await page.isVisible('.hbtn-home'), 'زرار 🏠 الرئيسية موجود');
   is(await page.getAttribute('#activeUserBtn', 'aria-label') === 'تسجيل الخروج',
      'زرار الموظف عليه aria-label="تسجيل الخروج" (الـ ✕ لوحده مايتقريش)');
   const ver = (await page.textContent('#verBtn')).trim();
   const cl  = (await page.textContent('#clLatestVerBadge')).trim();
-  is(ver.startsWith('v1.0.0'), 'زرار النسخة بيقول نسخة الهب', ver);
-  is(cl === 'v1.0.0', 'بادج سجل التحديثات **مطابق** لزرار النسخة (مصدر واحد · #24)', cl);
+  is(ver.startsWith('v1.1.0'), 'زرار النسخة بيقول نسخة الهب', ver);
+  is(cl === 'v1.1.0', 'بادج سجل التحديثات **مطابق** لزرار النسخة (مصدر واحد · #24)', cl);
   is(!(await page.isVisible('#verStaleBtn')), 'مفيش تحذير نسخة قديمة والـ Worker مطابق للحد الأدنى');
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
@@ -275,6 +280,53 @@ console.log('\n══ ② ready-orders.html ══');
   const td = await page.$$eval('#qBody tr:first-child td', e => e.length);
   is(th === td, `خلايا الصف == أعمدة الهيدر (${th})`, `th=${th} td=${td}`);
 
+  // ══ تمريرة الأعمدة (طلب أحمد 16-09-2026) ══════════════════════
+  // 🔴 البنود دي بتقرا **الهيدر الفعلي** مش الكود — عمود اتشال من القالب
+  //    وفضل في الصفحة (أو العكس) بيعدّي على أي مراجعة كود.
+  const heads = await page.$$eval('.data-table thead th', e => e.map(x => x.textContent.trim()));
+  is(JSON.stringify(heads) === JSON.stringify(
+       ['رقم الأوردر','العميل','العنوان','المندوب','موقع الشحنة','تاريخ الأوردر',
+        'تاريخ التغليف','نوع الأوردر','مراجعة']),
+     '🔴 أعمدة الجدول بترتيبها بالحرف — والعنوان **بعد العميل**', JSON.stringify(heads));
+  // 🔴 «نوع الأوردر» **قبل الأخير** — بند مستقل عن الترتيب الكامل فوق عشان
+  //    لو اتضاف عمود جديد يوم، ده يفضل هو الشرط اللي اتطلب بالاسم.
+  is(heads[heads.length - 2] === 'نوع الأوردر', '🔴 «نوع الأوردر» هو العمود **قبل الأخير**', heads.at(-2));
+  is(heads.at(-1) === 'مراجعة', 'و«مراجعة» آخر عمود');
+  // الأعمدة اللي اتشالت — **بالاسم**، مش بالعدّ
+  for (const gone of ['القناة','عدد القطع','الإجمالي','عهدة الطرد'])
+    is(!heads.includes(gone), `عمود «${gone}» **اتشال**`, JSON.stringify(heads));
+
+  // 🔴 العنوان: الشارع فوق والمدينة/المحافظة تحته
+  const addr1 = await page.$$eval('#qBody tr', els => {
+    const r = els.find(e => e.textContent.includes('#55001'));
+    return r ? r.querySelectorAll('td')[2].innerText.replace(/\s+/g, ' ').trim() : '';
+  });
+  is(addr1.includes('جامعة الدول العربية') && addr1.includes('الدور التالت'),
+     'خلية العنوان فيها `address1` و`address2` مع بعض', addr1);
+  is(addr1.includes('Cairo') && !/Cairo\s*·\s*Cairo/.test(addr1),
+     '🔴 المدينة == المحافظة بتتعرض **مرة واحدة** — «Cairo · Cairo» بتتقري غلطة إدخال', addr1);
+  // 🔴 «بلا عنوان» بتتقال بالنص — خانة فاضية بتتقري عطل في الشاشة
+  const addr5 = await page.$$eval('#qBody tr', els => {
+    const r = els.find(e => e.textContent.includes('#55005'));
+    return r ? r.querySelectorAll('td')[2].innerText.replace(/\s+/g, ' ').trim() : '';
+  });
+  is(addr5.includes('بلا عنوان') && addr5.includes('Qalyubia'),
+     '🔴 الأوردر اللي مالوش عنوان بيقول **«بلا عنوان»** ومحافظته لسه ظاهرة', addr5);
+
+  // ⚠️ المحافظة **مش مكرّرة** تحت اسم العميل بعد ما نزلت لعمود العنوان
+  const custCell = await page.$$eval('#qBody tr', els => {
+    const r = els.find(e => e.textContent.includes('#55001'));
+    return r ? r.querySelectorAll('td')[1].innerText.replace(/\s+/g, ' ').trim() : '';
+  });
+  is(custCell === 'أحمد سمير', 'خلية العميل بقت **الاسم وبس** — المحافظة مابقتش مكرّرة عليها', custCell);
+
+  // ⚠️ خلية المندوب: الاسم من غير سطر المجموعة تحته
+  const courCell = await page.$$eval('#qBody tr', els => {
+    const r = els.find(e => e.textContent.includes('#55002'));
+    return r ? r.querySelectorAll('td')[3].innerText.replace(/\s+/g, ' ').trim() : '';
+  });
+  is(courCell === 'Bosta', 'خلية المندوب = الاسم بس — سطر المجموعة تحته **اتشال**', courCell);
+
   // الترتيب — الأقدم فوق
   const first = (await page.textContent('#qBody tr:first-child td:first-child')).trim();
   is(first === READY_OLDEST, 'الترتيب: الأقدم فوق', first);
@@ -302,6 +354,25 @@ console.log('\n══ ② ready-orders.html ══');
     return b ? b.innerText : '';
   });
   is(num(chipFlag) === READY_FLAGGED, 'مربع «محتاجة مراجعة» بعدد الصفوف المعلّمة', chipFlag);
+
+  // 🔴 الكلام اللي كان جنب الأيقونة **اتشال** — والأيقونة فضلت
+  is(await page.$('.count-box .cb-title') === null && await page.$('.count-box .cb-sub') === null,
+     '🔴 عنوان وشرح صندوق العدّ **اتشالوا** من جنب الأيقونة');
+  is(await page.$('.count-box .cb-ico') !== null, '⚠️ والأيقونة فضلت مكانها');
+
+  // 🔴 المربعات بقت **مستطيلة زي `.zchip` في `pack.html`** — والبند بيقرا
+  //    `border-radius` **المحسوب من العنصر نفسه**، مش اسم الكلاس: كلاس
+  //    اتغيّر من غير CSS وراه بيعدّي على أي grep.
+  const chipShape = await page.$eval('#qChips [data-fk]', el => {
+    const cs = getComputedStyle(el);
+    return { r: parseFloat(cs.borderRadius), h: el.getBoundingClientRect().height,
+             cls: el.className, n: !!el.querySelector('.zchip-n') };
+  });
+  is(chipShape.cls.includes('zchip'), 'مربع الفلتر بياخد `.zchip`', chipShape.cls);
+  is(chipShape.r > 0 && chipShape.r <= 12,
+     '🔴 مستطيل بـ`--radius-sm` **مش pill** — pill بيبقى نصف الارتفاع',
+     `radius=${chipShape.r} height=${chipShape.h}`);
+  is(chipShape.n, '⚠️ العدّ في بادج `.zchip-n` جوّه المربع');
 
   // مربعات المندوب
   const chips = await page.$$eval('#qChips [data-fk]', els =>
@@ -430,6 +501,15 @@ console.log('\n══ ⑤ shipped-orders.html ══');
   const td = await page.$$eval('#qBody tr:first-child td', e => e.length);
   is(th === td, `خلايا الصف == أعمدة الهيدر (${th})`, `th=${th} td=${td}`);
 
+  // 🔴 **مفيش عمود عنوان هنا** — `shipped-orders-worker` لسه مابيرجّعش
+  //    `address1`. العمود اللي بيقول `—` على كل صف بيتقري عطل في الشاشة،
+  //    فبيتضاف **في نفس تسليم الـ Worker** مش قبله.
+  const shHeads = await page.$$eval('.data-table thead th', e => e.map(x => x.textContent.trim()));
+  is(!shHeads.includes('العنوان'),
+     '🔴 طابور المشحون **بلا عمود عنوان** لحد ما الـ Worker بتاعه يرجّعه', JSON.stringify(shHeads));
+  is(shHeads.at(-2) === 'نوع الأوردر' && shHeads.at(-1) === 'مراجعة',
+     'ونفس ترتيب آخر عمودين بالحرف زي صفحة الجاهز', JSON.stringify(shHeads.slice(-2)));
+
   // 🔴 رقم التتبع بتاع صف S2 من `…_s2`
   const s2 = await page.$$eval('#qBody tr', els =>
     (els.find(e => e.textContent.includes('#56003')) || {}).innerText || '');
@@ -519,7 +599,7 @@ console.log('\n══ ⑦ الفحص الذاتي ══');
   await page.click('#diagBtn');
   await page.waitForTimeout(900);
   const diag = await page.textContent('#diagResult');
-  is(diag.includes('طابور الجاهز للشحن') && diag.includes('طابور المشحون'),
+  is(diag.includes('قسم الجاهز للشحن') && diag.includes('طابور المشحون'),
      'الفحص بيسمّي كل Worker **بالاسم** — رسالة بلا اسم بتخلّي الموظف يدوّر في التلاتة');
   is(diag.includes('read_all_orders'), 'بنود الـ Worker بتتعرض');
   is(diag.includes('أي شحنة أقدم من ٦٠ يوم'),
@@ -542,7 +622,7 @@ console.log('\n══ ⑦ الفحص الذاتي ══');
   await page.waitForTimeout(1200);
   is(await page.isVisible('#verStaleBtn'), 'Worker أقدم من الحد الأدنى → تحذير النسخة بيظهر');
   const t = await page.textContent('#verStaleBtn');
-  is(t.includes('طابور الجاهز للشحن'), 'والتحذير **بيسمّي الأداة**', t.trim());
+  is(t.includes('قسم الجاهز للشحن'), 'والتحذير **بيسمّي الأداة**', t.trim());
   await ctx.close();
 }
 

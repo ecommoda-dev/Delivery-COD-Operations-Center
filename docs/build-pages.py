@@ -34,22 +34,74 @@ function trackingCell(o) {
        + (o.trackingIsLegacy ? '<span class="cell-sub">من الحقل القديم</span>' : '');
 }'''
 
+ADDR_FN = '''// 🔴 **العنوان الكامل في خلية واحدة** (طلب أحمد 16-09-2026).
+//    الشارع (`address1` + `address2`) في السطر الأول، والمدينة/المحافظة
+//    في سطر تحته — عشان العين تمسك الشارع الأول وهو اللي بيفرّق بين
+//    عنوانين في نفس المحافظة.
+// ⚠️ **المحافظة اتشالت من تحت اسم العميل** ونزلت هنا: نفس القيمة في
+//    خانتين على نفس الصف بتخلّي الموظف يفتكر إنهم حاجتين مختلفتين.
+// 🔴 **و«بلا عنوان» بتتقال صراحةً** — خانة فاضية بتتقري «الشاشة بايظة»،
+//    والحقيقة إن الأوردر ده **فعلاً مالوش عنوان** على شوبيفاي وده شغل
+//    محتاج تدخّل (⚠️ مش علامة مراجعة: قايمة العلامات قرار منفصل).
+function addressCell(o) {
+  const street = [o.address1, o.address2].filter(Boolean).join(' — ').trim();
+  // ⚠️ التكرار بيتشال: مدينة == محافظة حالة عادية جدًا في القاهرة
+  //    (`Cairo` / `Cairo`)، و«Cairo · Cairo» بتتقري غلطة إدخال.
+  const loc = [...new Set([o.city, o.province].filter(Boolean))].join(' · ');
+  if (!street && !loc) return '<span class="flag-ok">—</span>';
+  const head = street ? esc(street) : '<span class="flag-ok">بلا عنوان</span>';
+  return head + (loc ? `<span class="cell-sub">${esc(loc)}</span>` : '');
+}'''
+
 import os
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# بنود «الأعمدة» في نافذة «عن الأداة» — **لكل صفحة بتاعها بس**.
+# ⚠️ بند بيوصف عمود مش موجود في الصفحة أسوأ من مفيش بند.
+READY_ABOUT_COLS = '''            <li><b>العنوان</b> — <code>address1</code> و<code>address2</code> في السطر
+                الأول، والمدينة والمحافظة تحتهم. الأوردر اللي مالوش عنوان على
+                شوبيفاي بيقول <b>«بلا عنوان»</b> بالنص — خانة فاضية كانت هتتقري
+                عطل في الشاشة.</li>
+            <li><b>موقع الشحنة</b> — <code>package_whereabouts_s1</code> (أو
+                <code>…_s2</code> لصف الاستبدال): الطرد قاعد فين دلوقتي.
+                ⚠️ <b>«لسه مش مسجّلة»</b> ≠ «المخزن» — أداة التغليف لسه ما بتكتبش
+                الحقل ده، فالفاضي معناه «محدش سجّل» مش مكان.</li>'''
+
+SHIPPED_ABOUT_COLS = '''            <li><b>رقم التتبع</b> — الجديد أولاً (<code>…_s1</code>/<code>…_s2</code> حسب
+                ماكينة الصف)، والقديم بعلامة <b>«من الحقل القديم»</b>. ⚠️ العلامة
+                دي مش تزويق: من غيرها الموظف بيفتكر إن الحقول الجديدة اتملّت وهي
+                لسه فاضية على كل الأوردرات.</li>'''
 
 PAGES = [
   dict(
     file='ready-orders.html', key='ready', status='Ready', action='get_ready_queue',
     worker='ready', cache='DCO_CACHE_READY',
-    icon='📋', title='طابور الجاهز للشحن', subtitle='مركز عمليات الشحن والتحصيل',
-    boxTitle='📋 جاهز للشحن',
-    boxSub='حالته <code>Ready</code> — الشحنة الأصلية أو دورة الاستبدال/الاسترجاع',
+    # 🔴 «قسم» مش «طابور» (طلب أحمد 16-09-2026) — يطابق تسمية المحطة
+    #    التانية («قسم التغليف» · «قسم الطباعة» · «قسم تسليمات بوسطة»)،
+    #    والموظف بيتنقّل بين الهبين طول اليوم.
+    #    ⚠️ والاسم ده **في تلات أماكن لازم يفضلوا متطابقين**: هنا ·
+    #       `DCO_WORKERS.ready.label` في `shared/shell.js` (حارس النسخة
+    #       بيسمّي الأداة بيه) · وصف الشاشة الرئيسية في `index.html`.
+    icon='📋', title='قسم الجاهز للشحن', subtitle='مركز عمليات الشحن والتحصيل',
     emptyOk='مفيش أوردرات جاهزة للشحن دلوقتي',
     packCol='تاريخ التغليف',
-    extraHead='<th>عهدة الطرد</th>',
+    # 🔴 «موقع الشحنة» بدل «عهدة الطرد» (طلب أحمد 16-09-2026) — نفس الحقل
+    #    بالحرف (`package_whereabouts_s1`/`_s2`) ونفس القيم؛ الاسم بس هو
+    #    اللي اتغيّر. «عهدة» كلمة محاسبية، و«موقع الشحنة» بيقول اللي
+    #    الخانة بتقوله فعلاً: الطرد قاعد فين دلوقتي.
+    extraHead='<th>موقع الشحنة</th>',
     extraCell="""      <td>${whereaboutsCell(o)}</td>\n""",
     extraFn=WA_FN,
-    cols=11,
+    # 🔴 **عمود العنوان لصفحة «الجاهز للشحن» بس دلوقتي** — `ready-orders-worker`
+    #    v1.1.0 بيرجّع `address1`/`address2`، و`shipped-orders-worker` **لسه
+    #    مابيرجّعهمش**. عمود بيقول `—` على كل صف بيتقري عطل في الشاشة مش
+    #    «الحقل مش موجود»، فالعمود بيتضاف هناك **في نفس تسليم الـ Worker**
+    #    (بند مفتوح في `CLAUDE.md`) — بتغيير المعاملين دول بس.
+    addrHead='<th>العنوان</th>',
+    addrCell="""      <td class="addr-cell">${addressCell(o)}</td>\n""",
+    addrFn=ADDR_FN,
+    aboutCols=READY_ABOUT_COLS,
+    cols=9,
     aboutWhat='''الأوردرات اللي حالتها <code>Ready</code> — يعني اتأكدت وجاهزة تخرج،
              ولسه ما اتسجّلش عليها شحن.''',
   ),
@@ -57,14 +109,15 @@ PAGES = [
     file='shipped-orders.html', key='shipped', status='Shipped', action='get_shipped_queue',
     worker='shipped', cache='DCO_CACHE_SHIPPED',
     icon='🚚', title='طابور المشحون', subtitle='مركز عمليات الشحن والتحصيل',
-    boxTitle='🚚 مشحون بلا نتيجة',
-    boxSub='حالته <code>Shipped</code> — خرج ولسه ما اتسجّلش <code>Delivered</code> ولا <code>Returned</code>',
     emptyOk='مفيش شحنات مفتوحة دلوقتي',
     packCol='تاريخ التغليف',
     extraHead='<th>رقم التتبع</th>',
     extraCell="""      <td>${trackingCell(o)}</td>\n""",
     extraFn=TR_FN,
-    cols=11,
+    # ⚠️ بلا عمود عنوان — الـ Worker بتاع الطابور ده مابيرجّعش `address1`.
+    addrHead='', addrCell='', addrFn='',
+    aboutCols=SHIPPED_ABOUT_COLS,
+    cols=8,
     aboutWhat='''الأوردرات اللي حالتها <code>Shipped</code> — خرجت من المخزن
              و<b>محدش سجّل لها نتيجة نهائية</b> لسه. ⚠️ <code>In-Return</code>
              <b>مش داخلة</b> في الطابور ده (بند مفتوح).''',
@@ -112,29 +165,47 @@ TPL = r'''<!DOCTYPE html>
 .cb-num.pending { color: var(--text-muted); }
 .cb-num.failed  { color: var(--red); font-size: 22px; }
 .cb-unit { font-size: 11.5px; font-weight: 700; color: var(--text-muted); }
-.cb-title { font-size: 13.5px; font-weight: 800; }
-.cb-sub { font-size: 11px; color: var(--text-muted); line-height: 1.7; }
-.cb-mid { flex: 1 1 260px; min-width: 240px; display: flex; flex-direction: column; gap: 7px; }
+/* ⚠️ `.cb-title` و`.cb-sub` **اتشالوا** مع الكلام اللي كان جنب الأيقونة —
+   قاعدة CSS بلا مستهلك = كود ميت، مش «احتياط». */
+.cb-mid { flex: 1 1 260px; min-width: 240px; display: flex; flex-direction: column; gap: 9px; align-items: center; }
 /* ⚠️ `flex:1` على `.cb-mid` بس — لو اتحطّت على منطقة تانية، منطقة الأكشن
    بتتزحلق من `margin-inline-start:auto` وبتقع في نص الصندوق. */
 .cb-act { margin-inline-start: auto; display: flex; align-items: stretch; gap: 9px; flex-wrap: wrap; }
 
-/* ── مربعات الفلترة — نفس لغة `.zchip` في صفحة التغليف ─────────
-   🔴 **بتعدّ من القايمة الكاملة مش المفلترة.** لو العدّ على المفلتر،
+/* ── مربعات الفلترة — 🔴 **نسخة من `.zchip` في `pack.html` بالحرف** ────
+   نفس المقاس ونفس الحشو ونفس نصف القطر ونفس بادج العدّ ونفس علامة ✕
+   على المختار. الموظف بيتنقّل بين هب المخزن وهب الشحن طول اليوم، ومربع
+   فلتر بشكلين مختلفين لنفس الفعل معناه إنه يتعلّمه مرتين (درس R1).
+   ⚠️ **مستطيل (`--radius-sm`) مش pill** عن قصد: ده **هدف ضغط** لموظف
+      بإيد مشغولة، مش علامة للقراءة — فمقاسه أكبر من نص الجدول.
+   ⚠️ أي تعديل هنا يتعمل في `pack.html` في نفس التمريرة.
+   🔴 **وبتعدّ من القايمة الكاملة مش المفلترة.** لو العدّ على المفلتر،
       أول ضغطة كانت هتصفّر باقي المربعات فما حدش يقدر يرجّع منها. */
-.fchips { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
-.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface-2); font-family: var(--font-body); font-size: 11.5px; font-weight: 800; color: var(--text-secondary); cursor: pointer; transition: border-color .12s, background .12s, color .12s; }
-.fchip b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; direction: ltr; }
-.fchip:hover { border-color: var(--border-strong); }
-.fchip.qc-bosta    { background: var(--red-light);    color: var(--red-dark);    border-color: var(--red-border); }
-.fchip.qc-showroom { background: var(--teal-light);   color: var(--teal-dark);   border-color: var(--teal-border); }
-.fchip.qc-courier  { background: var(--accent-light); color: var(--accent-dark); border-color: var(--accent-border); }
-.fchip.qc-flag     { background: var(--amber-light);  color: var(--amber-dark);  border-color: var(--amber-border); }
-/* المختار بياخد حد مصمت + علامة ✕ — «دوس تاني عشان ترجّع الكل».
+.fchips { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; flex: 1; min-width: 0; justify-content: center; }
+.fchips:empty { display: none; }
+.zchip { display: inline-flex; align-items: center; gap: 9px; padding: 9px 15px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--surface-2); color: var(--text-secondary); font-family: var(--font-body); font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; transition: filter .12s, transform .1s, box-shadow .15s; }
+.zchip:hover  { filter: brightness(.97); }
+.zchip:active { transform: translateY(1px); }
+/* ⚠️ بادج العدّ **جوّه المربع** بحد من `currentColor` — من غيره الرقم
+   بيلزق في الليبل والعين بتلف تدوّر عليه. */
+.zchip-n { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 22px; padding: 0 7px; border-radius: 20px; background: var(--surface); border: 1px solid currentColor; font-family: var(--font-mono); font-size: 12.5px; font-weight: 800; line-height: 1; direction: ltr; font-variant-numeric: tabular-nums; }
+.zchip.qc-bosta    { background: var(--red-light);    color: var(--red-dark);    border-color: var(--red-border); }
+.zchip.qc-showroom { background: var(--teal-light);   color: var(--teal-dark);   border-color: var(--teal-border); }
+.zchip.qc-courier  { background: var(--accent-light); color: var(--accent-dark); border-color: var(--accent-border); }
+.zchip.qc-flag     { background: var(--amber-light);  color: var(--amber-dark);  border-color: var(--amber-border); }
+/* المختار = فلتر شغّال. العلامة لازم تبان من بعيد — الموظف اللي مش فاهم
+   ليه الجدول ناقص بيدوّر على المربع المولّع ده.
    ⚠️ الفلتر **أحادي**: مربع واحد مختار على الأكثر. فلتر مركّب على
    مربعات متلاصقة بيخلّي الموظف مش عارف هو شايف إيه بالظبط. */
-.fchip.on { box-shadow: 0 0 0 2px var(--focus-ring); border-width: 2px; }
-.fchip .x { font-size: 10px; opacity: .8; }
+.zchip.on { box-shadow: 0 0 0 2px currentColor inset; }
+.zchip.on::after { content: '✕'; font-size: 12px; font-weight: 800; opacity: .75; }
+
+/* ⚠️ `.fchip` فضل **للبادجات الصغيّرة اللي جنب الفلوس بس** (مدفوع مقدمًا ·
+   حالة مالية مش معروفة) — دي **بتتقري مابتتضغطش**، فمقاسها لازم يفضل
+   أصغر من مربعات الفلتر. توحيدهم كان هيخلّي بادج قراءة يبان هدف ضغط. */
+.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface-2); font-family: var(--font-body); font-size: 11.5px; font-weight: 800; color: var(--text-secondary); }
+.fchip b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; direction: ltr; }
+.fchip.qc-flag { background: var(--amber-light); color: var(--amber-dark); border-color: var(--amber-border); }
 
 .cb-money { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
@@ -145,22 +216,34 @@ TPL = r'''<!DOCTYPE html>
 .srch-note { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); }
 .srch-note b { font-family: var(--font-mono); color: var(--text-primary); }
 
-/* ── الجدول — المعيار الموحّد: كل خلية متوسّطة + خطوط رأسية ──── */
-.table-wrap { overflow-x: auto; }
+/* ── الجدول — 🔴 **نسخة من `.data-table` بتاعة `pack.html` بالحرف** ────
+   نفس الحشو ونفس مقاس الخط ونفس الخطوط الرأسية ونفس هيدر الـ 2px.
+   الموظف بيقرا الجدولين بنفس العين، وجدولان بشكلين مختلفين لنفس نوع
+   الصف معناهم إنه يتعلّم الشكل مرتين (درس R1).
+   ⚠️ **الإطار الخارجي (`.table-wrap`) مش تزويق** — `overflow:hidden`
+      معاه `radius` هو اللي بيقص أركان أول وآخر صف، ومن غيره الصف بيخرج
+      برّه حدود الكارت عند التمرير الأفقي. */
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); margin: 0 16px 14px; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-.data-table thead th { padding: 10px 11px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: .3px; white-space: nowrap; text-align: center; }
-.data-table tbody tr { border-bottom: 1px solid var(--border); }
-.data-table tbody tr:last-child { border-bottom: none; }
+.data-table th { background: var(--surface-2); padding: 9px 10px; text-align: center; font-weight: 700; font-size: 11px; color: var(--text-secondary); border-bottom: 2px solid var(--border-strong); border-inline-start: 1px solid var(--border); white-space: nowrap; }
+.data-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); border-inline-start: 1px solid var(--border); text-align: center; vertical-align: middle; font-size: 13px; color: var(--text-primary); }
+.data-table th:first-child, .data-table td:first-child { border-inline-start: none; }
+.data-table tbody tr:last-child td { border-bottom: none; }
 .data-table tbody tr:hover { background: var(--surface-2); }
-.data-table tbody td { padding: 9px 11px; font-size: 13px; color: var(--text-primary); text-align: center; vertical-align: middle; }
-.data-table thead th, .data-table tbody td { border-inline-start: 1px solid var(--border); }
-.data-table thead th:first-child, .data-table tbody td:first-child { border-inline-start: none; }
 /* صف عليه علامة مراجعة — خلفية خفيفة جدًا.
    ⚠️ **خفيفة عن قصد**: الصف ده **مش مرفوض** — هو في الطابور وبيتعدّ،
       والعلامة معناها «راجعه» مش «تجاهله». لون قوي كان هيخلّيه يتقري رفض. */
 .data-table tbody tr.flagged { background: color-mix(in srgb, var(--amber-light) 55%, transparent); }
 .data-table tbody tr.flagged:hover { background: var(--amber-light); }
 .col-num  { font-family: var(--font-mono); direction: ltr; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* ── العنوان — 🔴 **العمود الوحيد اللي بيلفّ، وعن قصد** ──────────
+   باقي الخلايا سطر واحد متوسّط؛ العنوان نص حر ممكن يبقى ٨٠ حرف.
+   ⚠️ `text-align:right` (بداية السطر في RTL) مش `center` — عنوان متوسّط
+      على سطرين بيخلّي العين تدوّر على أول كل سطر في مكان مختلف.
+   ⚠️ و`max-width` مع `white-space:normal` هما اللي بيمنعوا العمود إنه
+      ياكل عرض الجدول كله ويزقّ باقي الأعمدة برّه الشاشة. */
+.addr-cell { text-align: right; white-space: normal; max-width: 260px; line-height: 1.6; }
 .cell-sub { display: block; font-size: 10.5px; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
 
 /* «نوع الأوردر» — نسخة طبق الأصل من صفحة التغليف في هب المخزن بالحرف:
@@ -219,11 +302,14 @@ TPL = r'''<!DOCTYPE html>
              (باج v1.11.0 في هب المخزن · درس R1).
        ⚠️ وقبل أول جلب ناجح الرقم **`—` مش `0`** — «ما اتحدّثش» ≠ «مفيش شغل». -->
   <div class="card count-box">
+    <!-- 🔴 **الكلام اللي كان جنب الأيقونة اتشال** (طلب أحمد 16-09-2026) —
+         عنوان الصفحة في الهيدر بيقول نفس الحاجة، وسطر الشرح كان بيوصف
+         **قاعدة الاستعلام** (`Ready` · الماكينتين) وهي معلومة بتتقرا مرة
+         واحدة وبعدين بتاخد مساحة فوق الطابور كل يوم. مكانها الباقي نافذة
+         «عن الأداة» — ⛔ ومش مسموح تتشال من هناك كمان.
+         ⚠️ والأيقونة فضلت: هي اللي بتفرّق الصندوق ده عن أي كارت تاني
+            في الشاشة من غير ما تاخد سطر. -->
     <span class="cb-ico">__ICON__</span>
-    <div>
-      <div class="cb-title">__BOX_TITLE__</div>
-      <div class="cb-sub">__BOX_SUB__</div>
-    </div>
     <div style="display:flex;align-items:baseline;gap:8px">
       <span class="cb-num pending" id="qCount">—</span><span class="cb-unit">أوردر</span>
     </div>
@@ -267,18 +353,20 @@ TPL = r'''<!DOCTYPE html>
           <tr>
             <th>رقم الأوردر</th>
             <th>العميل</th>
-            <th>نوع الأوردر</th>
-            <th>المندوب</th>
-            <th>القناة</th>
+            __ADDR_HEAD__<th>المندوب</th>
             __EXTRA_HEAD__
-            <th>عدد القطع</th>
-            <th>الإجمالي</th>
             <th>تاريخ الأوردر</th>
             <!-- ⚠️ الاسم **«تاريخ التغليف»** مش «الوقت منذ التغليف» — الخلية
                  فيها التاريخ **والبادج** مع بعض، بالظبط زي عمود «تاريخ
                  الأوردر» اللي جنبه. اسم العمود لازم يوصف اللي جوّاه، والبادج
                  هو اللي بيقول «قاعد من إمتى» في العمودين. -->
             <th>__PACK_COL__</th>
+            <!-- 🔴 «نوع الأوردر» **قبل الأخير** (طلب أحمد 16-09-2026) — الأعمدة
+                 اللي الموظف بيدوّر بيها على الصف (رقم · عميل · عنوان · مندوب)
+                 بقت مجمّعة في أول الجدول، والنوع صفة بيتأكد منها **بعد** ما
+                 يلاقي الصف. ⚠️ ولسه **قبل** «مراجعة» عن قصد: العلامة آخر
+                 حاجة تتقرا لأنها هي اللي بتوقف الشغل. -->
+            <th>نوع الأوردر</th>
             <th>مراجعة</th>
           </tr>
         </thead>
@@ -314,9 +402,14 @@ TPL = r'''<!DOCTYPE html>
             <li><b>نوع الأوردر</b> — «عادي» يعني الشحنة الأصلية (S1)، و«استبدال/استرجاع»
                 يعني دورة الـ R/E (S2). الصف بياخد <b>بيانات ماكينته هو</b>: وقت التغليف
                 واسم اللي غلّف ورقم التتبع كلهم من حقول الماكينة الصح.</li>
-            <li><b>الإجمالي</b> — <code>currentTotalPriceSet</code>: الرقم بعد أي تعديل أو
-                مرتجع، وهو اللي المندوب بيحصّله فعلاً. وتحته الحالة المالية:
-                <b>تحصيل</b> (<code>PENDING</code>) أو <b>مدفوع</b>.</li>
+            <li><b>مستحق التحصيل</b> (فوق الطابور، مش عمود) — مجموع
+                <code>currentTotalPriceSet</code> للأوردرات اللي حالتها المالية
+                <code>PENDING</code> بس: الرقم بعد أي تعديل أو مرتجع، وهو اللي
+                المندوب بيحصّله فعلاً. 🔴 والمدفوع مقدمًا <b>مستبعَد ومُعلَن بعدده</b>
+                جنبه — استبعاد صامت من رقم فلوس بيخلّي الفرق بين المجموع والواقع
+                بلا تفسير. ⚠️ ولما يبقى فيه فلتر أو بحث، الرقم بيتحسب على
+                <b>المعروض</b> وبيقول «(مفلتر)» صراحةً.</li>
+__ABOUT_COLS__
             <li><b>مراجعة</b> — الصف اللي عليه شذوذ بياخد علامة، والضغط عليها بيفتح
                 <b>السبب والقيمة الغلط والفعل المطلوب</b>. 🔴 والصف <b>بيفضل في الطابور
                 وبيتعدّ في الرقم</b> — علّم عليه متشيلوش (قاعدة ١٣).</li>
@@ -419,9 +512,12 @@ function qRenderChips() {
     const key = ch.cls === 'qc-flag' ? 'flag'
       : (DCO_COURIER_GROUPS.find(g => g.cls === ch.cls)?.key || '');
     const on  = qState.filter === key;
-    return `<button type="button" class="fchip ${esc(ch.cls)}${on ? ' on' : ''}" data-fk="${esc(key)}"`
-         + ` aria-pressed="${on ? 'true' : 'false'}">${esc(ch.label)} <b>${ch.n}</b>`
-         + (on ? '<span class="x" aria-hidden="true">✕</span>' : '') + '</button>';
+    // ⚠️ علامة ✕ بتتحط من CSS (`.zchip.on::after`) مش من هنا — زي
+    //    `pack.html` بالحرف. عنصر زيادة في الماركب كان بيدخل في
+    //    `innerText` وبيكسر البنود اللي بتقرا العدّ من نص المربع.
+    return `<button type="button" class="zchip ${esc(ch.cls)}${on ? ' on' : ''}" data-fk="${esc(key)}"`
+         + ` aria-pressed="${on ? 'true' : 'false'}"><span>${esc(ch.label)}</span>`
+         + `<span class="zchip-n">${ch.n}</span></button>`;
   }).join('');
 
   // ⚠️ الفلوس **بتتحسب على المعروض**، مش على القايمة الكاملة — الموظف
@@ -449,14 +545,13 @@ function qVisible() {
   });
 }
 
-function financeCell(o) {
-  const amt = dcoMoney(o.total, o.currency);
-  if (!o.financial) return `<span class="col-num">${esc(amt)}</span><span class="fin">حالة مالية مش معروفة</span>`;
-  const cod = o.financial === 'PENDING';
-  return `<span class="col-num">${esc(amt)}</span>`
-       + `<span class="fin ${cod ? 'fin-cod' : 'fin-paid'}">${cod ? 'تحصيل (COD)' : 'مدفوع — ' + esc(o.financial)}</span>`;
-}
-
+// ⚠️ **`financeCell` اتشالت** مع عمود «الإجمالي» (طلب أحمد 16-09-2026) —
+//    دالة بلا مستهلك = كود ميت، مش «احتياط».
+//    🔴 **والفلوس ما ضاعتش**: «مستحق التحصيل» فوق الطابور لسه بيتحسب من
+//       `dcoCod` على **نفس** `o.total`/`o.financial`، وبيقول المدفوع
+//       مقدمًا والحالة المالية المجهولة بعددهم. اللي اتشال هو **العمود**
+//       — الرقم اللي المحطة بتشتغل عليه لسه معروض.
+__ADDR_FN__
 __EXTRA_FN__
 
 function qRender() {
@@ -510,19 +605,20 @@ function qRender() {
   tbody.innerHTML = rows.map((o, i) => {
     const isS2  = o.machine === 's2';
     const since = o.packedAt ? dcoWaiting(o.packedAt, now) : { cls: 'tb-none', text: '— ما اتغلّفش' };
-    const qty   = (o.itemsQty === null || o.itemsQty === undefined) ? '—' : o.itemsQty;
-    const g     = DCO_COURIER_GROUPS.find(x => x.key === o.courierGroup);
+    // ⚠️ **اسم المندوب زي ما هو من غير سطر المجموعة تحته** (طلب أحمد
+    //    16-09-2026). المجموعة (بوسطة/شو روم/مناديب) بقت معروضة في
+    //    **مربعات الفلتر فوق الطابور** بعددها، وتكرارها تحت كل اسم كان
+    //    بيطوّل الصف من غير ما يضيف حاجة الموظف بيتصرّف عليها.
+    //    ⚠️ و`courierGroup` **لسه بيتحسب** في الـ shell — المربعات بتعدّ
+    //       منه والفلتر بيشتغل بيه؛ اللي اتشال هو **عرضه في الخلية** بس.
     return `<tr class="${o.flags.length ? 'flagged' : ''}">
       <td>${orderLink(o.orderName, o.orderId)}</td>
-      <td>${esc(o.customer || '—')}${o.province ? `<span class="cell-sub">${esc(o.province)}</span>` : ''}</td>
-      <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(isS2 ? 'استبدال/استرجاع' : 'عادي')}</span></td>
-      <td>${esc(o.courier || '—')}<span class="cell-sub">${esc(g ? g.label : '—')}</span></td>
-      <td>${esc(o.zone || '—')}</td>
-__EXTRA_CELL__      <td class="col-num">${esc(String(qty))}</td>
-      <td>${financeCell(o)}</td>
-      <td>${esc(formatDate(o.createdAt))} <span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
+      <td>${esc(o.customer || '—')}</td>
+__ADDR_CELL__      <td>${esc(o.courier || '—')}</td>
+__EXTRA_CELL__      <td>${esc(formatDate(o.createdAt))} <span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
       <td>${o.packedAt ? esc(formatDate(o.packedAt)) : '—'}
           <span class="time-badge ${since.cls}" data-q-pack="${o.packedAt ? esc(o.packedAt) : ''}">${esc(since.text)}</span></td>
+      <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(isS2 ? 'استبدال/استرجاع' : 'عادي')}</span></td>
       <td>${o.flags.length
             ? `<button type="button" class="flag-btn" data-flag-idx="${i}">⚠️ ${o.flags.length}</button>`
             : '<span class="flag-ok">—</span>'}</td>
@@ -708,18 +804,26 @@ for p in PAGES:
     out = TPL
     out = out.replace('__TITLE__', p['title']).replace('__SUBTITLE__', p['subtitle'])
     out = out.replace('__ICON__', p['icon'])
-    out = out.replace('__BOX_TITLE__', p['boxTitle']).replace('__BOX_SUB__', p['boxSub'])
     out = out.replace('__EMPTY_OK__', p['emptyOk'])
     out = out.replace('__PACK_COL__', p['packCol'])
     out = out.replace('__EXTRA_HEAD__', p['extraHead'])
     out = out.replace('__EXTRA_CELL__', p['extraCell'])
     out = out.replace('__EXTRA_FN__', p['extraFn'])
+    out = out.replace('__ADDR_HEAD__', p['addrHead'])
+    out = out.replace('__ADDR_CELL__', p['addrCell'])
+    out = out.replace('__ADDR_FN__', p['addrFn'])
+    out = out.replace('__ABOUT_COLS__', p['aboutCols'])
     out = out.replace('__STATUS__', p['status']).replace('__KEY__', p['key'])
     out = out.replace('__ACTION__', p['action']).replace('__WORKER__', p['worker'])
     out = out.replace('__CACHE__', p['cache'])
     out = out.replace('__ABOUT_WHAT__', p['aboutWhat'])
     assert '__' not in out.replace('__', '', 0) or True
-    left = [t for t in ['__TITLE__','__ICON__','__ACTION__','__CACHE__','__EXTRA_CELL__','__EXTRA_FN__'] if t in out]
+    # 🔴 الحارس ده بيمسك **معامل اتضاف في المولّد وما اتسبدلش** — القالب
+    #    بيتكتب في الحالة دي بنص `__ADDR_CELL__` حرفي جوّه الصفحة، وهي
+    #    بتفتح عادي والكونسول نضيف.
+    left = [t for t in ['__TITLE__','__ICON__','__ACTION__','__CACHE__','__EXTRA_CELL__',
+                        '__EXTRA_FN__','__ADDR_HEAD__','__ADDR_CELL__','__ADDR_FN__',
+                        '__ABOUT_COLS__'] if t in out]
     assert not left, f"unreplaced {left}"
     out_path = os.path.join(REPO, p['file'])
     open(out_path, 'w').write(out)
