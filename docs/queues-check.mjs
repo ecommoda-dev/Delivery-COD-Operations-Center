@@ -250,8 +250,8 @@ console.log('\n══ ① الجلسة والهيدر ══');
      'زرار الموظف عليه aria-label="تسجيل الخروج" (الـ ✕ لوحده مايتقريش)');
   const ver = (await page.textContent('#verBtn')).trim();
   const cl  = (await page.textContent('#clLatestVerBadge')).trim();
-  is(ver.startsWith('v1.1.0'), 'زرار النسخة بيقول نسخة الهب', ver);
-  is(cl === 'v1.1.0', 'بادج سجل التحديثات **مطابق** لزرار النسخة (مصدر واحد · #24)', cl);
+  is(ver.startsWith('v1.2.0'), 'زرار النسخة بيقول نسخة الهب', ver);
+  is(cl === 'v1.2.0', 'بادج سجل التحديثات **مطابق** لزرار النسخة (مصدر واحد · #24)', cl);
   is(!(await page.isVisible('#verStaleBtn')), 'مفيش تحذير نسخة قديمة والـ Worker مطابق للحد الأدنى');
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
@@ -303,15 +303,17 @@ console.log('\n══ ② ready-orders.html ══');
   });
   is(addr1.includes('جامعة الدول العربية') && addr1.includes('الدور التالت'),
      'خلية العنوان فيها `address1` و`address2` مع بعض', addr1);
-  is(addr1.includes('Cairo') && !/Cairo\s*·\s*Cairo/.test(addr1),
-     '🔴 المدينة == المحافظة بتتعرض **مرة واحدة** — «Cairo · Cairo» بتتقري غلطة إدخال', addr1);
+  // 🔴 سطر المدينة/المحافظة **اتشال** (طلب أحمد 16-09-2026) — القيمة كانت
+  //    بتتكرّر جوّه نص العنوان نفسه وبتطوّل كل صف من غير ما تضيف حاجة.
+  is(!addr1.includes('Cairo'),
+     '🔴 سطر المدينة/المحافظة **اتشال** من خلية العنوان', addr1);
   // 🔴 «بلا عنوان» بتتقال بالنص — خانة فاضية بتتقري عطل في الشاشة
   const addr5 = await page.$$eval('#qBody tr', els => {
     const r = els.find(e => e.textContent.includes('#55005'));
     return r ? r.querySelectorAll('td')[2].innerText.replace(/\s+/g, ' ').trim() : '';
   });
-  is(addr5.includes('بلا عنوان') && addr5.includes('Qalyubia'),
-     '🔴 الأوردر اللي مالوش عنوان بيقول **«بلا عنوان»** ومحافظته لسه ظاهرة', addr5);
+  is(addr5 === 'بلا عنوان',
+     '🔴 الأوردر اللي مالوش عنوان بيقول **«بلا عنوان»** بالنص — خانة فاضية بتتقري عطل', addr5);
 
   // ⚠️ المحافظة **مش مكرّرة** تحت اسم العميل بعد ما نزلت لعمود العنوان
   const custCell = await page.$$eval('#qBody tr', els => {
@@ -341,10 +343,17 @@ console.log('\n══ ② ready-orders.html ══');
      '🔴 صف S2 أخد **وقت تغليف S2** مش S1 (بيانات ماكينته هو)',
      s2row ? (s2row.html.match(/data-q-pack="[^"]*"/) || [''])[0] : 'مفيش صف');
 
-  // الصف اللي ما اتغلّفش بيقول كده صراحةً
-  const r6 = await page.$$eval('#qBody tr', els =>
-    (els.find(e => e.textContent.includes('#55006')) || {}).innerText || '');
-  is(r6.includes('ما اتغلّفش'), 'الصف اللي مالوش وقت تغليف بيقول «ما اتغلّفش» مش خانة فاضية');
+  // 🔴 الصف اللي ما اتغلّفش **مالوش بادج خالص** (طلب أحمد 16-09-2026) —
+  //    الخلية بتقول `—` وبس. بادج محايد وسط عمود كله بادجات ملوّنة كان
+  //    بيسحب العين لأقل صف أهمية.
+  const packCell6 = await page.$$eval('#qBody tr', els => {
+    const r = els.find(e => e.textContent.includes('#55006'));
+    if (!r) return null;
+    const tds = r.querySelectorAll('td');
+    return { text: tds[6].innerText.trim(), badge: !!tds[6].querySelector('.time-badge') };
+  });
+  is(packCell6 && packCell6.text === '—' && !packCell6.badge,
+     '🔴 الصف اللي ما اتغلّفش خليته `—` **بلا أي بادج**', JSON.stringify(packCell6));
 
   // 🔴 الشاذ **بيفضل في الطابور** وبياخد علامة
   const flagged = await page.$$eval('#qBody tr.flagged', e => e.length);
@@ -412,14 +421,14 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   await page.click('#flagsOverlay .btn-ghost');
   await page.waitForTimeout(150);
 
-  // الفلتر — أحادي، وبيقول «معروض N من M»
+  // الفلتر بمربع الطابور — و«النتائج» بتتحرك معاه
   await page.click('#qChips [data-fk="bosta"]');
   await page.waitForTimeout(200);
   let shown = await page.$$eval('#qBody tr', e => e.length);
   is(shown === READY_COURIER.bosta, 'الفلتر بالمندوب بيفلتر فعلاً', `شفت ${shown}`);
-  const note = await page.textContent('#qShown');
-  is(note.includes(String(READY_COURIER.bosta)) && note.includes(String(READY_TOTAL)),
-     '«معروض N من M» بتظهر وقت الفلتر', note.replace(/\s+/g,' ').trim());
+  const note = await page.textContent('#qFilteredCount');
+  is(num(note) === READY_COURIER.bosta,
+     '🔴 «النتائج» == عدد المعروض بعد الفلتر', note.trim());
   // 🔴 والرقم الكبير **مابيتغيّرش** — هو رقم الطابور مش رقم المعروض
   is(num(await page.textContent('#qCount')) === READY_TOTAL,
      'الرقم الكبير مابيتغيّرش بالفلتر (هو عدد الطابور)');
@@ -432,25 +441,91 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   const m2 = await page.textContent('#qMoney');
   is(m2.includes('مفلتر'), 'الفلوس بتقول «(مفلتر)» لما الفلتر شغّال — الرقم بقى عن المعروض');
 
+  // 🔴 والمربع **كتب في فلتر المندوب** — مش حالة تانية جنبه
+  const msLabel = await page.textContent('#qMsBtnLabel-courier');
+  is(msLabel.trim() === 'Bosta',
+     '🔴 مربع الطابور **بيكتب في فلتر المندوب** — حالة واحدة مش اتنين', msLabel.trim());
+  is(await page.$eval('#qFltIcon', el => el.classList.contains('active')),
+     'أيقونة الفلتر بتولّع لما يبقى فيه فلتر شغّال (§3)');
+  is(!(await page.$eval('#qClearAllBtn', el => el.classList.contains('inactive'))),
+     'وزرار «مسح كل الفلاتر» بيبطّل يبقى باهت');
+
   // ضغطة تانية بترجّع الكل
   await page.click('#qChips [data-fk="bosta"]');
   await page.waitForTimeout(200);
   shown = await page.$$eval('#qBody tr', e => e.length);
   is(shown === READY_TOTAL, 'ضغطة تانية على نفس المربع بترجّع الكل');
 
-  // البحث
-  await page.fill('#qSearch', '55002');
-  await page.waitForTimeout(250);
-  shown = await page.$$eval('#qBody tr', e => e.length);
-  is(shown === 1, 'البحث برقم الأوردر بيفلتر', `شفت ${shown}`);
+  // البحث — 🔴 المربع جوّه لوحة الفلاتر، فلازم تتفتح الأول
+  await page.click('.flt-header');
+  await page.waitForTimeout(200);
+  is(await page.isVisible('#qSearch'), 'لوحة الفلاتر بتتفتح من الهيدر');
   await page.fill('#qSearch', 'سارة');
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(450);
   shown = await page.$$eval('#qBody tr', e => e.length);
   is(shown === 1, 'البحث باسم العميل بيفلتر', `شفت ${shown}`);
-  await page.fill('#qSearch', 'zzzz');
+  await page.fill('#qSearch', 'lkjhg');
+  await page.waitForTimeout(450);
+  is(await page.isVisible('#qEmpty') && (await page.textContent('#qEmpty')).includes('مفيش صفوف مطابقة'),
+     '🔴 «مفيش نتيجة للفلتر» ≠ «الطابور فاضي» — رسالتين مختلفتين');
+
+  // 🔴 «مسح كل الفلاتر» بيرجّع كل حاجة لحالتها المحايدة (§3 — الحالة التالتة)
+  await page.click('#qClearAllBtn');
+  await page.waitForTimeout(300);
+  shown = await page.$$eval('#qBody tr', e => e.length);
+  is(shown === READY_TOTAL, '«مسح كل الفلاتر» بيرجّع الطابور كامل', `شفت ${shown}`);
+  is(!(await page.$eval('#qFltIcon', el => el.classList.contains('active')))
+     && (await page.$eval('#qClearAllBtn', el => el.classList.contains('inactive'))),
+     '🔴 وبيرجّع الأيقونة والزرار لحالتهم المحايدة بالظبط');
+
+  // ══ §SORT — الترتيب مستقل تمامًا عن الفلاتر (المعيار §8) ══════
+  // 🔴 دورة تلات حالات، والسهم بيظهر **بس** على العمود المرتَّب عليه.
+  const firstCol = () => page.$$eval('#qBody tr td:first-child', e => e.map(x => x.textContent.trim()));
+  const before = await firstCol();
+  is(before[0] === READY_OLDEST, 'الترتيب الافتراضي: الأقدم فوق', before[0]);
+  is((await page.$$eval('#qTable .sort-icon', e => e.map(x => x.textContent).join(''))) === '',
+     '🔴 مفيش أي سهم ترتيب قبل أول ضغطة — الأعمدة هادية بصريًا');
+
+  await page.click('#qTable th[data-q-sort="orderName"]');
+  await page.waitForTimeout(200);
+  const asc = await firstCol();
+  is(JSON.stringify(asc) === JSON.stringify([...asc].sort((a,b) => a.localeCompare(b,'ar'))),
+     '🔴 ضغطة ① = تصاعدي فعلاً على رقم الأوردر', asc.join(','));
+  is(await page.$eval('#qTable th[data-q-sort="orderName"] .sort-icon', el => el.textContent) === '▲',
+     'والسهم ▲ ظهر على العمود ده');
+  is(await page.$eval('#qTable th[data-q-sort="orderName"]', el => el.classList.contains('sorted')),
+     'والعمود اتعلّم `sorted`');
+
+  await page.click('#qTable th[data-q-sort="orderName"]');
+  await page.waitForTimeout(200);
+  const desc = await firstCol();
+  is(JSON.stringify(desc) === JSON.stringify([...asc].reverse()), 'ضغطة ② = تنازلي', desc.join(','));
+  is(await page.$eval('#qTable th[data-q-sort="orderName"] .sort-icon', el => el.textContent) === '▼', 'والسهم بقى ▼');
+
+  await page.click('#qTable th[data-q-sort="orderName"]');
+  await page.waitForTimeout(200);
+  is(JSON.stringify(await firstCol()) === JSON.stringify(before),
+     '🔴 ضغطة ③ = **بلا ترتيب** — بترجّع للافتراضي (الأقدم فوق)');
+  is((await page.$$eval('#qTable .sort-icon', e => e.map(x => x.textContent).join(''))) === '',
+     'والسهم اختفى خالص');
+
+  // 🔴 الترتيب بيفضل شغّال **بعد** «مسح كل الفلاتر» — مش جزء من منظومة الفلاتر
+  await page.click('#qTable th[data-q-sort="customer"]');
+  await page.waitForTimeout(150);
+  await page.click('#qClearAllBtn');
   await page.waitForTimeout(250);
-  const empty = await page.textContent('#qEmpty');
-  is(empty.includes('مفيش صفوف مطابقة'), 'مفيش نتيجة للفلتر ≠ الطابور فاضي — الرسالتين مختلفتين', empty.trim());
+  is(await page.$eval('#qTable th[data-q-sort="customer"]', el => el.classList.contains('sorted')),
+     '🔴 الترتيب بيفضل بعد «مسح كل الفلاتر» — عمليتان منفصلتان (§8)');
+  await page.click('#qTable th[data-q-sort="customer"]');
+  await page.click('#qTable th[data-q-sort="customer"]');
+  await page.waitForTimeout(200);
+
+  // ⚠️ الصف اللي مالوش تاريخ تغليف بيروح **الآخر** في الاتجاهين
+  await page.click('#qTable th[data-q-sort="packedAt"]');
+  await page.waitForTimeout(200);
+  const packAsc = await page.$$eval('#qBody tr', e => e.map(r => r.textContent.includes('#55006')));
+  is(packAsc[packAsc.length - 1] === true,
+     '🔴 الصف اللي ما اتغلّفش بيروح **آخر** الترتيب التصاعدي مش أوله');
 
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
