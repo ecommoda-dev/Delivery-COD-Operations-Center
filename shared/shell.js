@@ -70,7 +70,7 @@ const DCO_WORKERS = {
   auth:    { url: 'https://delivery-cod-operations-center-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'الدخول' },
 };
 
-const TOOL_VERSION = 'v1.3.0';                       // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.4.0';                       // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
