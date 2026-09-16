@@ -171,7 +171,7 @@ const DIAG = { ok:false, version:'1.0.0', checks:[
 
 // حالة قابلة للتبديل من كل اختبار — عشان نقيس الفشل والاقتطاع كمان
 const state = { readyFail:false, shippedFail:false, truncated:false, calls:[],
-                authBodies:[], logoutUrls:[], lookupBodies:[] };
+                authBodies:[], logoutUrls:[], lookupBodies:[], lookupFail:false };
 
 function makeStub() {
   return async (route) => {
@@ -201,6 +201,14 @@ function makeStub() {
     else if (action === 'lookup_orders') {
       const b = JSON.parse(route.request().postData() || '{}');
       state.lookupBodies.push(b);
+      // 🔴 حالة «الـ Worker أقدم من 1.2.0» — الأكشن مش موجود أصلاً هناك.
+      //    بتقيس إن الفشل التلقائي **بيبان**: الزرار بيرجع بنص «إعادة
+      //    المحاولة» والرسالة بتسمّي النسخة المطلوبة.
+      if (state.lookupFail) {
+        await route.fulfill({ status:404, contentType:'application/json',
+                              body:JSON.stringify({ ok:false, error:'أكشن مش معروف' }) });
+        return;
+      }
       const results = [];
       for (const id of (b.ids || []))
         results.push({ key:id, kind:'id', found:true, order:{
@@ -271,8 +279,8 @@ console.log('\n══ ① الجلسة والهيدر ══');
      'زرار الموظف عليه aria-label="تسجيل الخروج" (الـ ✕ لوحده مايتقريش)');
   const ver = (await page.textContent('#verBtn')).trim();
   const cl  = (await page.textContent('#clLatestVerBadge')).trim();
-  is(ver.startsWith('v1.4.0'), 'زرار النسخة بيقول نسخة الهب', ver);
-  is(cl === 'v1.4.0', 'بادج سجل التحديثات **مطابق** لزرار النسخة (مصدر واحد · #24)', cl);
+  is(ver.startsWith('v1.4.1'), 'زرار النسخة بيقول نسخة الهب', ver);
+  is(cl === 'v1.4.1', 'بادج سجل التحديثات **مطابق** لزرار النسخة (مصدر واحد · #24)', cl);
   is(!(await page.isVisible('#verStaleBtn')), 'مفيش تحذير نسخة قديمة والـ Worker مطابق للحد الأدنى');
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
@@ -972,20 +980,24 @@ console.log('\n══ ⑨ تاب «جرد المكتب» ══');
 
   const x = await page.textContent('#audXList');
   is(x.includes('المطلوب'), '🔴 كل «موجود خطأ» بيقول **الفعل المطلوب** (قاعدة ١٤)');
-  is(x.includes('مش معروفة'),
-     '⚠️ و«لسه ما استعلمناش» حالة صريحة — مش «مش موجود على شوبيفاي»');
+  // ⚠️ **البند القديم «لسه ما استعلمناش حالة صريحة» اتنقل لكتلة الفشل تحت**
+  //    — بعد ما الاستعلام بقى تلقائي، الحالة دي **مابتظهرش في المسار
+  //    الناجح أصلاً**، وقياسها هنا كان بيقيس تأخير النداء مش القاعدة.
 
-  // ── الاستعلام عن الحالة الفعلية ──
-  is(await page.isVisible('#audLookupBtn'), 'وزرار الاستعلام ظاهر لأن فيه صف محتاجه');
-  await page.click('#audLookupBtn');
+  // ── 🔴 الاستعلام عن الحالة الفعلية — **تلقائي مع الإنهاء** (طلب أحمد) ──
+  //    البنود دي **مابتضغطش الزرار خالص**: الضغط كان هيخفي بالظبط اللي
+  //    بتقيسه — إن الشاشة وصلت للحالة الحقيقية من غير أي ضغطة.
   await page.waitForTimeout(500);
   is(state.lookupBodies.length === 1 && (state.lookupBodies[0].ids || []).includes('9999000011112'),
-     '🔴 `lookup_orders` اتنادى **بـ POST** والكود في `ids`', JSON.stringify(state.lookupBodies));
+     '🔴 `lookup_orders` اتنادى **تلقائيًا مع «إنهاء الجرد»** بـ POST والكود في `ids` — بلا أي ضغطة',
+     JSON.stringify(state.lookupBodies));
   const x2 = await page.textContent('#audXList');
   is(x2.includes('Shipped'),
-     '🔴 وبعد الاستعلام السبب بيقول **الحالة الحقيقية بالحرف** مش «فيه حاجة»');
+     '🔴 والسبب بقى بيقول **الحالة الحقيقية بالحرف** من غير تدخّل الموظف');
+  is(!x2.includes('اضغط «استعلام'),
+     '⚠️ و«اضغط استعلام» مابقاش مكتوب على صف اتستعلم فعلاً');
   is(!(await page.isVisible('#audLookupBtn')),
-     'والزرار بيختفي لما مايبقاش فيه صف محتاج استعلام');
+     'والزرار مش ظاهر — مفيش صف محتاج استعلام');
   is(await page.isVisible('#audExportBtn'), 'وزرار تصدير XLSX بيظهر بعد الإنهاء بس');
 
   // علامة المراجعة جوّه جدول الجرد — 🔴 التفويض شغّال فعلاً
@@ -1074,6 +1086,56 @@ console.log('\n══ ⑨ تاب «جرد المكتب» ══');
   is(await page.isVisible('#audSecMiss'),
      'وحالة «انتهى» بترجع كما هي — مش بترجع لأول الجرد');
   is(errors.length === 0, 'وصفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+// ── 🔴 فشل الاستعلام التلقائي — لازم يبان (طلب أحمد 16-09-2026) ──
+//
+// الاستعلام بقى **تلقائي** مع «إنهاء الجرد»، والخطر الجديد اللي جه معاه إن
+// الفشل يبقى **صامت**: الشاشة بتقول «حالته لسه مش معروفة» والموظف مش عارف
+// إن فيه محاولة حصلت أصلاً — فيستنى حاجة مش جاية. أشهر سبب هنا إن
+// `ready-orders-worker` لسه أقدم من `1.2.0` (بند مفتوح في `CLAUDE.md`).
+{
+  const { page, ctx, errors } = await newPage();
+  state.lookupFail = true;
+  const before = state.lookupBodies.length;
+  await page.goto(`${BASE}/ready-orders.html`);
+  await page.waitForSelector('#qBody tr');
+  await page.click('#tabAuditBtn');
+  await page.waitForTimeout(200);
+  await page.click('#audStartBtn');
+  await page.waitForTimeout(200);
+  await page.fill('#audScanInput', '9999000011112');
+  await page.press('#audScanInput', 'Enter');
+  await page.waitForTimeout(250);
+  await page.click('#audEndBtn');
+  await page.waitForTimeout(700);
+  is(state.lookupBodies.length === before + 1, 'النداء التلقائي اتبعت فعلاً على الإنهاء');
+  const ft = await page.textContent('.toast-container');
+  is(ft.includes('1.2.0'),
+     '🔴 وفشل الاستعلام التلقائي **بيسمّي النسخة المطلوبة** — مش فشل صامت', ft.trim().slice(0, 80));
+  const fx = await page.textContent('#audXList');
+  is(fx.includes('مش معروفة') && !fx.includes('مالوش أوردر على شوبيفاي'),
+     '⚠️ و«لسه ما استعلمناش» حالة صريحة — **مش** «مش موجود على شوبيفاي»: الفرق بين «اسأل تاني» و«الطرد ده مالوش أوردر»');
+  is(fx.includes('إعادة محاولة'),
+     'و«الفعل المطلوب» على الصف بيقول **إعادة المحاولة** — مش «اضغط استعلام» على شاشة اتستعلمت فعلاً');
+  is(await page.isVisible('#audLookupBtn'),
+     'والزرار بيفضل ظاهر — هو المخرج الوحيد بعد فشل النداء التلقائي');
+  is((await page.textContent('#audLookupBtn')).includes('إعادة محاولة'),
+     '🔴 وبنص **«إعادة محاولة»** — «استعلام عن الحالة الفعلية» على زرار بعد محاولة فاشلة بيتقري «ما اتحاولش»');
+
+  // إعادة المحاولة بالإيد — نفس الزرار، والـ Worker بقى بيرد
+  state.lookupFail = false;
+  await page.click('#audLookupBtn');
+  await page.waitForTimeout(600);
+  is((await page.textContent('#audXList')).includes('Shipped'),
+     'وإعادة المحاولة بتجيب الحالة الحقيقية');
+  is(!(await page.isVisible('#audLookupBtn')), 'والزرار بيختفي بعد ما ينجح');
+  // ⚠️ رد الـ`404` **المقصود** بيطلّع سطر «Failed to load resource» في
+  //    الكونسول — ده الرد اللي البند ده زرعه بنفسه، مش خطأ في الصفحة.
+  //    والباقي لازم يفضل **صفر**: استثناء مش متمسوك بيسكّت باقي السكربت.
+  const realErr = errors.filter(e => !/Failed to load resource/.test(e));
+  is(realErr.length === 0, 'وصفر خطأ حقيقي في الكونسول — غير رد الـ404 المزروع', realErr.join(' | '));
   await ctx.close();
 }
 
