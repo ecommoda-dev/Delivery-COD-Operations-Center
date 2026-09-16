@@ -68,9 +68,32 @@ const DCO_WORKERS = {
   // ⚠️ والهب **مابيبعتش `appId`** خالص: الـ Worker بيخدم واجهة واحدة
   //    فاسم الأداة في D1 (`delivery_cod_ops_center`) متحدّد في كوده.
   auth:    { url: 'https://delivery-cod-operations-center-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'الدخول' },
+
+  // 🔴 **الأداتين المدموجتين (v1.5.0) — Workers موجودة من قبل الهب، وعايشة
+  //    في ريبوهاتها.** الهب ضمّ **الواجهة** بس (`order-status.html` ·
+  //    `cod-payment.html`)؛ الـ Worker بتاع كل واحدة ما اتلمسش ولا سطر —
+  //    نفس شكل الطابورين بالظبط (قرار ٨: أداة = Worker واحد + ريبو واحد).
+  // ⚠️ **الاتنين أدوات كتابة** — مش عرض بحت زي الطابورين: `update_status`
+  //    بتكتب حالة على شوبيفاي، و`pay`/`refund` بتسجّلوا فلوس. فالتدهور هنا
+  //    **مش تجميلي**، وعشان كده `min` على النسخة اللي الواجهة معتمدة عليها
+  //    فعلاً مش على `1.0.0`.
+  // 🔴 **`orderStatus.min = '4.7.0'` بيمنع ضرر مش بيدّي تحذير** — Worker
+  //    `4.6.0` بيرجّع **نفس اسم الحقل** (`cod` في `order_details`) بقيمة
+  //    محسوبة بالصيغة القديمة الغلط، يعني ورقة المانفيست بتخرج من الطابعة
+  //    بأرقام فلوس غلط و**صفر خطأ في الكونسول**. (`Order-Status-Updater`
+  //    CLAUDE.md · القياس الحي 16-09-2026.)
+  // ⚠️ `codPayment.min = '3.5.0'` — النسخة اللي ضافت `cap`/`total`/
+  //    `truncated` في `get_logs_export` و`checks` الموحّدة في `diag`،
+  //    والواجهة بتقرا الاتنين.
+  // 🔴 **والسر هنا سر الهب** (`delivery_cod_ops`) — الـ Workers دول لازم
+  //    يكونوا **اتضمّوا للمجموعة** (`WORKER_SECRET` اتدوّر لقيمة المجموعة
+  //    من داشبورد كلاودفلير). قبل الضم النداء بيرجّع **401** والرسالة
+  //    بتسمّي الأداة. البند مفتوح في `CLAUDE.md`.
+  orderStatus: { url: 'https://order-status-updater-worker.ecommoda-dev.workers.dev', min: '4.7.0', label: 'محدّث حالة الأوردر' },
+  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.5.0', label: 'مركز التحصيل' },
 };
 
-const TOOL_VERSION = 'v1.4.1';                       // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.5.0';                       // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -255,6 +278,20 @@ function dcoApi(worker) {
   return {
     apiGet:  (action, params = {}) => apiRequest(`${base}/?${new URLSearchParams({ action, ...params })}`, { method: 'GET' }),
     apiPost: (action, body = {})   => apiRequest(`${base}/?action=${encodeURIComponent(action)}`, { method: 'POST', body: JSON.stringify(body) }),
+
+    // 🔴 **`action` في **جسم** الطلب مش في الـ query — شكل تالت موثّق.**
+    //    `cod-payment-center-worker` راوتينجه **مختلط عن قصد** (مكتوب في
+    //    بلوك الرأس بتاعه): GET + `?action=` للأوث والسجل، و**POST +
+    //    `action` في الجسم** للأكشنات الأقدم (`pay` · `refund` ·
+    //    `preview` · `getCourierOrders` …) عشان الواجهة تفضل شغّالة من
+    //    غير تعديل في الـ Worker.
+    // ⛔ **وممنوع «نتوحّد» عليه بتغيير النداء لـ`apiPost`** — الـ Worker
+    //    بيقرا `action` من الجسم في المسار ده، ونداء بالشكل التاني بيرجّع
+    //    «action غير معروف» على **فعل مالي**.
+    // ✅ وموجوده هنا مش في الصفحة عشان ياخد نفس **المهلة** ونفس رسائل
+    //    الفشل اللي بتسمّي الأداة — دي أداة فلوس، والنداء اللي بيعلّق بلا
+    //    مهلة هو بالظبط اللي بينتج «فشل كذّاب» والموظف بيعيد التحصيل.
+    apiPostRoot: (action, body = {}) => apiRequest(`${base}/`, { method: 'POST', body: JSON.stringify({ action, ...body }) }),
   };
 }
 
@@ -1219,11 +1256,11 @@ function dcoSharedModals() {
                  والسطر الثابت تحت، مش نص رمادي جوّه الحقل بيختفي أول ما
                  الموظف يكتب حرف. -->
             <input type="password" class="settings-input" id="cfgSecret" autocomplete="off">
-            <div class="settings-static">السر المشترك لمجموعة <code>delivery_cod_ops</code> — قيمة واحدة للتلات Workers، ومستقلة عن سر محطة المخزن</div>
+            <div class="settings-static">السر المشترك لمجموعة <code>delivery_cod_ops</code> — <b>قيمة واحدة للخمس Workers</b>، ومستقلة عن سر محطة المخزن</div>
           </div>
           <div class="settings-field">
             <label class="settings-label">الـ Workers</label>
-            <div class="settings-static">delivery-cod-operations-center-worker (الدخول) · ready-orders-worker · shipped-orders-worker</div>
+            <div class="settings-static">delivery-cod-operations-center-worker (الدخول) · ready-orders-worker · shipped-orders-worker · order-status-updater-worker · cod-payment-center-worker</div>
           </div>
           <div class="settings-field">
             <label class="settings-label">فحص النظام</label>
