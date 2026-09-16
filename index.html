@@ -309,7 +309,24 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.0.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.1.0</span>
+          <span class="cl-ver-date">16-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>«طابور الجاهز للشحن» بقى «قسم الجاهز للشحن»</b> — نفس تسمية محطة المخزن («قسم التغليف» · «قسم الطباعة»)، والموظف بيتنقّل بين الهبين طول اليوم.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>مربعات الفلترة بقت مستطيلة</b> — نسخة من <code>.zchip</code> بتاعة قسم التغليف بالحرف، بعدّادها في بادج جوّه المربع.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>عنوان وشرح صندوق العدّ اتشالوا</b> من جنب الأيقونة — الشرح مكانه نافذة «عن الأداة».</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>الجدول بقى بشكل جدول قسم التغليف بالحرف</b> — نفس الحشو والخطوط الرأسية وهيدر الـ2px، وبإطار خارجي.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>عمود «العنوان»</b> بعد العميل في «قسم الجاهز للشحن» — <code>address1</code>/<code>address2</code> فوق والمدينة/المحافظة تحتهم (محتاج <code>ready-orders-worker</code> <b>v1.1.0</b>).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>«عهدة الطرد» بقت «موقع الشحنة»</b> — نفس الحقل بالحرف، الاسم بس هو اللي اتغيّر.</span></li>
+          <li class="cl-item"><span class="cl-tag change">اتشال</span><span>أعمدة <b>«القناة»</b> و<b>«عدد القطع»</b> و<b>«الإجمالي»</b>، وسطر المجموعة تحت اسم المندوب. 🔴 <b>الفلوس ما ضاعتش</b> — «مستحق التحصيل» فوق الطابور لسه بيتحسب من نفس الحقول.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>«نوع الأوردر» اتنقل للعمود قبل الأخير</b> — أعمدة التعريف (رقم · عميل · عنوان · مندوب) بقت مجمّعة في أول الجدول.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.0.0</span>
           <span class="cl-ver-date">15-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -563,7 +580,7 @@ const DCO_TICK_MS         = 30 * 1000;
 //    ⛔ ممنوع أي `filter` أو `map` بقاعدة أهلية في الملف ده.
 const HOME_QUEUES = {
   ready: {
-    err: 'تعذّر جلب طابور الجاهز للشحن',
+    err: 'تعذّر جلب قسم الجاهز للشحن',
     ids: { count:'cntReady', chips:'chipsReady', money:'moneyReady', fail:'failReady',
            ago:'agoReady', stamp:'stampReady', btn:'btnReady', badge:'badgeReady' },
     async fetch() {

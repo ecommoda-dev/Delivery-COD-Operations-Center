@@ -42,7 +42,16 @@ const DCO_WORKERS = {
   // بيمنع rollback، هو بيمسك الحالة الوحيدة الممكنة: الـ Worker ما اتنشرش
   // أصلاً أو الـ Promote ناقص، فـ`get_config` بيرجّع 404/401 والحارس
   // بيسمّي الأداة بالاسم بدل ما الموظف يدوّر.
-  ready:   { url: 'https://ready-orders-worker.ecommoda-dev.workers.dev',   min: '1.0.0', label: 'طابور الجاهز للشحن' },
+  // 🔴 `ready.min = '1.1.0'` مشروع — الصفحة بقت معتمدة فعلاً على
+  //    `address1`/`address2` في رد `get_ready_queue` (Worker v1.1.0):
+  //    **عمود «العنوان»** مبني عليهم. على Worker أقدم العمود بيقول
+  //    «بلا عنوان» على **كل** صف، وعمود كامل بجملة تحذير على شاشة
+  //    الموظف بيتقري **عطل في الأداة** مش «Worker قديم» — فالحارس
+  //    بيسمّي السبب بدل ما الموظف يدوّر (Standards #29).
+  //    ⚠️ والاسم هنا لازم يطابق عنوان الصفحة في `docs/build-pages.py` —
+  //       الحارس بيقول «⚠️ Worker <الاسم> نسخة قديمة»، واسم مختلف معناه
+  //       تحذير بيسمّي أداة الموظف مش شايفها.
+  ready:   { url: 'https://ready-orders-worker.ecommoda-dev.workers.dev',   min: '1.1.0', label: 'قسم الجاهز للشحن' },
   shipped: { url: 'https://shipped-orders-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'طابور المشحون' },
   // 🔴 **Worker الدخول — بتاع الهب نفسه، وعايش في **نفس الريبو**.**
   //    الهب واجهة + Worker دخول = الشكل القياسي (قرار ٨ في
@@ -54,7 +63,7 @@ const DCO_WORKERS = {
   auth:    { url: 'https://delivery-cod-operations-center-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'الدخول' },
 };
 
-const TOOL_VERSION = 'v1.0.0';                       // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.1.0';                       // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
