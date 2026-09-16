@@ -73,8 +73,12 @@ AUDIT_CSS   = r'''
       المشحون. CSS بلا ماركب بيستهلكه = ضوضاء في ملف بيتقري بالعين. */
 .aud-ctl-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
 .aud-title { font-size: 15px; font-weight: 800; color: var(--text-primary); }
-.aud-sub { font-size: 12px; font-weight: 600; color: var(--text-secondary); line-height: 1.8; margin-top: 4px; max-width: 620px; }
-.aud-sub b { color: var(--text-primary); }
+
+/* 🔴 **تحذير العملية — بيفضل قدام العين طول الجرد** (طلب أحمد 16-09-2026).
+   السبب مش تنبيه عام: النطاق **لقطة**، فتحديث حالة أي شحنة وسط الجرد
+   بيشيلها من الطابور و**مابيشيلهاش من النطاق** — فالصف بيفضل «مفقود» على
+   الشاشة وهو اتشحن فعلاً، ورقم غلط شكله سليم هو أسوأ نتيجة ممكنة. */
+.aud-warn { font-size: 12.5px; font-weight: 800; color: var(--red-dark); line-height: 1.9; margin-top: 5px; max-width: 620px; }
 .aud-btns { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 /* 🔴 مربع السكانر **مقفول بصريًا** قبل بدء الجرد — مربع شكله شغّال والموظف
@@ -103,6 +107,10 @@ AUDIT_CSS   = r'''
 .aud-card { padding: 12px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); text-align: center; }
 .aud-card.clickable { cursor: pointer; }
 .aud-card.clickable:hover { background: var(--surface-hover); }
+/* 🔴 **المربع المختار لازم يبان** — بعد الإنهاء المربعات بقت فلاتر: ضغطة
+   بتفتح قسمها وبتطوي الباقي. قايمة اتقفلت من غير ما المربع يقول إنه هو
+   السبب بتتقري «القسم فاضي» — وده رقم غلط شكله سليم. */
+.aud-card.active { box-shadow: 0 0 0 2px var(--accent); border-color: var(--accent); }
 .aud-card .aud-n { font-size: 24px; font-weight: 800; color: var(--text-primary); direction: ltr; }
 .aud-card .aud-l { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); margin-top: 2px; }
 .aud-card.ok    { background: var(--green-light); border-color: var(--green-border); }
@@ -119,7 +127,6 @@ AUDIT_CSS   = r'''
 .aud-sec-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none; border-radius: var(--radius) var(--radius) 0 0; }
 .aud-sec-bar-right { display: flex; align-items: center; gap: 9px; }
 .aud-sec-title { font-size: 13.5px; font-weight: 800; }
-.aud-sec-n { font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); direction: ltr; }
 .aud-sec.s-ok    .aud-sec-bar { background: var(--green-light); }
 .aud-sec.s-ok    .aud-sec-title { color: var(--green-dark); }
 .aud-sec.s-miss  .aud-sec-bar { background: var(--red-light); }
@@ -130,16 +137,19 @@ AUDIT_CSS   = r'''
 .aud-toggle { font-size: 11px; color: var(--text-secondary); transition: transform .15s; display: inline-block; }
 .aud-toggle.open { transform: rotate(180deg); }
 
-/* كروت «موجودة خطأ» — مش جدول عن قصد: كل صف فيه **سبب وفعل مطلوب**،
-   وده نص بيلف، والجدول بيخلّي الخلية دي تاكل عرض الشاشة. */
-.aud-x-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
-.aud-x { border: 1px solid var(--amber-border); border-radius: var(--radius-sm); background: var(--amber-light); padding: 11px 13px; }
-.aud-x-code { font-size: 14px; font-weight: 800; color: var(--text-primary); direction: ltr; text-align: right; }
-.aud-x-lbl { font-size: 12.5px; font-weight: 800; color: var(--amber-dark); margin-top: 3px; }
+/* 🔴 **«موجودة خطأ» بقى جدول زي الطابور** (طلب أحمد 16-09-2026) — التلات
+   أقسام بنفس الأعمدة بالظبط، فالموظف بيقرا الصف بنفس العين في التلاتة.
+   ⚠️ **والسبب ما راحش وراء ضغطة** — قاعدة ١٤: بند بيقول «فيه حاجة» وبس
+      تكلفته فحص يدوي لكل طرد على شوبيفاي. فالسبب والتفصيل والفعل في
+      **صف تاني تحت الصف مباشرةً بعرض الجدول كله** — النص بيلف هناك من
+      غير ما يزقّ أي عمود بره الشاشة (وده كان سبب اختيار الكروت أصلاً). */
+.aud-x-row > td { background: var(--amber-light); border-top: none; text-align: right; white-space: normal; padding: 10px 16px; }
+.aud-x-row.is-scope > td { background: var(--blue-light); }
+.aud-x-lbl { font-size: 12.5px; font-weight: 800; color: var(--amber-dark); }
+.aud-x-row.is-scope .aud-x-lbl { color: var(--accent-dark); }
 .aud-x-det { font-size: 12px; font-weight: 600; color: var(--text-mid); line-height: 1.8; margin-top: 3px; }
 .aud-x-act { font-size: 12px; font-weight: 700; color: var(--text-primary); line-height: 1.8; margin-top: 5px; }
-.aud-x.is-scope { border-color: var(--blue-border); background: var(--blue-light); }
-.aud-x.is-scope .aud-x-lbl { color: var(--accent-dark); }
+.aud-x-dup { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
 '''
 
 AUDIT_TABS  = r'''
@@ -178,11 +188,16 @@ AUDIT_VIEW  = r'''
   <div class="card">
     <div class="aud-ctl-head">
       <div>
-        <div class="aud-title">🧮 جرد المكتب</div>
-        <!-- 🔴 **نطاق الجرد بيتكتب بالنص** — «المعروض بعد الفلتر» نطاق
-             شرعي (قرار أحمد 16-09-2026)، بس نطاق **مش مكتوب** معناه إن
-             الموظف مش عارف «المفقودة» دي مفقودة من إيه بالظبط. -->
-        <div class="aud-sub" id="audScope">—</div>
+        <!-- 🔴 **العنوان بيقول النطاق بنفسه** (طلب أحمد 16-09-2026):
+             «جرد أوردرات (مناديب ٧٢ + شو روم ١٥)». السطر الشارح القديم
+             اتشال بطلب أحمد، والعنوان ده هو اللي بقى بيحمل المعلومة —
+             ⚠️ وهو **مشتق من اللقطة نفسها** (`dcoCourierCounts` على
+             `audState.scope` بعد البدء)، فلو الموظف بدأ على فلتر، العنوان
+             بيقول مجموعاته هو مش مجموعات الطابور كله.
+             ⚠️ والفلتر الكامل بالنص **لسه مكتوب في شيت «الملخص»** جوّه
+             ملف التصدير — ملف بلا نطاقه بيتقري «الجرد كله» بعد أسبوع. -->
+        <div class="aud-title" id="audTitle">جرد أوردرات</div>
+        <div class="aud-warn" id="audWarn">⚠ برجاء عدم تحديث حالة أي شحنة أثناء عملية الجرد ⚠</div>
       </div>
       <div class="aud-btns">
         <button class="btn-primary" id="audStartBtn" type="button" onclick="audStart()">▶ بدء الجرد</button>
@@ -210,18 +225,31 @@ AUDIT_VIEW  = r'''
       <span class="aud-prog-txt" id="audProgTxt">0%</span>
     </div>
 
-    <!-- المربعات — 🔴 «لسه ما اتعملّهاش سكان» و«مفقودة» **مربعين
-         مختلفين، وواحد بس بيتعرض في المرة**: الأول حالة وسط الجرد
-         والتاني نتيجة بعد ما يتقفل. مربع «مفقودة» وهو لسه بيسكن بيقول
-         للموظف إن فيه طرود ضايعة وهي لسه في إيده. -->
+    <!-- المربعات — الترتيب والأسماء **طلب أحمد 16-09-2026**:
+         إجمالي الأوردرات · أوردرات متبقية · حالة سليمة · حالة خطأ.
+         🔴 و«أوردرات متبقية» و«مفقودة» لسه **مربعين مختلفين، وواحد بس
+            بيتعرض في المرة**: الأول حالة وسط الجرد والتاني نتيجة بعد ما
+            يتقفل. مربع «مفقودة» والموظف لسه بيسكن بيقول له إن فيه طرود
+            ضايعة وهي لسه في إيده.
+         🔴 **وبعد الإنهاء المربعات بتبقى فلاتر** — ضغطة بتفتح قسمها
+            وبتطوي الباقي، و«إجمالي الأوردرات» بيفتح التلاتة. -->
     <div class="aud-cards">
-      <div class="aud-card"       id="audCardScope"><div class="aud-n" id="audNScope">—</div><div class="aud-l">نطاق الجرد</div></div>
-      <div class="aud-card ok"    id="audCardOk"><div class="aud-n" id="audNOk">—</div><div class="aud-l">مضبوطة</div></div>
-      <div class="aud-card pend"  id="audCardPend"><div class="aud-n" id="audNPend">—</div><div class="aud-l">لسه ما اتعملّهاش سكان</div></div>
-      <div class="aud-card miss"  id="audCardMiss" style="display:none"><div class="aud-n" id="audNMiss">—</div><div class="aud-l">مفقودة</div></div>
-      <div class="aud-card extra" id="audCardExtra"><div class="aud-n" id="audNExtra">—</div><div class="aud-l">موجودة خطأ</div></div>
+      <div class="aud-card"       id="audCardScope" onclick="audCardClick('all')"><div class="aud-n" id="audNScope">—</div><div class="aud-l">إجمالي الأوردرات</div></div>
+      <div class="aud-card pend"  id="audCardPend"><div class="aud-n" id="audNPend">—</div><div class="aud-l">أوردرات متبقية</div></div>
+      <div class="aud-card miss"  id="audCardMiss" style="display:none" onclick="audCardClick('miss')"><div class="aud-n" id="audNMiss">—</div><div class="aud-l">مفقودة</div></div>
+      <div class="aud-card ok"    id="audCardOk" onclick="audCardClick('ok')"><div class="aud-n" id="audNOk">—</div><div class="aud-l">حالة سليمة ✅</div></div>
+      <div class="aud-card extra" id="audCardExtra" onclick="audCardClick('extra')"><div class="aud-n" id="audNExtra">—</div><div class="aud-l">حالة خطأ ⛔</div></div>
     </div>
   </div>
+
+  <!-- ══ التلات أقسام — 🔴 **جدول واحد بنفس أعمدة الطابور بالظبط**
+       (طلب أحمد 16-09-2026): رقم الأوردر · العميل · العنوان · المندوب ·
+       موقع الشحنة · تاريخ الأوردر · تاريخ التغليف · نوع الأوردر · مراجعة.
+       ⚠️ **بلا `sortable-th` عن قصد** — رؤوس الطابور بتنادي `qToggleSort`
+          وهي بترتّب **الطابور**، فحطّها هنا كان هيرتّب جدول تاني تحت إيد
+          الموظف. الشكل واحد والسلوك مفصول.
+       ⚠️ **وبلا عدّاد جنب العنوان** (طلب أحمد) — الرقم في المربع فوق،
+          وتكراره في مكانين بيخلّي أي فرق بينهم بلا تفسير. ══ -->
 
   <!-- قسم ① مضبوطة -->
   <div class="unified-section aud-sec s-ok" id="audSecOk" style="display:none">
@@ -229,13 +257,13 @@ AUDIT_VIEW  = r'''
       <div class="aud-sec-bar-right">
         <span class="aud-toggle" id="audTogOk">▲</span>
         <span class="aud-sec-title">✅ أوردرات مظبوطة</span>
-        <span class="aud-sec-n" id="audSecNOk">0</span>
       </div>
     </div>
     <div class="aud-sec-body collapsed" id="audBodyOk">
       <div class="tbl-scroll"><table class="data-table"><thead><tr>
         <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>المندوب</th>
-        <th>موقع الشحنة</th><th>نوع الأوردر</th><th>مراجعة</th>
+        <th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
+        <th>نوع الأوردر</th><th>مراجعة</th>
       </tr></thead><tbody id="audBodyOkRows"></tbody></table></div>
     </div>
   </div>
@@ -244,15 +272,15 @@ AUDIT_VIEW  = r'''
   <div class="unified-section aud-sec s-miss" id="audSecMiss" style="display:none">
     <div class="aud-sec-bar" onclick="audToggleSec('Miss')">
       <div class="aud-sec-bar-right">
-        <span class="aud-toggle open" id="audTogMiss">▲</span>
-        <span class="aud-sec-title">❌ أوردرات مفقودة — مفروض تكون موجودة</span>
-        <span class="aud-sec-n" id="audSecNMiss">0</span>
+        <span class="aud-toggle" id="audTogMiss">▲</span>
+        <span class="aud-sec-title">❌ أوردرات مفقودة</span>
       </div>
     </div>
-    <div class="aud-sec-body" id="audBodyMiss">
+    <div class="aud-sec-body collapsed" id="audBodyMiss">
       <div class="tbl-scroll"><table class="data-table"><thead><tr>
         <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>المندوب</th>
-        <th>موقع الشحنة</th><th>نوع الأوردر</th><th>مراجعة</th>
+        <th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
+        <th>نوع الأوردر</th><th>مراجعة</th>
       </tr></thead><tbody id="audBodyMissRows"></tbody></table></div>
     </div>
   </div>
@@ -261,15 +289,20 @@ AUDIT_VIEW  = r'''
   <div class="unified-section aud-sec s-extra" id="audSecExtra" style="display:none">
     <div class="aud-sec-bar" onclick="audToggleSec('Extra')">
       <div class="aud-sec-bar-right">
-        <span class="aud-toggle open" id="audTogExtra">▲</span>
-        <span class="aud-sec-title">⚠️ أوردرات موجودة خطأ — اتعمل لها سكان ومش المفروض تكون هنا</span>
-        <span class="aud-sec-n" id="audSecNExtra">0</span>
+        <span class="aud-toggle" id="audTogExtra">▲</span>
+        <span class="aud-sec-title">⚠️ أوردرات موجودة خطأ</span>
       </div>
       <!-- ⚠️ `stopPropagation` إلزامية — من غيرها الضغطة بتطوي القسم -->
       <button class="act-btn" id="audLookupBtn" type="button"
         onclick="event.stopPropagation(); audLookup();">🔍 استعلام عن الحالة الفعلية</button>
     </div>
-    <div class="aud-sec-body" id="audBodyExtra"><div class="aud-x-list" id="audXList"></div></div>
+    <div class="aud-sec-body collapsed" id="audBodyExtra">
+      <div class="tbl-scroll"><table class="data-table"><thead><tr>
+        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>المندوب</th>
+        <th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
+        <th>نوع الأوردر</th><th>مراجعة</th>
+      </tr></thead><tbody id="audXList"></tbody></table></div>
+    </div>
   </div>
 
   <div class="q-empty" id="audEmpty"></div>
@@ -296,6 +329,19 @@ const AUD_KEY     = DCO_AUDIT_READY;
 // حارس معقولية — السكانر اللي بيقطع القراءة بيدّي جزء من الكود، والجزء
 // ده ممكن يطابق أوردر تاني بالغلط. أقل من ٤ أرقام **مابيتحسبش سكانة**.
 const AUD_MIN_LEN = 4;
+
+// 🔴 عدد أعمدة جدول الجرد — **نفس أعمدة الطابور بالظبط** (طلب أحمد
+// 16-09-2026). الرقم ده بيمشي على `colspan` بتاع صف «القسم فاضي» وصف
+// السبب تحت كل «موجودة خطأ»: `colspan` أقل من الأعمدة بيسيب خانات فاضية
+// على يمين الصف، وأكتر بيكسر عرض الجدول.
+const AUD_COLS = 9;
+
+// 🔴 **المربع المختار بعد الإنهاء** — `null` = التلات أقسام مطوية،
+// `'all'` = التلاتة مفتوحة، وأي قيمة تانية = قسمها هو المفتوح **لوحده**.
+// ⚠️ والحالة دي **مش بتتحفظ في الجلسة** عن قصد: دي حالة عرض لحظية، وحفظها
+//    كان معناه إن الموظف يرجع بعد refresh يلاقي قسمين مطويين من غير ما
+//    يفتكر إنه هو اللي فلتر.
+let audSecFocus = null;
 
 const audState = { phase: 'idle', startedAt: null, endedAt: null,
                    scopeLabel: '', scope: [], scans: [] };
@@ -329,6 +375,18 @@ function audFilterDesc() {
   if (qSearchTerm.trim())  parts.push(`بحث: ${qSearchTerm.trim()}`);
   if (qDateFilterActive)   parts.push(`تاريخ: ${qDateFrom || '…'} → ${qDateTo || '…'}`);
   return parts.length ? parts.join(' · ') : 'بلا فلتر — الطابور كله';
+}
+
+// 🔴 **عنوان الجرد = «جرد أوردرات (مناديب N + شو روم M)»** (طلب أحمد
+//    16-09-2026). العدّ من `dcoCourierCounts` في الـ shell — **نفس** الدالة
+//    اللي مربعات الطابور بتعدّ منها، فالرقمين مايقدروش يفترقوا.
+// ⚠️ **والمجموعة الفاضية مابتتكتبش** — «بوسطة 0» في العنوان بتخلّي الموظف
+//    يدوّر على طرود بوسطة مش موجودة في النطاق أصلاً.
+function audScopeTitle(rows) {
+  const cn = dcoCourierCounts(rows || []);
+  const parts = DCO_COURIER_GROUPS.filter(g => cn[g.key] > 0)
+    .map(g => `${g.label} ${cn[g.key].toLocaleString('en-US')}`);
+  return parts.length ? `جرد أوردرات (${parts.join(' + ')})` : 'جرد أوردرات';
 }
 
 // ── الحفظ في الجلسة ──────────────────────────────────────────
@@ -382,10 +440,26 @@ function audEnd() {
   if (audState.phase !== 'running') return;
   audState.phase   = 'ended';
   audState.endedAt = new Date().toISOString();
+  // 🔴 التلات أقسام بتتقفل مع الإنهاء — النتيجة بتتقرا **من المربعات
+  //    الأربعة** الأول، والموظف بيفتح القسم اللي هيشتغل عليه بضغطة.
+  audSecFocus = null;
   audPersist();
   audRender();
   const c = audResult.counts;
   showToast(`انتهى الجرد — ✅ ${c.matched} مظبوطة · ❌ ${c.missing} مفقودة · ⚠️ ${c.extra} موجودة خطأ`, 'neutral', 6000);
+
+  // 🔴 **الاستعلام بيشتغل تلقائيًا مع الإنهاء** (طلب أحمد 16-09-2026) —
+  //    «الفعل المطلوب» في قسم «موجودة خطأ» كان بيقول للموظف «اضغط استعلام
+  //    عن الحالة الفعلية»، يعني **خطوة يدوية بين النتيجة وقراءتها**. دلوقتي
+  //    الشاشة بتوصل للحالة الحقيقية لوحدها، والزرار بقى **إعادة محاولة** لو
+  //    النداء فشل.
+  // ⚠️ **ونداء واحد مجمّع بعد ما السكان يقف — مش نداء لكل سكانة**: القاعدة
+  //    القديمة اتكتبت ضد التلقائي **وسط شغل السكان** (نداء شبكة على كل كود
+  //    غلط وإيد الموظف على السكانر)، والسبب ده مش موجود هنا.
+  // ⚠️ **وبلا `await`** — `audEnd` بتتنادى من `onclick`، والانتظار كان
+  //    بيأخّر رسم النتيجة لحد ما شوبيفاي ترد. الأخطاء كلها متمسوكة جوّه
+  //    `audLookup` نفسها.
+  audLookup({ auto: true });
 }
 
 // ⛔ **تأكيد إلزامي** — «جرد جديد» بيمسح كل السكانات، وده فعل **مالوش
@@ -394,6 +468,7 @@ function audReset() {
   if (audState.scans.length && !confirm(`تمسح الجرد الحالي؟ فيه ${audState.scans.length} سكانة وهتضيع.`)) return;
   audState.phase = 'idle'; audState.startedAt = null; audState.endedAt = null;
   audState.scopeLabel = ''; audState.scope = []; audState.scans = [];
+  audSecFocus = null;
   audPersist();
   audSetLast('', '');
   audRender();
@@ -478,19 +553,15 @@ function audRender() {
   const running  = audState.phase === 'running';
   const ended    = audState.phase === 'ended';
 
-  // النطاق بالنص
-  const scopeEl = document.getElementById('audScope');
-  if (idle) {
-    const n = qState.at ? qVisible().length : null;
-    scopeEl.innerHTML = qState.at
-      ? `النطاق هيبقى <b>المعروض دلوقتي بعد الفلتر: ${n} أوردر</b> (${esc(audFilterDesc())}).`
-        + ` النطاق <b>بيتثبّت وقت البدء</b> — أي فلتر بعد كده مش بيغيّره.`
-      : 'الطابور لسه ما اتجابش — استنى أول تحديث ناجح قبل ما تبدأ الجرد.';
-  } else {
-    scopeEl.innerHTML = `النطاق <b>${c.scope} أوردر</b> — اتثبت ${esc(formatDateTime(audState.startedAt))}`
-      + ` على (${esc(audState.scopeLabel)}).`
-      + (ended ? ` وانتهى ${esc(formatDateTime(audState.endedAt))}.` : ' الفلتر بعد البدء مالوش أي أثر على القايمة دي.');
-  }
+  // 🔴 **العنوان بيقول اللي بيتجرد بعدده** — «جرد أوردرات (مناديب ٤ +
+  //    شو روم ١)». قبل البدء بيتحسب من **المعروض دلوقتي** فالموظف شايف
+  //    هو داخل على إيه، وبعد البدء من **اللقطة** فالرقم مابيتغيّرش تحت
+  //    إيده مع أي فلتر أو تحديث.
+  const titleRows = idle ? (qState.at ? qVisible() : []) : audState.scope;
+  document.getElementById('audTitle').textContent = audScopeTitle(titleRows);
+  // ⚠️ التحذير بيختفي بعد الإنهاء بس — هو تحذير **عن عملية شغّالة**،
+  //    وتحذير قاعد على شاشة نتيجة بيتعلّم الموظف يعدّي عليه.
+  document.getElementById('audWarn').style.display = ended ? 'none' : '';
 
   // الزراير والسكانر
   document.getElementById('audStartBtn').style.display  = idle ? '' : 'none';
@@ -512,6 +583,12 @@ function audRender() {
   //    بعد ما يتقفل. الاتنين نفس الرقم — والاسم هو الفرق.
   document.getElementById('audCardPend').style.display = ended ? 'none' : '';
   document.getElementById('audCardMiss').style.display = ended ? '' : 'none';
+  // 🔴 **المربعات بتبقى فلاتر بعد الإنهاء بس** — ضغطة وسط الجرد كانت
+  //    هتفتح قسم لسه مش نتيجة. والكلاس هو اللي بيقول للموظف إنها قابلة
+  //    للضغط (مؤشر اليد) — مربع بيتضغط من غير أي إشارة محدش بيلاقيه.
+  for (const id of ['audCardScope', 'audCardMiss', 'audCardOk', 'audCardExtra'])
+    document.getElementById(id).classList.toggle('clickable', ended);
+  audSyncCards();
 
   // التقدم
   const pw = document.getElementById('audProgWrap');
@@ -523,17 +600,15 @@ function audRender() {
     document.getElementById('audProgTxt').textContent  = pct + '%';
   }
 
-  // رسالة الحالة
+  // رسالة الحالة — ⚠️ **شاشة البدء بلا نص** (طلب أحمد 16-09-2026):
+  // العنوان بيقول اللي هيتجرد، والزرار بيقول الخطوة التالية، والشرح
+  // الكامل في «عن الأداة». نص شارح بيتقرا **مرة واحدة** وبياخد مساحة كل يوم.
   const emptyEl = document.getElementById('audEmpty');
-  if (idle) {
-    emptyEl.style.display = '';
-    emptyEl.innerHTML = '<div class="ico">🧮</div><div>اضغط <b>«بدء الجرد»</b> وابدأ سكان باركود الطرود.'
-      + '<br>الباركود على الطرد فيه <b>رقم الأوردر الطويل</b> — والمربع بياخد الاسم (<code>#55001</code>) كمان.</div>';
-  } else if (running) {
+  if (running) {
     emptyEl.style.display = '';
     emptyEl.innerHTML = `<div class="ico">📷</div><div>الجرد شغّال — <b>${c.matched}</b> من <b>${c.scope}</b>.`
       + '<br>النتيجة التفصيلية بتظهر بعد <b>«إنهاء الجرد»</b>.'
-      + '<br>⚠️ <b>«لسه ما اتعملّهاش سكان» مش «مفقودة»</b> — لسه بتسكن.</div>';
+      + '<br>⚠️ <b>«أوردرات متبقية» مش «مفقودة»</b> — لسه بتسكن.</div>';
   } else {
     emptyEl.style.display = 'none';
   }
@@ -541,19 +616,82 @@ function audRender() {
   audRenderSections(ended);
 }
 
-function audRowHtml(o, tag, i) {
-  const isS2 = o.machine === 's2';
-  return `<tr class="${o.flags && o.flags.length ? 'flagged' : ''}">
-    <td>${orderLink(o.orderName, o.orderId)}</td>
+// 🔴 **خلايا صف الجرد == خلايا صف الطابور بالحرف** (طلب أحمد 16-09-2026)
+//    — نفس الأعمدة بنفس الترتيب وبنفس الدوال (`addressCell` ·
+//    `whereaboutsCell` · `dcoWaiting`). نسخة تانية من منطق الخلية كانت
+//    هتخلّي الصف يتقري بشكلين في تابين من نفس الصفحة.
+// ⚠️ و`note` بتتلزق جنب رقم الأوردر — قسم «موجودة خطأ» بيستخدمها لعدد
+//    السكانات، والباقي بيبعتها فاضية.
+function audCells(o, note) {
+  const isS2  = o.machine === 's2';
+  const since = o.packedAt ? dcoWaiting(o.packedAt, new Date()) : null;
+  // ⚠️ الصف اللي جاي من `lookup_orders` مالوش `age` — الحقول هناك أقل من
+  //    الطابور عن قصد، والحارس ده بيخلّي الخلية تقول `—` بدل ما ترمي.
+  const age = o.age || null;
+  return `<td>${orderLink(o.orderName, o.orderId)}${note || ''}</td>
     <td>${esc(o.customer || '—')}</td>
     <td class="addr-cell">${addressCell(o)}</td>
     <td>${esc(o.courier || '—')}</td>
     <td>${whereaboutsCell(o)}</td>
-    <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(o.machineLabel || '—')}</span></td>
+    <td>${o.createdAt
+          ? `${esc(formatDate(o.createdAt))}${age ? ` <span class="time-badge age-badge ${age.cls}">${esc(age.text)}</span>` : ''}`
+          : '<span class="flag-ok">—</span>'}</td>
+    <td>${since
+          ? `${esc(formatDate(o.packedAt))} <span class="time-badge ${since.cls}">${esc(since.text)}</span>`
+          : '<span class="flag-ok">—</span>'}</td>
+    <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(o.machineLabel || (isS2 ? 'استبدال/استرجاع' : 'عادي'))}</span></td>`;
+}
+
+function audRowHtml(o, tag, i) {
+  return `<tr class="${o.flags && o.flags.length ? 'flagged' : ''}">${audCells(o)}
     <td>${o.flags && o.flags.length
           ? `<button type="button" class="flag-btn" data-aud-flag="${esc(tag)}:${i}">⚠️ ${o.flags.length}</button>`
           : '<span class="flag-ok">—</span>'}</td>
   </tr>`;
+}
+
+// ── صف «موجودة خطأ» — صف الجدول + صف السبب تحته ─────────────
+//
+// 🔴 **قاعدة ١٤ حرفيًا:** «موجود خطأ» لوحدها بند بيقول «فيه حاجة» وبس،
+//    وتكلفته **فحص يدوي لكل طرد** على شوبيفاي. فالسبب والتفصيل والفعل
+//    بيتكتبوا في **صف تاني تحت الصف مباشرةً** — مش وراء ضغطة ومش في عمود
+//    بيقصّ النص.
+// ⚠️ **والكود اللي مالوش أوردر بياخد نفس الصف بخانات `—`** — صف بشكل تاني
+//    وسط الجدول بيتقري «ده مش من نفس القايمة».
+function audExtraRowHtml(s, i) {
+  const r    = dcoAuditReason(s);
+  const o    = s.row || null;
+  const lo   = (s.lookup && s.lookup.order) || null;
+  const code = (s.parsed && s.parsed.display) || s.key;
+  const cls  = r.code === 'out_of_scope' ? 'is-scope' : '';
+  const note = s.count > 1 ? ` <span class="aud-x-dup">(${s.count} سكانات)</span>` : '';
+  const dash = '<span class="flag-ok">—</span>';
+  // 🔴 الأوردر اللي جه من الاستعلام **بياخد لينك حقيقي** — `orderId` رقمي
+  //    (عقد الـ Worker)، والموظف محتاج يفتحه على شوبيفاي من الصف ده بالظبط.
+  const head = o
+    ? audCells(o, note)
+    : `<td>${lo && lo.orderId
+             ? orderLink(lo.orderName || code, lo.orderId)
+             : `<span class="order-num">${esc(code)}</span>`}${note}</td>
+       <td>${dash}</td>
+       <td class="addr-cell">${dash}</td>
+       <td>${dash}</td>
+       <td>${dash}</td>
+       <td>${dash}</td>
+       <td>${dash}</td>
+       <td>${lo
+             ? `<span class="type-text" dir="ltr">S1: ${esc(lo.s1 || '—')} · S2: ${esc(lo.s2 || '—')}</span>`
+             : dash}</td>`;
+  return `<tr class="aud-x-top ${cls} ${o && o.flags && o.flags.length ? 'flagged' : ''}">${head}
+      <td>${o && o.flags && o.flags.length
+            ? `<button type="button" class="flag-btn" data-aud-flag="extra:${i}">⚠️ ${o.flags.length}</button>`
+            : dash}</td>
+    </tr>
+    <tr class="aud-x-row ${cls}"><td colspan="${AUD_COLS}">
+      <div class="aud-x-lbl">${esc(r.label)}</div>
+      <div class="aud-x-det">${esc(r.detail)}</div>
+      <div class="aud-x-act">🛠️ <b>المطلوب:</b> ${esc(r.action)}</div>
+    </td></tr>`;
 }
 
 function audRenderSections(show) {
@@ -562,32 +700,19 @@ function audRenderSections(show) {
   if (!show) return;
 
   const { matched, missing, extra } = audResult;
-  document.getElementById('audSecNOk').textContent    = matched.length;
-  document.getElementById('audSecNMiss').textContent  = missing.length;
-  document.getElementById('audSecNExtra').textContent = extra.length;
 
   document.getElementById('audBodyOkRows').innerHTML = matched.length
     ? matched.map((o, i) => audRowHtml(o, 'ok', i)).join('')
-    : '<tr><td colspan="7" class="q-empty">مفيش أوردر اتعمله سكان</td></tr>';
+    : `<tr><td colspan="${AUD_COLS}" class="q-empty">مفيش أوردر اتعمله سكان</td></tr>`;
 
   // 🔴 «مفيش مفقود» **بتتقال صراحةً** — قسم فاضي بيتقري «ما اتحسبش».
   document.getElementById('audBodyMissRows').innerHTML = missing.length
     ? missing.map((o, i) => audRowHtml(o, 'miss', i)).join('')
-    : '<tr><td colspan="7" class="q-empty">✅ ولا أوردر مفقود — كل النطاق اتعمله سكان</td></tr>';
+    : `<tr><td colspan="${AUD_COLS}" class="q-empty">✅ ولا أوردر مفقود — كل النطاق اتعمله سكان</td></tr>`;
 
-  // ⚠️ كل مدخل بيقول **السبب والفعل** — «موجود خطأ» لوحدها بند بيقول
-  //    «فيه حاجة» وبس، وتكلفته فحص يدوي لكل طرد (قاعدة ١٤).
   document.getElementById('audXList').innerHTML = extra.length
-    ? extra.map(s => {
-        const r = dcoAuditReason(s);
-        return `<div class="aud-x ${r.code === 'out_of_scope' ? 'is-scope' : ''}">
-          <div class="aud-x-code">${esc(s.parsed && s.parsed.display || s.key)}${s.count > 1 ? ` <span style="font-size:11px;font-weight:700">(${s.count} سكانات)</span>` : ''}</div>
-          <div class="aud-x-lbl">${esc(r.label)}</div>
-          <div class="aud-x-det">${esc(r.detail)}</div>
-          <div class="aud-x-act">🛠️ <b>المطلوب:</b> ${esc(r.action)}</div>
-        </div>`;
-      }).join('')
-    : '<div class="q-empty">✅ مفيش أي طرد موجود خطأ</div>';
+    ? extra.map((s, i) => audExtraRowHtml(s, i)).join('')
+    : `<tr><td colspan="${AUD_COLS}" class="q-empty">✅ مفيش أي طرد موجود خطأ</td></tr>`;
 
   // زرار الاستعلام بيظهر **بس** لما يكون فيه صف محتاجه فعلاً
   const need = extra.filter(s => s.hit === 'none' && !s.lookup).length;
@@ -595,29 +720,73 @@ function audRenderSections(show) {
 
   // التفويض — نفس سبب جدول الطابور: اسم العميل وسبب العلامة بيتحطّوا في
   // نص HTML، و`onclick` بنص كان بيسرّب أي علامة تنصيص فيهم.
-  const map = { ok: matched, miss: missing };
+  const map = { ok: matched, miss: missing, extra: extra.map(s => s.row) };
   document.getElementById('viewAudit').querySelectorAll('[data-aud-flag]').forEach(btn => {
     const [tag, idx] = btn.dataset.audFlag.split(':');
     btn.addEventListener('click', () => showFlags(map[tag][Number(idx)]));
   });
+
+  audApplyFocus();
 }
 
+// ── المربعات كفلاتر — 🔴 طلب أحمد 16-09-2026 ────────────────
+//
+// بعد الإنهاء، ضغطة على مربع بتفتح **قسمه لوحده** وبتطوي الباقي، و«إجمالي
+// الأوردرات» بيفتح التلاتة. وضغطة تانية على نفس المربع بترجّع كله مطوي.
+// ⚠️ **والمربع المختار بياخد إطار** — قايمة اتقفلت من غير ما المربع يقول
+//    إنه هو السبب بتتقري «القسم فاضي».
+function audCardClick(which) {
+  if (audState.phase !== 'ended') return;   // 🔴 فلتر على نتيجة مش على جرد شغّال
+  audSecFocus = (audSecFocus === which) ? null : which;
+  audApplyFocus();
+}
+
+function audSetSec(s, open) {
+  document.getElementById('audBody' + s).classList.toggle('collapsed', !open);
+  document.getElementById('audTog'  + s).classList.toggle('open', open);
+}
+
+function audApplyFocus() {
+  const f = audSecFocus;
+  audSetSec('Ok',    f === 'all' || f === 'ok');
+  audSetSec('Miss',  f === 'all' || f === 'miss');
+  audSetSec('Extra', f === 'all' || f === 'extra');
+  audSyncCards();
+}
+
+function audSyncCards() {
+  const on = { all: 'audCardScope', miss: 'audCardMiss', ok: 'audCardOk', extra: 'audCardExtra' };
+  for (const id of Object.values(on))
+    document.getElementById(id).classList.toggle('active', on[audSecFocus] === id);
+}
+
+// ⚠️ الطي اليدوي من هيدر القسم **بيصفّر المربع المختار** — قسم اتفتح
+//    بالإيد ومربع تاني لسه مولّع حالتان بتفترقا على نفس الشاشة.
 function audToggleSec(s) {
-  const body = document.getElementById('audBody' + s);
-  const tog  = document.getElementById('audTog' + s);
-  const open = !body.classList.contains('collapsed');
-  body.classList.toggle('collapsed', open);
-  tog.classList.toggle('open', !open);
+  const wasOpen = !document.getElementById('audBody' + s).classList.contains('collapsed');
+  audSetSec(s, !wasOpen);
+  audSecFocus = null;
+  audSyncCards();
 }
 
 // ── الاستعلام عن الحالة الفعلية ──────────────────────────────
 //
-// 🔴 **بضغطة الموظف مش تلقائي** — الاستعلام ده نداء شوبيفاي لكل كود،
-//    والجرد ممكن يطلّع عشرات الأكواد. التلقائي كان بيحوّل كل سكانة غلط
-//    لنداء شبكة وسط شغل السكان.
-async function audLookup() {
+// 🔴 **بيشتغل تلقائيًا مرة واحدة مع «إنهاء الجرد»** (طلب أحمد 16-09-2026)،
+//    والزرار بقى **إعادة محاولة** — لو النداء فشل (Worker أقدم من 1.2.0 أو
+//    شبكة واقعة) الزرار بيفضل مكانه والرسالة بتسمّي السبب.
+// ⛔ **وممنوع يرجع تلقائي وسط السكان** — القاعدة القديمة اتكتبت ضد ده
+//    بالظبط: الجرد بيطلّع عشرات الأكواد الغلط، ونداء شبكة على كل سكانة
+//    غلط وإيد الموظف على السكانر بيوقّف الشغل. النداء هنا **واحد مجمّع
+//    بعد ما السكان يقف**.
+// ⚠️ **و`auto` بيسكّت رسالة «مفيش صفوف محتاجة استعلام»** — دي إجابة على
+//    سؤال الموظف لما يضغط، لكن على الإنهاء هي **ضوضاء**: الحالة العادية
+//    إن مفيش أكواد غلط أصلاً.
+async function audLookup({ auto = false } = {}) {
   const pend = audResult.extra.filter(s => s.hit === 'none' && !s.lookup);
-  if (!pend.length) { showToast('مفيش صفوف محتاجة استعلام', 'neutral'); return; }
+  if (!pend.length) {
+    if (!auto) showToast('مفيش صفوف محتاجة استعلام', 'neutral');
+    return;
+  }
   const btn = document.getElementById('audLookupBtn');
   btn.disabled = true; btn.textContent = '⏳ جاري الاستعلام…';
   try {
@@ -638,7 +807,12 @@ async function audLookup() {
     }
     if (data.truncated) showToast('القايمة أطول من سقف الاستعلام — الباقي ما اتستعلمش', 'warn', 6000);
     audPersist(); audRender();
-    showToast(`اتستعلم على ${hits} كود`, 'success');
+    // ⚠️ الرسالة بتفرّق: التلقائي بيقول **إن الحالة الحقيقية بقت على
+    //    الشاشة** (عشان الموظف مايدوّرش على زرار مابقاش ظاهر)، واليدوي
+    //    بيقول نتيجة الضغطة.
+    showToast(auto
+      ? `الحالة الفعلية اتجابت لـ${hits} كود في «حالة خطأ ⛔»`
+      : `اتستعلم على ${hits} كود`, 'success');
   } catch (e) {
     // ⚠️ الرسالة **بتسمّي الأداة والنسخة** — «تعذّر الاستعلام» لوحدها
     //    بتخلّي الموظف يدوّر، والسبب الأشهر هنا Worker ما اتعملّهوش Promote.
@@ -647,7 +821,13 @@ async function audLookup() {
     else
       showToast('تعذّر الاستعلام: ' + e.message, 'error', 6000);
   } finally {
-    btn.disabled = false; btn.textContent = '🔍 استعلام عن الحالة الفعلية';
+    // ⚠️ الزرار بيرجع **بنص «إعادة المحاولة»** لو لسه فيه صفوف محتاجة
+    //    استعلام — «استعلام عن الحالة الفعلية» على زرار ظهر بعد محاولة
+    //    فاشلة بيتقري «ما اتحاولش»، والموظف مش عارف إن فيه محاولة حصلت.
+    btn.disabled = false;
+    btn.textContent = audResult.extra.some(s => s.hit === 'none' && !s.lookup)
+      ? '🔄 إعادة محاولة الاستعلام'
+      : '🔍 استعلام عن الحالة الفعلية';
   }
 }
 
@@ -757,23 +937,43 @@ AUDIT_ABOUT = r'''      <details class="about-sec">
         <div class="about-sec-body">
           <p>الجرد بيجاوب على سؤال واحد: <b>كل طرد المفروض يكون في المكتب — موجود فعلاً؟</b>
              الموظف بيعمل سكان لباركود كل طرد، والنتيجة <b>تلات أقسام</b>.</p>
+          <p>⚠️ <b>وممنوع تحديث حالة أي شحنة أثناء الجرد</b> — النطاق <b>لقطة</b> بتتثبّت وقت
+             البدء، فالأوردر اللي حالته اتغيّرت وسط الجرد بيفضل في قايمة النطاق
+             و<b>بيتعدّ «مفقود»</b> وهو مش مفقود. التحذير ده مكتوب فوق الجرد طول ما هو شغّال.</p>
           <ul>
             <li><b>أوردرات مظبوطة</b> — في نطاق الجرد واتعمل لها سكان.</li>
             <li><b>أوردرات مفقودة</b> — في النطاق و<b>ما اتعملّهاش سكان</b>: الطرد ده
-                المفروض في المكتب ومش لاقيينه.</li>
+                المفروض في المكتب ومش لاقيينه. ⚠️ وهي نفسها <b>«أوردرات متبقية»</b>
+                وانت لسه بتسكن — <b>نفس الرقم واسمين</b>، والاسم بيتغيّر بعد «إنهاء الجرد».</li>
             <li><b>أوردرات موجودة خطأ</b> — اتعمل لها سكان و<b>مش في النطاق</b>. وكل
                 واحدة بتقول <b>السبب والفعل المطلوب</b>: يا إما الأوردر جاهز للشحن فعلاً
                 بس <b>بره الفلتر</b> اللي بدأت بيه (الطرد مكانه صح)، يا إما مش في القسم
-                خالص — وساعتها زرار <b>«استعلام عن الحالة الفعلية»</b> بيجيب حالته
-                الحقيقية من شوبيفاي (S1 · S2 · الإلغاء).</li>
+                خالص — وساعتها <b>الشاشة بتجيب حالته الحقيقية من شوبيفاي تلقائيًا</b>
+                (S1 · S2 · الإلغاء) <b>بمجرد «إنهاء الجرد»</b>، بلا أي ضغطة.
+                ⚠️ والزرار بيفضل ظاهر <b>بس لو النداء فشل</b> — وساعتها بيقول
+                <b>«إعادة محاولة الاستعلام»</b>، وأشهر سبب إن الـ Worker أقدم من
+                <code>1.2.0</code>.</li>
+            <li>والتلات أقسام <b>جداول بنفس أعمدة تاب «الطابور» بالظبط</b>. وفي قسم
+                «موجودة خطأ» السبب والفعل المطلوب مكتوبين في <b>صف تحت الصف مباشرةً</b>
+                — مش وراء ضغطة.</li>
+          </ul>
+          <h4>المربعات الأربعة — وبعد الإنهاء بتبقى فلاتر</h4>
+          <ul>
+            <li><b>إجمالي الأوردرات</b> · <b>أوردرات متبقية</b> (وبعد الإنهاء «مفقودة») ·
+                <b>حالة سليمة ✅</b> · <b>حالة خطأ ⛔</b>.</li>
+            <li>🔴 <b>بعد «إنهاء الجرد» كل مربع بقى فلتر</b> — ضغطة بتفتح قسمه
+                <b>وبتطوي الباقي</b>، و«إجمالي الأوردرات» بيفتح التلاتة. والمربع المختار
+                بياخد إطار عشان القايمة المقفولة ماتتقريش «القسم فاضي».</li>
+            <li>⚠️ وقبل البدء العدّادات <b>«—» مش «0»</b> — «ما اتجردش» ≠ «مفيش».</li>
           </ul>
           <h4>النطاق</h4>
           <ul>
             <li>النطاق هو <b>الصفوف المعروضة بعد الفلتر</b> وقت الضغط على «بدء الجرد»
                 (قرار أحمد 16-09-2026) — فتقدر تجرد «بوسطة بس» مثلاً.</li>
             <li>🔴 والنطاق <b>بيتثبّت لقطة وقت البدء</b>: أي فلتر أو تحديث بعد كده
-                <b>مالوش أي أثر</b> على قايمة المفقود. الفلتر اللي اتثبت بيه مكتوب
-                بالنص فوق الجرد وجوّه ملف التصدير.</li>
+                <b>مالوش أي أثر</b> على قايمة المفقود.</li>
+            <li>وعنوان الجرد بيقول النطاق بنفسه — <b>«جرد أوردرات (مناديب ٧٢ + شو روم ١٥)»</b>
+                — والفلتر الكامل بالنص مكتوب في <b>شيت «الملخص»</b> جوّه ملف التصدير.</li>
             <li>⚠️ <b>«لسه ما اتعملّهاش سكان» مش «مفقودة»</b> — الأولى حالة وانت لسه
                 بتسكن، والتانية نتيجة بعد «إنهاء الجرد».</li>
           </ul>
@@ -804,14 +1004,11 @@ AUDIT_ABOUT = r'''      <details class="about-sec">
 # بنود **النسخة الحالية** فعلاً.
 # ⚠️ وصفحة المشحون بتقول «بلا تغيير» صراحةً — كتلة نسخة بلا بنود بتتقري
 #    «السجل ناقص».
-CL_READY   = r'''          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>تاب «جرد المكتب»</b> — سكان لباركود كل طرد، والنتيجة <b>تلات أقسام</b>: مظبوطة · <b>مفقودة</b> (في النطاق وما اتعملّهاش سكان) · <b>موجودة خطأ</b> (اتعمل لها سكان ومش في النطاق).</span></li>
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>كل «موجود خطأ» بيقول السبب والفعل</b> — «جاهز للشحن بس بره الفلتر» ≠ «مش في القسم خالص»، وزرار <b>«استعلام عن الحالة الفعلية»</b> بيجيب S1/S2 والإلغاء من شوبيفاي (محتاج <code>ready-orders-worker</code> <b>v1.2.0</b>).</span></li>
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>النطاق = المعروض بعد الفلتر</b>، و<b>بيتثبّت لقطة وقت البدء</b> — أي فلتر بعد كده مالوش أثر على قايمة المفقود، والفلتر اللي اتثبت بيه مكتوب بالنص.</span></li>
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>الجرد محفوظ في الجلسة</b> — refresh وسط جرد مئات الطرود مابيضيّعش السكانات. و<b>تصدير XLSX</b> بأربع شيتات (مظبوطة · مفقودة · موجودة خطأ · الملخص بالنطاق والفلتر).</span></li>
-          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>الصفحة بقت <b>تابين</b>: «📋 الطابور» و«🧮 جرد المكتب» — جلب واحد ومصدر واحد للاتنين.</span></li>
+CL_READY   = r'''          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>«الفعل المطلوب» في «حالة خطأ ⛔» بقى تلقائي</b> — الاستعلام عن الحالة الفعلية (S1 · S2 · الإلغاء) بيشتغل <b>بمجرد «إنهاء الجرد»</b> بلا أي ضغطة، والزرار بقى <b>«إعادة محاولة الاستعلام»</b> وبيظهر لو النداء فشل بس.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⚠️ ولسه <b>نداء واحد مجمّع بعد ما السكان يقف</b> — مش نداء على كل سكانة غلط وسط الشغل.</span></li>
 '''
 
-CL_SHIPPED = r'''          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>بلا تغيير في الصفحة دي</b> — تحديث v1.3.0 كان تاب «جرد المكتب» في <b>«قسم الجاهز للشحن»</b>. والنسخة <b>واحدة للهب كله</b> (مصدر واحد · #24)، فالرقم بيترفع هنا كمان.</span></li>
+CL_SHIPPED = r'''          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>بلا تغيير في الصفحة دي</b> — تحديث v1.4.1 كان في تاب «جرد المكتب» جوّه <b>«قسم الجاهز للشحن»</b>. والنسخة <b>واحدة للهب كله</b> (مصدر واحد · #24)، فالرقم بيترفع هنا كمان.</span></li>
 '''
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

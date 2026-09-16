@@ -34,7 +34,7 @@ shared/shell.js       الإعدادات + الجلسة + §QUEUE-RULES + §AUDI
 docs/build-pages.py   مولّد الصفحتين — 🔴 الـ HTML **متولّد**، عدّل هنا
 docs/css-check.js     فحص CSS بـ parser حقيقي
 docs/rules-check.mjs  فحص منطق §QUEUE-RULES و§AUDIT-RULES — ٩٠ بند (بلا تنصيب)
-docs/queues-check.mjs فحص متصفح فعلي — ١٦٩ بند
+docs/queues-check.mjs فحص متصفح فعلي — ١٩٦ بند
 ```
 
 ## الفحوص — قبل أي تسليم
