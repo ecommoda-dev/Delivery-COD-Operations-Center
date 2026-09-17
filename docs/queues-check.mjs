@@ -33,6 +33,11 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 
+// 🔴 نسخة الهب — **مصدر واحد** (`TOOL_VERSION` في `shared/shell.js`، #24).
+const HUB_VERSION = (fs.readFileSync(new URL('../shared/shell.js', import.meta.url), 'utf8')
+  .match(/const TOOL_VERSION\s*=\s*'([^']+)'/) || [])[1];
+if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION من shared/shell.js'); process.exit(1); }
+
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const MIME = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8' };
 
@@ -279,8 +284,11 @@ console.log('\n══ ① الجلسة والهيدر ══');
      'زرار الموظف عليه aria-label="تسجيل الخروج" (الـ ✕ لوحده مايتقريش)');
   const ver = (await page.textContent('#verBtn')).trim();
   const cl  = (await page.textContent('#clLatestVerBadge')).trim();
-  is(ver.startsWith('v1.4.1'), 'زرار النسخة بيقول نسخة الهب', ver);
-  is(cl === 'v1.4.1', 'بادج سجل التحديثات **مطابق** لزرار النسخة (مصدر واحد · #24)', cl);
+  // 🔴 **الرقم بيتقرا من `shared/shell.js` مش مكتوب هنا.** كان مكتوب
+  //    حرفيًا، فأي ترفيع نسخة مشروع كان بيفشّل بندين — والبند اللي بيفشل
+  //    لسبب مالوش علاقة باللي بيقيسه بيتعلّم الواحد يتجاهله.
+  is(ver.startsWith(HUB_VERSION), 'زرار النسخة بيقول نسخة الهب', `${ver} ≠ ${HUB_VERSION}`);
+  is(cl === HUB_VERSION, 'بادج سجل التحديثات **مطابق** لزرار النسخة (مصدر واحد · #24)', `${cl} ≠ ${HUB_VERSION}`);
   is(!(await page.isVisible('#verStaleBtn')), 'مفيش تحذير نسخة قديمة والـ Worker مطابق للحد الأدنى');
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
