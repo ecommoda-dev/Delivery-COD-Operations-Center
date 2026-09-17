@@ -184,7 +184,11 @@ const DIAG = { ok:false, version:'1.0.0', checks:[
 //    وده مستحيل على البيانات الأساسية اللي فيها القيم الأربعة كلها.
 const state = { readyFail:false, shippedFail:false, truncated:false, calls:[],
                 authBodies:[], logoutUrls:[], lookupBodies:[], lookupFail:false,
-                readyRows:null };
+                readyRows:null,
+                // 🔴 أرضية تاريخ الطابور زي ما الـ Worker بيرجّعها (v1.9.0).
+                //    `null` = **Worker أقدم من تسليم الأرضية** — البند بيقيس
+                //    إن الشاشة ساعتها مابتدّعيش أي نطاق.
+                minDay:'2026-04-01' };
 
 function makeStub() {
   return async (route) => {
@@ -197,7 +201,7 @@ function makeStub() {
     //    نسخة قديمة» على صفحة الجاهز في **كل** بند، فالبنود بتفشل لسبب
     //    مالوش علاقة باللي بتقيسه.
     if (action === 'get_config')
-      body = { ok:true, version: url.host.startsWith('ready-orders') ? '1.3.0' : '1.0.0' };
+      body = { ok:true, version: url.host.startsWith('ready-orders') ? '1.4.0' : '1.1.0' };
     else if (action === 'diag')       body = DIAG;
     else if (action === 'get_employees')
       body = { ok:true, employees:[{ username:'tester', display_name:'الموظف التجريبي' }] };
@@ -236,11 +240,13 @@ function makeStub() {
     else if (action === 'get_ready_queue') {
       if (state.readyFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
       else body = { ok:true, queue:'ready', orders:state.readyRows || READY_RAW,
-                    truncated:state.truncated, fetchedAt:new Date().toISOString() };
+                    truncated:state.truncated, minCreatedDay:state.minDay || undefined,
+                    fetchedAt:new Date().toISOString() };
     }
     else if (action === 'get_shipped_queue') {
       if (state.shippedFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
       else body = { ok:true, queue:'shipped', orders:SHIPPED_RAW, truncated:false,
+                    minCreatedDay:state.minDay || undefined,
                     fetchedAt:new Date().toISOString() };
     }
     await route.fulfill({ status, contentType:'application/json', body:JSON.stringify(body) });
@@ -901,6 +907,128 @@ for (const [file, total] of [['ready-orders.html', 'الجاهز'], ['shipped-or
      JSON.stringify([W['العنوان'], W['ملحوظات']]));
   is(errors.length === 0, 'وصفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ③-ج عمود «العميل» — سطران بالكتير (v1.9.0 · طلب أحمد 17-09-2026)
+// ══════════════════════════════════════════════════════════════
+//
+// 🔴 **البند بيقيس التخطيط الفعلي مش قيمة CSS** — القص بيحصل من الخط
+//    والعرض الفعليين، ومقارنة على `-webkit-line-clamp` كانت هتعدّي على
+//    الحالة اللي بتكسر (بنط أكبر من المتوقع → السطرين بيطلعوا أطول من
+//    الخلية، أو `display` مش متطبّق فمفيش قص أصلاً).
+// ⛔ **وبند العرض جنبه إلزامي** — «الصف بقى أقصر» ممكن يتحقق كمان
+//    **بتوسيع العمود**، وده بالظبط اللي اتطلب إنه **مايحصلش**.
+console.log('\n══ ③-ج عمود «العميل» — سطران بالكتير ══');
+{
+  const LONG = 'محمد صبري اسماعيل محمد صبري محمد';
+  state.readyRows = READY_RAW.map((r, i) => i === 0 ? { ...r, customer: LONG } : r);
+  const { page, ctx, errors } = await newPage();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${BASE}/ready-orders.html`);
+  await page.waitForSelector('#qBody tr');
+
+  const m = await page.$$eval('#qBody tr td.cust-cell', tds => {
+    const td = tds.find(t => (t.querySelector('.cust-txt')?.title || '') .includes('اسماعيل'));
+    if (!td) return null;
+    const sp = td.querySelector('.cust-txt');
+    const cs = getComputedStyle(sp);
+    return { title: sp.title, text: sp.textContent,
+             lines: Math.round(sp.getBoundingClientRect().height / parseFloat(cs.lineHeight)),
+             font:  parseFloat(cs.fontSize),
+             tdFont: parseFloat(getComputedStyle(td).fontSize),
+             inside: sp.getBoundingClientRect().width <= td.getBoundingClientRect().width + 1 };
+  });
+  is(m && m.lines <= 2,
+     '🔴 اسم خماسي طويل بيتقص عند **سطرين بالظبط** — كان بيلفّ على ستة ويخلّي الصف ضعف ارتفاع جاره',
+     JSON.stringify(m));
+  is(m && m.font < m.tdFont,
+     '⚠️ وبنط الخلية **أصغر من بنط الجدول** — التصغير هو اللي بيخلّي كلمتين تدخلوا في السطر',
+     JSON.stringify([m && m.font, m && m.tdFont]));
+  is(m && m.inside,
+     '🔴 والاسم **جوّه العمود** — مابيخرجش من حدوده ويزقّ باقي الأعمدة',
+     JSON.stringify(m));
+  is(m && m.title === LONG && m.text === LONG,
+     '🔴 **والاسم الكامل مش ضايع** — في `title` على الخلية وفي نصها، فالقص بصري بس',
+     JSON.stringify([m && m.title]));
+
+  // 🔴 العرض ما اتغيّرش — «الصف بقى أقصر» ممكن تتحقق بالتوسيع كمان،
+  //    وده اللي اتطلب إنه مايحصلش.
+  const W = await page.$$eval('#qTable thead th', ths => Object.fromEntries(
+    ths.map(t => [t.textContent.trim().replace(/[▲▼]/g, ''), Math.round(t.getBoundingClientRect().width)])));
+  is(W['العميل'] < W['تاريخ الأوردر'] && W['العنوان'] > W['ملحوظات'] && W['ملحوظات'] > 230,
+     '⛔ **وبلا أي توسيع للعمود** — «العميل» لسه أضيق من عمود التاريخ، و«العنوان»/«ملحوظات» زي ما هما',
+     JSON.stringify(W));
+
+  // ⚠️ البحث بيدوّر في الاسم **كامل** — قص بلا منفذ للقيمة الكاملة كان
+  //    هيخلّي الموظف يفتح الأوردر على شوبيفاي عشان يقرا اسم.
+  // ⚠️ المربع جوّه لوحة الفلاتر المقفولة افتراضيًا — لازم تتفتح الأول.
+  await page.click('.flt-header');
+  await page.waitForTimeout(200);
+  await page.fill('#qSearch', 'صبري محمد');
+  await page.waitForTimeout(450);
+  is(await page.$$eval('#qBody tr', r => r.length) === 1,
+     '🔴 والبحث بيلاقيه بآخر الاسم — بيدوّر في **الاسم الكامل** مش في المقصوص');
+  is(errors.length === 0, 'وصفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+  state.readyRows = null;
+}
+{
+  // ⚠️ **ونفس القاعدة في صفحة المشحون** — جدول واحد بمقاسين في صفحتين
+  //    بيتعلّمه الموظف مرتين (نفس سبب بند مقاسات الأعمدة فوق).
+  const orig = SHIPPED_RAW[0].customer;
+  SHIPPED_RAW[0].customer = 'عبدالرحمن محمود عبدالرحمن محمود السيد';
+  const { page, ctx } = await newPage();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${BASE}/shipped-orders.html`);
+  await page.waitForSelector('#qBody tr');
+  const m = await page.$$eval('#qBody tr td.cust-cell .cust-txt', sps => {
+    const sp = sps.find(x => x.title.includes('عبدالرحمن محمود عبدالرحمن'));
+    if (!sp) return null;
+    const cs = getComputedStyle(sp);
+    return { lines: Math.round(sp.getBoundingClientRect().height / parseFloat(cs.lineHeight)),
+             font: parseFloat(cs.fontSize) };
+  });
+  is(m && m.lines <= 2 && m.font < 14.5,
+     '🔴 ونفس القص والبنط في **طابور المشحون** — نفس الجدول ونفس المعيار',
+     JSON.stringify(m));
+  await ctx.close();
+  SHIPPED_RAW[0].customer = orig;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ③-د أرضية تاريخ الطابور — الاستبعاد مُعلَن (v1.9.0)
+// ══════════════════════════════════════════════════════════════
+//
+// 🔴 **الأرضية بتشيل أوردرات من الطابور** — الـ Worker مابيجيبش اللي أقدم
+//    من `01/04/2026`. استبعاد صامت من رقم بيخلّي الفرق بينه وبين الواقع
+//    **بلا تفسير**، فالشاشة لازم تقوله.
+// 🔴 **والقيمة من رد الـ Worker مش مكتوبة في الصفحة** — والبند التاني
+//    (Worker بلا الحقل) هو اللي بيثبت كده: لو التاريخ كان مكتوب في
+//    الصفحة، كان هيفضل ظاهر وهو مش مطبّق.
+console.log('\n══ ③-د أرضية تاريخ الطابور ══');
+for (const [file, label] of [['ready-orders.html', 'الجاهز للشحن'], ['shipped-orders.html', 'المشحون']]) {
+  const { page, ctx } = await newPage();
+  await page.goto(`${BASE}/${file}`);
+  await page.waitForSelector('#qBody tr');
+  const sc = await page.$eval('#qScope', el => ({ hidden: el.hidden, text: el.textContent.trim() }));
+  is(!sc.hidden && sc.text === 'الطابور من 01/04/2026',
+     `🔴 «${label}»: الأرضية مكتوبة جنب الرقم بصيغة الجدول (dd/mm/yyyy) — الاستبعاد مُعلَن مش صامت`,
+     JSON.stringify(sc));
+  await ctx.close();
+}
+{
+  // ⛔ **Worker أقدم من تسليم الأرضية** — الرد بلا `minCreatedDay`.
+  //    ادعاء أرضية **مش مطبّقة** أسوأ من مفيش ادعاء: الموظف بيفتكر إن
+  //    الطابور مفلتر وهو راجع بالكامل.
+  state.minDay = null;
+  const { page, ctx } = await newPage();
+  await page.goto(`${BASE}/ready-orders.html`);
+  await page.waitForSelector('#qBody tr');
+  is(await page.$eval('#qScope', el => el.hidden),
+     '⛔ وعلى Worker مابيرجّعش الأرضية الشيب **بيختفي خالص** — التاريخ جاي من الرد مش مكتوب في الصفحة');
+  await ctx.close();
+  state.minDay = '2026-04-01';
 }
 
 // ══════════════════════════════════════════════════════════════
