@@ -288,6 +288,31 @@ for (const t of TOOLS) {
   await ctx.close();
 }
 
+// 🔴 **`.mtb-badge` — كلاس عاش في كتلة CSS شالها المولّد.** الكتلة اتشالت
+//    على أساس «الـ shell بيملكها»، والـ shell بيملك `.main-tab-btn` فعلاً
+//    **لكن مش `.mtb-badge`**. فالبادجين على تاب السجل كانوا بيترسموا **نص
+//    عاري** بلا خلفية ولا إطار — وصفر خطأ في أي مكان.
+// ⚠️ **والبند بيقرا الستايل المحسوب من العنصر نفسه** مش وجود اسم الكلاس في
+//    الكود: كلاس موجود في الماركب من غير أي قاعدة CSS وراه بيعدّي على أي grep.
+{
+  const { ctx, page } = await freshPage();
+  await mockWorker(page, []);
+  await page.goto(`${BASE}/cod-payment.html`);
+  await page.waitForTimeout(800);
+  const st = await page.evaluate(() => {
+    const el = document.querySelector('.mtb-badge');
+    if (!el) return null;
+    el.style.display = 'inline-block';           // مخفي افتراضيًا لحد ما يبقى فيه رقم
+    const c = getComputedStyle(el);
+    return { radius: parseFloat(c.borderRadius), bg: c.backgroundColor, size: parseFloat(c.fontSize) };
+  });
+  is(!!st, 'cod-payment.html: بادج التاب `.mtb-badge` موجود في الماركب', String(st));
+  is(st && st.radius > 0 && st.bg !== 'rgba(0, 0, 0, 0)' && st.size > 0,
+     '🔴 وليه ستايل محسوب فعلاً — مش نص عاري بعد ما المولّد شال كتلة التابات',
+     JSON.stringify(st));
+  await ctx.close();
+}
+
 // ══════════════════════════════════════════════════════════════
 sec('④ الشاشة الرئيسية — قسم «أدوات»');
 // ══════════════════════════════════════════════════════════════
@@ -439,6 +464,70 @@ for (const t of TOOLS) {
     { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD' }))[t.workerKey];
   is(msg.includes(label), `${t.page}: رسالة الفشل بتسمّي الأداة («${label}»)`, msg);
   await ctx.close();
+}
+
+// ══════════════════════════════════════════════════════════════
+sec('⑦ التصدير — حارس المكتبة الخارجية (CDN محجوب)');
+// ══════════════════════════════════════════════════════════════
+//
+// 🔴 **ExcelJS بتتحمّل من CDN، وشبكة المحطة بتحجبه** (بند مفتوح مسجّل في
+//    `CLAUDE.md`). من غير حارس، `new ExcelJS.Workbook()` بيرمي
+//    `ReferenceError` **عند الضغطة** — والدوال دي `async` ومتندّهة من
+//    `onclick`، فالرمي بيتحوّل **رفض غير ممسوك**: الموظف مايشوفش أي حاجة.
+// ⛔ **وتلاتة من أربع أزرار كانوا كده فعلاً** (مقيس 17-09-2026): اتنين
+//    بصمت تام، وواحد آخر رسالة شافها الموظف «⏳ جاري تجهيز التصدير...»
+//    وبعدها سكوت — يعني **ادعاء شغل شغّال** على تصدير مات.
+// ⚠️ **والبند بيحجب الـ CDN فعلاً** مش بيقرا الكود — الحارس ممكن يتكتب صح
+//    ويتحط بعد سطر بيرمي قبله.
+// ⚠️ **والمقياس هو الرسالة لوحدها عن قصد.** بند «صفر رفض غير ممسوك» اتجرّب
+//    واتشال: `page.evaluate` بيلفّ النداء في `try/catch` بتاعه، فالرفض
+//    مابيوصلش لـ`unhandledrejection` أصلاً — البند كان **بيعدّي حتى على
+//    الكود المكسور**، وبند مايقدرش يفشل ضوضاء بتتتجاهل.
+//    ✅ والرسالة بتغطّي التلات حالات اللي اتقاست: الصمت التام · «⏳» معلّقة
+//       · ورسالة إنجليزي تقنية — كلهم **مش** النص المطلوب.
+{
+  const EXPORTS = [
+    { page: 'order-status.html', fn: 'exportLogXLSX',         label: 'تصدير الكل' },
+    { page: 'order-status.html', fn: 'exportSelectedLogXLSX', label: 'تصدير المحدد' },
+    { page: 'cod-payment.html',  fn: 'exportXLSX', arg: false, label: 'تصدير الكل' },
+    { page: 'cod-payment.html',  fn: 'exportXLSX', arg: true,  label: 'تصدير المحدد' },
+  ];
+  for (const e of EXPORTS) {
+    const { ctx, page } = await freshPage();
+    await mockWorker(page, []);
+    // ⚠️ **الـ Worker الوهمي لازم يرجّع صفوف هنا** — `buildAndDownloadWorkbook`
+    //    بتفحص «مفيش بيانات» **قبل** الحارس، وده الترتيب الصح: «لا توجد
+    //    بيانات للتصدير» أدقّ من «المكتبة ما اتحمّلتش» على سجل فاضي.
+    //    فسجل فاضي هنا كان بيخلّي البند يقيس المسار الغلط.
+    await page.route('**/*.workers.dev/**', r => r.fulfill({
+      status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ ok: true, success: true, version: '99.0.0', total: 1, cap: 5000, truncated: false,
+        entries: [{ id: 1, timestamp: '2026-09-16T10:00:00Z', tool: 'order_status', type: 'update',
+                    employee: 'A', order_id: '1', order_number: '#55001',
+                    extra: { result: 'success', courier: 'C', targetLabel: 'Returned' } }] }) }));
+    // 🔴 الحجب ده هو البند
+    await page.route('**cdnjs.cloudflare.com/**', r => r.abort('failed'));
+    await page.goto(`${BASE}/${e.page}`);
+    await page.waitForTimeout(800);
+    const out = await page.evaluate(async ([fn, arg]) => {
+      const seen = [];
+      new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => seen.push(n.textContent))))
+        .observe(document.getElementById('toastContainer'), { childList: true });
+      // الحارس لازم يسبق أي شرط «مفيش بيانات» — فبنجهّز اختيار حقيقي
+      window.__logGroups = [{ key: 'k', rows: [{ entry: { id: 1, timestamp: '2026-09-16T10:00:00Z',
+        type: 'update', employee: 'A', order_number: '#55001', order_id: '1', extra: { result: 'success' } } }] }];
+      try { selectedLogBatches.add('k'); } catch {}
+      try { await window[fn](arg); } catch (err) { seen.push('THREW: ' + err.message); }
+      await new Promise(r => setTimeout(r, 400));
+      return { toasts: seen, excel: typeof ExcelJS !== 'undefined' };
+    }, [e.fn, e.arg]);
+    const tag = `${e.page} «${e.label}»`;
+    is(out.excel === false, `${tag}: الـ CDN محجوب فعلاً في البند ده`, String(out.excel));
+    is(out.toasts.some(t => (t || '').includes('مكتبة التصدير ما اتحمّلتش')),
+       `🔴 ${tag}: الموظف بيشوف «مكتبة التصدير ما اتحمّلتش» — مش صمت ولا «⏳» معلّقة`,
+       JSON.stringify(out.toasts));
+    await ctx.close();
+  }
 }
 
 // ══════════════════════════════════════════════════════════════

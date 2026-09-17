@@ -638,6 +638,8 @@ def build_cod_payment():
       و`.container` · `.app-header*` · `.hbtn` · مودال الإعدادات ·
       `.eco-*` · `.about-*` · `.cl-*` · `.order-link`/`.order-num` ·
       التوست · `.main-tabs-bar`/`.main-tab-btn`/`.tab-panel`.
+   ⚠️ **بس `.mtb-badge` رجعت تحت** — اتشالت مع كتلة `.main-tab-btn`
+      والـ shell **مش معرّفها**، فالبادج كان بيترسم نص عاري.
    ✂️ وشاشة الدخول كلها (`.login-*` · `.pin-*`).
    ══════════════════════════════════════════════════════════════ */
 
@@ -645,7 +647,20 @@ def build_cod_payment():
    سجل، يعني Tier M (١٢٠٠) مش Tier L (١٤٠٠) بتاع طوابير الهب. */
 :root { --container-max: 1200px; }
 
-/* ⚠️ التلاتة دول **مش في الـ shell** وليهم مستهلك هنا. */
+/* ⚠️ الأربعة دول **مش في الـ shell** وليهم مستهلك هنا. */
+/* 🔴 **`.mtb-badge` رجعت بعد ما الشيلة فوق بلعتها** (17-09-2026). القاعدة
+   دي كانت جوّه كتلة `.main-tab-btn` في الريبو الأصلي، والشيلة شالت الكتلة
+   كلها على أساس إن «الـ shell بيملكها» — والـ shell بيملك `.main-tab-btn`
+   فعلاً، **لكن مش `.mtb-badge`**. النتيجة كانت بادجين حقيقيين
+   (`#tabBadgeCount` · `#tabBadgeLog`) بيترسموا **نص عاري** بلا خلفية ولا
+   إطار، وصفر خطأ في أي مكان.
+   ⚠️ **ومكانها الصفحة مش الـ shell** — البادج ده مستهلكه **صفحة واحدة**
+      (`order-status.html` مابتستخدمهوش أصلاً)، والقاعدة بتقول «`shell.css`
+      فيه الـ chrome بس، وأي CSS خاص بأداة بيفضل في صفحته». وحطّها في الـ
+      shell كان هيفتح كمان التزام «أي تعديل على الـ chrome يتعمل في
+      الهبين في نفس التمريرة». */
+.main-tab-btn .mtb-badge { background:rgba(255,255,255,.25); font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; font-family:var(--font-mono); }
+.main-tab-btn:not(.active) .mtb-badge { background:var(--accent-light); color:var(--accent); }
 .log-miss { display:inline-block; margin-right:5px; padding:1px 6px; border-radius:4px; background:var(--red-light); border:1px solid var(--red-border); color:var(--red); font-size:10px; font-weight:800; white-space:nowrap; }
 .log-miss-banner { margin:0 0 10px; padding:9px 13px; border-radius:var(--radius-sm); background:var(--red-light); border:1.5px solid var(--red-border); color:var(--red); font-size:12px; font-weight:600; line-height:1.8; }
 .spinner { width:12px; height:12px; border:2px solid transparent; border-top-color:currentColor; border-radius:50%; animation:spin .7s linear infinite; display:inline-block; vertical-align:middle; }
