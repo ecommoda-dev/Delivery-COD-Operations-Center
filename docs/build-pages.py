@@ -17,7 +17,19 @@
 
 # دالة خلية العمود الزيادة — **كل صفحة بتاخد بتاعتها بس**.
 # ⚠️ دالة بلا مستهلك = كود ميت، مش «احتياط».
-WA_FN = '''// 🔴 **الفاضي بقى `—` مش «لسه مش مسجّلة»** (طلب أحمد 16-09-2026).
+WA_FN = '''// 🔴 **بادج مش نص سادة** (v1.6.0 · طلب أحمد 17-09-2026). الطابور ده
+//    أوردرات **المفروض طرودها في المكتب**، فالعمود ده سؤال بإجابتين:
+//    الطرد مكانه صح (`Office`) ولا لأ. لون بيتقري من بعيد بيخلّي الصف
+//    المخالف يبان **قبل** ما الموظف يقرا القيمة.
+// 🔴 **و`Office` بالظبط هي الخضرا** — أي قيمة تانية (`Warehouse` ·
+//    `Courier` · قيمة بره القايمة) بتاخد **أحمر + ⚠**: الطرد مش في
+//    المكتب وهو المفروض يكون، ودي حالة محتاجة تدخّل مش معلومة عابرة.
+// 🔴 **والفاضي بيفضل `—` محايد — ⛔ مش أحمر.** «محدش سجّل» **مش** «الطرد
+//    في مكان غلط»، والفرق ده هو الفرق بين تحذير حقيقي وتحذير على
+//    **أغلب الطابور** (أداة التغليف لسه ما بتكتبش الحقل). أحمر على كل
+//    صف بيعلّم الموظف يعدّي على اللون كله — نفس درس `already` الأحمر
+//    في سكانرات بوسطة.
+// 🔴 **الفاضي `—` مش «لسه مش مسجّلة»** (طلب أحمد 16-09-2026).
 //    الجملة كانت **الأغلبية الساحقة** من صفوف العمود (أداة التغليف لسه
 //    ما بتكتبش الحقل)، فكانت بتاخد سطرين في كل خلية تقريبًا وبتزاحم
 //    القيم الحقيقية القليلة اللي الموظف بيدوّر عليها.
@@ -26,7 +38,10 @@ WA_FN = '''// 🔴 **الفاضي بقى `—` مش «لسه مش مسجّلة»
 function whereaboutsCell(o) {
   const map = { Warehouse: 'المخزن', Office: 'المكتب', Courier: 'مع المندوب' };
   if (!o.whereabouts) return '<span class="flag-ok">—</span>';
-  return esc(map[o.whereabouts] || o.whereabouts);
+  if (o.whereabouts === 'Office') return '<span class="wa-badge wa-ok">✅ في المكتب</span>';
+  // ⚠️ **القيمة الغلط بتتعرض بالحرف** — «مكان تاني» بتخلّي الموظف يفتح
+  //    الأوردر على شوبيفاي عشان يعرف هو فين (قاعدة ١٤).
+  return `<span class="wa-badge wa-warn">⚠ ${esc(map[o.whereabouts] || o.whereabouts)}</span>`;
 }'''
 
 TR_FN = '''// 🔴 رقم التتبع: الجديد أولاً، والقديم بعلامة صريحة. «الرقم ده من حقل
@@ -53,6 +68,21 @@ ADDR_FN = '''// 🔴 **العنوان الكامل في خلية واحدة** (�
 function addressCell(o) {
   const street = [o.address1, o.address2].filter(Boolean).join(' — ').trim();
   return street ? esc(street) : '<span class="flag-ok">بلا عنوان</span>';
+}'''
+
+NOTE_FN = '''// 🔴 **عمود «ملحوظات»** (v1.6.0 · طلب أحمد 17-09-2026) — مصدره حقل
+//    **Notes** على الأوردر في شوبيفاي (`note` في رد الـ Worker، من
+//    `ready-orders-worker` **v1.3.0**).
+// 🔴 **واللون بنفسجي عن قصد** — الملحوظة **استثناء**: أوردر واحد من كل
+//    عشرين عليه واحدة، والموظف محتاج يشوف **إن فيه ملحوظة** من قبل ما
+//    يقرا نصها. نص رمادي زي باقي الجدول معناه إنها بتتلاقى بالصدفة.
+//    ⚠️ **ومش أحمر ولا كهرماني** — دول لونين العلامات والتأخير في
+//       الجدول ده، والملحوظة **مش شذوذ**: هي معلومة الموظف كتبها بنفسه.
+// ⚠️ **والفاضي `—`** — نفس قاعدة باقي الأعمدة: خانة فاضية بتتقري «الشاشة
+//    بايظة»، و`—` بتقول «مفيش ملحوظة» بالنص.
+function noteCell(o) {
+  const t = (o.note || '').trim();
+  return t ? `<span class="note-txt">${esc(t)}</span>` : '<span class="flag-ok">—</span>';
 }'''
 
 import os
@@ -261,8 +291,8 @@ AUDIT_VIEW  = r'''
     </div>
     <div class="aud-sec-body collapsed" id="audBodyOk">
       <div class="tbl-scroll"><table class="data-table"><thead><tr>
-        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>المندوب</th>
-        <th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
+        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>ملحوظات</th>
+        <th>المندوب</th><th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
         <th>نوع الأوردر</th><th>مراجعة</th>
       </tr></thead><tbody id="audBodyOkRows"></tbody></table></div>
     </div>
@@ -278,8 +308,8 @@ AUDIT_VIEW  = r'''
     </div>
     <div class="aud-sec-body collapsed" id="audBodyMiss">
       <div class="tbl-scroll"><table class="data-table"><thead><tr>
-        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>المندوب</th>
-        <th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
+        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>ملحوظات</th>
+        <th>المندوب</th><th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
         <th>نوع الأوردر</th><th>مراجعة</th>
       </tr></thead><tbody id="audBodyMissRows"></tbody></table></div>
     </div>
@@ -298,8 +328,8 @@ AUDIT_VIEW  = r'''
     </div>
     <div class="aud-sec-body collapsed" id="audBodyExtra">
       <div class="tbl-scroll"><table class="data-table"><thead><tr>
-        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>المندوب</th>
-        <th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
+        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>ملحوظات</th>
+        <th>المندوب</th><th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
         <th>نوع الأوردر</th><th>مراجعة</th>
       </tr></thead><tbody id="audXList"></tbody></table></div>
     </div>
@@ -334,7 +364,7 @@ const AUD_MIN_LEN = 4;
 // 16-09-2026). الرقم ده بيمشي على `colspan` بتاع صف «القسم فاضي» وصف
 // السبب تحت كل «موجودة خطأ»: `colspan` أقل من الأعمدة بيسيب خانات فاضية
 // على يمين الصف، وأكتر بيكسر عرض الجدول.
-const AUD_COLS = 9;
+const AUD_COLS = 10;
 
 // 🔴 **المربع المختار بعد الإنهاء** — `null` = التلات أقسام مطوية،
 // `'all'` = التلاتة مفتوحة، وأي قيمة تانية = قسمها هو المفتوح **لوحده**.
@@ -631,13 +661,14 @@ function audCells(o, note) {
   return `<td>${orderLink(o.orderName, o.orderId)}${note || ''}</td>
     <td>${esc(o.customer || '—')}</td>
     <td class="addr-cell">${addressCell(o)}</td>
+    <td class="note-cell">${noteCell(o)}</td>
     <td>${esc(o.courier || '—')}</td>
     <td>${whereaboutsCell(o)}</td>
-    <td>${o.createdAt
-          ? `${esc(formatDate(o.createdAt))}${age ? ` <span class="time-badge age-badge ${age.cls}">${esc(age.text)}</span>` : ''}`
+    <td class="date-cell">${o.createdAt
+          ? `<span class="cell-date">${esc(formatDate(o.createdAt))}</span>${age ? `<span class="time-badge age-badge ${age.cls}">${esc(age.text)}</span>` : ''}`
           : '<span class="flag-ok">—</span>'}</td>
-    <td>${since
-          ? `${esc(formatDate(o.packedAt))} <span class="time-badge ${since.cls}">${esc(since.text)}</span>`
+    <td class="date-cell">${since
+          ? `<span class="cell-date">${esc(formatDate(o.packedAt))}</span><span class="time-badge ${since.cls}">${esc(since.text)}</span>`
           : '<span class="flag-ok">—</span>'}</td>
     <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(o.machineLabel || (isS2 ? 'استبدال/استرجاع' : 'عادي'))}</span></td>`;
 }
@@ -675,6 +706,7 @@ function audExtraRowHtml(s, i) {
              : `<span class="order-num">${esc(code)}</span>`}${note}</td>
        <td>${dash}</td>
        <td class="addr-cell">${dash}</td>
+       <td class="note-cell">${dash}</td>
        <td>${dash}</td>
        <td>${dash}</td>
        <td>${dash}</td>
@@ -846,12 +878,12 @@ async function audExport() {
     const wb = new ExcelJS.Workbook();
     wb.creator = 'EcomModa — مركز عمليات الشحن والتحصيل';
     wb.created  = new Date();
-    const head = ['رقم الأوردر', 'العميل', 'العنوان', 'المحافظة', 'المندوب',
+    const head = ['رقم الأوردر', 'العميل', 'العنوان', 'المحافظة', 'ملحوظات', 'المندوب',
                   'موقع الشحنة', 'نوع الأوردر', 'تاريخ التغليف', 'علامات المراجعة'];
     const rowOf = o => [
       o.orderName || '—', o.customer || '—',
       [o.address1, o.address2].filter(Boolean).join(' — ') || 'بلا عنوان',
-      o.province || o.city || '—', o.courier || '—',
+      o.province || o.city || '—', (o.note || '').trim() || '—', o.courier || '—',
       o.whereabouts || '—', o.machineLabel || '—',
       o.packedAt ? `${formatDateForExport(o.packedAt)} ${formatTimeForExport(o.packedAt)}` : '—',
       (o.flags || []).map(f => f.label).join(' · ') || '—',
@@ -1004,11 +1036,14 @@ AUDIT_ABOUT = r'''      <details class="about-sec">
 # بنود **النسخة الحالية** فعلاً.
 # ⚠️ وصفحة المشحون بتقول «بلا تغيير» صراحةً — كتلة نسخة بلا بنود بتتقري
 #    «السجل ناقص».
-CL_READY   = r'''          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>«الفعل المطلوب» في «حالة خطأ ⛔» بقى تلقائي</b> — الاستعلام عن الحالة الفعلية (S1 · S2 · الإلغاء) بيشتغل <b>بمجرد «إنهاء الجرد»</b> بلا أي ضغطة، والزرار بقى <b>«إعادة محاولة الاستعلام»</b> وبيظهر لو النداء فشل بس.</span></li>
-          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⚠️ ولسه <b>نداء واحد مجمّع بعد ما السكان يقف</b> — مش نداء على كل سكانة غلط وسط الشغل.</span></li>
+CL_READY   = r'''          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>عمود «ملحوظات»</b> بعد العنوان — حقل <b>Notes</b> بتاع الأوردر على شوبيفاي، <b>بلون بنفسجي</b> عشان وجود الملحوظة يبان من بعيد قبل ما تتقرا. و<code>—</code> معناها مفيش ملحوظة. (محتاج <code>ready-orders-worker</code> <b>1.3.0</b> — حارس النسخة بيقول كده بالاسم.)</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>«موقع الشحنة» بقى بادج ملوّن</b> — <b>✅ في المكتب</b> أخضر، وأي مكان تاني (<code>Warehouse</code> · <code>Courier</code> · قيمة بره القايمة) <b>⚠ أحمر بقيمته بالحرف</b>. ⚠️ والفاضي <code>—</code> <b>محايد</b>: «محدش سجّل» مش «مكان غلط».</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>بادج عدد الأيام بقى تحت التاريخ</b> في «تاريخ الأوردر» و«تاريخ التغليف» — كان بينزل تحته <b>بالصدفة</b> حسب عرض الشاشة، دلوقتي مكدّس في العمودين بالظبط.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>والبحث بقى بيدوّر في الملحوظة كمان</b> — عمود معروض ومش قابل للبحث بيخلّي الموظف يقرا الطابور صف صف.</span></li>
 '''
 
-CL_SHIPPED = r'''          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>بلا تغيير في الصفحة دي</b> — تحديث v1.4.1 كان في تاب «جرد المكتب» جوّه <b>«قسم الجاهز للشحن»</b>. والنسخة <b>واحدة للهب كله</b> (مصدر واحد · #24)، فالرقم بيترفع هنا كمان.</span></li>
+CL_SHIPPED = r'''          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>بادج عدد الأيام بقى تحت التاريخ</b> في «تاريخ الأوردر» و«تاريخ التغليف» — التكديس بقى <b>مقصود</b> مش نتيجة عرض الشاشة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⚠️ <b>وباقي تحديث v1.6.0 في «قسم الجاهز للشحن»</b> (عمود «ملحوظات» · بادج «موقع الشحنة») — الطابور ده مالوش العمودين دول. والنسخة <b>واحدة للهب كله</b> (مصدر واحد · #24)، فالرقم بيترفع هنا كمان.</span></li>
 '''
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -1019,10 +1054,22 @@ READY_ABOUT_COLS = '''            <li><b>العنوان</b> — <code>address1</
                 الأول، والمدينة والمحافظة تحتهم. الأوردر اللي مالوش عنوان على
                 شوبيفاي بيقول <b>«بلا عنوان»</b> بالنص — خانة فاضية كانت هتتقري
                 عطل في الشاشة.</li>
+            <li><b>ملحوظات</b> — حقل <b>Notes</b> على الأوردر في شوبيفاي، بالنص
+                وبلا قص. 🔴 <b>لونه بنفسجي عشان وجود الملحوظة نفسه يبان من بعيد</b>
+                — الملحوظة استثناء مش قاعدة، والموظف محتاج يعرف إن فيه واحدة قبل
+                ما يقرا نصها. و<code>—</code> معناها <b>مفيش ملحوظة</b>.
+                ⚠️ والعمود ده محتاج <code>ready-orders-worker</code>
+                <b>1.3.0</b> — على Worker أقدم بيقول <code>—</code> على كل صف،
+                وحارس النسخة فوق بيقول كده بالاسم.</li>
             <li><b>موقع الشحنة</b> — <code>package_whereabouts_s1</code> (أو
                 <code>…_s2</code> لصف الاستبدال): الطرد قاعد فين دلوقتي.
-                ⚠️ <b>«لسه مش مسجّلة»</b> ≠ «المخزن» — أداة التغليف لسه ما بتكتبش
-                الحقل ده، فالفاضي معناه «محدش سجّل» مش مكان.</li>'''
+                🔴 <b><code>Office</code> بادج أخضر (✅ في المكتب)</b>، وأي قيمة
+                تانية (<code>Warehouse</code> · <code>Courier</code> · قيمة بره
+                القايمة) <b>بادج أحمر بـ⚠</b> — الطابور ده أوردرات المفروض
+                طرودها في المكتب، فأي مكان تاني محتاج تدخّل.
+                ⚠️ <b>والفاضي <code>—</code> محايد مش أحمر</b>: «محدش سجّل» ≠
+                «المكان غلط» — أداة التغليف لسه ما بتكتبش الحقل ده، وأحمر على
+                أغلب الطابور بيتعلّم الموظف يعدّي على اللون كله.</li>'''
 
 SHIPPED_ABOUT_COLS = '''            <li><b>رقم التتبع</b> — الجديد أولاً (<code>…_s1</code>/<code>…_s2</code> حسب
                 ماكينة الصف)، والقديم بعلامة <b>«من الحقل القديم»</b>. ⚠️ العلامة
@@ -1061,8 +1108,18 @@ PAGES = [
     addrHead='<th class="sortable-th" data-q-sort="address" onclick="qToggleSort(\'address\')">العنوان<span class="sort-icon" data-q-sort="address"></span></th>',
     addrCell="""      <td class="addr-cell">${addressCell(o)}</td>\n""",
     addrFn=ADDR_FN,
+    # 🔴 **عمود «ملحوظات» — صفحة «الجاهز للشحن» بس** (v1.6.0 · طلب أحمد
+    #    17-09-2026). مصدره `note` في رد `get_ready_queue`، و
+    #    `ready-orders-worker` **v1.3.0** هو اللي بيرجّعه —
+    #    و`shipped-orders-worker` **لسه مابيرجّعهوش**.
+    # ⛔ **وممنوع يتضاف في صفحة المشحون قبل الـ Worker** — عمود بيقول `—`
+    #    على كل صف بيتقري **عطل في الشاشة** مش «الحقل مش موجود» (نفس
+    #    قاعدة عمود العنوان بالظبط، وفيه بند في `queues-check.mjs` بيقفلها).
+    noteHead='<th class="sortable-th" data-q-sort="note" onclick="qToggleSort(\'note\')">ملحوظات<span class="sort-icon" data-q-sort="note"></span></th>',
+    noteCell="""      <td class="note-cell">${noteCell(o)}</td>\n""",
+    noteFn=NOTE_FN,
     aboutCols=READY_ABOUT_COLS,
-    cols=9,
+    cols=10,
     # 🔴 تاب «جرد المكتب» — الصفحة دي بس (الشرح فوق عند الكتل)
     auditCss=AUDIT_CSS, auditTabs=AUDIT_TABS, auditLib=AUDIT_LIB,
     auditView=AUDIT_VIEW, auditJs=AUDIT_JS, auditAbout=AUDIT_ABOUT,
@@ -1084,7 +1141,10 @@ PAGES = [
     extraCell="""      <td>${trackingCell(o)}</td>\n""",
     extraFn=TR_FN,
     # ⚠️ بلا عمود عنوان — الـ Worker بتاع الطابور ده مابيرجّعش `address1`.
+    #    ⚠️ وبلا عمود ملحوظات لنفس السبب بالظبط — `note` جه في
+    #       `ready-orders-worker` v1.3.0 وبس.
     addrHead='', addrCell='', addrFn='',
+    noteHead='', noteCell='', noteFn='',
     aboutCols=SHIPPED_ABOUT_COLS,
     cols=8,
     # ⛔ بلا جرد — أوردر `Shipped` خرج من المكتب بالتعريف، فجرده سؤال
@@ -1359,6 +1419,29 @@ __AUDIT_LIB__
 .flag-btn:hover { border-color: var(--amber); }
 .flag-ok { color: var(--text-muted); font-size: 12px; }
 
+/* 🔴 «موقع الشحنة» — بادجان وبس (v1.6.0 · طلب أحمد 17-09-2026).
+   الطابور ده أوردرات المفروض طرودها **في المكتب**، فالعمود سؤال بإجابتين:
+   مكانه صح (أخضر) ولا لأ (أحمر + ⚠). ⛔ والفاضي **مايتلوّنش** — «محدش
+   سجّل» مش «مكان غلط»، وأحمر على أغلب الطابور بيتعلّم الموظف يعدّي عليه. */
+.wa-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 800; white-space: nowrap; border: 1.5px solid var(--border); }
+.wa-badge.wa-ok   { background: var(--green-light); color: var(--green-dark); border-color: var(--green-border); }
+.wa-badge.wa-warn { background: var(--red-light);   color: var(--red-dark);   border-color: var(--red-border); }
+
+/* 🔴 عمود «ملحوظات» — بنفسجي عشان وجود الملحوظة نفسه يتقري **من بعيد**
+   قبل نصها. ⚠️ والخلية بتلفّ زي خلية العنوان بالظبط — نص طويل على سطر
+   واحد كان بيزقّ باقي الأعمدة برّه الشاشة. */
+.note-cell { text-align: right; white-space: normal; max-width: 230px; line-height: 1.6; }
+.note-txt  { color: var(--purple-dark); font-weight: 700; }
+
+/* 🔴 خلايا التاريخ — **البادج تحت التاريخ** (v1.6.0 · طلب أحمد).
+   العمودان (تاريخ الأوردر · تاريخ التغليف) كانوا بيعتمدوا على **لفّ
+   السطر بالصدفة**: على شاشة عريضة البادج بيقعد جنب التاريخ وعلى ضيّقة
+   بينزل تحته، فالعمودان كانوا بيتقروا بشكلين مختلفين في نفس الجدول.
+   ⚠️ `display:block` على التاريخ بيخلّي التكديس **مقصود ومتطابق** في
+      الاتنين — مش نتيجة عرض الشاشة. */
+.date-cell { white-space: normal; line-height: 1.6; }
+.date-cell .cell-date { display: block; margin-bottom: 4px; }
+
 /* نافذة تفاصيل العلامات */
 .fl-item { border: 1px solid var(--amber-border); background: var(--amber-light); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 9px; }
 .fl-item:last-child { margin-bottom: 0; }
@@ -1549,7 +1632,7 @@ __AUDIT_TABS__
                    **في صمت**، فالعمود يبان إنه اترتّب وهو مااترتّبش. -->
               <th class="sortable-th" data-q-sort="orderName" onclick="qToggleSort('orderName')">رقم الأوردر<span class="sort-icon" data-q-sort="orderName"></span></th>
               <th class="sortable-th" data-q-sort="customer"  onclick="qToggleSort('customer')">العميل<span class="sort-icon" data-q-sort="customer"></span></th>
-              __ADDR_HEAD__<th class="sortable-th" data-q-sort="courier" onclick="qToggleSort('courier')">المندوب<span class="sort-icon" data-q-sort="courier"></span></th>
+              __ADDR_HEAD____NOTE_HEAD__<th class="sortable-th" data-q-sort="courier" onclick="qToggleSort('courier')">المندوب<span class="sort-icon" data-q-sort="courier"></span></th>
               __EXTRA_HEAD__
               <th class="sortable-th" data-q-sort="createdAt" onclick="qToggleSort('createdAt')">تاريخ الأوردر<span class="sort-icon" data-q-sort="createdAt"></span></th>
               <!-- ⚠️ الاسم **«تاريخ التغليف»** مش «الوقت منذ التغليف» — الخلية
@@ -1641,7 +1724,7 @@ __AUDIT_ABOUT__
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge">v1.3.0</span>
-          <span class="cl-ver-date">16-09-2026</span>
+          <span class="cl-ver-date">17-09-2026</span>
         </div>
         <ul class="cl-items">
 __CL_ITEMS__        </ul>
@@ -1976,7 +2059,8 @@ function qClearAllFilters() {
 //    اترتّب وهو مااترتّبش.
 const Q_SORT_CONFIG = {
   orderName:{ type:'string' }, customer:{ type:'string' }, address:{ type:'string' },
-  courier:{ type:'string' },   whereabouts:{ type:'string' }, tracking:{ type:'string' },
+  note:{ type:'string' },      courier:{ type:'string' },     whereabouts:{ type:'string' },
+  tracking:{ type:'string' },
   createdAt:{ type:'date' },   packedAt:{ type:'date' },
   machineLabel:{ type:'string' }, flagCount:{ type:'number' },
 };
@@ -2103,7 +2187,10 @@ function qVisible() {
     if (!term) return true;
     return String(o.orderName || '').toLowerCase().replace(/^#/, '').includes(term)
         || String(o.customer  || '').toLowerCase().includes(term)
-        || [o.address1, o.address2].filter(Boolean).join(' ').toLowerCase().includes(term);
+        || [o.address1, o.address2].filter(Boolean).join(' ').toLowerCase().includes(term)
+        // ⚠️ **والملحوظة داخلة في البحث** — عمود معروض ومش قابل للبحث
+        //    بيخلّي الموظف يقرا الطابور بعينه صف صف عشان يلاقي «تأجيل».
+        || String(o.note || '').toLowerCase().includes(term);
   });
 }
 
@@ -2140,6 +2227,7 @@ function qChipClick(key) {
 //       مقدمًا والحالة المالية المجهولة بعددهم. اللي اتشال هو **العمود**
 //       — الرقم اللي المحطة بتشتغل عليه لسه معروض.
 __ADDR_FN__
+__NOTE_FN__
 __EXTRA_FN__
 
 function qRender() {
@@ -2209,10 +2297,10 @@ function qRender() {
     return `<tr class="${o.flags.length ? 'flagged' : ''}">
       <td>${orderLink(o.orderName, o.orderId)}</td>
       <td>${esc(o.customer || '—')}</td>
-__ADDR_CELL__      <td>${esc(o.courier || '—')}</td>
-__EXTRA_CELL__      <td>${esc(formatDate(o.createdAt))} <span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
-      <td>${since
-            ? `${esc(formatDate(o.packedAt))} <span class="time-badge ${since.cls}" data-q-pack="${esc(o.packedAt)}">${esc(since.text)}</span>`
+__ADDR_CELL____NOTE_CELL__      <td>${esc(o.courier || '—')}</td>
+__EXTRA_CELL__      <td class="date-cell"><span class="cell-date">${esc(formatDate(o.createdAt))}</span><span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
+      <td class="date-cell">${since
+            ? `<span class="cell-date">${esc(formatDate(o.packedAt))}</span><span class="time-badge ${since.cls}" data-q-pack="${esc(o.packedAt)}">${esc(since.text)}</span>`
             : '<span class="flag-ok">—</span>'}</td>
       <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(isS2 ? 'استبدال/استرجاع' : 'عادي')}</span></td>
       <td>${o.flags.length
@@ -2416,6 +2504,9 @@ for p in PAGES:
     out = out.replace('__ADDR_HEAD__', p['addrHead'])
     out = out.replace('__ADDR_CELL__', p['addrCell'])
     out = out.replace('__ADDR_FN__', p['addrFn'])
+    out = out.replace('__NOTE_HEAD__', p['noteHead'])
+    out = out.replace('__NOTE_CELL__', p['noteCell'])
+    out = out.replace('__NOTE_FN__', p['noteFn'])
     out = out.replace('__EXTRA_FILTER__', p['extraFilter'])
     out = out.replace('__ABOUT_COLS__', p['aboutCols'])
     out = out.replace('__STATUS__', p['status']).replace('__KEY__', p['key'])
@@ -2436,6 +2527,7 @@ for p in PAGES:
     #    بتفتح عادي والكونسول نضيف.
     left = [t for t in ['__TITLE__','__ICON__','__ACTION__','__CACHE__','__EXTRA_CELL__',
                         '__EXTRA_FN__','__ADDR_HEAD__','__ADDR_CELL__','__ADDR_FN__',
+                        '__NOTE_HEAD__','__NOTE_CELL__','__NOTE_FN__',
                         '__ABOUT_COLS__','__EXTRA_FILTER__','__AUDIT_CSS__','__AUDIT_TABS__',
                         '__AUDIT_LIB__','__AUDIT_VIEW__','__AUDIT_JS__','__AUDIT_ABOUT__',
                         '__API_FNS__','__CL_ITEMS__'] if t in out]

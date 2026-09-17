@@ -133,16 +133,16 @@
 <div class="container" id="appRoot" style="display:none">
   <div id="headerMount"></div>
 
-  <div class="home-hint">
-    اختر الطابور أو الأداة اللي هتشتغل عليها. أعداد الطوابير بتتحدّث
-    <b>تلقائيًا كل ١٥ دقيقة</b> وبعد كل تحديث يدوي — والعدّاد في كل صف بيقول
-    الرقم ده عمره قد إيه. <b>والأدوات تحت مالهاش عدّاد</b> — هي شغل مش طابور.
-  </div>
+  <!-- ⚠️ **سطر الشرح اتشال** (طلب أحمد 17-09-2026) — نص بيتقرا **مرة
+       واحدة** وبياخد مساحة فوق أهم رقمين في الشاشة كل يوم.
+       ✅ **والمعلومة ما ضاعتش**: التحديث التلقائي كل ١٥ دقيقة وقاعدة
+          «الأدوات بلا عدّاد» مكتوبين بالنص في «عن الأداة»، والعدّاد
+          الملوّن جوّه كل صف بيقول عمر الرقم لوحده. -->
 
   <div class="dco-home-sec">
-    <div class="dco-home-sec-title">الطوابير</div>
+    <div class="dco-home-sec-title">قسم الحالات الانتقالية</div>
 
-    <!-- ══ صف ① — «جاهز للشحن» ══════════════════════════════════
+    <!-- ══ صف ① — «أوردرات جاهزة للشحن» (Ready) ═══════════════════
          🔴 **الرقم بيعدّ الأوردرات اللي حالتها `Ready`** في أي من
             الماكينتين: الشحنة الأصلية (`custom.manual_status`) أو دورة
             الاستبدال/الاسترجاع (`custom.status_2_r_e`).
@@ -159,10 +159,15 @@
         <div class="dco-row-id">
           <span class="dco-card-ico ico-blue">📋</span>
           <div>
-            <div class="dco-card-name">جاهز للشحن</div>
-            <!-- ⚠️ ذكر الجرد هنا **مش تزويق** — التاب جوّه الصفحة، والموظف
-                 اللي مابيفتحش الصفحة مش هيعرف إن فيه جرد أصلاً. -->
-            <div class="dco-card-desc">حالته Ready ولسه ما خرجش · وجوّاها 🧮 <b>جرد المكتب</b></div>
+            <div class="dco-card-name">أوردرات جاهزة للشحن</div>
+            <!-- 🔴 **كود الحالة بالحرف تحت الاسم** (طلب أحمد 17-09-2026) —
+                 `Ready` هي القيمة اللي في `custom.manual_status` على
+                 شوبيفاي بالظبط، وهي اللي الموظف بيدوّر عليها هناك.
+                 الجملة الشارحة القديمة اتشالت لصالحها.
+                 ⚠️ **والخط `--font-mono` ومكبّر عن قصد** — دي **قيمة
+                    حرفية** مش وصف، ونفس بنط الوصف كان بيخلّيها تتقري
+                    كلمة إنجليزي وسط جملة عربي. -->
+            <div class="dco-card-code" dir="ltr">Ready</div>
           </div>
         </div>
         <div class="dco-row-num dco-num">
@@ -188,7 +193,7 @@
         </div>
       </a>
 
-    <!-- ══ صف ② — «مشحون ولسه بلا نتيجة» ═══════════════════════
+    <!-- ══ صف ② — «أوردرات تحت التوصيل» (Shipped) ════════════════
          🔴 **الرقم بيعدّ الأوردرات اللي حالتها `Shipped`** في أي من
             الماكينتين — يعني خرجت **ومحدش سجّل لها نتيجة نهائية**
             (`Delivered` / `Returned`) لسه. الطابور ده **بيتراكم بطبيعته**:
@@ -201,8 +206,8 @@
         <div class="dco-row-id">
           <span class="dco-card-ico ico-amber">🚚</span>
           <div>
-            <div class="dco-card-name">مشحون بلا نتيجة</div>
-            <div class="dco-card-desc">خرج ولسه مسجّلش تسليم ولا مرتجع</div>
+            <div class="dco-card-name">أوردرات تحت التوصيل</div>
+            <div class="dco-card-code" dir="ltr">Shipped</div>
           </div>
         </div>
         <div class="dco-row-num dco-num">
@@ -244,19 +249,17 @@
           فلوس. الوصف تحت كل واحدة بيقول كده بالنص عشان الموظف يعرف إنه
           داخل على فعل. -->
   <div class="dco-home-sec">
-    <div class="dco-home-sec-title">أدوات</div>
+    <div class="dco-home-sec-title">قسم أدوات العمليات</div>
     <div class="dco-tools-grid">
 
       <a class="dco-tool" href="order-status.html">
         <span class="dco-card-ico ico-purple">📦</span>
-        <div class="dco-card-name">محدّث حالة الأوردر</div>
-        <div class="dco-card-desc">تحديث مرحلة الأوردر بالسكانر أو يدوي · وطباعة مانفيست المندوب</div>
+        <div class="dco-card-name">تحديث حالة الأوردرات</div>
       </a>
 
       <a class="dco-tool" href="cod-payment.html">
         <span class="dco-card-ico ico-green">💳</span>
-        <div class="dco-card-name">مركز التحصيل</div>
-        <div class="dco-card-desc">تسجيل تحصيل واسترداد فلوس الدفع عند الاستلام لكل مندوب</div>
+        <div class="dco-card-name">تحصيل الأوردرات COD</div>
       </a>
 
     </div>
@@ -276,7 +279,7 @@
         <div class="about-sec-body">
           <p><b>هب واحد لمحطة الشحن والتحصيل.</b> الموظف بيدخل مرة واحدة وبيشوف
              طوابير الشحن: اللي <b>جاهز يخرج</b>، واللي <b>خرج ولسه بلا نتيجة</b>،
-             <b>وتحتهم الأدوات</b>: محدّث حالة الأوردر ومركز التحصيل.</p>
+             <b>وتحتهم الأدوات</b>: تحديث حالة الأوردرات وتحصيل الأوردرات COD.</p>
           <p>🔴 <b>والفرق بين القسمين هو الفرق بين قراءة وكتابة.</b>
              <b>الطوابير</b> عرض بحت — بتقول لك إيه اللي مستني.
              <b>الأدوات</b> بتكتب فعلاً: <code>update_status</code> بتغيّر حالة الأوردر على
@@ -305,9 +308,10 @@
           </ul>
           <h4>الأرقام معناها إيه بالظبط</h4>
           <ul>
-            <li><b>«جاهز للشحن»</b> = <code>custom.manual_status = Ready</code> أو
-                <code>custom.status_2_r_e = Ready</code>.</li>
-            <li><b>«مشحون بلا نتيجة»</b> = نفس الحقلين بقيمة <code>Shipped</code> — يعني
+            <li><b>«أوردرات جاهزة للشحن»</b> = <code>custom.manual_status = Ready</code> أو
+                <code>custom.status_2_r_e = Ready</code>. ⚠️ و<b><code>Ready</code> المكتوبة
+                تحت اسم الصف في الشاشة الرئيسية هي القيمة دي بالحرف</b> — مش وصف.</li>
+            <li><b>«أوردرات تحت التوصيل»</b> = نفس الحقلين بقيمة <code>Shipped</code> — يعني
                 خرج ومحدش سجّل <code>Delivered</code> ولا <code>Returned</code> لسه.
                 ⚠️ <code>In-Return</code> <b>مش داخلة</b> في الرقم ده.</li>
             <li><b>«مستحق التحصيل»</b> = مجموع <code>currentTotalPriceSet</code> للأوردرات
@@ -332,8 +336,8 @@
             <li>السر لمجموعة <b><code>delivery_cod_ops</code></b> — <b>مستقلة عن محطة المخزن</b>،
                 وقيمة واحدة <b>للخمس Workers</b> (الدخول · الطابورين · محدّث الحالة · التحصيل).
                 الجهاز اللي عليه المخزن محتاج يلزق السر الجديد <b>مرة واحدة</b>.</li>
-            <li>🔴 <b>والدخول مرة واحدة بيغطّي الأدوات كمان</b> — محدّث حالة الأوردر ومركز
-                التحصيل كان لكل واحد فيهم شاشة دخول وسر خاص، والاتنين اتشالوا. ⚠️ ومعنى كده
+            <li>🔴 <b>والدخول مرة واحدة بيغطّي الأدوات كمان</b> — تحديث حالة الأوردرات
+                وتحصيل الأوردرات COD كان لكل واحد فيهم شاشة دخول وسر خاص، والاتنين اتشالوا. ⚠️ ومعنى كده
                 إن صف الدخول في D1 بيتكتب باسم <code>delivery_cod_ops_center</code> بس —
                 عدّادات <code>login</code> بتاعة <code>order_status</code> و<code>cod_payment</code>
                 <b>بتقف عند رقمها</b>. وصفوف الشغل نفسها (<code>update</code> ·
@@ -357,7 +361,23 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.5.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.6.0</span>
+          <span class="cl-ver-date">17-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>تسمية الشاشة الرئيسية</b> (طلب أحمد): «الطوابير» بقى <b>«قسم الحالات الانتقالية»</b> و«أدوات» بقى <b>«قسم أدوات العمليات»</b>.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>الطابورين بأسماء أوضح وكود الحالة تحتها</b> — «أوردرات جاهزة للشحن» (<code>Ready</code>) و«أوردرات تحت التوصيل» (<code>Shipped</code>). الكود <b>بخط أكبر ومميّز</b> لأنه <b>القيمة الحرفية</b> اللي على شوبيفاي، مش وصف.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>والأدوات بقت «تحديث حالة الأوردرات» و«تحصيل الأوردرات COD»</b> بلا سطر وصف تحتها — والاسم الجديد اتغيّر <b>في هيدر الصفحتين كمان</b>، لأن اسمين لنفس الأداة بيتعلّموا مرتين.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>وسطر الشرح فوق الطوابير اتشال</b> — نص بيتقرا مرة واحدة وبياخد مساحة كل يوم. المعلومة اللي فيه (التحديث كل ١٥ دقيقة · الأدوات بلا عدّاد) لسه مكتوبة هنا في «عن الأداة».</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>عمود «ملحوظات» في «قسم الجاهز للشحن»</b> — حقل <b>Notes</b> بتاع الأوردر على شوبيفاي، بلون بنفسجي عشان وجود الملحوظة يبان من بعيد. (محتاج <code>ready-orders-worker</code> <b>1.3.0</b>.)</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>«موقع الشحنة» بقى بادج</b> — <b>✅ في المكتب</b> أخضر، وأي مكان تاني <b>⚠ أحمر</b>. ⚠️ والفاضي <code>—</code> <b>محايد</b>: «محدش سجّل» مش «مكان غلط».</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>بادج عدد الأيام بقى تحت التاريخ</b> في عمودَي التاريخ في الطابورين — كان بينزل تحته <b>بالصدفة</b> حسب عرض الشاشة.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.5.0</span>
           <span class="cl-ver-date">16-09-2026</span>
         </div>
         <ul class="cl-items">

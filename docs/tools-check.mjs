@@ -38,7 +38,7 @@ if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION م�
 const TOOLS = [
   {
     page:      'order-status.html',
-    title:     'محدّث حالة الأوردر',
+    title:     'تحديث حالة الأوردرات',
     workerKey: 'orderStatus',
     host:      'order-status-updater-worker.ecommoda-dev.workers.dev',
     oldSecret: 'order_status_worker_secret',
@@ -47,7 +47,7 @@ const TOOLS = [
   },
   {
     page:      'cod-payment.html',
-    title:     'مركز التحصيل',
+    title:     'تحصيل الأوردرات COD',
     workerKey: 'codPayment',
     host:      'cod-payment-center-worker.ecommoda-dev.workers.dev',
     oldSecret: 'cod_payment_center_worker_secret',
@@ -398,7 +398,7 @@ for (const t of TOOLS) {
     try { await apiGet('get_config'); return '(ما رماش)'; } catch (e) { return e.message; }
   });
   const label = JSON.parse(JSON.stringify(
-    { orderStatus: 'محدّث حالة الأوردر', codPayment: 'مركز التحصيل' }))[t.workerKey];
+    { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD' }))[t.workerKey];
   is(msg.includes(label), `${t.page}: رسالة الفشل بتسمّي الأداة («${label}»)`, msg);
   await ctx.close();
 }

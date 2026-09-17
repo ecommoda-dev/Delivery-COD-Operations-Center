@@ -169,7 +169,7 @@ def build_order_status():
     p.swap(
         '  <title>Order Status Updater — EcomModa</title>',
         '</head>\n<body>\n',
-        '''  <title>محدّث حالة الأوردر — مركز عمليات الشحن والتحصيل</title>
+        '''  <title>تحديث حالة الأوردرات — مركز عمليات الشحن والتحصيل</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
@@ -420,7 +420,7 @@ let currentEmployee = { username: dcoSession.username, displayName: dcoSession.d
         '\n</script>\n\n</body>',
         '''document.getElementById('headerMount').innerHTML = dcoHeader({
   icon:     '📦',
-  title:    'محدّث حالة الأوردر',
+  title:    'تحديث حالة الأوردرات',
   subtitle: 'تحديث حالة الأوردرات بالسكانر أو يدوياً — S1/S2 تلقائي',
   session:  dcoSession,
 });
@@ -530,7 +530,7 @@ def build_cod_payment():
     p.swap(
         '<title>COD Payment Center</title>',
         '</head>\n<style>\n',
-        '''<title>مركز التحصيل — مركز عمليات الشحن والتحصيل</title>
+        '''<title>تحصيل الأوردرات COD — مركز عمليات الشحن والتحصيل</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
@@ -780,7 +780,7 @@ let currentEmployee = { username: dcoSession.username, displayName: dcoSession.d
         'loadLogEmployeeFilter();  // محميّ جوّاه',
         '''document.getElementById('headerMount').innerHTML = dcoHeader({
   icon:     '💳',
-  title:    'مركز التحصيل',
+  title:    'تحصيل الأوردرات COD',
   subtitle: 'تحصيل واسترداد مدفوعات الدفع عند الاستلام',
   session:  dcoSession,
 });
