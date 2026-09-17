@@ -179,8 +179,12 @@ const DIAG = { ok:false, version:'1.0.0', checks:[
 ]};
 
 // حالة قابلة للتبديل من كل اختبار — عشان نقيس الفشل والاقتطاع كمان
+// ⚠️ `readyRows` بتتسيب `null` في كل البنود ما عدا بند واحد — بند
+//    «المربع اللي عدده صفر بيفضل ظاهر» محتاج طابور **ناقصة منه قيمة**،
+//    وده مستحيل على البيانات الأساسية اللي فيها القيم الأربعة كلها.
 const state = { readyFail:false, shippedFail:false, truncated:false, calls:[],
-                authBodies:[], logoutUrls:[], lookupBodies:[], lookupFail:false };
+                authBodies:[], logoutUrls:[], lookupBodies:[], lookupFail:false,
+                readyRows:null };
 
 function makeStub() {
   return async (route) => {
@@ -231,8 +235,8 @@ function makeStub() {
     else if (action === 'check_employee') body = { ok:true, exists:true, isActive:true, hasPin:true };
     else if (action === 'get_ready_queue') {
       if (state.readyFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
-      else body = { ok:true, queue:'ready', orders:READY_RAW, truncated:state.truncated,
-                    fetchedAt:new Date().toISOString() };
+      else body = { ok:true, queue:'ready', orders:state.readyRows || READY_RAW,
+                    truncated:state.truncated, fetchedAt:new Date().toISOString() };
     }
     else if (action === 'get_shipped_queue') {
       if (state.shippedFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
@@ -685,8 +689,12 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
      '🔴 قايمة «موقع الشحنة» بنص البادج بالحرف — مش `Office`/`Warehouse`', JSON.stringify(waItems));
   is(!waItems.includes('Office') && !waItems.includes('Warehouse') && !waItems.includes('Courier'),
      '⛔ والقيمة الخام **مش** معروضة — تسميتان لنفس القيمة = الموظف بيتعلّمها مرتين');
-  is(waItems.includes('— مش مسجّل'),
-     '⚠️ والفاضي بياخد اسمه بالنص — `—` سادة جوّه قايمة بتتقري بند فاضي');
+  // 🔴 **والفاضي بقى `—` بالحرف** (v1.8.0 · طلب أحمد 17-09-2026) — نفس
+  //    اللي مكتوب في الخلية بالظبط. الجملة القديمة («— مش مسجّل») كانت
+  //    بتتقري **قيمة تانية** غير اللي في الجدول، فالموظف يدوّر على `—`
+  //    في القايمة ومايلقهوش.
+  is(waItems.includes('—') && !waItems.some(t => t.includes('مش مسجّل')),
+     '🔴 والفاضي بند اسمه `—` بالحرف — نفس نص الخلية، وبلا «مش مسجّل»', JSON.stringify(waItems));
   // ⚠️ نفس النص بالحرف في الخلية
   const waCell = await page.textContent('#qBody tr:has-text("#55004") .wa-badge');
   is(waCell.trim() === '✅ في المكتب', 'ونص الخلية **نفسه بالحرف**', waCell.trim());
@@ -727,6 +735,148 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   is(await page.$$eval('#qBody tr', e => e.length) === READY_TOTAL - 1,
      'و«تم التغليف» بيطلّع الباقي — الاتنين بيكمّلوا الطابور بالظبط');
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+// ── 🔴 مربعات «موقع الشحنة» فوق الطابور (v1.8.0 · طلب أحمد) ──
+//
+// 🔴 **العيلة اللي البنود دي بتقفلها:** مربع بيقول رقم وبيفتح قايمة برقم
+//    تاني. المربع والفلتر لازم يكونوا **حالة واحدة** — مش حالتين جنب
+//    بعض بيفترقوا في صمت، فالموظف يدوس على مربع فيدهس فلتره من غير ما
+//    يقصد (نفس الباج اللي مربعات المندوب اتكتبت ضده في v1.2.0).
+// ⚠️ **وكل بند هنا بيقرا الشاشة** — نص المربع وعدد الصفوف بعد الضغط،
+//    مش خريطة في الكود.
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/ready-orders.html`);
+  await page.waitForSelector('#qBody tr');
+
+  const chipText = () => page.$$eval('#qWaChips .zchip', e => e.map(x => x.innerText.replace(/\s+/g, ' ').trim()));
+  const labels = (await chipText()).map(t => t.replace(/\s*\d+$/, '').trim());
+  is(JSON.stringify(labels) === JSON.stringify(['✅ في المكتب', '⚠ المخزن', '⚠ مع المندوب', '—']),
+     '🔴 أربع مربعات **بترتيب ثابت** — الترتيب بالعدد كان بيرقّصهم مكانهم مع كل تحديث',
+     JSON.stringify(labels));
+
+  // 🔴 **نفس ليبل القايمة ونفس نص البادج في العمود** — تلات أماكن لنفس
+  //    القيمة، وأي فرق بينهم معناه إن الموظف بيتعلّمها أكتر من مرة.
+  await page.click('.flt-header');
+  await page.click('#qMsBtn-where');
+  await page.waitForTimeout(200);
+  const msLabels = await page.$$eval('#qMsList-where .ms-item-label', e => e.map(x => x.textContent.trim()));
+  is(msLabels.every(l => labels.includes(l)),
+     '🔴 وليبل كل مربع == ليبل القايمة بالحرف', JSON.stringify([labels, msLabels]));
+  await page.click('#qMsBtn-where');
+
+  // 🔴 **مجموع المربعات == الطابور كله** — قيمة بره القايمة من غير مربع
+  //    كانت هتخلّي المجموع يقلّ عن الرقم الكبير **في صمت**.
+  const nums = (await chipText()).map(t => Number((t.match(/(\d+)$/) || [])[1]));
+  is(nums.reduce((a, b) => a + b, 0) === READY_TOTAL,
+     '🔴 ومجموع المربعات == الرقم الكبير بالظبط — مفيش صف بلا مربع', JSON.stringify(nums));
+
+  // 🔴 **رقم المربع == عدد الصفوف اللي بيفتحها بالحرف** — ده البند
+  //    الأساسي: رقم بيتقري وعد، والجدول تحته هو الوفاء بيه.
+  for (const i of [1, 2, 4]) {
+    const t = (await chipText())[i - 1];
+    const n = Number((t.match(/(\d+)$/) || [])[1]);
+    await page.click(`#qWaChips .zchip:nth-child(${i})`);
+    await page.waitForTimeout(220);
+    const shown = await page.$$eval('#qBody tr', e => e.length);
+    is(shown === n, `🔴 «${t.replace(/\s*\d+$/, '')}»: الرقم على المربع == صفوف الجدول بعد الضغط`, `مربع ${n} · جدول ${shown}`);
+    await page.click(`#qWaChips .zchip:nth-child(${i})`);
+    await page.waitForTimeout(150);
+  }
+
+  // 🔴 **المربع بيكتب في الفلتر نفسه** — مش حالة تانية جنبه
+  await page.click('#qWaChips .zchip:nth-child(2)');
+  await page.waitForTimeout(220);
+  is((await page.textContent('#qMsBtnLabel-where')).trim() === '⚠ المخزن',
+     '🔴 والضغطة **بتكتب في فلتر «موقع الشحنة»** نفسه — زرار الفلتر بقى بنفس الليبل');
+  is((await page.textContent('#qChipsRow-where')).includes('⚠ المخزن'),
+     'وشيب الفلتر تحت اللوحة ظهر بيه — مش حالة مخفية فوق');
+  is(await page.$eval('#qWaChips .zchip:nth-child(2)', el => el.classList.contains('on')),
+     'والمربع نفسه **مولّع** — حالة واحدة في الاتجاهين');
+
+  // ⚠️ والاتجاه التاني: اختيار من القايمة بيولّع المربع
+  await page.click('#qClearAllBtn');
+  await page.waitForTimeout(200);
+  await page.click('#qMsBtn-where');
+  await page.click('#qMsList-where .ms-item:has-text("✅ في المكتب")');
+  await page.waitForTimeout(220);
+  const onFromList = await page.$$eval('#qWaChips .zchip.on', e => e.map(x => x.innerText.replace(/\s+/g, ' ').trim()));
+  is(onFromList.length === 1 && onFromList[0].startsWith('✅ في المكتب'),
+     '🔴 **وفي الاتجاه التاني كمان** — اختيار من القايمة بيولّع المربع، فمستحيل الضغطة تدهس فلتر شغّال',
+     JSON.stringify(onFromList));
+
+  await page.click('#qClearAllBtn');
+  await page.waitForTimeout(220);
+  is(await page.$$eval('#qWaChips .zchip.on', e => e.length) === 0 &&
+     await page.$$eval('#qBody tr', e => e.length) === READY_TOTAL,
+     '«مسح كل الفلاتر» بيطفّي المربعات ويرجّع الطابور كامل');
+
+  // ⚠️ **والعدّ من الطابور الكامل مش من المعروض** — العدّ على المفلتر كان
+  //    هيصفّر باقي المربعات بعد أول ضغطة فالموظف مايقدرش يرجع منها.
+  await page.click('#qWaChips .zchip:nth-child(1)');
+  await page.waitForTimeout(220);
+  const afterFilter = (await chipText()).map(t => Number((t.match(/(\d+)$/) || [])[1]));
+  is(JSON.stringify(afterFilter) === JSON.stringify(nums),
+     '🔴 والأعداد **ما اتغيّرتش بعد الفلترة** — العدّ من الطابور الكامل، وإلا مفيش رجوع من أول ضغطة',
+     JSON.stringify([nums, afterFilter]));
+  await page.click('#qWaChips .zchip:nth-child(1)');
+
+  is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+// ── ⚠️ والمربع بيفضل ظاهر حتى وهو صفر — بطابور ناقصة منه قيمة ──
+//
+// ⚠️ **مربع بيختفي لما يبقى صفر** معناه إن الموظف مش عارف إن القيمة دي
+//    موجودة في الأداة أصلاً، وإن «مفيش ولا طرد مع المندوب» **معلومة** —
+//    مش غياب. والبند ده محتاج داتا ناقصة، فبيبدّل الطابور لبند واحد بس.
+{
+  state.readyRows = READY_RAW.filter(o => o.whereaboutsS1 !== 'Courier');
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/ready-orders.html`);
+  await page.waitForSelector('#qBody tr');
+  const chips = await page.$$eval('#qWaChips .zchip', e => e.map(x => x.innerText.replace(/\s+/g, ' ').trim()));
+  is(chips.length === 4 && chips.some(t => t === '⚠ مع المندوب 0'),
+     '⚠️ والمربع اللي عدده صفر **بيفضل ظاهر بصفره** — مش بيختفي', JSON.stringify(chips));
+  is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+  state.readyRows = null;
+}
+
+// ── 🔴 خلية التاريخ = **سطران بالظبط** (v1.8.0 · طلب أحمد) ────
+//
+// 🔴 **العيلة:** `📅 14/09/2026` كان أعرض من جوّه العمود بـ٥px، فالأيقونة
+//    كانت بتلفّ **لوحدها في سطر** والخلية تبقى تلات سطور بسطر أول فيه
+//    **رمز بلا قيمة**.
+// ⚠️ **والبند بيقرا التخطيط الفعلي** (`getClientRects().length`) مش اسم
+//    كلاس ولا قيمة CSS — لفّ سطر بيحصل من عرض الشاشة والخط الفعلي،
+//    ومقارنة على `white-space` كانت هتعدّي على الحالة اللي بتكسر.
+for (const [file, total] of [['ready-orders.html', 'الجاهز'], ['shipped-orders.html', 'المشحون']]) {
+  const { page, ctx, errors } = await newPage();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${BASE}/${file}`);
+  await page.waitForSelector('#qBody tr');
+  const cells = await page.$$eval('#qBody td.date-cell', tds => tds.map(td => {
+    const d = td.querySelector('.cell-date'), b = td.querySelector('.time-badge');
+    if (!d) return null;                                   // خلية `—` (ما اتغلّفش)
+    const dr = d.getBoundingClientRect(), tr = td.getBoundingClientRect();
+    return { lines: d.getClientRects().length, text: d.textContent.trim(),
+             display: getComputedStyle(d).display,
+             belowBadge: b ? b.getBoundingClientRect().top >= dr.bottom - 1 : null,
+             fits: Math.round(dr.width) <= Math.round(tr.width) };
+  }).filter(Boolean));
+  is(cells.length > 0 && cells.every(c => c.lines === 1),
+     `🔴 [${total}] التاريخ وأيقونته على **سطر واحد** — 📅 مش بتنزل لوحدها`,
+     JSON.stringify(cells.filter(c => c.lines !== 1).slice(0, 2)));
+  is(cells.every(c => c.text.startsWith('📅')),
+     `⚠️ [${total}] والأيقونة **لسه مع التاريخ** — الحل مش شيلها`);
+  is(cells.every(c => c.display === 'block' && c.belowBadge !== false),
+     `🔴 [${total}] والبادج تحته في سطر تاني — التكديس **مقصود** مش لفّ سطر بالصدفة`);
+  is(cells.every(c => c.fits),
+     `⚠️ [${total}] والسطر جوّه العمود — مش بيزقّ عرض الخانة`);
+  is(errors.length === 0, `صفر خطأ في الكونسول [${total}]`, errors.join(' | '));
   await ctx.close();
 }
 
@@ -812,6 +962,11 @@ console.log('\n══ ⑤ shipped-orders.html ══');
      '🔴 وبلا عمود «ملحوظات» كمان — العمود بيتضاف **في نفس تسليم الـ Worker**', JSON.stringify(shHeads));
   is(shHeads.at(-2) === 'نوع الأوردر' && shHeads.at(-1) === 'مراجعة',
      'ونفس ترتيب آخر عمودين بالحرف زي صفحة الجاهز', JSON.stringify(shHeads.slice(-2)));
+  // ⛔ **وبلا صف مربعات «موقع الشحنة»** (v1.8.0) — مفيش فلتر `where` في
+  //    الصفحة دي أصلاً (العمود التاني هنا رقم تتبع)، ومربع بيفلتر على
+  //    فلتر مش موجود = ضغطة مالهاش أثر. والبند ده بيمنع إضافته «بالقياس».
+  is(await page.$('#qWaChips') === null,
+     '⛔ وطابور المشحون **بلا صف مربعات «موقع الشحنة»** — مفيش فلتر ورا المربع هنا');
 
   // 🔴 رقم التتبع بتاع صف S2 من `…_s2`
   const s2 = await page.$$eval('#qBody tr', els =>
