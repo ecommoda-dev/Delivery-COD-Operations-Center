@@ -384,6 +384,44 @@ for (const t of TOOLS) {
   await ctx.close();
 }
 
+// 🔴 **الشِل مابيقطعش مسار الأداة — وده بند اتكتب بعد عطل حقيقي.**
+//    `focusScan()` كانت لسه بتسأل عن `#loginOverlay`، وهو عنصر شاشة
+//    الدخول اللي الدمج شالها. `getElementById` بترجّع `null`،
+//    و`.classList` بترمي **وتقطع الدالة اللي نادتها** — وأخطرها
+//    `selectTargetLabel()`: بترسم الجدول الأول (فكل صف بياخد «⏳ جاري
+//    تحميل الأسباب...» و`disabled`)، وبترمي **قبل سطر واحد** من
+//    `ensureReasonValues()`. فنداء `reason_values` عمره ما بيتبعت،
+//    والكاش بيفضل `null` **للأبد** (دي نقطة النداء الوحيدة في الصفحة)،
+//    وعمود السبب بيفضل معطّل — **والسبب إلزامي**، يعني `Cancelled`
+//    و`Returned` مقفولين بالكامل. وكل ده **بلا أي رسالة للموظف**.
+// ⚠️ **والبند بيضغط الزرار فعلاً** — بند «صفر خطأ في الكونسول» بيقيس
+//    **التحميل** بس، والرمي ده بيحصل عند أول اختيار حالة. فحص على
+//    الصفحة الساكنة كان بيعدّي عليه، وعدّى فعلاً.
+{
+  const { ctx, page, errs } = await freshPage();
+  const calls = []; await mockWorker(page, calls);
+  await page.goto(`${BASE}/order-status.html`);
+  await page.waitForTimeout(900);
+  const before = calls.length;
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('.status-btn')].find(x => x.dataset.label === 'Returned');
+    if (b) b.click();
+  });
+  await page.waitForTimeout(900);
+  const after = calls.slice(before);
+  is(errs.filter(e => !/ERR_|net::/.test(e)).length === 0,
+     '🔴 order-status.html: اختيار حالة `Returned` **بلا أي خطأ** — الرمي بيقطع باقي الدالة في صمت',
+     errs.join('\n       '));
+  is(after.some(c => c.action === 'reason_values'),
+     '🔴 و`reason_values` **اتنادى فعلاً** — النداء ده آخر سطر في `selectTargetLabel()`',
+     JSON.stringify(after.map(c => c.action)));
+  const cache = await page.evaluate(() => reasonValuesCache);
+  is(cache !== null,
+     '⛔ و`reasonValuesCache` مابقاش `null` — «⏳ جاري تحميل الأسباب» بتتقري من الحالة دي',
+     JSON.stringify(cache));
+  await ctx.close();
+}
+
 // ══════════════════════════════════════════════════════════════
 sec('⑥ رسايل الفشل بتسمّي الأداة');
 // ══════════════════════════════════════════════════════════════

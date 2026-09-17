@@ -2258,7 +2258,13 @@ let scanTimer = null, lastScanKey = 0;
 
 function focusScan() {
   if (!document.getElementById('panelMain').classList.contains('active')) return;
-  if (!document.getElementById('loginOverlay').classList.contains('hidden')) return;
+  // ⛔ شرط `#loginOverlay` **اتشال** — العنصر ده جزء من شاشة الدخول اللي
+  //    اتشالت من الصفحة دي، وقراءته كانت بترجّع `null` و`.classList`
+  //    بترمي، فتقطع كل دالة بتنادي `focusScan()` — وأخطرها
+  //    `selectTargetLabel()` اللي كانت بتقع **قبل سطر واحد** من
+  //    `ensureReasonValues()`، فقوايم الأسباب ما بتتحمّلش أبدًا.
+  //    بوابة الدخول بقت `requireSession()` في `shared/shell.js`،
+  //    وهي بتحوّل الصفحة قبل أي سطر هنا.
   scanInput.focus();
 }
 
