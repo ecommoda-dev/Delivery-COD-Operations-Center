@@ -2258,7 +2258,13 @@ let scanTimer = null, lastScanKey = 0;
 
 function focusScan() {
   if (!document.getElementById('panelMain').classList.contains('active')) return;
-  if (!document.getElementById('loginOverlay').classList.contains('hidden')) return;
+  // ⛔ شرط `#loginOverlay` **اتشال** — العنصر ده جزء من شاشة الدخول اللي
+  //    اتشالت من الصفحة دي، وقراءته كانت بترجّع `null` و`.classList`
+  //    بترمي، فتقطع كل دالة بتنادي `focusScan()` — وأخطرها
+  //    `selectTargetLabel()` اللي كانت بتقع **قبل سطر واحد** من
+  //    `ensureReasonValues()`، فقوايم الأسباب ما بتتحمّلش أبدًا.
+  //    بوابة الدخول بقت `requireSession()` في `shared/shell.js`،
+  //    وهي بتحوّل الصفحة قبل أي سطر هنا.
   scanInput.focus();
 }
 
@@ -3720,6 +3726,17 @@ async function loadEmployeeFilter() {
 async function buildAndDownloadWorkbook(entries, filenameSuffix) {
   if (!entries.length) { showToast('لا توجد بيانات للتصدير', 'warning'); return false; }
 
+  // 🔴 **محروس بـ`typeof ExcelJS`** — المكتبة من CDN، وCDN محجوب أو شبكة
+  //    واقعة بتخلّي السطر اللي تحت يرمي `ReferenceError`. والرمي ده
+  //    **بيقطع الدالة اللي نادت**، والمستدعي هنا `async` فالخطأ بيتحوّل
+  //    لـ«رفض غير ممسوك»: الموظف بيدوس «تصدير» و**مايشوفش أي حاجة**.
+  //    ⛔ والأسوأ إن المستدعي كان بيكمّل ويقول «✅ تم تصدير N صف» على ملف
+  //       ما اتعملش — عشان كده الرجوع `false` هنا **لازم يتقرا** فوق.
+  if (typeof ExcelJS === 'undefined') {
+    showToast('مكتبة التصدير ما اتحمّلتش — راجع الاتصال وحدّث الصفحة', 'error', 6000);
+    return false;
+  }
+
   const wb = new ExcelJS.Workbook();
   wb.views = [{ rightToLeft: true }];
   const ws = wb.addWorksheet('سجل تحديث الحالات', { views: [{ rightToLeft: true }] });
@@ -3816,8 +3833,10 @@ async function exportLogXLSX() {
   try {
     const data    = await apiGet('get_logs_export', params);
     const entries = data.entries || [];
-    await buildAndDownloadWorkbook(entries, 'all');
-    reportExportResult(entries, data);
+    // ⚠️ مشروط عن قصد — `reportExportResult` بتقول «✅ تم تصدير N صف»،
+    //    ولو البناء فشل (مكتبة ما اتحمّلتش) الرسالة دي بتبقى **ادعاء غلط**.
+    //    ⛔ ومش `return` — بعد الـ try فيه سطر بيرجّع نص الزرار من «⏳».
+    if (await buildAndDownloadWorkbook(entries, 'all')) reportExportResult(entries, data);
   } catch (e) {
     showToast(`تعذّر التصدير: ${e.message}`, 'error');
   }
@@ -3830,7 +3849,9 @@ async function exportSelectedLogXLSX() {
   const selected = groups.filter(g => selectedLogBatches.has(g.key));
   const entries = selected.flatMap(g => g.rows.map(r => r.entry));
   if (!entries.length) { showToast('لا توجد عمليات محددة', 'warning'); return; }
-  await buildAndDownloadWorkbook(entries, 'selected');
+  // ⚠️ الرجوع بيتقرا — التوست تحت بيقول «✅ تم تصدير N صف»، ولو البناء
+  //    فشل كان بيتعرض على ملف ما اتنزّلش. (ومفيش نص زرار يترجّع هنا.)
+  if (!await buildAndDownloadWorkbook(entries, 'selected')) return;
   // مجموعة مختارة من الصفحة المعروضة — مفيش سقف سيرفر عليها، فمفيش قص ممكن.
   showToast(`✅ تم تصدير ${entries.length.toLocaleString('en-US')} صف`, 'success');
 }

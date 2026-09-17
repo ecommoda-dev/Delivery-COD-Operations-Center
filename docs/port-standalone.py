@@ -107,6 +107,36 @@ class Port:
             raise SystemExit(f"\n🔴 [{self.name}] {what}: لسه موجود {hits} مرة بعد التحويل.\n")
         return self
 
+    def check_dom_ids(self, extra_ids, what):
+        """🔴 **حارس العيلة اللي `forbid` مابيشوفهاش: عنصر اتشال والـ JS لسه بينده عليه.**
+
+        `forbid(r'id="loginOverlay"')` بيتأكد إن **الماركب** اتنضّف، وبيعدّي
+        على `document.getElementById('loginOverlay')` في السكربت — والنتيجة
+        `null` و`TypeError` بيقطع الدالة **في وش الموظف** بلا أي رسالة.
+        وده مش خطر نظري: هو بالظبط اللي كسر عمود «سبب الإلغاء/الإرجاع» في
+        `order-status.html` (الشرح في `build_order_status`).
+
+        ⚠️ **والحارس بيقرا الناتج نفسه مش قايمة مكتوبة بالإيد** — أي كتلة
+           تتشال بعدين وتسيب مرجع وراها بتتمسك هنا تلقائيًا، من غير ما حد
+           يفتكر يضيف سطر.
+        ⚠️ **والمقارنة على الليترالات بس** — `getElementById(v)` أو
+           بـ`${...}` بيتخطّوا: قيمتهم وقت التشغيل، والنمط المتساهل كان
+           هيطلّع ضوضاء والبند يتتجاهل.
+        """
+        present = set(re.findall(r'\bid="([^"]+)"', self.s)) | set(extra_ids)
+        used    = set(re.findall(r"""getElementById\(\s*['"]([^'"]+)['"]\s*\)""", self.s))
+        missing = sorted(used - present)
+        if missing:
+            raise SystemExit(
+                f"\n🔴 [{self.name}] {what}\n"
+                f"   الـ JS بينده على عناصر **مش موجودة** في الصفحة المتولّدة:\n"
+                + "".join(f"     · #{m}\n" for m in missing)
+                + f"   ⚠️ `getElementById` بترجّع `null`، وأول `.classList`/"
+                  f"`.value` بترمي **وتقطع الدالة كلها** — والموظف مايشوفش أي رسالة.\n"
+                  f"   ✅ الحل: شيل/عدّل السطر ده في المولّد مع الكتلة اللي شالت العنصر.\n")
+        self.log.append(f"🔎 {what} ({len(used)} مرجع)")
+        return self
+
     def replace_all(self, old, new, what):
         n = self.s.count(old)
         if not n:
@@ -120,6 +150,16 @@ class Port:
         print(f"\n✅ {os.path.basename(path)} — {len(self.s.splitlines())} سطر")
         for l in self.log:
             print("   " + l)
+
+
+# 🔴 **الـ ids اللي الـ shell بيحقنها وقت التشغيل** (`dcoHeader()` ·
+#    `dcoSharedModals()`) — مش موجودة في ماركب الصفحة، والصفحة بتنده
+#    عليها بحق. بتتقرا من `shared/shell.js` **نفسه** مش مكتوبة هنا: قايمة
+#    يدوية بتقدم من غير ما حد يلاحظ، وساعتها الحارس يطلّع تحذير كاذب على
+#    عنصر موجود فعلاً.
+def shell_ids():
+    js = io.open(os.path.join(HUB, 'shared', 'shell.js'), encoding='utf-8').read()
+    return set(re.findall(r'\bid="([^"]+)"', js))
 
 
 def read_source(rel):
@@ -414,6 +454,49 @@ let currentEmployee = { username: dcoSession.username, displayName: dcoSession.d
 ''',
         'شيل §AUTH-JS كلها + الفورماترز + playBeep، وحط بوابة الجلسة')
 
+    # ── §SCAN — `focusScan` كانت لسه بتسأل عن شاشة دخول متشالة ──
+    # 🔴 **ده كان عطل حقيقي في النسخة المنشورة — ولازم يتقال بالنص.**
+    #    `focusScan()` بتسأل عن `#loginOverlay`، وهو عنصر **شاشة الدخول**
+    #    اللي السكربت ده بيشيلها من الماركب (وفيه `forbid` تحت بيتأكد إنها
+    #    اختفت فعلاً). فـ`getElementById` بترجّع `null` و`.classList`
+    #    بترمي `TypeError`.
+    # ⛔ **والأثر مش وميض ولا سطر في اللوج.** `focusScan()` متنادية في
+    #    **٨** أماكن، وكل نداء بيقطع باقي الدالة اللي هو جوّاها. وأوضحهم
+    #    `selectTargetLabel()`: بترسم الجدول الأول (وقوايم الأسباب لسه
+    #    `null` فكل صف بيترسم «⏳ جاري تحميل الأسباب...» و`disabled`)،
+    #    وبعدين بتنادي `focusScan()` **قبل سطر واحد** من
+    #    `ensureReasonValues()`. الرمي بيقطع الدالة، فنداء `reason_values`
+    #    **عمره ما بيتبعت** — ودي **نقطة النداء الوحيدة في الصفحة كلها**،
+    #    فالكاش بيفضل `null` **للأبد**.
+    #    🔴 **النتيجة على شاشة الموظف:** عمود «سبب الإلغاء/الإرجاع» معطّل
+    #       بـ«جاري تحميل الأسباب» في **كل** صف وللأبد، **وبلا أي رسالة
+    #       خطأ** — والسبب إلزامي، يعني `Cancelled`/`Returned` **مقفولين
+    #       بالكامل** من نسخة المركز. والنسخة الأصلية شغّالة عادي، لأن
+    #       `#loginOverlay` موجود هناك.
+    # ✅ **والشرط اللي فضل هو اللي ليه معنى هنا** — `#panelMain` بيمنع
+    #    سرقة التركيز والموظف في تاب السجل. أما بوابة الدخول فبقت
+    #    `requireSession()` في الـ shell، وهي **بتحوّل الصفحة بالكامل**
+    #    قبل ما أي سطر من ده يشتغل: مافيش حالة «الصفحة مفتوحة والدخول لسه
+    #    ما تمّش» عشان نسأل عنها أصلاً.
+    p.sub(
+        "function focusScan() {\n"
+        "  if (!document.getElementById('panelMain').classList.contains('active')) return;\n"
+        "  if (!document.getElementById('loginOverlay').classList.contains('hidden')) return;\n"
+        "  scanInput.focus();\n"
+        "}",
+        "function focusScan() {\n"
+        "  if (!document.getElementById('panelMain').classList.contains('active')) return;\n"
+        "  // \u26d4 شرط `#loginOverlay` **اتشال** — العنصر ده جزء من شاشة الدخول اللي\n"
+        "  //    اتشالت من الصفحة دي، وقراءته كانت بترجّع `null` و`.classList`\n"
+        "  //    بترمي، فتقطع كل دالة بتنادي `focusScan()` — وأخطرها\n"
+        "  //    `selectTargetLabel()` اللي كانت بتقع **قبل سطر واحد** من\n"
+        "  //    `ensureReasonValues()`، فقوايم الأسباب ما بتتحمّلش أبدًا.\n"
+        "  //    بوابة الدخول بقت `requireSession()` في `shared/shell.js`،\n"
+        "  //    وهي بتحوّل الصفحة قبل أي سطر هنا.\n"
+        "  scanInput.focus();\n"
+        "}",
+        '§SCAN — شيل شرط `#loginOverlay` من `focusScan` (العنصر اتشال مع شاشة الدخول)')
+
     # ── الـ Init ────────────────────────────────────────────────
     p.swap(
         'renderVersionUI();\nrenderStep1Body();',
@@ -511,6 +594,7 @@ checkWorkerVersion(PAGE_WORKERS);
     p.forbid(r"localStorage\.(get|set)Item\('order_status", 'السر القديم لازم يكون اختفى')
     p.forbid(r'id="loginOverlay"',                          'شاشة الدخول لازم تكون اختفت')
     p.forbid(r'^\s*:root \{\s*$',                           'كتلة توكنز في الصفحة')
+    p.check_dom_ids(shell_ids(), 'حارس المراجع المعلّقة — عنصر اتشال والـ JS لسه بينده عليه')
     p.write(os.path.join(HUB, 'order-status.html'))
     return p
 
@@ -554,6 +638,8 @@ def build_cod_payment():
       و`.container` · `.app-header*` · `.hbtn` · مودال الإعدادات ·
       `.eco-*` · `.about-*` · `.cl-*` · `.order-link`/`.order-num` ·
       التوست · `.main-tabs-bar`/`.main-tab-btn`/`.tab-panel`.
+   ⚠️ **بس `.mtb-badge` رجعت تحت** — اتشالت مع كتلة `.main-tab-btn`
+      والـ shell **مش معرّفها**، فالبادج كان بيترسم نص عاري.
    ✂️ وشاشة الدخول كلها (`.login-*` · `.pin-*`).
    ══════════════════════════════════════════════════════════════ */
 
@@ -561,7 +647,20 @@ def build_cod_payment():
    سجل، يعني Tier M (١٢٠٠) مش Tier L (١٤٠٠) بتاع طوابير الهب. */
 :root { --container-max: 1200px; }
 
-/* ⚠️ التلاتة دول **مش في الـ shell** وليهم مستهلك هنا. */
+/* ⚠️ الأربعة دول **مش في الـ shell** وليهم مستهلك هنا. */
+/* 🔴 **`.mtb-badge` رجعت بعد ما الشيلة فوق بلعتها** (17-09-2026). القاعدة
+   دي كانت جوّه كتلة `.main-tab-btn` في الريبو الأصلي، والشيلة شالت الكتلة
+   كلها على أساس إن «الـ shell بيملكها» — والـ shell بيملك `.main-tab-btn`
+   فعلاً، **لكن مش `.mtb-badge`**. النتيجة كانت بادجين حقيقيين
+   (`#tabBadgeCount` · `#tabBadgeLog`) بيترسموا **نص عاري** بلا خلفية ولا
+   إطار، وصفر خطأ في أي مكان.
+   ⚠️ **ومكانها الصفحة مش الـ shell** — البادج ده مستهلكه **صفحة واحدة**
+      (`order-status.html` مابتستخدمهوش أصلاً)، والقاعدة بتقول «`shell.css`
+      فيه الـ chrome بس، وأي CSS خاص بأداة بيفضل في صفحته». وحطّها في الـ
+      shell كان هيفتح كمان التزام «أي تعديل على الـ chrome يتعمل في
+      الهبين في نفس التمريرة». */
+.main-tab-btn .mtb-badge { background:rgba(255,255,255,.25); font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; font-family:var(--font-mono); }
+.main-tab-btn:not(.active) .mtb-badge { background:var(--accent-light); color:var(--accent); }
 .log-miss { display:inline-block; margin-right:5px; padding:1px 6px; border-radius:4px; background:var(--red-light); border:1px solid var(--red-border); color:var(--red); font-size:10px; font-weight:800; white-space:nowrap; }
 .log-miss-banner { margin:0 0 10px; padding:9px 13px; border-radius:var(--radius-sm); background:var(--red-light); border:1.5px solid var(--red-border); color:var(--red); font-size:12px; font-weight:600; line-height:1.8; }
 .spinner { width:12px; height:12px; border:2px solid transparent; border-top-color:currentColor; border-radius:50%; animation:spin .7s linear infinite; display:inline-block; vertical-align:middle; }
@@ -887,6 +986,7 @@ loadLogEmployeeFilter();  // محميّ جوّاه
     p.forbid(r"CAIRO_OFFSET_HOURS \* 60",                       'الإزاحة الثابتة لازم تكون اختفت')
     p.forbid(r"localStorage\.getItem\(LS_SECRET\)",              'قراءة السر القديم لازم تكون اختفت')
     p.forbid(r'id="loginOverlay"',                               'شاشة الدخول لازم تكون اختفت')
+    p.check_dom_ids(shell_ids(), 'حارس المراجع المعلّقة — عنصر اتشال والـ JS لسه بينده عليه')
     p.write(os.path.join(HUB, 'cod-payment.html'))
     return p
 
