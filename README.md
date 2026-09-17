@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center
 
-![version](https://img.shields.io/badge/version-v1.5.0-blue)
+![version](https://img.shields.io/badge/version-v1.6.0-blue)
 
 **هب واحد لمحطة الشحن والتحصيل.** الموظف بيدخل مرة واحدة وبيشوف طوابير الشحن —
 **وبيشتغل على أدوات المحطة من نفس المكان** (دخول واحد وسر واحد).
@@ -14,10 +14,10 @@
 | الصفحة | بتعمل إيه | الـ Worker |
 |---|---|---|
 | `index.html` | الدخول + الشاشة الرئيسية (الطابورين بأرقامهم) | **`delivery-cod-operations-center-worker`** (في الريبو ده) |
-| `ready-orders.html` | **جاهز للشحن** — حالته `Ready` (S1 أو S2) | `ready-orders-worker` |
-| `shipped-orders.html` | **مشحون بلا نتيجة** — حالته `Shipped` ولسه بلا `Delivered`/`Returned` | `shipped-orders-worker` |
-| `order-status.html` 🔗 | **محدّث حالة الأوردر** — أداة مدموجة (v1.5.0) | `order-status-updater-worker` (في ريبوه) |
-| `cod-payment.html` 🔗 | **مركز التحصيل** — أداة مدموجة (v1.5.0) | `cod-payment-center-worker` (في ريبوه) |
+| `ready-orders.html` | **أوردرات جاهزة للشحن** — حالته `Ready` (S1 أو S2) | `ready-orders-worker` **1.3.0** |
+| `shipped-orders.html` | **أوردرات تحت التوصيل** — حالته `Shipped` ولسه بلا `Delivered`/`Returned` | `shipped-orders-worker` |
+| `order-status.html` 🔗 | **تحديث حالة الأوردرات** — أداة مدموجة (v1.5.0) | `order-status-updater-worker` (في ريبوه) |
+| `cod-payment.html` 🔗 | **تحصيل الأوردرات COD** — أداة مدموجة (v1.5.0) | `cod-payment-center-worker` (في ريبوه) |
 
 > 🔴 **الريبو ده فيه النُصّين** — الواجهة على GitHub Pages، و**Worker الدخول**
 > (`index.js`) على Cloudflare. ده الشكل القياسي (قرار ٨ في الـ playbook).
@@ -86,6 +86,11 @@ chip واحد باسم مش موجود، والـ Worker **بيتجمّد على
 🔴 **وحاجز v1.5.0**: `WORKER_SECRET` على `order-status-updater-worker` و
 `cod-payment-center-worker` لازم يتدوّر لقيمة مجموعة `delivery_cod_ops` →
 **Promote**. قبل كده الصفحتين المدموجتين بيرجّعوا `401`.
+
+🔴 **وحاجز v1.6.0**: `ready-orders-worker` **`1.3.0`** (فيه `note`) لازم
+يتنشر ويتعمله **Promote** — قبل كده عمود «ملحوظات» بيقول `—` على كل صف
+وحارس النسخة بيقول «Worker قسم الجاهز للشحن نسخة قديمة». ⚠️ والتدهور
+**محصور في العمود ده** — الطابور والجرد وباقي الأعمدة شغّالين بالكامل.
 
 التفاصيل والقرارات والفخاخ → **`CLAUDE.md`**
 

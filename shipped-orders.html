@@ -259,6 +259,29 @@
 .flag-btn:hover { border-color: var(--amber); }
 .flag-ok { color: var(--text-muted); font-size: 12px; }
 
+/* 🔴 «موقع الشحنة» — بادجان وبس (v1.6.0 · طلب أحمد 17-09-2026).
+   الطابور ده أوردرات المفروض طرودها **في المكتب**، فالعمود سؤال بإجابتين:
+   مكانه صح (أخضر) ولا لأ (أحمر + ⚠). ⛔ والفاضي **مايتلوّنش** — «محدش
+   سجّل» مش «مكان غلط»، وأحمر على أغلب الطابور بيتعلّم الموظف يعدّي عليه. */
+.wa-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 800; white-space: nowrap; border: 1.5px solid var(--border); }
+.wa-badge.wa-ok   { background: var(--green-light); color: var(--green-dark); border-color: var(--green-border); }
+.wa-badge.wa-warn { background: var(--red-light);   color: var(--red-dark);   border-color: var(--red-border); }
+
+/* 🔴 عمود «ملحوظات» — بنفسجي عشان وجود الملحوظة نفسه يتقري **من بعيد**
+   قبل نصها. ⚠️ والخلية بتلفّ زي خلية العنوان بالظبط — نص طويل على سطر
+   واحد كان بيزقّ باقي الأعمدة برّه الشاشة. */
+.note-cell { text-align: right; white-space: normal; max-width: 230px; line-height: 1.6; }
+.note-txt  { color: var(--purple-dark); font-weight: 700; }
+
+/* 🔴 خلايا التاريخ — **البادج تحت التاريخ** (v1.6.0 · طلب أحمد).
+   العمودان (تاريخ الأوردر · تاريخ التغليف) كانوا بيعتمدوا على **لفّ
+   السطر بالصدفة**: على شاشة عريضة البادج بيقعد جنب التاريخ وعلى ضيّقة
+   بينزل تحته، فالعمودان كانوا بيتقروا بشكلين مختلفين في نفس الجدول.
+   ⚠️ `display:block` على التاريخ بيخلّي التكديس **مقصود ومتطابق** في
+      الاتنين — مش نتيجة عرض الشاشة. */
+.date-cell { white-space: normal; line-height: 1.6; }
+.date-cell .cell-date { display: block; margin-bottom: 4px; }
+
 /* نافذة تفاصيل العلامات */
 .fl-item { border: 1px solid var(--amber-border); background: var(--amber-light); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 9px; }
 .fl-item:last-child { margin-bottom: 0; }
@@ -546,10 +569,11 @@
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge">v1.3.0</span>
-          <span class="cl-ver-date">16-09-2026</span>
+          <span class="cl-ver-date">17-09-2026</span>
         </div>
         <ul class="cl-items">
-          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>بلا تغيير في الصفحة دي</b> — تحديث v1.4.1 كان في تاب «جرد المكتب» جوّه <b>«قسم الجاهز للشحن»</b>. والنسخة <b>واحدة للهب كله</b> (مصدر واحد · #24)، فالرقم بيترفع هنا كمان.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>بادج عدد الأيام بقى تحت التاريخ</b> في «تاريخ الأوردر» و«تاريخ التغليف» — التكديس بقى <b>مقصود</b> مش نتيجة عرض الشاشة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⚠️ <b>وباقي تحديث v1.6.0 في «قسم الجاهز للشحن»</b> (عمود «ملحوظات» · بادج «موقع الشحنة») — الطابور ده مالوش العمودين دول. والنسخة <b>واحدة للهب كله</b> (مصدر واحد · #24)، فالرقم بيترفع هنا كمان.</span></li>
         </ul>
       </div>
 
@@ -882,7 +906,8 @@ function qClearAllFilters() {
 //    اترتّب وهو مااترتّبش.
 const Q_SORT_CONFIG = {
   orderName:{ type:'string' }, customer:{ type:'string' }, address:{ type:'string' },
-  courier:{ type:'string' },   whereabouts:{ type:'string' }, tracking:{ type:'string' },
+  note:{ type:'string' },      courier:{ type:'string' },     whereabouts:{ type:'string' },
+  tracking:{ type:'string' },
   createdAt:{ type:'date' },   packedAt:{ type:'date' },
   machineLabel:{ type:'string' }, flagCount:{ type:'number' },
 };
@@ -1009,7 +1034,10 @@ function qVisible() {
     if (!term) return true;
     return String(o.orderName || '').toLowerCase().replace(/^#/, '').includes(term)
         || String(o.customer  || '').toLowerCase().includes(term)
-        || [o.address1, o.address2].filter(Boolean).join(' ').toLowerCase().includes(term);
+        || [o.address1, o.address2].filter(Boolean).join(' ').toLowerCase().includes(term)
+        // ⚠️ **والملحوظة داخلة في البحث** — عمود معروض ومش قابل للبحث
+        //    بيخلّي الموظف يقرا الطابور بعينه صف صف عشان يلاقي «تأجيل».
+        || String(o.note || '').toLowerCase().includes(term);
   });
 }
 
@@ -1045,6 +1073,7 @@ function qChipClick(key) {
 //       `dcoCod` على **نفس** `o.total`/`o.financial`، وبيقول المدفوع
 //       مقدمًا والحالة المالية المجهولة بعددهم. اللي اتشال هو **العمود**
 //       — الرقم اللي المحطة بتشتغل عليه لسه معروض.
+
 
 // 🔴 رقم التتبع: الجديد أولاً، والقديم بعلامة صريحة. «الرقم ده من حقل
 //    متوقّف» معلومة تشغيلية — إخفاؤها بيخلّي الموظف يفتكر إن الحقل الجديد
@@ -1124,9 +1153,9 @@ function qRender() {
       <td>${esc(o.customer || '—')}</td>
       <td>${esc(o.courier || '—')}</td>
       <td>${trackingCell(o)}</td>
-      <td>${esc(formatDate(o.createdAt))} <span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
-      <td>${since
-            ? `${esc(formatDate(o.packedAt))} <span class="time-badge ${since.cls}" data-q-pack="${esc(o.packedAt)}">${esc(since.text)}</span>`
+      <td class="date-cell"><span class="cell-date">${esc(formatDate(o.createdAt))}</span><span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
+      <td class="date-cell">${since
+            ? `<span class="cell-date">${esc(formatDate(o.packedAt))}</span><span class="time-badge ${since.cls}" data-q-pack="${esc(o.packedAt)}">${esc(since.text)}</span>`
             : '<span class="flag-ok">—</span>'}</td>
       <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(isS2 ? 'استبدال/استرجاع' : 'عادي')}</span></td>
       <td>${o.flags.length

@@ -70,6 +70,7 @@ const READY_RAW = [
   // ✅ سليم — مندوب داخلي، تحصيل
   { orderId:'7212000000001', orderName:'#55001', createdAt:'2026-09-10T08:00:00Z', cancelledAt:null,
     fulfillment:'UNFULFILLED', financial:'PENDING', customer:'أحمد سمير', address1:'١٢ شارع جامعة الدول العربية', address2:'الدور التالت — شقة ٧', city:'Cairo', province:'Cairo',
+    note:'العميل طلب التسليم بعد ٥ العصر',
     itemsQty:2, total:'1000.00', currency:'EGP', zone:'Cairo+Giza', courier:'Saif',
     s1:'Ready', s2:null, packedAtS1:'2026-09-14T10:00:00Z', packedAtS2:null,
     packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:'Warehouse', whereaboutsS2:null,
@@ -77,6 +78,9 @@ const READY_RAW = [
   // ✅ سليم — بوسطة
   { orderId:'7212000000002', orderName:'#55002', createdAt:'2026-09-11T08:00:00Z', cancelledAt:null,
     fulfillment:'UNFULFILLED', financial:'PENDING', customer:'سارة محمود', address1:'٤٤ شارع الهرم', address2:null, city:'Giza', province:'Giza',
+    // ⚠️ **مسافات بس** — لازم تتقري «مفيش ملحوظة» بالظبط زي `null`.
+    //    خلية فيها مسافة بتبان «فيها حاجة» وهي فاضية.
+    note:'   ',
     itemsQty:1, total:'500.00', currency:'EGP', zone:'Other_Regions', courier:'Bosta',
     s1:'Ready', s2:null, packedAtS1:'2026-09-14T11:00:00Z', packedAtS2:null,
     packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:null, whereaboutsS2:null,
@@ -97,7 +101,7 @@ const READY_RAW = [
     fulfillment:'UNFULFILLED', financial:'PENDING', customer:'محمد جمال', address1:'٢١ شارع النزهة', address2:'برج النور', city:'Cairo', province:'Cairo',
     itemsQty:1, total:'300.00', currency:'EGP', zone:'Cairo+Giza', courier:'Saif',
     s1:'Ready', s2:null, packedAtS1:'2026-09-13T09:00:00Z', packedAtS2:null,
-    packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:'Warehouse', whereaboutsS2:null,
+    packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:'Office', whereaboutsS2:null,
     trackingS1:null, trackingS2:null, trackingLegacy:null },
   // ⚠️ شاذ — **بلا قناة** (`BLANK` مش زون رابع · قاعدة ١٦)
   { orderId:'7212000000005', orderName:'#55005', createdAt:'2026-09-12T08:00:00Z', cancelledAt:null,
@@ -184,12 +188,12 @@ function makeStub() {
     const action = url.searchParams.get('action');
     state.calls.push(action);
     let body = { ok:true }, status = 200;
-    // 🔴 **نسخة لكل Worker لوحده** — `ready.min` بقى `1.2.0` (تاب الجرد
-    //    بينادي `lookup_orders`) و`shipped.min` لسه `1.0.0`. رقم واحد للاتنين كان بيولّع «Worker
+    // 🔴 **نسخة لكل Worker لوحده** — `ready.min` بقى `1.3.0` (عمود
+    //    «ملحوظات» بيقرا `note`) و`shipped.min` لسه `1.0.0`. رقم واحد للاتنين كان بيولّع «Worker
     //    نسخة قديمة» على صفحة الجاهز في **كل** بند، فالبنود بتفشل لسبب
     //    مالوش علاقة باللي بتقيسه.
     if (action === 'get_config')
-      body = { ok:true, version: url.host.startsWith('ready-orders') ? '1.2.0' : '1.0.0' };
+      body = { ok:true, version: url.host.startsWith('ready-orders') ? '1.3.0' : '1.0.0' };
     else if (action === 'diag')       body = DIAG;
     else if (action === 'get_employees')
       body = { ok:true, employees:[{ username:'tester', display_name:'الموظف التجريبي' }] };
@@ -326,9 +330,9 @@ console.log('\n══ ② ready-orders.html ══');
   //    وفضل في الصفحة (أو العكس) بيعدّي على أي مراجعة كود.
   const heads = await page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim()));
   is(JSON.stringify(heads) === JSON.stringify(
-       ['رقم الأوردر','العميل','العنوان','المندوب','موقع الشحنة','تاريخ الأوردر',
+       ['رقم الأوردر','العميل','العنوان','ملحوظات','المندوب','موقع الشحنة','تاريخ الأوردر',
         'تاريخ التغليف','نوع الأوردر','مراجعة']),
-     '🔴 أعمدة الجدول بترتيبها بالحرف — والعنوان **بعد العميل**', JSON.stringify(heads));
+     '🔴 أعمدة الجدول بترتيبها بالحرف — والعنوان **بعد العميل** و«ملحوظات» **بعده**', JSON.stringify(heads));
   // 🔴 «نوع الأوردر» **قبل الأخير** — بند مستقل عن الترتيب الكامل فوق عشان
   //    لو اتضاف عمود جديد يوم، ده يفضل هو الشرط اللي اتطلب بالاسم.
   is(heads[heads.length - 2] === 'نوع الأوردر', '🔴 «نوع الأوردر» هو العمود **قبل الأخير**', heads.at(-2));
@@ -356,6 +360,95 @@ console.log('\n══ ② ready-orders.html ══');
   is(addr5 === 'بلا عنوان',
      '🔴 الأوردر اللي مالوش عنوان بيقول **«بلا عنوان»** بالنص — خانة فاضية بتتقري عطل', addr5);
 
+  // ══ عمود «ملحوظات» (v1.6.0 · طلب أحمد 17-09-2026) ═════════════
+  // 🔴 البنود دي بتقرا **الخلية على الشاشة** — مصدرها `note` في رد الـ
+  //    Worker، والعمود ده **مالوش وجود** قبل `ready-orders-worker` 1.3.0.
+  const noteCells = await page.$$eval('#qBody tr', els => {
+    const pick = (name) => {
+      const r = els.find(e => e.textContent.includes(name));
+      if (!r) return null;
+      const td = r.querySelectorAll('td')[3];
+      return { text: td.innerText.replace(/\s+/g, ' ').trim(),
+               purple: !!td.querySelector('.note-txt'),
+               cls: td.className };
+    };
+    return { withNote: pick('#55001'), blankNote: pick('#55002'), noNote: pick('#55004') };
+  });
+  is(noteCells.withNote && noteCells.withNote.text === 'العميل طلب التسليم بعد ٥ العصر',
+     '🔴 خلية «ملحوظات» فيها نص حقل Notes بتاع الأوردر بالحرف',
+     JSON.stringify(noteCells.withNote));
+  // 🔴 اللون بيتقرا من **وجود العنصر نفسه** مش من اسم كلاس في الكود —
+  //    كلاس اتغيّر من غير CSS وراه بيعدّي على أي grep.
+  is(noteCells.withNote && noteCells.withNote.purple,
+     '🔴 والنص جوّه `.note-txt` — وجود الملحوظة لازم يتقري من بعيد قبل نصها');
+  is(noteCells.withNote && noteCells.withNote.cls.includes('note-cell'),
+     '⚠️ والخلية `.note-cell` — بتلفّ زي خلية العنوان بدل ما تزقّ الأعمدة برّه الشاشة');
+  // 🔴 **مسافات بس == مفيش ملحوظة** — خلية فيها مسافة بتبان «فيها حاجة»
+  //    وهي فاضية، والموظف بيفتح أوردر مالوش ملحوظة.
+  is(noteCells.blankNote && noteCells.blankNote.text === '—' && !noteCells.blankNote.purple,
+     '🔴 الملحوظة اللي كلها مسافات بتتقري `—` — «فيها مسافة» مش «فيها ملحوظة»',
+     JSON.stringify(noteCells.blankNote));
+  is(noteCells.noNote && noteCells.noNote.text === '—',
+     '⚠️ والصف اللي مالوش `note` خالص بيقول `—` — مش خانة فاضية بتتقري عطل',
+     JSON.stringify(noteCells.noNote));
+  // ⚠️ والبحث بيدوّر في الملحوظة كمان — عمود معروض ومش قابل للبحث بيخلّي
+  //    الموظف يقرا الطابور صف صف.
+  // ⚠️ المربع جوّه لوحة الفلاتر المقفولة افتراضيًا — لازم تتفتح الأول.
+  await page.click('.flt-header');
+  await page.waitForTimeout(200);
+  await page.fill('#qSearch', 'العصر');
+  await page.waitForTimeout(450);
+  const noteHits = await page.$$eval('#qBody tr', e => e.map(x => x.textContent.replace(/\s+/g, ' ').trim().slice(0, 40)));
+  is(noteHits.length === 1 && noteHits[0].includes('#55001'),
+     '🔴 والبحث بيدوّر في نص الملحوظة', JSON.stringify(noteHits));
+  await page.fill('#qSearch', '');
+  await page.waitForTimeout(450);
+  await page.click('.flt-header');
+  await page.waitForTimeout(200);
+
+  // ══ «موقع الشحنة» بقى بادج (v1.6.0 · طلب أحمد 17-09-2026) ═════
+  const waCells = await page.$$eval('#qBody tr', els => {
+    const pick = (name) => {
+      const r = els.find(e => e.textContent.includes(name));
+      if (!r) return null;
+      const td = r.querySelectorAll('td')[5];
+      const b  = td.querySelector('.wa-badge');
+      return { text: td.innerText.replace(/\s+/g, ' ').trim(),
+               ok: !!td.querySelector('.wa-ok'), warn: !!td.querySelector('.wa-warn'),
+               badge: !!b };
+    };
+    // #55004 = `Office` · #55001 = `Warehouse` · #55002 = فاضي · #55005 = `Courier`
+    return { office: pick('#55004'), wh: pick('#55001'),
+             none: pick('#55002'), courier: pick('#55005') };
+  });
+  is(waCells.office && waCells.office.ok && waCells.office.text === '✅ في المكتب',
+     '🔴 `Office` → **بادج أخضر «✅ في المكتب»**', JSON.stringify(waCells.office));
+  is(waCells.wh && waCells.wh.warn && waCells.wh.text.startsWith('⚠') && waCells.wh.text.includes('المخزن'),
+     '🔴 وأي مكان تاني → **بادج أحمر بـ⚠ وبالقيمة بالحرف**', JSON.stringify(waCells.wh));
+  is(waCells.courier && waCells.courier.warn && waCells.courier.text.includes('مع المندوب'),
+     'و`Courier` بنفس البادج الأحمر — مش استثناء', JSON.stringify(waCells.courier));
+  // 🔴 **الفاضي محايد** — «محدش سجّل» ≠ «المكان غلط»، وأحمر على أغلب
+  //    الطابور بيتعلّم الموظف يعدّي على اللون كله.
+  is(waCells.none && !waCells.none.badge && waCells.none.text === '—',
+     '🔴 والفاضي `—` **بلا أي بادج** — «محدش سجّل» مش «مكان غلط»', JSON.stringify(waCells.none));
+
+  // ══ بادج الأيام **تحت** التاريخ (v1.6.0 · طلب أحمد) ═══════════
+  // 🔴 البند بيقرا `display` **المحسوب** من العنصر نفسه مش اسم الكلاس —
+  //    التكديس لازم يبقى مقصود، مش لفّ سطر بيتغيّر مع عرض الشاشة.
+  const stacked = await page.$$eval('#qBody tr', els => {
+    const r = els.find(e => e.textContent.includes('#55001'));
+    if (!r) return null;
+    const tds = r.querySelectorAll('td');
+    const one = (i) => {
+      const d = tds[i].querySelector('.cell-date');
+      return d ? getComputedStyle(d).display : null;
+    };
+    return { created: one(6), packed: one(7) };
+  });
+  is(stacked && stacked.created === 'block' && stacked.packed === 'block',
+     '🔴 بادج الأيام **تحت التاريخ** في العمودين — التاريخ `display:block` مقصود مش لفّ سطر',
+     JSON.stringify(stacked));
+
   // ⚠️ المحافظة **مش مكرّرة** تحت اسم العميل بعد ما نزلت لعمود العنوان
   const custCell = await page.$$eval('#qBody tr', els => {
     const r = els.find(e => e.textContent.includes('#55001'));
@@ -366,7 +459,7 @@ console.log('\n══ ② ready-orders.html ══');
   // ⚠️ خلية المندوب: الاسم من غير سطر المجموعة تحته
   const courCell = await page.$$eval('#qBody tr', els => {
     const r = els.find(e => e.textContent.includes('#55002'));
-    return r ? r.querySelectorAll('td')[3].innerText.replace(/\s+/g, ' ').trim() : '';
+    return r ? r.querySelectorAll('td')[4].innerText.replace(/\s+/g, ' ').trim() : '';
   });
   is(courCell === 'Bosta', 'خلية المندوب = الاسم بس — سطر المجموعة تحته **اتشال**', courCell);
 
@@ -391,7 +484,7 @@ console.log('\n══ ② ready-orders.html ══');
     const r = els.find(e => e.textContent.includes('#55006'));
     if (!r) return null;
     const tds = r.querySelectorAll('td');
-    return { text: tds[6].innerText.trim(), badge: !!tds[6].querySelector('.time-badge') };
+    return { text: tds[7].innerText.trim(), badge: !!tds[7].querySelector('.time-badge') };
   });
   is(packCell6 && packCell6.text === '—' && !packCell6.badge,
      '🔴 الصف اللي ما اتغلّفش خليته `—` **بلا أي بادج**', JSON.stringify(packCell6));
@@ -623,6 +716,12 @@ console.log('\n══ ⑤ shipped-orders.html ══');
   const shHeads = await page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim()));
   is(!shHeads.includes('العنوان'),
      '🔴 طابور المشحون **بلا عمود عنوان** لحد ما الـ Worker بتاعه يرجّعه', JSON.stringify(shHeads));
+  // 🔴 **وبلا عمود «ملحوظات» لنفس السبب بالظبط** — `note` جه في
+  //    `ready-orders-worker` v1.3.0، و`shipped-orders-worker` مابيرجّعهوش.
+  //    عمود بيقول `—` على كل صف معناه «مفيش ملحوظات في الطابور كله» —
+  //    ادعاء غلط، مش خانة فاضية. والبند ده بيمنع إضافته «بالقياس».
+  is(!shHeads.includes('ملحوظات'),
+     '🔴 وبلا عمود «ملحوظات» كمان — العمود بيتضاف **في نفس تسليم الـ Worker**', JSON.stringify(shHeads));
   is(shHeads.at(-2) === 'نوع الأوردر' && shHeads.at(-1) === 'مراجعة',
      'ونفس ترتيب آخر عمودين بالحرف زي صفحة الجاهز', JSON.stringify(shHeads.slice(-2)));
 

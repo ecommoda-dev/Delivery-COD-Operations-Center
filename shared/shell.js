@@ -58,7 +58,12 @@ const DCO_WORKERS = {
   //    ⚠️ **والتدهور محصور ومُعلَن**: الجرد نفسه (سكان · مضبوطة · مفقودة)
   //       شغّال بالكامل بلا الـ endpoint ده، واللي بيقع هو **سبب** الصف
   //       التالت بس — ومع ذلك الحارس بيسمّي الأداة، عشان الموظف مايدوّرش.
-  ready:   { url: 'https://ready-orders-worker.ecommoda-dev.workers.dev',   min: '1.2.0', label: 'قسم الجاهز للشحن' },
+  // 🔴 **`1.3.0` من v1.6.0 — عمود «ملحوظات» بيقرا `note`.** الحقل ده جه في
+  //    `ready-orders-worker` v1.3.0 من `get_ready_queue`، وعلى Worker أقدم
+  //    العمود بيقول `—` على **كل** صف — يعني «مفيش ملحوظات في الطابور كله»،
+  //    وده **ادعاء غلط** مش خانة فاضية: الموظف بيبطّل يبص على العمود خالص.
+  //    ⚠️ **والتدهور محصور**: باقي الأعمدة والطابور والجرد شغّالين بالكامل.
+  ready:   { url: 'https://ready-orders-worker.ecommoda-dev.workers.dev',   min: '1.3.0', label: 'قسم الجاهز للشحن' },
   shipped: { url: 'https://shipped-orders-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'طابور المشحون' },
   // 🔴 **Worker الدخول — بتاع الهب نفسه، وعايش في **نفس الريبو**.**
   //    الهب واجهة + Worker دخول = الشكل القياسي (قرار ٨ في
@@ -89,11 +94,11 @@ const DCO_WORKERS = {
   //    يكونوا **اتضمّوا للمجموعة** (`WORKER_SECRET` اتدوّر لقيمة المجموعة
   //    من داشبورد كلاودفلير). قبل الضم النداء بيرجّع **401** والرسالة
   //    بتسمّي الأداة. البند مفتوح في `CLAUDE.md`.
-  orderStatus: { url: 'https://order-status-updater-worker.ecommoda-dev.workers.dev', min: '4.7.0', label: 'محدّث حالة الأوردر' },
-  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.5.0', label: 'مركز التحصيل' },
+  orderStatus: { url: 'https://order-status-updater-worker.ecommoda-dev.workers.dev', min: '4.7.0', label: 'تحديث حالة الأوردرات' },
+  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.5.0', label: 'تحصيل الأوردرات COD' },
 };
 
-const TOOL_VERSION = 'v1.5.0';                       // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.6.0';                       // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
