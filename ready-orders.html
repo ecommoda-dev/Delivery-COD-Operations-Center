@@ -230,13 +230,40 @@
 .data-table tbody tr.flagged:hover { background: var(--amber-light); }
 .col-num  { font-family: var(--font-mono); direction: ltr; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
+/* ── 🔴 مقاسات الأعمدة — طلب أحمد 17-09-2026 ────────────────────
+   الجدول `table-layout:auto`، فالمتصفح كان بيوزّع الفراغ الزيادة
+   **بالتناسب مع المحتوى**: «العميل» (اسم واحد) كان بياخد نفس حجم
+   «ملحوظات» تقريبًا، و«تاريخ التغليف» بياخد أعرض من «تاريخ الأوردر»
+   لأن نص بادج التأخير أطول من نص العمر. والنتيجة إن العمودين اللي
+   الموظف **بيقرا** منهم (العنوان والملحوظات) هما أضيق اتنين نسبةً
+   لمحتواهم.
+   🔴 **`width` مع `max-width` مع بعض** — `max-width` لوحدها في التخطيط
+      التلقائي **تلميح بيتجاهَل** لما يبقى فيه فراغ زيادة يتوزّع؛
+      و`width` لوحدها بتتزوّد بنفس التوزيع. الاتنين مع بعض هما اللي
+      بيثبّتوا العمود فعلاً.
+   ⚠️ **والعمودان بنفس المقاس بالحرف** (`col-date`) — التساوي بقى
+      **مقصود** مش نتيجة طول النص، فمستحيل يفترقوا مع بيانات تانية.
+   ⚠️ ومقاسات «العميل» و«التاريخ» على **الصفحتين** — نفس الجدول ونفس
+      المعيار، وجدول بيتقري بمقاسين في صفحتين بيتعلّمه الموظف مرتين.
+      اللي في صفحة «الجاهز للشحن» لوحدها هو «العنوان» و«ملحوظات»
+      (العمودان مش موجودين في المشحون أصلاً). */
+.data-table th.col-cust, .data-table td.cust-cell { width: 90px;  max-width: 90px; }
+/* 🔴 `min-width` هنا **مش تزويق** — على شاشة أضيق من الكارت، المتصفح
+   بيضغط الأعمدة المرنة وبيسيب اللي محتواه مش قابل للضغط: عمود «تاريخ
+   الأوردر» كان بينزل تحت الـ112 و«تاريخ التغليف» بيقف عندها (بادجه
+   أطول)، فالعمودان يفترقوا تاني من ورا عرض الشاشة — وده بالظبط اللي
+   التمريرة دي اتعملت ضده. */
+.data-table th.col-date, .data-table td.date-cell { width: 112px; min-width: 112px; max-width: 112px; }
+.data-table th.col-addr, .data-table td.addr-cell { width: 320px; max-width: 320px; }
+.data-table th.col-note, .data-table td.note-cell { width: 250px; max-width: 250px; }
+
 /* ── العنوان — 🔴 **العمود الوحيد اللي بيلفّ، وعن قصد** ──────────
    باقي الخلايا سطر واحد متوسّط؛ العنوان نص حر ممكن يبقى ٨٠ حرف.
    ⚠️ `text-align:right` (بداية السطر في RTL) مش `center` — عنوان متوسّط
       على سطرين بيخلّي العين تدوّر على أول كل سطر في مكان مختلف.
    ⚠️ و`max-width` مع `white-space:normal` هما اللي بيمنعوا العمود إنه
       ياكل عرض الجدول كله ويزقّ باقي الأعمدة برّه الشاشة. */
-.addr-cell { text-align: right; white-space: normal; max-width: 260px; line-height: 1.6; }
+.addr-cell { text-align: right; white-space: normal; line-height: 1.6; }
 .cell-sub { display: block; font-size: 10.5px; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
 
 /* «نوع الأوردر» — نسخة طبق الأصل من صفحة التغليف في هب المخزن بالحرف:
@@ -277,7 +304,7 @@
 /* 🔴 عمود «ملحوظات» — بنفسجي عشان وجود الملحوظة نفسه يتقري **من بعيد**
    قبل نصها. ⚠️ والخلية بتلفّ زي خلية العنوان بالظبط — نص طويل على سطر
    واحد كان بيزقّ باقي الأعمدة برّه الشاشة. */
-.note-cell { text-align: right; white-space: normal; max-width: 230px; line-height: 1.6; }
+.note-cell { text-align: right; white-space: normal; line-height: 1.6; }
 .note-txt  { color: var(--purple-dark); font-weight: 700; }
 
 /* 🔴 خلايا التاريخ — **البادج تحت التاريخ** (v1.6.0 · طلب أحمد).
@@ -316,6 +343,18 @@
    الشاشة وهو اتشحن فعلاً، ورقم غلط شكله سليم هو أسوأ نتيجة ممكنة. */
 .aud-warn { font-size: 12.5px; font-weight: 800; color: var(--red-dark); line-height: 1.9; margin-top: 5px; max-width: 620px; }
 .aud-btns { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* 🔴 ① لوحة فلاتر الجرد — **خطوة مستقلة قبل البدء** (v1.7.0 · طلب أحمد
+   17-09-2026). ⚠️ **مفتوحة دايمًا وبلا طي** — عكس لوحة فلاتر الطابور:
+   هناك الفلتر اختياري والطابور هو الشغل، وهنا الفلتر **هو الخطوة الأولى**
+   ولوحة مطوية معناها إن الموظف يبدأ الجرد من غير ما يشوف هو داخل على إيه. */
+.aud-flt { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); padding: 12px 14px; margin-bottom: 14px; }
+.aud-flt-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.aud-flt-step { font-size: 12.5px; font-weight: 800; color: var(--text-secondary); }
+/* ⚠️ سطر القفل بيظهر **بعد البدء بس** — النطاق لقطة، وقايمة شكلها شغّالة
+   والاختيار منها مالوش أثر بتخلّي الموظف يفتكر إن النطاق اتغيّر. */
+.aud-flt-lock { font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-top: 9px; }
+.ms-locked .ms-btn { opacity: .55; cursor: not-allowed; }
 
 /* 🔴 مربع السكانر **مقفول بصريًا** قبل بدء الجرد — مربع شكله شغّال والموظف
    بيسكن فيه ومحصلش حاجة هو بالظبط الحالة اللي بتخلّيه يعيد الجرد كله. */
@@ -394,7 +433,10 @@
 <div class="container">
   <div id="headerMount"></div>
 
-  <!-- ══ تابين: الطابور · الجرد ══════════════════════════════════
+  <!-- ══ تابين: الأوردرات · الجرد ═════════════════════════════════
+       🔴 **«الأوردرات» مش «الطابور»** (v1.7.0 · طلب أحمد 17-09-2026) —
+          يطابق تسمية الشاشة الرئيسية («أوردرات جاهزة للشحن»)، والموظف
+          بيدوس على الكارت وبيلاقي نفس الكلمة في التاب.
        🔴 **تاب مش صفحة تانية** (قرار 16-09-2026) — الجرد نطاقه هو **نفس
           الصفوف المعروضة** في الطابور، فصفحة مستقلة كانت هتجيب نفس
           الطابور تاني من نفس الـ Worker، والرقمين ممكن يفترقوا لو الجلبتين
@@ -403,7 +445,7 @@
           في أول `shared/shell.js` بتسمّيها بالاسم: منطق التابات بيفرق من
           صفحة للتانية فعلاً. -->
   <div class="main-tabs-bar">
-    <button class="main-tab-btn active" id="tabQueueBtn" type="button" onclick="switchMainTab('queue')">📋 الطابور</button>
+    <button class="main-tab-btn active" id="tabQueueBtn" type="button" onclick="switchMainTab('queue')">📋 الأوردرات</button>
     <button class="main-tab-btn" id="tabAuditBtn" type="button" onclick="switchMainTab('audit')">🧮 جرد المكتب</button>
   </div>
 
@@ -574,15 +616,15 @@
                    في الـ JS بالحرف — مفتاح مش في القايمة بيرجع للافتراضي
                    **في صمت**، فالعمود يبان إنه اترتّب وهو مااترتّبش. -->
               <th class="sortable-th" data-q-sort="orderName" onclick="qToggleSort('orderName')">رقم الأوردر<span class="sort-icon" data-q-sort="orderName"></span></th>
-              <th class="sortable-th" data-q-sort="customer"  onclick="qToggleSort('customer')">العميل<span class="sort-icon" data-q-sort="customer"></span></th>
-              <th class="sortable-th" data-q-sort="address" onclick="qToggleSort('address')">العنوان<span class="sort-icon" data-q-sort="address"></span></th><th class="sortable-th" data-q-sort="note" onclick="qToggleSort('note')">ملحوظات<span class="sort-icon" data-q-sort="note"></span></th><th class="sortable-th" data-q-sort="courier" onclick="qToggleSort('courier')">المندوب<span class="sort-icon" data-q-sort="courier"></span></th>
+              <th class="sortable-th col-cust" data-q-sort="customer"  onclick="qToggleSort('customer')">العميل<span class="sort-icon" data-q-sort="customer"></span></th>
+              <th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort('address')">العنوان<span class="sort-icon" data-q-sort="address"></span></th><th class="sortable-th col-note" data-q-sort="note" onclick="qToggleSort('note')">ملحوظات<span class="sort-icon" data-q-sort="note"></span></th><th class="sortable-th" data-q-sort="courier" onclick="qToggleSort('courier')">المندوب<span class="sort-icon" data-q-sort="courier"></span></th>
               <th class="sortable-th" data-q-sort="whereabouts" onclick="qToggleSort('whereabouts')">موقع الشحنة<span class="sort-icon" data-q-sort="whereabouts"></span></th>
-              <th class="sortable-th" data-q-sort="createdAt" onclick="qToggleSort('createdAt')">تاريخ الأوردر<span class="sort-icon" data-q-sort="createdAt"></span></th>
+              <th class="sortable-th col-date" data-q-sort="createdAt" onclick="qToggleSort('createdAt')">تاريخ الأوردر<span class="sort-icon" data-q-sort="createdAt"></span></th>
               <!-- ⚠️ الاسم **«تاريخ التغليف»** مش «الوقت منذ التغليف» — الخلية
                    فيها التاريخ **والبادج** مع بعض، بالظبط زي عمود «تاريخ
                    الأوردر» اللي جنبه. اسم العمود لازم يوصف اللي جوّاه، والبادج
                    هو اللي بيقول «قاعد من إمتى» في العمودين. -->
-              <th class="sortable-th" data-q-sort="packedAt" onclick="qToggleSort('packedAt')">تاريخ التغليف<span class="sort-icon" data-q-sort="packedAt"></span></th>
+              <th class="sortable-th col-date" data-q-sort="packedAt" onclick="qToggleSort('packedAt')">تاريخ التغليف<span class="sort-icon" data-q-sort="packedAt"></span></th>
               <!-- 🔴 «نوع الأوردر» **قبل الأخير** (طلب أحمد 16-09-2026) — الأعمدة
                    اللي الموظف بيدوّر بيها على الصف (رقم · عميل · عنوان · مندوب)
                    بقت مجمّعة في أول الجدول، والنوع صفة بيتأكد منها **بعد** ما
@@ -628,6 +670,20 @@
         <button class="btn-outline" id="audResetBtn" type="button" onclick="audReset()" style="display:none">↺ جرد جديد</button>
         <button class="btn-outline" id="audExportBtn" type="button" onclick="audExport()" style="display:none">⬇️ تصدير XLSX</button>
       </div>
+    </div>
+
+    <!-- ══ ① فلاتر الجرد — 🔴 **مستقلة عن فلاتر تاب «الأوردرات»**
+         (v1.7.0 · طلب أحمد 17-09-2026). الشرح الكامل في §AUDIT-JS. ══ -->
+    <div class="aud-flt" id="audFltBox">
+      <div class="aud-flt-head">
+        <span class="aud-flt-step">① اختار الأوردرات اللي هتتجرد</span>
+        <!-- ⚠️ `stopPropagation` مش محتاجة هنا — اللوحة مالهاش هيدر بيطوي -->
+        <button class="clear-btn inactive" id="audClearBtn" type="button" onclick="audClearFilters()">✕ مسح الفلاتر</button>
+      </div>
+      <div class="flt-row" id="audMsRow"></div>
+      <!-- Chips — سطر لكل فلتر، واسم الفلتر مرة واحدة في أوله (§6) -->
+      <div id="audChipsRows"></div>
+      <div class="aud-flt-lock" id="audFltLock" style="display:none">🔒 النطاق اتثبّت وقت البدء — الفلاتر مقفولة لحد «جرد جديد».</div>
     </div>
 
     <!-- السكانر — 🔴 النمط الإلزامي: الـ listener بيعمل `setTimeout` **بس**،
@@ -684,8 +740,8 @@
     </div>
     <div class="aud-sec-body collapsed" id="audBodyOk">
       <div class="tbl-scroll"><table class="data-table"><thead><tr>
-        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>ملحوظات</th>
-        <th>المندوب</th><th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
+        <th>رقم الأوردر</th><th class="col-cust">العميل</th><th class="col-addr">العنوان</th><th class="col-note">ملحوظات</th>
+        <th>المندوب</th><th>موقع الشحنة</th><th class="col-date">تاريخ الأوردر</th><th class="col-date">تاريخ التغليف</th>
         <th>نوع الأوردر</th><th>مراجعة</th>
       </tr></thead><tbody id="audBodyOkRows"></tbody></table></div>
     </div>
@@ -701,8 +757,8 @@
     </div>
     <div class="aud-sec-body collapsed" id="audBodyMiss">
       <div class="tbl-scroll"><table class="data-table"><thead><tr>
-        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>ملحوظات</th>
-        <th>المندوب</th><th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
+        <th>رقم الأوردر</th><th class="col-cust">العميل</th><th class="col-addr">العنوان</th><th class="col-note">ملحوظات</th>
+        <th>المندوب</th><th>موقع الشحنة</th><th class="col-date">تاريخ الأوردر</th><th class="col-date">تاريخ التغليف</th>
         <th>نوع الأوردر</th><th>مراجعة</th>
       </tr></thead><tbody id="audBodyMissRows"></tbody></table></div>
     </div>
@@ -721,8 +777,8 @@
     </div>
     <div class="aud-sec-body collapsed" id="audBodyExtra">
       <div class="tbl-scroll"><table class="data-table"><thead><tr>
-        <th>رقم الأوردر</th><th>العميل</th><th>العنوان</th><th>ملحوظات</th>
-        <th>المندوب</th><th>موقع الشحنة</th><th>تاريخ الأوردر</th><th>تاريخ التغليف</th>
+        <th>رقم الأوردر</th><th class="col-cust">العميل</th><th class="col-addr">العنوان</th><th class="col-note">ملحوظات</th>
+        <th>المندوب</th><th>موقع الشحنة</th><th class="col-date">تاريخ الأوردر</th><th class="col-date">تاريخ التغليف</th>
         <th>نوع الأوردر</th><th>مراجعة</th>
       </tr></thead><tbody id="audXList"></tbody></table></div>
     </div>
@@ -817,13 +873,13 @@
                 وانت لسه بتسكن — <b>نفس الرقم واسمين</b>، والاسم بيتغيّر بعد «إنهاء الجرد».</li>
             <li><b>أوردرات موجودة خطأ</b> — اتعمل لها سكان و<b>مش في النطاق</b>. وكل
                 واحدة بتقول <b>السبب والفعل المطلوب</b>: يا إما الأوردر جاهز للشحن فعلاً
-                بس <b>بره الفلتر</b> اللي بدأت بيه (الطرد مكانه صح)، يا إما مش في القسم
+                بس <b>بره فلاتر الجرد</b> اللي بدأت بيهم (الطرد مكانه صح)، يا إما مش في القسم
                 خالص — وساعتها <b>الشاشة بتجيب حالته الحقيقية من شوبيفاي تلقائيًا</b>
                 (S1 · S2 · الإلغاء) <b>بمجرد «إنهاء الجرد»</b>، بلا أي ضغطة.
                 ⚠️ والزرار بيفضل ظاهر <b>بس لو النداء فشل</b> — وساعتها بيقول
                 <b>«إعادة محاولة الاستعلام»</b>، وأشهر سبب إن الـ Worker أقدم من
                 <code>1.2.0</code>.</li>
-            <li>والتلات أقسام <b>جداول بنفس أعمدة تاب «الطابور» بالظبط</b>. وفي قسم
+            <li>والتلات أقسام <b>جداول بنفس أعمدة تاب «الأوردرات» بالظبط</b>. وفي قسم
                 «موجودة خطأ» السبب والفعل المطلوب مكتوبين في <b>صف تحت الصف مباشرةً</b>
                 — مش وراء ضغطة.</li>
           </ul>
@@ -836,12 +892,18 @@
                 بياخد إطار عشان القايمة المقفولة ماتتقريش «القسم فاضي».</li>
             <li>⚠️ وقبل البدء العدّادات <b>«—» مش «0»</b> — «ما اتجردش» ≠ «مفيش».</li>
           </ul>
-          <h4>النطاق</h4>
+          <h4>النطاق — ① خطوة الفلاتر</h4>
           <ul>
-            <li>النطاق هو <b>الصفوف المعروضة بعد الفلتر</b> وقت الضغط على «بدء الجرد»
-                (قرار أحمد 16-09-2026) — فتقدر تجرد «بوسطة بس» مثلاً.</li>
-            <li>🔴 والنطاق <b>بيتثبّت لقطة وقت البدء</b>: أي فلتر أو تحديث بعد كده
-                <b>مالوش أي أثر</b> على قايمة المفقود.</li>
+            <li>🔴 التاب دي ليها <b>فلترينها هي</b> فوق مربع السكان: <b>المندوب</b>
+                (مناديب · بوسطة · شو روم) و<b>موقع الشحنة</b>. اللي بتختاره هنا هو
+                <b>نطاق الجرد</b> — وده <b>مستقل تمامًا</b> عن أي فلتر في تاب
+                «الأوردرات» (قرار أحمد 17-09-2026).</li>
+            <li>⚠️ <b>بلا أي اختيار = الكل</b> — «ما اخترتش» مش «مفيش».</li>
+            <li>⚠️ والمندوب هنا <b>مجموعة مش اسم</b>: الجرد بيتعمل على رفّ، والرف
+                مقسوم بالمجموعة.</li>
+            <li>🔴 والنطاق <b>بيتثبّت لقطة وقت البدء</b>: الفلاتر بتتقفل مع «بدء الجرد»
+                وبتتفك مع «جرد جديد»، وأي تحديث للطابور بعد كده <b>مالوش أي أثر</b>
+                على قايمة المفقود.</li>
             <li>وعنوان الجرد بيقول النطاق بنفسه — <b>«جرد أوردرات (مناديب ٧٢ + شو روم ١٥)»</b>
                 — والفلتر الكامل بالنص مكتوب في <b>شيت «الملخص»</b> جوّه ملف التصدير.</li>
             <li>⚠️ <b>«لسه ما اتعملّهاش سكان» مش «مفقودة»</b> — الأولى حالة وانت لسه
@@ -886,10 +948,11 @@
           <span class="cl-ver-date">17-09-2026</span>
         </div>
         <ul class="cl-items">
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>عمود «ملحوظات»</b> بعد العنوان — حقل <b>Notes</b> بتاع الأوردر على شوبيفاي، <b>بلون بنفسجي</b> عشان وجود الملحوظة يبان من بعيد قبل ما تتقرا. و<code>—</code> معناها مفيش ملحوظة. (محتاج <code>ready-orders-worker</code> <b>1.3.0</b> — حارس النسخة بيقول كده بالاسم.)</span></li>
-          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>«موقع الشحنة» بقى بادج ملوّن</b> — <b>✅ في المكتب</b> أخضر، وأي مكان تاني (<code>Warehouse</code> · <code>Courier</code> · قيمة بره القايمة) <b>⚠ أحمر بقيمته بالحرف</b>. ⚠️ والفاضي <code>—</code> <b>محايد</b>: «محدش سجّل» مش «مكان غلط».</span></li>
-          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>بادج عدد الأيام بقى تحت التاريخ</b> في «تاريخ الأوردر» و«تاريخ التغليف» — كان بينزل تحته <b>بالصدفة</b> حسب عرض الشاشة، دلوقتي مكدّس في العمودين بالظبط.</span></li>
-          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>والبحث بقى بيدوّر في الملحوظة كمان</b> — عمود معروض ومش قابل للبحث بيخلّي الموظف يقرا الطابور صف صف.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>تاب «جرد المكتب» بقى له فلاتره هو</b> — خطوة ① فوق مربع السكان: <b>المندوب</b> (مناديب · بوسطة · شو روم) و<b>موقع الشحنة</b>. النطاق بقى <b>مستقل تمامًا</b> عن أي فلتر في تاب «الأوردرات»، والفلاتر <b>بتتقفل</b> مع «بدء الجرد» (النطاق لقطة) وبتتفك مع «جرد جديد».</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>قايمة فلتر «موقع الشحنة» بقت بنص البادج بالحرف</b> — <b>✅ في المكتب</b> · <b>⚠ المخزن</b> · <b>⚠ مع المندوب</b> بدل <code>Office</code>/<code>Warehouse</code>/<code>Courier</code>. الموظف كان بيدوّر في القايمة على الكلمة اللي شايفها في الجدول ومايلقهاش. ⚠️ والفلترة نفسها لسه على <b>القيمة الخام</b>.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>فلتر «التغليف»</b> — قيمتان وبس: <b>تم التغليف</b> · <b>لم يتم التغليف</b>. قبل كده السؤال ده إجابته الوحيدة كانت <b>ترتيب</b> عمود تاريخ التغليف وقراءة الصفوف بالعين. ⚠️ ومصدره <code>packedAt</code> نفسه — نفس الحقل اللي العمود بيعرضه بالحرف.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>مقاسات الأعمدة</b> — «العميل» اتصغّر ~<b>٣٥٪</b>، و<b>عمودا التاريخ بقوا بنفس العرض بالظبط</b> (كان «تاريخ التغليف» أوسع لأن نص بادج التأخير أطول)، والمساحة اللي اتوفّرت راحت لـ<b>«العنوان»</b> و<b>«ملحوظات»</b> — العمودان اللي بيتقروا فعلاً.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>تاب «الطابور» بقى «الأوردرات»</b> — يطابق اسم الكارت في الشاشة الرئيسية («أوردرات جاهزة للشحن»).</span></li>
         </ul>
       </div>
 
@@ -954,14 +1017,258 @@ const qState = { rows: [], at: null, loading: false, dirty: false, timer: null,
 //
 // ⚠️ **ترتيب المفاتيح هنا هو ترتيب الفلاتر في الشاشة وترتيب صفوف الشيبس**،
 //    والمندوب الأول عن قصد — مربعات الطابور فوق بتكتب فيه.
+// ── §MULTISELECT — مكوّن واحد لكل قوايم الاختيار المتعدد ──────
+//
+// 🔴 **نسخة واحدة بتخدم الطابور والجرد** (v1.7.0 · طلب أحمد 17-09-2026).
+//    تاب «جرد المكتب» بقى له **فلاتره المستقلة**، ونسخة تانية من نفس
+//    المنطق كانت هتبقى **درس R1 حرفيًا**: حارس `document.contains` يتصلح
+//    في واحدة ويفضل مكسور في التانية، والفلتر يبقى multi-select بالاسم
+//    بس **بلا أي رسالة خطأ**.
+// ⚠️ المكوّن بياخد **نطاق** (`ns`) وبيولّد منه مفاتيح الـ DOM
+//    (`${ns}MsBtn-${key}`) — ومفاتيح نطاق `q` **ما اتغيّرتش بحرف**.
+const MS = {};
+
+function msInit(ns, filters, opts) {
+  const reg = { filters, state: {}, rowId: opts.rowId, chipsId: opts.chipsId,
+                onChange: opts.onChange || (() => {}), locked: false };
+  filters.forEach(f => { reg.state[f.key] = { items: [], selected: new Set() }; });
+  MS[ns] = reg;
+  return reg.state;
+}
+function msSel(ns, key) { return MS[ns].state[key].selected; }
+
+// 🔴 **فحص truthy مش مقارنة بـ`null`** (§3 — أخطر باج في المعيار):
+//    `undefined !== null` بترجّع `true`، فأي خاصية مش موجودة على فلتر كانت
+//    هتخلّي أيقونة الفلتر **مولّعة من أول تحميل وللأبد**.
+function msAnyActive(ns) {
+  return MS[ns].filters.some(f => MS[ns].state[f.key].selected.size > 0);
+}
+
+// 🔴 **الليبل غير القيمة** — الفلترة كلها بتشتغل على `of(o)` الخام
+//    (`Office`)، و`labelOf` بتغيّر **العرض بس** (✅ في المكتب). فلترة على
+//    النص المعروض كانت هتربط الفلتر بشكل البادج: أي تعديل في نص البادج
+//    بيفضّي الجدول **في صمت**.
+// ⚠️ والقراءة من البنود المبنية الأول — القيمة اللي اتشالت من الطابور
+//    مابقاش ليها بند، والرجوع لـ`labelOf` بيمنع شيب بلا اسم.
+function msLabel(ns, key, value) {
+  const it = MS[ns].state[key].items.find(x => x.value === value);
+  if (it) return it.label;
+  const f = MS[ns].filters.find(x => x.key === key);
+  return f && f.labelOf ? String(f.labelOf(value)) : String(value);
+}
+
+// ── بناء صف الفلاتر — مرة واحدة عند التحميل ──────────────────
+function msBuildRow(ns) {
+  const reg = MS[ns];
+  const row = document.getElementById(reg.rowId);
+  if (row) row.innerHTML = reg.filters.map(f => `
+    <div class="flt-g">
+      <span class="flt-label">${esc(f.label)}</span>
+      <div class="ms-wrap" id="${esc(ns)}MsWrap-${esc(f.key)}">
+        <button class="ms-btn" type="button" id="${esc(ns)}MsBtn-${esc(f.key)}" data-default-label="الكل"
+                onclick="msToggle('${esc(ns)}','${esc(f.key)}')">
+          <span id="${esc(ns)}MsBtnLabel-${esc(f.key)}">الكل</span><span class="ms-arrow">▾</span>
+        </button>
+        <div class="ms-menu" id="${esc(ns)}MsMenu-${esc(f.key)}">
+          <!-- 🔴 «مسح الاختيار» **فوق** مش في الفوتر (§4) -->
+          <div class="ms-ftr-top">
+            <button class="ms-ftr-clear" type="button" onclick="msClear('${esc(ns)}','${esc(f.key)}')">مسح الاختيار</button>
+            <span class="ms-ftr-count" id="${esc(ns)}MsFtrCount-${esc(f.key)}"></span>
+          </div>
+          <div class="ms-selectall-row" onclick="msToggleSelectAll('${esc(ns)}','${esc(f.key)}')">
+            <input type="checkbox" id="${esc(ns)}MsSelectAll-${esc(f.key)}"
+              onclick="event.stopPropagation()" onchange="msToggleSelectAll('${esc(ns)}','${esc(f.key)}', this.checked)">
+            <span>تحديد الكل</span>
+          </div>
+          <div class="ms-list" id="${esc(ns)}MsList-${esc(f.key)}"></div>
+        </div>
+      </div>
+    </div>`).join('');
+  const chips = document.getElementById(reg.chipsId);
+  if (chips) chips.innerHTML =
+    reg.filters.map(f => `<div class="ms-chips-row" id="${esc(ns)}ChipsRow-${esc(f.key)}"></div>`).join('');
+}
+
+// 🔴 **بنود كل فلتر بتتبني من القايمة الكاملة** — مش من المعروض. بناؤها
+//    من المفلتر كان هيخلّي أول اختيار **يشيل باقي الخيارات من القايمة**،
+//    فالموظف مايقدرش يرجع منها (نفس قاعدة مربعات الطابور).
+// ⚠️ والاختيار القديم بيتشال لو قيمته مابقتش موجودة بعد التحديث — فلتر
+//    على قيمة مختفية معناه جدول فاضي بلا سبب ظاهر.
+function msSyncItems(ns, rows) {
+  const reg = MS[ns];
+  reg.filters.forEach(f => {
+    const vals = [...new Set((rows || []).map(f.of).filter(v => v !== null && v !== undefined))].map(String);
+    // ⚠️ الترتيب **بالليبل** مش بالقيمة الخام — القايمة بتتقرا بالليبل،
+    //    وترتيب `Office`/`Warehouse` تحت أسماء عربية بيبان عشوائي.
+    reg.state[f.key].items = vals
+      .map(v => ({ value: v, label: String(f.labelOf ? f.labelOf(v) : v) }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'ar'));
+    [...reg.state[f.key].selected].forEach(v => {
+      if (!vals.includes(v)) reg.state[f.key].selected.delete(v);
+    });
+    msRenderList(ns, f.key);
+  });
+  msRenderChips(ns);
+}
+
+function msRenderList(ns, key) {
+  const st = MS[ns].state[key];
+  const listEl = document.getElementById(`${ns}MsList-${key}`);
+  if (!listEl) return;
+  listEl.innerHTML = !st.items.length
+    ? '<div class="ms-empty">لا توجد عناصر</div>'
+    : st.items.map(it => {
+        const checked = st.selected.has(it.value);
+        return `<div class="ms-item ${checked ? 'checked' : ''}" onclick="msToggleItem('${esc(ns)}','${esc(key)}','${esc(it.value)}')">
+          <input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation(); msToggleItem('${esc(ns)}','${esc(key)}','${esc(it.value)}')">
+          <span class="ms-item-label">${esc(it.label)}</span>
+        </div>`;
+      }).join('');
+  const sa = document.getElementById(`${ns}MsSelectAll-${key}`);
+  if (sa) sa.checked = st.items.length > 0 && st.items.every(it => st.selected.has(it.value));
+  const cnt = document.getElementById(`${ns}MsFtrCount-${key}`);
+  if (cnt) cnt.textContent = `${st.selected.size} مختار`;
+  msUpdateButtonLabel(ns, key);
+}
+
+function msUpdateButtonLabel(ns, key) {
+  const st  = MS[ns].state[key];
+  const btn = document.getElementById(`${ns}MsBtn-${key}`);
+  const lbl = document.getElementById(`${ns}MsBtnLabel-${key}`);
+  if (!btn || !lbl) return;
+  const n = st.selected.size;
+  btn.classList.toggle('has-selection', n > 0);
+  if (n === 0)      lbl.textContent = btn.dataset.defaultLabel || 'الكل';
+  // ⚠️ **الليبل مش القيمة الخام** — زرار بيقول `Office` والخلية تحته
+  //    بتقول «✅ في المكتب» بيتقروا حاجتين مختلفتين.
+  else if (n === 1) lbl.textContent = msLabel(ns, key, [...st.selected][0]);
+  else              lbl.innerHTML   = `${n} محددين <span class="ms-count">${n}</span>`;
+}
+
+function msToggle(ns, key) {
+  if (MS[ns].locked) return;
+  const menu = document.getElementById(`${ns}MsMenu-${key}`), btn = document.getElementById(`${ns}MsBtn-${key}`);
+  const willOpen = !menu.classList.contains('open');
+  MS[ns].filters.forEach(f => {
+    const m = document.getElementById(`${ns}MsMenu-${f.key}`), b = document.getElementById(`${ns}MsBtn-${f.key}`);
+    if (m) m.classList.remove('open');
+    if (b) b.classList.remove('open');
+  });
+  if (willOpen) { menu.classList.add('open'); btn.classList.add('open'); }
+}
+
+// ⚠️ الاختيار **مابيقفلش القايمة** — الموظف بيختار كذا قيمة ورا بعض.
+function msToggleItem(ns, key, value) {
+  if (MS[ns].locked) return;
+  const st = MS[ns].state[key];
+  st.selected.has(value) ? st.selected.delete(value) : st.selected.add(value);
+  msAfterChange(ns, key);
+}
+function msToggleSelectAll(ns, key, forceState) {
+  if (MS[ns].locked) return;
+  const st = MS[ns].state[key];
+  const allChecked = st.items.length > 0 && st.items.every(it => st.selected.has(it.value));
+  const shouldCheck = forceState !== undefined ? forceState : !allChecked;
+  st.items.forEach(it => shouldCheck ? st.selected.add(it.value) : st.selected.delete(it.value));
+  msAfterChange(ns, key);
+}
+function msClear(ns, key) {
+  if (MS[ns].locked) return;
+  MS[ns].state[key].selected.clear();
+  msAfterChange(ns, key);
+}
+function msAfterChange(ns, key) {
+  msRenderList(ns, key); msRenderChips(ns); MS[ns].onChange();
+}
+// ⚠️ **بلا `onChange`** — المستدعي بيمسح حاجات تانية معاها (بحث · تاريخ)
+//    وبيرسم **مرة واحدة** في الآخر.
+function msClearAll(ns) {
+  MS[ns].filters.forEach(f => { MS[ns].state[f.key].selected.clear(); msRenderList(ns, f.key); });
+  msRenderChips(ns);
+}
+
+// 🔴 **قفل الفلاتر** — نطاق الجرد **لقطة وقت البدء**، فالقوايم بتتقفل مع
+//    البدء. قايمة شكلها شغّالة والاختيار منها مالوش أثر هي بالظبط اللي
+//    بتخلّي الموظف يفتكر إن النطاق اتغيّر وهو ما اتغيّرش.
+function msSetLocked(ns, locked) {
+  const reg = MS[ns];
+  reg.locked = !!locked;
+  reg.filters.forEach(f => {
+    const btn = document.getElementById(`${ns}MsBtn-${f.key}`);
+    if (btn) btn.disabled = reg.locked;
+    const menu = document.getElementById(`${ns}MsMenu-${f.key}`);
+    if (menu && reg.locked) menu.classList.remove('open');
+  });
+  const row = document.getElementById(reg.rowId);
+  if (row) row.classList.toggle('ms-locked', reg.locked);
+}
+
+// 🔴 **الحارس الأول إلزامي** (`multi-select-filter.md` §8) — من غيره
+//    القايمة بتتقفل بعد **أول** اختيار: `msRenderList` بتشيل العنصر
+//    المضغوط من الـ DOM قبل ما الحدث يوصل هنا، و`wrap.contains(detached)`
+//    بترجّع `false` فالكود بيفتكر الضغطة برّه.
+document.addEventListener('click', (e) => {
+  if (!document.contains(e.target)) return;
+  for (const ns of Object.keys(MS)) {
+    MS[ns].filters.forEach(f => {
+      const wrap = document.getElementById(`${ns}MsWrap-${f.key}`);
+      if (wrap && !wrap.contains(e.target)) {
+        const m = document.getElementById(`${ns}MsMenu-${f.key}`), b = document.getElementById(`${ns}MsBtn-${f.key}`);
+        if (m) m.classList.remove('open');
+        if (b) b.classList.remove('open');
+      }
+    });
+  }
+});
+
+// 🔴 سطر لكل فلتر، واسم الفلتر **مرة واحدة** في أول السطر (§6).
+function msRenderChips(ns) {
+  MS[ns].filters.forEach(f => {
+    const row = document.getElementById(`${ns}ChipsRow-${f.key}`);
+    if (!row) return;
+    const chips = [...MS[ns].state[f.key].selected].map(val =>
+      `<span class="ms-chip">${esc(msLabel(ns, f.key, val))}<button type="button" onclick="msToggleItem('${esc(ns)}','${esc(f.key)}','${esc(val)}')">✕</button></span>`
+    ).join('');
+    row.innerHTML = chips ? `<span class="chips-label">${esc(f.label)}:</span>${chips}` : '';
+  });
+}
+
+// وصف الاختيار بالنص — بيتكتب في ملخّص تصدير الجرد.
+// ⚠️ **بالليبلات مش بالقيم الخام** — ملف بيقول `Office` بعد أسبوع محتاج
+//    حد يترجمه.
+function msDesc(ns) {
+  const parts = [];
+  for (const f of MS[ns].filters) {
+    const sel = MS[ns].state[f.key].selected;
+    if (sel.size) parts.push(`${f.label}: ${[...sel].map(v => msLabel(ns, f.key, v)).join(' + ')}`);
+  }
+  return parts;
+}
+
+//
+// 🔴 **`labelOf` اختيارية — بتغيّر العرض بس** (v1.7.0). القيمة اللي
+//    الفلترة بتشتغل عليها هي `of(o)` **الخام**، والليبل مجرد اللي
+//    الموظف بيقراه في القايمة وفي الشيب. الفلترة على النص المعروض كانت
+//    هتربط الفلتر بشكل البادج، وأي تعديل في النص كان هيفضّي الجدول
+//    **في صمت**.
 const Q_FILTERS = [
   { key: 'courier',  label: 'المندوب',      of: o => o.courier || '— بلا مندوب' },
   { key: 'type',     label: 'نوع الأوردر',  of: o => o.machineLabel },
-  { key: 'where',    label: 'موقع الشحنة',  of: o => o.whereabouts || '— مش مسجّل' },
+  { key: 'where',    label: 'موقع الشحنة',  of: o => o.whereabouts || WA_NONE, labelOf: waFilterLabel },
+  // 🔴 **فلتر التغليف — قيمتان وبس** (v1.7.0 · طلب أحمد 17-09-2026).
+  //    «وَرّيني اللي لسه ما اتغلّفش» سؤال يومي، وقبل كده الإجابة الوحيدة
+  //    كانت **ترتيب** عمود تاريخ التغليف وقراءة الصفوف بالعين.
+  // ⚠️ **المصدر `packedAt` نفسه** — نفس الحقل اللي العمود بيعرضه وبيترتّب
+  //    بيه بالحرف، فمستحيل صف يتقري «اتغلّف» في العمود و«ما اتغلّفش» في
+  //    الفلتر. ⛔ وممنوع يتحسب من `packedByS1`/`packedByS2`: أوردر اتغلّف
+  //    والاسم ما اتسجّلش بيبقى «ما اتغلّفش» وهو اتغلّف.
+  { key: 'packed',   label: 'التغليف',      of: o => o.packedAt ? 'تم التغليف' : 'لم يتم التغليف' },
   { key: 'flag',     label: 'المراجعة',     of: o => o.flags.length ? 'محتاجة مراجعة' : 'سليم' },
 ];
-const qMsState = {};
-Q_FILTERS.forEach(f => { qMsState[f.key] = { items: [], selected: new Set() }; });
+// ⚠️ `qMsState` بقى **مرجع لحالة نطاق `q`** جوّه المكوّن — الاسم اتساب
+//    زي ما هو لأن `qChipValues`/`qChipActive`/`qVisible` بيقروا منه.
+const qMsState = msInit('q', Q_FILTERS,
+  { rowId: 'qMsRow', chipsId: 'qChipsRows', onChange: () => qRender() });
 
 let qSearchTerm = '';
 let qDateFrom = null, qDateTo = null, qDateFilterActive = false, qActivePreset = '';
@@ -981,12 +1288,8 @@ function qToggleTable() {
   document.getElementById('qTblToggleIcon').classList.toggle('open', qTblOpen);
 }
 
-// 🔴 **فحص truthy مش مقارنة بـ`null`** (§3 — أخطر باج في المعيار).
-//    `undefined !== null` بترجّع `true`، فأي خاصية مش موجودة على فلتر كانت
-//    هتخلّي الأيقونة مولّعة **من أول تحميل وللأبد**.
 function qAnyFilterActive() {
-  return Q_FILTERS.some(f => qMsState[f.key].selected.size > 0)
-      || qSearchTerm.trim().length > 0 || qDateFilterActive;
+  return msAnyActive('q') || qSearchTerm.trim().length > 0 || qDateFilterActive;
 }
 function qUpdateFilterIconState() {
   const active = qAnyFilterActive();
@@ -994,141 +1297,17 @@ function qUpdateFilterIconState() {
   document.getElementById('qClearAllBtn').classList.toggle('inactive', !active);
 }
 
-// ── بناء صف الفلاتر — مرة واحدة عند التحميل ──────────────────
-function qBuildMsRow() {
-  document.getElementById('qMsRow').innerHTML = Q_FILTERS.map(f => `
-    <div class="flt-g">
-      <span class="flt-label">${esc(f.label)}</span>
-      <div class="ms-wrap" id="qMsWrap-${esc(f.key)}">
-        <button class="ms-btn" type="button" id="qMsBtn-${esc(f.key)}" data-default-label="الكل"
-                onclick="qMsToggle('${esc(f.key)}')">
-          <span id="qMsBtnLabel-${esc(f.key)}">الكل</span><span class="ms-arrow">▾</span>
-        </button>
-        <div class="ms-menu" id="qMsMenu-${esc(f.key)}">
-          <!-- 🔴 «مسح الاختيار» **فوق** مش في الفوتر (§4) -->
-          <div class="ms-ftr-top">
-            <button class="ms-ftr-clear" type="button" onclick="qMsClear('${esc(f.key)}')">مسح الاختيار</button>
-            <span class="ms-ftr-count" id="qMsFtrCount-${esc(f.key)}"></span>
-          </div>
-          <div class="ms-selectall-row" onclick="qMsToggleSelectAll('${esc(f.key)}')">
-            <input type="checkbox" id="qMsSelectAll-${esc(f.key)}"
-              onclick="event.stopPropagation()" onchange="qMsToggleSelectAll('${esc(f.key)}', this.checked)">
-            <span>تحديد الكل</span>
-          </div>
-          <div class="ms-list" id="qMsList-${esc(f.key)}"></div>
-        </div>
-      </div>
-    </div>`).join('');
-  document.getElementById('qChipsRows').innerHTML =
-    Q_FILTERS.map(f => `<div class="ms-chips-row" id="qChipsRow-${esc(f.key)}"></div>`).join('');
-}
-
-// 🔴 **بنود كل فلتر بتتبني من الطابور الكامل** — مش من المعروض. بناؤها من
-//    المفلتر كان هيخلّي أول اختيار **يشيل باقي الخيارات من القايمة**،
-//    فالموظف مايقدرش يرجع منها (نفس قاعدة مربعات الطابور فوق).
-// ⚠️ والاختيار القديم بيتشال لو قيمته مابقتش موجودة بعد التحديث — فلتر
-//    على قيمة مختفية معناه جدول فاضي بلا سبب ظاهر.
+// ── غلاف نطاق `q` فوق المكوّن ────────────────────────────────
+function qBuildMsRow()  { msBuildRow('q'); }
+// ⚠️ **وفلاتر الجرد بتتبني من نفس الطابور** — بنودها مستقلة عن اختيار
+//    تاب «الأوردرات»، بس مصدر القيم واحد. و`MS.aud` موجود في صفحة
+//    «الجاهز للشحن» بس، فالسطر ده بيتخطّى لوحده في صفحة المشحون.
 function qSyncMsItems() {
-  Q_FILTERS.forEach(f => {
-    const vals = [...new Set(qState.rows.map(f.of).filter(v => v !== null && v !== undefined))]
-      .sort((a, b) => String(a).localeCompare(String(b), 'ar'));
-    qMsState[f.key].items = vals.map(v => ({ value: String(v), label: String(v) }));
-    [...qMsState[f.key].selected].forEach(v => {
-      if (!vals.map(String).includes(v)) qMsState[f.key].selected.delete(v);
-    });
-    qMsRenderList(f.key);
-  });
-  qRenderFilterChips();
+  msSyncItems('q', qState.rows);
+  if (MS.aud) { msSyncItems('aud', qState.rows); audRender(); }
 }
 
-function qMsRenderList(key) {
-  const st = qMsState[key];
-  const listEl = document.getElementById(`qMsList-${key}`);
-  if (!listEl) return;
-  listEl.innerHTML = !st.items.length
-    ? '<div class="ms-empty">لا توجد عناصر</div>'
-    : st.items.map(it => {
-        const checked = st.selected.has(it.value);
-        return `<div class="ms-item ${checked ? 'checked' : ''}" onclick="qMsToggleItem('${esc(key)}','${esc(it.value)}')">
-          <input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation(); qMsToggleItem('${esc(key)}','${esc(it.value)}')">
-          <span class="ms-item-label">${esc(it.label)}</span>
-        </div>`;
-      }).join('');
-  const sa = document.getElementById(`qMsSelectAll-${key}`);
-  if (sa) sa.checked = st.items.length > 0 && st.items.every(it => st.selected.has(it.value));
-  const cnt = document.getElementById(`qMsFtrCount-${key}`);
-  if (cnt) cnt.textContent = `${st.selected.size} مختار`;
-  qMsUpdateButtonLabel(key);
-}
-
-function qMsUpdateButtonLabel(key) {
-  const st = qMsState[key];
-  const btn = document.getElementById(`qMsBtn-${key}`);
-  const lbl = document.getElementById(`qMsBtnLabel-${key}`);
-  if (!btn || !lbl) return;
-  const n = st.selected.size;
-  btn.classList.toggle('has-selection', n > 0);
-  if (n === 0)      lbl.textContent = btn.dataset.defaultLabel || 'الكل';
-  else if (n === 1) lbl.textContent = [...st.selected][0];
-  else              lbl.innerHTML   = `${n} محددين <span class="ms-count">${n}</span>`;
-}
-
-function qMsToggle(key) {
-  const menu = document.getElementById(`qMsMenu-${key}`), btn = document.getElementById(`qMsBtn-${key}`);
-  const willOpen = !menu.classList.contains('open');
-  Q_FILTERS.forEach(f => {
-    document.getElementById(`qMsMenu-${f.key}`).classList.remove('open');
-    document.getElementById(`qMsBtn-${f.key}`).classList.remove('open');
-  });
-  if (willOpen) { menu.classList.add('open'); btn.classList.add('open'); }
-}
-
-// ⚠️ الاختيار **مابيقفلش القايمة** — الموظف بيختار كذا قيمة ورا بعض.
-function qMsToggleItem(key, value) {
-  const st = qMsState[key];
-  st.selected.has(value) ? st.selected.delete(value) : st.selected.add(value);
-  qMsRenderList(key); qRenderFilterChips(); qRender();
-}
-function qMsToggleSelectAll(key, forceState) {
-  const st = qMsState[key];
-  const allChecked = st.items.length > 0 && st.items.every(it => st.selected.has(it.value));
-  const shouldCheck = forceState !== undefined ? forceState : !allChecked;
-  st.items.forEach(it => shouldCheck ? st.selected.add(it.value) : st.selected.delete(it.value));
-  qMsRenderList(key); qRenderFilterChips(); qRender();
-}
-function qMsClear(key) {
-  qMsState[key].selected.clear();
-  qMsRenderList(key); qRenderFilterChips(); qRender();
-}
-
-// 🔴 **الحارس الأول إلزامي** (`multi-select-filter.md` §8) — من غيره القايمة
-//    بتتقفل بعد **أول** اختيار: `qMsRenderList` بتشيل العنصر المضغوط من الـ
-//    DOM قبل ما الحدث يوصل هنا، و`wrap.contains(detached)` بترجّع `false`
-//    فالكود بيفتكر الضغطة برّه. والفلتر يبقى multi-select بالاسم بس.
-document.addEventListener('click', (e) => {
-  if (!document.contains(e.target)) return;
-  Q_FILTERS.forEach(f => {
-    const wrap = document.getElementById(`qMsWrap-${f.key}`);
-    if (wrap && !wrap.contains(e.target)) {
-      document.getElementById(`qMsMenu-${f.key}`).classList.remove('open');
-      document.getElementById(`qMsBtn-${f.key}`).classList.remove('open');
-    }
-  });
-});
-
-// 🔴 سطر لكل فلتر، واسم الفلتر **مرة واحدة** في أول السطر (§6).
-function qRenderFilterChips() {
-  Q_FILTERS.forEach(f => {
-    const row = document.getElementById(`qChipsRow-${f.key}`);
-    if (!row) return;
-    const chips = [...qMsState[f.key].selected].map(val =>
-      `<span class="ms-chip">${esc(val)}<button type="button" onclick="qMsToggleItem('${esc(f.key)}','${esc(val)}')">✕</button></span>`
-    ).join('');
-    row.innerHTML = chips ? `<span class="chips-label">${esc(f.label)}:</span>${chips}` : '';
-  });
-}
-
-// ── البحث ─────────────────────────────────────────────────────
+// ── البحث ─────────────────────────────────────────────────────// ── البحث ─────────────────────────────────────────────────────
 let qSearchTimer = null;
 function qOnSearchInput(el) {
   el.classList.toggle('has-value', el.value.trim().length > 0);
@@ -1203,10 +1382,9 @@ function qClearRangePreset() {
   qRender();
 }
 function qClearAllFilters() {
-  Q_FILTERS.forEach(f => { qMsState[f.key].selected.clear(); qMsRenderList(f.key); });
+  msClearAll('q');
   const si = document.getElementById('qSearch');
   si.value = ''; si.classList.remove('has-value'); qSearchTerm = '';
-  qRenderFilterChips();
   qResetDateFilter();
   qRender();
 }
@@ -1381,7 +1559,7 @@ function qChipClick(key) {
   const sel = qMsState[qChipFilterKey(key)].selected;
   const on  = vals.every(v => sel.has(v));
   vals.forEach(v => on ? sel.delete(v) : sel.add(v));
-  qMsRenderList(qChipFilterKey(key)); qRenderFilterChips(); qRender();
+  msRenderList('q', qChipFilterKey(key)); msRenderChips('q'); qRender();
 }
 
 // ⚠️ **`financeCell` اتشالت** مع عمود «الإجمالي» (طلب أحمد 16-09-2026) —
@@ -1438,13 +1616,31 @@ function noteCell(o) {
 //    القيم الحقيقية القليلة اللي الموظف بيدوّر عليها.
 //    ⚠️ والمعنى **مكتوب في «عن الأداة»**: `—` هنا معناها «محدش سجّل»،
 //       مش «المخزن». ⛔ ومش مسموح تتشال من هناك.
+// 🔴 **خريطة واحدة للعمود وللفلتر** (v1.7.0 · طلب أحمد 17-09-2026).
+//    قبل كده العمود كان بيقول «✅ في المكتب» وقايمة الفلتر بتقول
+//    `Office`: الموظف بيشوف كلمة في الخلية وبيدوّر عليها في القايمة
+//    **ومايلقهاش**، فيفتكر إن القيمة دي مش قابلة للفلترة.
+//    ⛔ ونسختان من نفس التسمية بيفترقوا مع أول قيمة جديدة (درس R1) —
+//       فالمصدر **واحد** هنا، والعمود والفلتر الاتنين بيقروا منه.
+const WA_MAP  = { Warehouse: 'المخزن', Office: 'المكتب', Courier: 'مع المندوب' };
+// ⚠️ **الفاضي بياخد اسمه بالنص في الفلتر** — `—` سادة جوّه قايمة منسدلة
+//    بتتقري **بند فاضي**، مش «الصفوف اللي محدش سجّل مكانها».
+const WA_NONE = '— مش مسجّل';
+function waText(v) { return WA_MAP[v] || v; }
+
+// 🔴 **ليبل الفلتر == نص البادج في العمود بالحرف** — نفس الرمز ونفس
+//    الكلمة. أي فرق بينهم معناه إن الموظف بيتعلّم تسميتين لنفس القيمة.
+function waFilterLabel(v) {
+  if (v === WA_NONE) return WA_NONE;
+  return v === 'Office' ? '✅ في المكتب' : `⚠ ${waText(v)}`;
+}
+
 function whereaboutsCell(o) {
-  const map = { Warehouse: 'المخزن', Office: 'المكتب', Courier: 'مع المندوب' };
   if (!o.whereabouts) return '<span class="flag-ok">—</span>';
   if (o.whereabouts === 'Office') return '<span class="wa-badge wa-ok">✅ في المكتب</span>';
   // ⚠️ **القيمة الغلط بتتعرض بالحرف** — «مكان تاني» بتخلّي الموظف يفتح
   //    الأوردر على شوبيفاي عشان يعرف هو فين (قاعدة ١٤).
-  return `<span class="wa-badge wa-warn">⚠ ${esc(map[o.whereabouts] || o.whereabouts)}</span>`;
+  return `<span class="wa-badge wa-warn">⚠ ${esc(waText(o.whereabouts))}</span>`;
 }
 
 function qRender() {
@@ -1513,7 +1709,7 @@ function qRender() {
     //       منه والفلتر بيشتغل بيه؛ اللي اتشال هو **عرضه في الخلية** بس.
     return `<tr class="${o.flags.length ? 'flagged' : ''}">
       <td>${orderLink(o.orderName, o.orderId)}</td>
-      <td>${esc(o.customer || '—')}</td>
+      <td class="cust-cell">${esc(o.customer || '—')}</td>
       <td class="addr-cell">${addressCell(o)}</td>
       <td class="note-cell">${noteCell(o)}</td>
       <td>${esc(o.courier || '—')}</td>
@@ -1730,20 +1926,46 @@ function audFocus() {
   if (el && !el.disabled) el.focus();
 }
 
+// ── ① فلاتر الجرد — 🔴 **مستقلة عن فلاتر تاب «الأوردرات»** ────
+//
+// 🔴 **قرار أحمد 17-09-2026:** النطاق بقى بيتحدد **من جوّه التاب دي**، مش
+//    من اللي معروض في تاب «الأوردرات». السبب إن الفلترين مختلفين في
+//    وظيفتهم: الموظف بيفلتر الطابور عشان **يقرا**، وبيفلتر الجرد عشان
+//    **يمسك السكانر** — وربطهم كان معناه إن ضغطة فلتر للقراءة تحدد نطاق
+//    جرد جاي، فقايمة «مفقودة» تطلع غلط **بلا أي تفسير** على الشاشة.
+// ⚠️ **والمصدر لسه واحد** (`qState.rows`) — نفس الطابور اللي التاب التانية
+//    بتعرضه، فمستحيل الجرد يشوف أوردر مش في «قسم الجاهز للشحن».
+// 🔴 **والمندوب هنا مجموعة مش اسم** (طلب أحمد): مناديب · بوسطة · شو روم.
+//    جرد المكتب بيتعمل على **رفّ**، والرف مقسوم بالمجموعة مش باسم المندوب —
+//    وقايمة بـ٤٠ اسم مندوب كانت هتخلّي الخطوة الأولى أطول من الجرد نفسه.
+//    ⚠️ والتجميع من `dcoCourierGroup` في الـ shell — **نفس** الدالة اللي
+//       مربعات الطابور وعنوان الجرد بيعدّوا منها، فمستحيل الرقمين يفترقوا.
+const AUD_FILTERS = [
+  { key: 'cgroup', label: 'المندوب',
+    of: o => (DCO_COURIER_GROUPS.find(g => g.key === dcoCourierGroup(o.courier)) || {}).label },
+  { key: 'where',  label: 'موقع الشحنة', of: o => o.whereabouts || WA_NONE, labelOf: waFilterLabel },
+];
+const audMsState = msInit('aud', AUD_FILTERS,
+  { rowId: 'audMsRow', chipsId: 'audChipsRows', onChange: () => audRender() });
+
+// 🔴 **نطاق الجرد = الطابور الكامل بعد فلاتر التاب دي** — ⛔ مش `qVisible()`.
+// ⚠️ واختيار فاضي = **الكل**، زي أي فلتر في الهب: «ما اخترتش» ≠ «مفيش».
+function audVisible() {
+  return qState.rows.filter(o => AUD_FILTERS.every(f => {
+    const sel = msSel('aud', f.key);
+    return !sel.size || sel.has(String(f.of(o)));
+  }));
+}
+function audClearFilters() { msClearAll('aud'); audRender(); }
+
 // ── وصف النطاق — 🔴 بيتكتب بالنص، مش متروك للموظف يفتكره ──────
 //
-// أحمد اختار «المعروض بعد الفلتر» نطاقًا للجرد (16-09-2026). النطاق ده
-// **بيتثبّت وقت البدء** (لقطة) عشان ضغطة فلتر وسط الجرد ماتغيّرش قايمة
-// المفقود، والسطر ده هو اللي بيقول الموظف اتثبت على إيه.
+// النطاق **بيتثبّت وقت البدء** (لقطة) عشان ضغطة فلتر وسط الجرد ماتغيّرش
+// قايمة المفقود، والسطر ده هو اللي بيقول الموظف اتثبت على إيه — وبيتصدّر
+// في شيت «الملخص».
 function audFilterDesc() {
-  const parts = [];
-  for (const f of Q_FILTERS) {
-    const sel = qMsState[f.key].selected;
-    if (sel.size) parts.push(`${f.label}: ${[...sel].join(' + ')}`);
-  }
-  if (qSearchTerm.trim())  parts.push(`بحث: ${qSearchTerm.trim()}`);
-  if (qDateFilterActive)   parts.push(`تاريخ: ${qDateFrom || '…'} → ${qDateTo || '…'}`);
-  return parts.length ? parts.join(' · ') : 'بلا فلتر — الطابور كله';
+  const parts = msDesc('aud');
+  return parts.length ? parts.join(' · ') : 'بلا فلتر — كل الأوردرات الجاهزة';
 }
 
 // 🔴 **عنوان الجرد = «جرد أوردرات (مناديب N + شو روم M)»** (طلب أحمد
@@ -1789,8 +2011,9 @@ function audStart() {
   //    «كل حاجة مفقودة» على شاشة الموظف، وهي مش مفقودة: إحنا اللي
   //    ماجبناهاش.
   if (!qState.at) { showToast('الطابور لسه ما اتجابش — استنى أول تحديث ناجح', 'warn'); return; }
-  const scope = qVisible();
-  if (!scope.length) { showToast('مفيش صفوف معروضة — امسح الفلتر الأول', 'warn'); return; }
+  // 🔴 **من فلاتر التاب دي** — مش من اللي معروض في تاب «الأوردرات».
+  const scope = audVisible();
+  if (!scope.length) { showToast('مفيش أوردرات في الفلتر ده — عدّل اختيارك الأول', 'warn'); return; }
   audState.phase      = 'running';
   audState.startedAt  = new Date().toISOString();
   audState.endedAt    = null;
@@ -1839,6 +2062,9 @@ function audReset() {
   audState.scopeLabel = ''; audState.scope = []; audState.scans = [];
   audSecFocus = null;
   audPersist();
+  // ⚠️ الفلاتر بتتفك **من غير ما تتمسح** — الموظف اللي بيجرد «بوسطة» رفّ
+  //    ورا رفّ عايز اختياره مكانه، مش يعيده كل مرة.
+  msSetLocked('aud', false);
   audSetLast('', '');
   audRender();
 }
@@ -1926,11 +2152,19 @@ function audRender() {
   //    شو روم ١)». قبل البدء بيتحسب من **المعروض دلوقتي** فالموظف شايف
   //    هو داخل على إيه، وبعد البدء من **اللقطة** فالرقم مابيتغيّرش تحت
   //    إيده مع أي فلتر أو تحديث.
-  const titleRows = idle ? (qState.at ? qVisible() : []) : audState.scope;
+  const titleRows = idle ? (qState.at ? audVisible() : []) : audState.scope;
   document.getElementById('audTitle').textContent = audScopeTitle(titleRows);
   // ⚠️ التحذير بيختفي بعد الإنهاء بس — هو تحذير **عن عملية شغّالة**،
   //    وتحذير قاعد على شاشة نتيجة بيتعلّم الموظف يعدّي عليه.
   document.getElementById('audWarn').style.display = ended ? 'none' : '';
+
+  // 🔴 **الفلاتر مقفولة بعد البدء** — النطاق لقطة، واختيار مالوش أثر
+  //    بيخلّي الموظف يفتكر إن النطاق اتغيّر تحت إيده.
+  msSetLocked('aud', !idle);
+  document.getElementById('audFltLock').style.display = idle ? 'none' : '';
+  const audClr = document.getElementById('audClearBtn');
+  audClr.disabled = !idle;
+  audClr.classList.toggle('inactive', !idle || !msAnyActive('aud'));
 
   // الزراير والسكانر
   document.getElementById('audStartBtn').style.display  = idle ? '' : 'none';
@@ -1943,7 +2177,7 @@ function audRender() {
 
   // المربعات — 🔴 «—» مش «0» قبل البدء: «ما اتجردش» ≠ «مفيش»
   const dash = v => idle ? '—' : String(v);
-  document.getElementById('audNScope').textContent = idle ? (qState.at ? String(qVisible().length) : '—') : String(c.scope);
+  document.getElementById('audNScope').textContent = idle ? (qState.at ? String(audVisible().length) : '—') : String(c.scope);
   document.getElementById('audNOk').textContent    = dash(c.matched);
   document.getElementById('audNPend').textContent  = dash(c.pending);
   document.getElementById('audNMiss').textContent  = dash(c.missing);
@@ -1998,7 +2232,7 @@ function audCells(o, note) {
   //    الطابور عن قصد، والحارس ده بيخلّي الخلية تقول `—` بدل ما ترمي.
   const age = o.age || null;
   return `<td>${orderLink(o.orderName, o.orderId)}${note || ''}</td>
-    <td>${esc(o.customer || '—')}</td>
+    <td class="cust-cell">${esc(o.customer || '—')}</td>
     <td class="addr-cell">${addressCell(o)}</td>
     <td class="note-cell">${noteCell(o)}</td>
     <td>${esc(o.courier || '—')}</td>
@@ -2043,7 +2277,7 @@ function audExtraRowHtml(s, i) {
     : `<td>${lo && lo.orderId
              ? orderLink(lo.orderName || code, lo.orderId)
              : `<span class="order-num">${esc(code)}</span>`}${note}</td>
-       <td>${dash}</td>
+       <td class="cust-cell">${dash}</td>
        <td class="addr-cell">${dash}</td>
        <td class="note-cell">${dash}</td>
        <td>${dash}</td>
@@ -2296,6 +2530,10 @@ async function audExport() {
   el.addEventListener('keydown', e => {
     if (e.key === 'Enter') { clearTimeout(audTimer); audScan(); }
   });
+  // ⚠️ **الترتيب مهم** — صف فلاتر الجرد لازم يتبني قبل أول `audRender`:
+  //    دوال الفلتر بتكتب في عناصر جوّاه، ولو اتنادت قبل ما تتخلق بتخرج
+  //    **بصمت** (`getElementById` بترجّع `null`).
+  msBuildRow('aud');
   if (audRestore()) {
     showToast(`جرد متساب في الجلسة دي اترجع — ${audState.scans.length} سكانة`, 'neutral', 6000);
   }
