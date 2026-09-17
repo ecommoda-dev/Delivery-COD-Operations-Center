@@ -98,7 +98,7 @@ const DCO_WORKERS = {
   codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.5.0', label: 'تحصيل الأوردرات COD' },
 };
 
-const TOOL_VERSION = 'v1.6.0';                       // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.7.0';                       // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +

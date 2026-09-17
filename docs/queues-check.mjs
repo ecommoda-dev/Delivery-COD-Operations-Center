@@ -665,6 +665,94 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   await ctx.close();
 }
 
+// ── 🔴 ليبل فلتر «موقع الشحنة» == نص البادج في العمود (v1.7.0) ──
+//
+// 🔴 **العيلة:** العمود كان بيقول «✅ في المكتب» والقايمة بتقول `Office`،
+//    فالموظف بيدوّر في القايمة على الكلمة اللي شايفها في الجدول
+//    **ومايلقهاش** — فيفتكر إن القيمة دي مش قابلة للفلترة أصلاً.
+// ⚠️ والبند بيقرا **نص القايمة ونص الخلية** الاتنين من الشاشة ويقارنهم —
+//    مش بيقرا خريطة في الكود.
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/ready-orders.html`);
+  await page.waitForSelector('#qBody tr');
+  await page.click('.flt-header');
+  await page.waitForTimeout(200);
+  await page.click('#qMsBtn-where');
+  await page.waitForTimeout(200);
+  const waItems = await page.$$eval('#qMsList-where .ms-item-label', e => e.map(x => x.textContent.trim()));
+  is(waItems.includes('✅ في المكتب') && waItems.includes('⚠ المخزن') && waItems.includes('⚠ مع المندوب'),
+     '🔴 قايمة «موقع الشحنة» بنص البادج بالحرف — مش `Office`/`Warehouse`', JSON.stringify(waItems));
+  is(!waItems.includes('Office') && !waItems.includes('Warehouse') && !waItems.includes('Courier'),
+     '⛔ والقيمة الخام **مش** معروضة — تسميتان لنفس القيمة = الموظف بيتعلّمها مرتين');
+  is(waItems.includes('— مش مسجّل'),
+     '⚠️ والفاضي بياخد اسمه بالنص — `—` سادة جوّه قايمة بتتقري بند فاضي');
+  // ⚠️ نفس النص بالحرف في الخلية
+  const waCell = await page.textContent('#qBody tr:has-text("#55004") .wa-badge');
+  is(waCell.trim() === '✅ في المكتب', 'ونص الخلية **نفسه بالحرف**', waCell.trim());
+
+  // 🔴 والفلترة لسه على القيمة الخام — الاختيار بيفلتر فعلاً
+  await page.click('#qMsList-where .ms-item:has-text("✅ في المكتب")');
+  await page.waitForTimeout(250);
+  is(await page.$$eval('#qBody tr', e => e.length) === 1,
+     '🔴 والاختيار بيفلتر فعلاً — الليبل بيغيّر **العرض** بس، والفلترة على القيمة الخام');
+  const waChip = await page.textContent('#qChipsRow-where');
+  is(waChip.includes('✅ في المكتب') && !waChip.includes('Office'),
+     'والشيب تحت الفلاتر بنفس الليبل — مش بالقيمة الخام', waChip.trim());
+  is((await page.textContent('#qMsBtnLabel-where')).trim() === '✅ في المكتب',
+     'وزرار الفلتر نفسه كمان');
+  await page.click('#qClearAllBtn');
+  await page.waitForTimeout(250);
+
+  // ── 🔴 فلتر «التغليف» — قيمتان وبس (v1.7.0 · طلب أحمد) ──
+  await page.click('#qMsBtn-packed');
+  await page.waitForTimeout(200);
+  const pkItems = await page.$$eval('#qMsList-packed .ms-item-label', e => e.map(x => x.textContent.trim()).sort());
+  is(JSON.stringify(pkItems) === JSON.stringify(['تم التغليف', 'لم يتم التغليف'].sort()),
+     '🔴 فلتر «التغليف» **قيمتان بالظبط** — مش قايمة تواريخ', JSON.stringify(pkItems));
+  await page.click('#qMsList-packed .ms-item:has-text("لم يتم التغليف")');
+  await page.waitForTimeout(250);
+  const notPacked = await page.$$eval('#qBody tr', e => e.map(r => r.textContent));
+  is(notPacked.length === 1 && notPacked[0].includes('#55006'),
+     '🔴 و«لم يتم التغليف» بيطلّع الصف اللي `packedAt` بتاعه فاضي **بالظبط**', String(notPacked.length));
+  // ⚠️ **نفس مصدر العمود بالحرف** — الصف ده هو نفسه اللي بيروح آخر ترتيب
+  //    «تاريخ التغليف» فوق، وخلية تاريخه بتقول `—`. فلتر بيقول «ما اتغلّفش»
+  //    وعمود بيقول تاريخ على نفس الصف بيخلّي الموظف يشك في الاتنين.
+  const packTd = await page.$$eval('#qBody tr td.date-cell', e => e[e.length - 1].textContent.trim());
+  is(packTd === '—',
+     '⚠️ ونفس الصف عمود «تاريخ التغليف» بتاعه `—` — الفلتر والعمود من نفس الحقل');
+  await page.click('#qMsList-packed .ms-item:has-text("لم يتم التغليف")');
+  await page.click('#qMsList-packed .ms-item:has-text("تم التغليف")');
+  await page.waitForTimeout(250);
+  is(await page.$$eval('#qBody tr', e => e.length) === READY_TOTAL - 1,
+     'و«تم التغليف» بيطلّع الباقي — الاتنين بيكمّلوا الطابور بالظبط');
+  is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+// ── 🔴 مقاسات الأعمدة — طلب أحمد 17-09-2026 ──────────────────
+//
+// ⚠️ **البند بيقرا العرض المحسوب من العنصر نفسه** مش اسم الكلاس — كلاس
+//    اتغيّر من غير CSS وراه بيعدّي على أي grep.
+{
+  const { page, ctx, errors } = await newPage({ });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${BASE}/ready-orders.html`);
+  await page.waitForSelector('#qBody tr');
+  const W = await page.$$eval('#qTable thead th', ths => Object.fromEntries(
+    ths.map(t => [t.textContent.trim().replace(/[▲▼]/g, ''), Math.round(t.getBoundingClientRect().width)])));
+  is(W['تاريخ الأوردر'] === W['تاريخ التغليف'],
+     '🔴 عمودا التاريخ **بنفس العرض بالحرف** — التساوي مقصود مش نتيجة طول النص',
+     JSON.stringify([W['تاريخ الأوردر'], W['تاريخ التغليف']]));
+  is(W['العميل'] < W['تاريخ الأوردر'],
+     '🔴 و«العميل» أضيق من عمود التاريخ — كان أوسع منه بكتير قبل التمريرة', String(W['العميل']));
+  is(W['العنوان'] > W['ملحوظات'] && W['ملحوظات'] > 230,
+     '🔴 والزيادة راحت لـ«العنوان» و«ملحوظات» — هما العمودان اللي بيتقروا',
+     JSON.stringify([W['العنوان'], W['ملحوظات']]));
+  is(errors.length === 0, 'وصفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
 // ══════════════════════════════════════════════════════════════
 // ④ الفشل والاقتطاع — بانرين منفصلين
 // ══════════════════════════════════════════════════════════════
@@ -927,7 +1015,12 @@ console.log('\n══ ⑨ تاب «جرد المكتب» ══');
     await page.waitForTimeout(160);
   };
 
-  is(await page.isVisible('#tabAuditBtn'), 'تاب «جرد المكتب» موجود جنب تاب الطابور');
+  is(await page.isVisible('#tabAuditBtn'), 'تاب «جرد المكتب» موجود جنب تاب الأوردرات');
+  // 🔴 «الأوردرات» مش «الطابور» (v1.7.0 · طلب أحمد) — يطابق اسم الكارت
+  //    في الشاشة الرئيسية («أوردرات جاهزة للشحن»).
+  const qTabTxt = (await page.textContent('#tabQueueBtn')).trim();
+  is(qTabTxt.includes('الأوردرات') && !qTabTxt.includes('الطابور'),
+     '🔴 واسم التاب الأولى **«الأوردرات»** مش «الطابور»', qTabTxt);
   is(await page.isVisible('#viewQueue') && !(await page.isVisible('#viewAudit')),
      'والطابور هو المفتوح افتراضيًا — الجرد جلسة بتبدأ بقرار');
   await page.click('#tabAuditBtn');
@@ -1130,44 +1223,75 @@ console.log('\n══ ⑨ تاب «جرد المكتب» ══');
   await ctx.close();
 }
 
-// ── النطاق: مفلتر · لقطة · والحفظ في الجلسة ──────────────────
+// ── 🔴 نطاق الجرد = **فلاتر التاب دي لوحدها** (v1.7.0 · طلب أحمد) ──
+//
+// 🔴 **العيلة اللي البنود دي بتمسكها:** الجرد كان بياخد نطاقه من فلتر تاب
+//    «الأوردرات»، فضغطة فلتر **للقراءة** كانت بتحدد نطاق جرد جاي — والموظف
+//    اللي بيسكن مش شايف الفلتر ده أصلاً، فقايمة «مفقودة» بتطلع غلط
+//    **بلا أي تفسير على الشاشة**. دلوقتي التاب ليها فلترينها هي.
 {
   const { page, ctx, errors } = await newPage();
   await page.goto(`${BASE}/ready-orders.html`);
   await page.waitForSelector('#qBody tr');
-
-  // فلتر «بوسطة» → النطاق المفروض يبقى صف واحد
-  await page.click('#qChips [data-fk="bosta"]');
-  await page.waitForTimeout(250);
   await page.click('#tabAuditBtn');
-  await page.waitForTimeout(200);
-  await page.click('#audStartBtn');
+  await page.waitForTimeout(250);
+
+  // 🔴 **فلترين بالظبط وبأسمائهم** — البند بيقرا الليبلات بترتيبها على
+  //    الشاشة: الاسم لوحده بيعدّي لو اتبدّلوا مكانهم، والعدد لوحده بيعدّي
+  //    لو فلتر اتشال وفلتر تاني اتضاف مكانه.
+  const audLbls = await page.$$eval('#audMsRow .flt-label', e => e.map(x => x.textContent.trim()));
+  is(JSON.stringify(audLbls) === JSON.stringify(['المندوب', 'موقع الشحنة']),
+     '🔴 تاب الجرد فيه **فلترينه هو**: المندوب · موقع الشحنة', JSON.stringify(audLbls));
+
+  // 🔴 **المندوب هنا مجموعة مش اسم** — «مناديب/بوسطة/شو روم»، مش `Saif`.
+  //    قايمة بأسماء المناديب كانت هتخلّي الخطوة الأولى أطول من الجرد نفسه.
+  await page.click('#audMsBtn-cgroup');
+  await page.waitForTimeout(150);
+  const groups = await page.$$eval('#audMsList-cgroup .ms-item-label', e => e.map(x => x.textContent.trim()));
+  is(groups.every(g => ['مناديب', 'بوسطة', 'شو روم'].includes(g)) && groups.length === 3,
+     '🔴 وقايمة المندوب **مجموعات** (مناديب · بوسطة · شو روم) مش أسماء مناديب', JSON.stringify(groups));
+
+  // ⚠️ اختيار فاضي = الكل
+  is(num(await page.textContent('#audNScope')) === READY_TOTAL,
+     '⚠️ وبلا أي اختيار النطاق = الطابور كله — «ما اخترتش» ≠ «مفيش»');
+
+  // فلتر «بوسطة» **من جوّه تاب الجرد**
+  await page.click(`#audMsList-cgroup .ms-item:has-text("بوسطة")`);
   await page.waitForTimeout(250);
   is(num(await page.textContent('#audNScope')) === READY_COURIER.bosta,
-     '🔴 النطاق = **المعروض بعد الفلتر** (قرار أحمد 16-09-2026)',
+     '🔴 والاختيار من هنا بيغيّر النطاق فورًا — قبل ما الجرد يبدأ',
      await page.textContent('#audNScope'));
-  // 🔴 النطاق المفلتر **مكتوب على الشاشة** — بعد ما سطر الفلتر اتشال
-  //    (طلب أحمد)، العنوان هو اللي بيحمله: جرد على «بوسطة» بيقول «بوسطة N»
-  //    **وبس** — مفيش «مناديب» ولا «شو روم» فيه. نطاق مش مكتوب معناه سؤال
-  //    «مفقودة من إيه؟» بلا إجابة.
-  const tf = await page.textContent('#audTitle');
-  is(tf.includes(`بوسطة ${READY_COURIER.bosta}`) && !tf.includes('مناديب'),
-     '🔴 والنطاق المفلتر **مكتوب في العنوان** — بمجموعته هي بس', tf.trim());
-  // ⚠️ والفلتر الكامل بالنص لسه محفوظ في حالة الجرد — شيت «الملخص» في
-  //    ملف التصدير بيكتبه، وملف بلا نطاقه بيتقري «الجرد كله» بعد أسبوع.
-  is(await page.evaluate(() => audState.scopeLabel.includes('Bosta')),
-     '⚠️ والفلتر الكامل بالنص لسه متسجّل للتصدير (شيت «الملخص»)');
+  const tf0 = await page.textContent('#audTitle');
+  is(tf0.includes(`بوسطة ${READY_COURIER.bosta}`) && !tf0.includes('مناديب'),
+     '🔴 والعنوان بيقول النطاق **بمجموعته هي بس**', tf0.trim());
 
-  // مسح الفلتر بعد البدء — 🔴 المفروض **مالوش أي أثر**
+  // 🔴 **فلتر تاب «الأوردرات» مالوش أي أثر هنا** — البند الأهم في الكتلة
   await page.click('#tabQueueBtn');
   await page.waitForTimeout(150);
-  await page.click('#qChips [data-fk="bosta"]');
+  await page.click('#qChips [data-fk="showroom"]');
   await page.waitForTimeout(250);
-  is(await page.$$eval('#qBody tr', e => e.length) === READY_TOTAL, 'الفلتر اتمسح فعلاً من الطابور');
+  is(await page.$$eval('#qBody tr', e => e.length) === READY_COURIER.showroom,
+     'فلتر «شو روم» اشتغل فعلاً في تاب الأوردرات');
   await page.click('#tabAuditBtn');
+  await page.waitForTimeout(250);
+  is(num(await page.textContent('#audNScope')) === READY_COURIER.bosta,
+     '🔴 **ونطاق الجرد ما اتغيّرش** — الفلترين مستقلين تمامًا (قرار أحمد 17-09-2026)',
+     await page.textContent('#audNScope'));
+
+  // ── البدء: الفلاتر بتتقفل والنطاق بيبقى لقطة ──
+  await page.click('#audStartBtn');
+  await page.waitForTimeout(250);
+  is(await page.$eval('#audMsBtn-cgroup', el => el.disabled)
+     && await page.$eval('#audMsBtn-where', el => el.disabled),
+     '🔴 وبعد البدء الفلاتر **مقفولة** — قايمة شكلها شغّالة واختيار مالوش أثر بتقول إن النطاق اتغيّر وهو ما اتغيّرش');
+  is(await page.isVisible('#audFltLock'), 'وسطر «النطاق اتثبّت» بيبان — القفل بيتقال مش بيتخمّن');
+  is(await page.evaluate(() => audState.scopeLabel.includes('بوسطة')),
+     '⚠️ والفلتر بالنص متسجّل للتصدير (شيت «الملخص») — ملف بلا نطاقه بيتقري «الجرد كله»');
+  // نداء مباشر على الفلتر المقفول — الحارس التاني، مش الـ `disabled` بس
+  await page.evaluate(() => msToggleItem('aud', 'cgroup', 'مناديب'));
   await page.waitForTimeout(200);
   is(num(await page.textContent('#audNScope')) === READY_COURIER.bosta,
-     '🔴 والنطاق **لقطة** — الفلتر بعد البدء مابيغيّرش قايمة المفقود');
+     '🔴 والنطاق **لقطة** — حتى بنداء مباشر على الفلتر بعد البدء');
 
   // سكان أوردر في الطابور بس بره النطاق → سبب مستقل
   await page.fill('#audScanInput', '7212000000001');
@@ -1192,6 +1316,15 @@ console.log('\n══ ⑨ تاب «جرد المكتب» ══');
      '🔴 الجرد بيرجع بعد refresh — النطاق والسكانات مش بتضيع');
   is(await page.isVisible('#audSecMiss'),
      'وحالة «انتهى» بترجع كما هي — مش بترجع لأول الجرد');
+  is(await page.$eval('#audMsBtn-cgroup', el => el.disabled),
+     'والفلاتر بترجع **مقفولة** — الجرد لسه مقفول، فالنطاق لسه لقطة');
+
+  // «جرد جديد» بيفك القفل
+  page.once('dialog', d => d.accept());
+  await page.click('#audResetBtn');
+  await page.waitForTimeout(250);
+  is(!(await page.$eval('#audMsBtn-cgroup', el => el.disabled)),
+     '⚠️ و«جرد جديد» بيفك القفل — الفلاتر بتتفك من غير ما تتمسح');
   is(errors.length === 0, 'وصفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
 }
