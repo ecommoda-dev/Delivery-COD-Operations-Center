@@ -22,6 +22,17 @@
 > ⚠️ والطابورين Workers مستقلين في ريبوهاتهم (`Ready-Orders` ·
 > `Shipped-Orders`) — **مفيش Promote ليهم من هنا**.
 
+> 🔴 **وبطاقة «التسليم الجزئي» في «قسم أدوات العمليات» رابط خارجي — نفس نمط
+> الطابورين، مش دمج زي `order-status.html`/`cod-payment.html`.** الأداة
+> (شيل منتج من أوردر Shipped/Fulfilled من غير ما تلمس الباقي) عايشة في ريبو
+> ووركر مستقلين تمامًا (`Partial-Delivery` ·
+> `partial-delivery-worker.ecommoda-dev.workers.dev`)، بدخول وسر خاصين بيها
+> (`partial_delivery_worker_secret`) مستقلين عن مجموعة `delivery_cod_ops`.
+> ⛔ **ومفيش Promote ليها من هنا**، وأي تعديل في `index.js`/`index.html`
+> بتاعتها مكانه ريبوها هي — تفاصيل كاملة في `CLAUDE.md` بتاع ريبو
+> `Partial-Delivery`. **وقيمة `tool = 'partial_delivery'` لسه مش مسجّلة في
+> `ecommoda-constants` §7** — حاجز نشر مستقل عن أي حاجة في الهب ده.
+
 > 🔴 **وتاب «جرد المكتب» (v1.3.0) مابيكسرش قاعدة «عرض بحت»** — الجرد كله
 > **محلي على جهاز الموظف** (حالته في `sessionStorage`)، والنداء الزيادة
 > الوحيد هو `lookup_orders` وهو **قراءة**. صفر كتابة على شوبيفاي وصفر صف
