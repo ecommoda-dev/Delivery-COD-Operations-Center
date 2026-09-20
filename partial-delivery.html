@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>التسليم الجزئي — مركز عمليات الشحن والتحصيل</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
+<link rel="stylesheet" href="shared/shell.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<style>
+/* ══════════════════════════════════════════════════════
+   §STYLES — الصفحة دي بس.
+   🔴 **الصفحة دي مش متولّدة بسكربت** (عكس order-status.html/cod-payment.html) —
+      الريبو المستقل (Partial-Delivery) بقى Worker وبس، فمفيش index.html
+      تاني يتولّد منه الملف ده. أي تعديل على منطق الأداة بيتعمل هنا
+      مباشرة، وأي تعديل على الـ Worker بيتعمل في ريبو Partial-Delivery.
+   🔴 **مفيش كتلة توكنز هنا — كلها في shared/shell.css.** الكتلة اللي
+      كانت في النسخة المستقلة (~٤٠ متغيّر) اتشالت بالكامل: معظمها نفس
+      القيمة بالحرف في الـ shell، و`--border-light` اتوصّلت لأقرب توكن
+      شكله قريب (`var(--border)`)، والباقي (`--radius`/`--radius-sm`/
+      `--surface-hover`/`--neutral-dark`) القيمة اتغيّرت شوية (مثلاً ١٢px
+      بدل ١٠) عشان الصفحة تبقى على نفس مقياس باقي المركز — نفس المبدأ اللي
+      اتطبّق وقت دمج order-status.html/cod-payment.html.
+   ✂️ واللي اتشال كمان لأن الـ shell بيملكه: الـ reset و`body` و`.container`
+      · `.app-header*` · `.hbtn` · `.btn-primary`/`.btn-ghost`/`.btn-green`/
+      `.btn-red`/`.btn-outline` · `.order-link`/`.order-num` · `.card`
+      الأساسي · `.main-tabs-bar`/`.main-tab-btn` · مودال الإعدادات
+      (`.settings-*`) · `.eco-overlay`/`.eco-modal*` · `.about-sec*` ·
+      `.cl-*` · التوست.
+   ✂️ وشاشة الدخول كلها (`.login-*` · `.pin-*`) — الدخول بقى مرة واحدة في
+      `index.html` بتاع المركز.
+   ══════════════════════════════════════════════════════ */
+
+/* 🔴 الاستثناء الوحيد من «صفر توكنز في الصفحة» — الأداة دي فيها تاب سجل،
+   يعني Tier M (1200) مش Tier L (1400) بتاع طوابير الهب. */
+:root { --container-max: 1200px; }
+
+.card h3 { margin: 0 0 12px; font-size: 15px; }
+
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* ── scan / search ── */
+.pd-scan-row { display: flex; gap: 10px; }
+.pd-scan-row input {
+  flex: 1; padding: 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+  font-size: 15px; font-family: var(--font-mono); direction: ltr; text-align: right;
+}
+.pd-scan-row input.has-value { border-color: var(--accent-border); background: var(--accent-light); }
+.pd-scan-row input:focus { outline: none; border-color: var(--accent); }
+
+/* ── order summary ── */
+.pd-order-hdr { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.pd-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.pd-badge.ok    { background: var(--green-light);  color: var(--green-dark); }
+.pd-badge.bad   { background: var(--red-light);    color: var(--red-dark); }
+.pd-badge.mono  { font-family: var(--font-mono); direction: ltr; background: var(--surface-2); border: 1px solid var(--border-strong); }
+
+.pd-elig-banner { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.pd-elig-banner.ok  { background: var(--green-light); color: var(--green-dark); border: 1px solid var(--green); }
+.pd-elig-banner.bad { background: var(--red-light);   color: var(--red-dark);   border: 1px solid var(--red); }
+
+/* ── line items ── */
+.pd-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; }
+.pd-item.removed { opacity: .45; }
+.pd-item img { width: 46px; height: 46px; object-fit: cover; border-radius: 6px; background: var(--surface-2); flex-shrink: 0; }
+.pd-item .info { flex: 1; min-width: 0; }
+.pd-item .info .t { font-weight: 700; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pd-item .info .s { font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); direction: ltr; text-align: right; }
+.pd-item .qty { font-family: var(--font-mono); font-weight: 700; font-size: 13px; color: var(--text-mid); white-space: nowrap; }
+.pd-item input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--red); }
+
+.pd-opts { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+.pd-opts label { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.pd-opts textarea, .pd-opts input[type="text"] {
+  width: 100%; padding: 9px 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+  font-family: var(--font-body); font-size: 13.5px; resize: vertical;
+}
+
+/* ── result 4-state ── */
+.pd-result { padding: 14px; border-radius: var(--radius-sm); margin-top: 14px; }
+.pd-result.success { background: var(--green-light); border: 1px solid var(--green); }
+.pd-result.warning  { background: var(--amber-light); border: 1px solid var(--amber); }
+.pd-result.error    { background: var(--red-light);   border: 1px solid var(--red); }
+.pd-result.already  { background: var(--surface-2);   border: 1px solid var(--border-strong); }
+.pd-result .badge { font-weight: 800; font-size: 13.5px; margin-bottom: 6px; display: block; }
+.pd-result.success .badge { color: var(--green-dark); }
+.pd-result.warning  .badge { color: var(--amber-dark); }
+.pd-result.error    .badge { color: var(--red-dark); }
+.pd-result.already  .badge { color: var(--neutral-dark); }
+.pd-result ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: 12.5px; }
+
+/* ── data table (log tab) ── */
+.unified-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: visible; }
+.section-divider { border-top: 1px solid var(--border); }
+.log-toolbar { display: flex; gap: 10px; padding: 14px; flex-wrap: wrap; align-items: center; }
+.log-toolbar .srch-wrap { position: relative; flex: 1; min-width: 200px; }
+.log-toolbar .srch-wrap input {
+  width: 100%; padding: 9px 12px 9px 34px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-size: 13px;
+}
+.log-toolbar .srch-wrap input.has-value { border-color: var(--accent-border); background: var(--accent-light); }
+.log-toolbar .srch-wrap .ic { position: absolute; right: auto; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+.results-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 13px; }
+.results-count { font-weight: 800; font-size: 14px; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 6px; padding: 3px 10px; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.data-table th, .data-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: right; }
+.data-table th { background: var(--surface-2); font-weight: 700; border-bottom: 2px solid var(--border); position: sticky; top: 57px; }
+.result-chip { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.result-chip.success { background: var(--green-light); color: var(--green-dark); }
+.result-chip.warning  { background: var(--amber-light); color: var(--amber-dark); }
+.result-chip.error    { background: var(--red-light); color: var(--red-dark); }
+.result-chip.rejected, .result-chip.already { background: var(--surface-2); color: var(--neutral-dark); }
+.pagination-row { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; }
+.page-info { font-size: 13px; color: var(--text-secondary); font-family: var(--font-mono); padding: 0 8px; }
+.page-btn { padding: 6px 14px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
+.page-btn:disabled { opacity: .4; cursor: not-allowed; }
+.export-warn { margin: 0 14px 12px; padding: 10px 14px; border-radius: 9px; background: var(--amber-light); border: 1px solid var(--amber); color: var(--amber-dark); font-size: 13px; font-weight: 600; }
+
+/* ── multi-select filter (compact) ── */
+.ms-wrap { position: relative; }
+.ms-btn { padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: var(--font-body); }
+.ms-btn.active { border-color: var(--accent); color: var(--accent); }
+.ms-list { position: absolute; top: 100%; margin-top: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 400; min-width: 200px; max-height: 260px; overflow-y: auto; display: none; }
+.ms-list.open { display: block; }
+.ms-ftr-top { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.ms-ftr-top button { font-size: 11.5px; color: var(--red); background: none; border: none; cursor: pointer; font-weight: 700; }
+.ms-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; font-size: 12.5px; cursor: pointer; }
+.ms-item:hover { background: var(--surface-hover); }
+
+/* ── confirm dialog content — الـ shell بيدّي .eco-overlay/.eco-modal بس،
+   مالوش نافذة تأكيد خالص، فمحتواها الخاص فاضل هنا ── */
+.confirm-lines { text-align: right; margin: 10px 0; padding: 0; list-style: none; }
+.confirm-lines li { padding: 6px 10px; border-radius: 7px; background: var(--surface-2); margin-bottom: 6px; font-size: 13px; }
+.confirm-lines li.soft { color: var(--text-secondary); }
+.confirm-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-start; }
+
+.q-empty { text-align: center; padding: 30px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     🔴 التسليم الجزئي — من v1.10.0 صفحة جوّه المركز بس. الريبو المستقل
+        (Partial-Delivery) بقى Worker وبس، ومفيش صفحة تانية ولا رابط
+        خارجي. تفاصيل الدمج كاملة في CLAUDE.md بتاع الريبو ده.
+     ══════════════════════════════════════════════════════ -->
+<div id="headerMount"></div>
+
+<div class="container">
+  <div class="main-tabs-bar">
+    <button class="main-tab-btn active" id="tabTool" onclick="switchMainTab('tool')">📦 تسليم جزئي</button>
+    <button class="main-tab-btn" id="tabLog" onclick="switchMainTab('log')">🧾 السجل</button>
+  </div>
+
+  <!-- ══════════════ §TOOL ══════════════ -->
+  <div id="toolTabContent">
+    <div class="card">
+      <h3>🔎 ابحث عن الأوردر</h3>
+      <div class="pd-scan-row">
+        <input type="text" id="scanInput" placeholder="رقم الأوردر أو سكان الـ Order ID" autofocus>
+        <button class="btn btn-primary" onclick="handleScan()">بحث</button>
+      </div>
+    </div>
+
+    <div id="orderCard" style="display:none;"></div>
+  </div>
+
+  <!-- ══════════════ §LOG ══════════════ -->
+  <div id="logTabContent" style="display:none;">
+    <div class="unified-section">
+      <div class="log-toolbar">
+        <div class="srch-wrap">
+          <span class="ic">🔍</span>
+          <input type="text" id="logSearch" placeholder="ابحث برقم الأوردر أو الملاحظات">
+        </div>
+        <div class="ms-wrap">
+          <button class="ms-btn" id="msBtn-employee" onclick="msToggle('employee')">👤 الموظف</button>
+          <div class="ms-list" id="msList-employee"></div>
+        </div>
+        <div class="ms-wrap">
+          <button class="ms-btn" id="msBtn-type" onclick="msToggle('type')">📋 النوع</button>
+          <div class="ms-list" id="msList-type"></div>
+        </div>
+        <input type="date" id="logDateFrom" onclick="this.showPicker&&this.showPicker();" onchange="onLogFilterChange()">
+        <input type="date" id="logDateTo" onclick="this.showPicker&&this.showPicker();" onchange="onLogFilterChange()">
+        <button class="btn btn-outline btn-sm" onclick="exportLogXLSX()">⬇️ تصدير XLSX</button>
+      </div>
+      <div class="export-warn" id="logExportWarn" style="display:none;"></div>
+      <div class="section-divider"></div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>الوقت</th><th>الأوردر</th><th>النوع</th><th>النتيجة</th><th>الموظف</th><th>ملاحظات</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody"></tbody>
+        </table>
+      </div>
+      <div class="results-row">
+        <span>النتائج: <span class="results-count" id="logResultsCount">—</span></span>
+      </div>
+      <div class="pagination-row" id="paginationRow" style="display:none;">
+        <button class="page-btn" id="btnPrevPage" onclick="goPage(-1)">→ السابق</button>
+        <span class="page-info" id="pageInfo"></span>
+        <button class="page-btn" id="btnNextPage" onclick="goPage(1)">التالي ←</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- مودال الإعدادات + حاوية التوست — بيتحقنوا من الـ shell -->
+<div id="sharedMount"></div>
+
+<!-- ══════════════ §CHANGELOG ══════════════ -->
+<div class="eco-overlay" id="changelogOverlay">
+  <div class="eco-modal" style="max-width:560px;">
+    <div class="eco-modal-hdr"><h3>📋 سجل الإصدارات</h3><button class="modal-close-x" onclick="closeChangelog()">✕</button></div>
+    <div class="eco-modal-body">
+      <!-- 🔴 `#clLatestVerBadge` بتتملى من `renderVersionUI()` بنسخة الهب —
+           مصدر واحد للنسخة (Standards #24). -->
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.10.0</span>
+          <span class="cl-ver-date">20-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>الأداة دي بقت جوّه مركز عمليات الشحن والتحصيل — بدل رابط خارجي.</strong> الدخول بقى <strong>مرة واحدة</strong> من الشاشة الرئيسية للمركز، والسر بقى <strong>قيمة واحدة</strong> لكل أدوات المركز (مجموعة <code>delivery_cod_ops</code>). وفيه زرار <strong>🏠 الرئيسية</strong> في الهيدر بيرجّعك للمركز.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>⛔ <strong>الريبو المستقل (<code>Partial-Delivery</code>) بقى Worker وبس</strong> — الصفحة القديمة اتشالت خالص، ومفيش رابط خارجي تاني لأي نسخة قديمة. (مختلف عن «تحديث حالة الأوردرات»/«تحصيل الأوردرات COD» اللي روابطهم القديمة لسه شغّالة في ريبوهاتهم.)</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>منطق الأداة ما اتلمسش ولا سطر.</strong> نفس الـ Worker (<code>partial-delivery-worker</code>) ونفس الخطوات (إلغاء فلفلمنت → Order Edit → إعادة فلفلمنت) ونفس السجل بالظبط — اللي اتغيّر هو <strong>الإطار</strong> بس.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.0.1 — الواجهة الأصلية</span>
+          <span class="cl-ver-date">20-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>«شيل المنتجات المحددة» كان بيفشل دايمًا بـ <code>calculatedOrder_lookup: Field 'calculatedOrder' doesn't exist on type 'QueryRoot'</code> — بقى بينادي <code>node(id:)</code> والمطابقة بالرقم العددي للـ ID، نفس نمط <code>Order-Item-Remover</code>.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.0.0</span>
+          <span class="cl-ver-date">20-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>الإطلاق الأول: بحث عن أوردر بالاسم أو بالـ Order ID، اختيار منتج (أو أكتر) وحذفه من الأوردر مع الحفاظ على الفلفلمنت لباقي المنتجات.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ §ABOUT ══════════════ -->
+<div class="eco-overlay" id="aboutOverlay">
+  <div class="eco-modal">
+    <div class="eco-modal-hdr"><h3>ℹ️ عن الأداة — التسليم الجزئي</h3><button class="modal-close-x" onclick="closeAbout()">✕</button></div>
+    <div class="eco-modal-body">
+      <details class="about-sec" open>
+        <summary>🏠 الأداة دي جوّه مركز الشحن والتحصيل</summary>
+        <div class="about-sec-body">
+          <p><strong>الأداة دي بقت صفحة جوّه مركز عمليات الشحن والتحصيل</strong> — مش أداة
+             مستقلة بشاشة دخول خاصة بيها. اللي اتغيّر بالظبط:</p>
+          <ul>
+            <li><strong>الدخول مرة واحدة</strong> من الشاشة الرئيسية للمركز. الجلسة في
+                <code>sessionStorage</code> تحت <code>dco_session</code>، وبتموت بقفل التاب
+                أو بالخروج. ⚠️ ومعنى كده إن <strong>صف الدخول في D1 بيتكتب باسم المركز</strong>
+                (<code>delivery_cod_ops_center</code>) مش باسم <code>partial_delivery</code> —
+                لكن كل صف <code>remove_item</code>/<code>remove_failed</code> لسه فيه اسم
+                الموظف زي ما هو.</li>
+            <li><strong>سر واحد للمركز كله</strong> (مجموعة <code>delivery_cod_ops</code>) بدل
+                سر مستقل خاص بالأداة دي، وبيتلزق <strong>مرة واحدة على كل جهاز</strong>.</li>
+            <li><strong>🏠 الرئيسية</strong> في الهيدر بترجّعك للمركز.</li>
+            <li>🔴 <strong>ومنطق الحذف ما اتلمسش ولا سطر</strong> — نفس الـ Worker
+                (<code>partial-delivery-worker</code>) ونفس ترتيب إلغاء الفلفلمنت → Order Edit
+                → إعادة الفلفلمنت، ونفس السجل بالظبط.</li>
+          </ul>
+          <p>⛔ <strong>وعكس «تحديث حالة الأوردرات»/«تحصيل الأوردرات COD»، مفيش رابط قديم
+             شغّال.</strong> الريبو المستقل (<code>Partial-Delivery</code>) بقى Worker وبس —
+             الصفحة اللي كانت فيه اتشالت، ومركز الشحن والتحصيل هو المكان الوحيد اللي
+             الأداة دي بتفتح فيه.</p>
+        </div>
+      </details>
+
+      <details class="about-sec">
+        <summary>📋 وصف الأداة</summary>
+        <div class="about-sec-body">
+          <p>الأداة دي لأوردر <b>S1 = Shipped</b> (أو <b>In-Return</b>) ومنتجاته <b>Fulfilled</b>،
+             واتضح إن منتج أو أكتر منه مش هيتسلّم فعليًا. الأداة بتشيل المنتج(ات) دي من الأوردر
+             بلا ما تلمس الباقي.</p>
+          <h4>مين بيستخدمها</h4>
+          <p>موظفو الشحن والتحصيل — بعد ما يتأكد إن جزء من الشحنة مش هيوصل (ضاع، اتلف، رجع من العميل جزئيًا).</p>
+          <h4>إزاي بتشتغل</h4>
+          <ol>
+            <li>الدخول بيحصل <strong>مرة واحدة في الشاشة الرئيسية للمركز</strong> — وكل عملية هنا
+                بتتنسب للموظف اللي داخل بيه.</li>
+            <li>ابحث عن الأوردر برقمه (مثلًا 1780 أو #1780) أو اسكن الـ Order ID الطويل من الباركود.</li>
+            <li>الأداة بتتأكد إن الأوردر S1=Shipped/In-Return وFulfilled — لو مش كده بترفض بوضوح.</li>
+            <li>اختر المنتج(ات) المطلوب حذفها من قايمة المنتجات.</li>
+            <li>حدّد لو عايز ترجّع الكمية للمخزون (Restock) واكتب سبب لو حابب.</li>
+            <li>اضغط «شيل المنتجات المحددة» وأكّد في النافذة اللي بتقول العدد بالظبط.</li>
+            <li>الأداة بتلغي الفلفلمنت الحالي، تشيل المنتج(ات) من الأوردر (Order Edit)، وترجّع تفلفل الباقي تلقائيًا.</li>
+          </ol>
+          <h4>الـ Endpoints الرئيسية</h4>
+          <table>
+            <tr><th>action</th><th>الوصف</th></tr>
+            <tr><td>lookup_order</td><td>قراءة أوردر بالاسم أو بالـ ID + فحص الأهلية</td></tr>
+            <tr><td>remove_items</td><td>الفعل الأساسي — إلغاء فلفلمنت → تعديل أوردر → إعادة فلفلمنت (كتابة)</td></tr>
+            <tr><td>get_logs / get_logs_count / get_logs_export</td><td>تاب السجل</td></tr>
+          </table>
+        </div>
+      </details>
+      <details class="about-sec">
+        <summary>🔧 تشريح الكود</summary>
+        <div class="about-sec-body">
+          <h4>FEATURE MAP</h4>
+          <ul>
+            <li>§SCAN — قراءة مربع البحث بنمط السكانر (دفعة أحرف سريعة = سكانر)</li>
+            <li>§ORDER-JS — عرض الأوردر والمنتجات وحالة الأهلية</li>
+            <li>§REMOVE-JS — تأكيد الحذف والنداء الفعلي وعرض الحالات الأربعة</li>
+            <li>§LOG-JS — جدول السجل والفلاتر والتصدير</li>
+          </ul>
+          <h4>KEY VARIABLES</h4>
+          <ul>
+            <li><code>DCO_WORKERS.partialDelivery.url</code> + <code>.min</code> (في
+                <code>shared/shell.js</code> §CONFIG) — بدل <code>WORKER_URL</code>/
+                <code>MIN_WORKER_VERSION</code> المحليين اللي كانت في الصفحة المستقلة</li>
+            <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في
+                <code>shared/shell.js</code>) — سر مجموعة <code>delivery_cod_ops</code>
+                المشترك، بدل <code>partial_delivery_worker_secret</code> المستقل</li>
+          </ul>
+          <h4>NOTES / QUIRKS</h4>
+          <ul>
+            <li>🔴 الأداة بقت صفحة جوّه المركز — الريبو المستقل (<code>Partial-Delivery</code>)
+                بقى <strong>Worker وبس</strong>، ومفيش صفحة تانية ولا رابط خارجي.</li>
+            <li>الحذف عملية لا رجعة فيها — نافذة تأكيد إلزامية قبل التنفيذ (الـ shell مالوش
+                نافذة تأكيد خالص، فهي متسابة في الصفحة دي بس).</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ §CONFIRM ══════════════ -->
+<div class="eco-overlay" id="confirmOverlay">
+  <div class="eco-modal" style="max-width:420px;">
+    <div class="eco-modal-hdr"><h3 id="confirmHdr">⚠️ تأكيد</h3><button class="modal-close-x" onclick="closeConfirm(false)">✕</button></div>
+    <div class="eco-modal-body">
+      <p id="confirmLead"></p>
+      <ul class="confirm-lines" id="confirmLines"></ul>
+      <div class="confirm-actions">
+        <button class="btn btn-red" id="confirmOkBtn" onclick="closeConfirm(true)"></button>
+        <button class="btn btn-ghost" onclick="closeConfirm(false)">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="shared/shell.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script>
+// ══════════════════════════════════════════════════════
+// §CONFIG — بوابة الجلسة + نداءات الـ shell
+// ══════════════════════════════════════════════════════
+//
+// 🔴 **أول سطر في الصفحة — بوابة الجلسة.** `requireSession()` بترمي عن
+//    قصد لو مفيش جلسة: من غير الرمي باقي السكربت بيكمّل تنفيذ وبينادي
+//    الـ Worker وبيرسم جدول **أثناء** ما التحويل شغّال.
+const dcoSession = requireSession();
+
+// 🔴 **الرابط والسر بقوا من الـ shell.** `WORKER_URL` و`LS_SECRET`
+//    (`partial_delivery_worker_secret`) **اتشالوا**: الأداة بقت جوّه
+//    المركز، والسر قيمة واحدة لمجموعة `delivery_cod_ops`.
+//    ⚠️ **وشرطه مذكور بالاسم:** `partial-delivery-worker` لازم يكون
+//       **اتضمّ للمجموعة** (`WORKER_SECRET` اتدوّر لقيمة المجموعة من
+//       داشبورد كلاودفلير). قبل الضم كل نداء هنا بيرجّع **401**.
+const { apiGet, apiPost } = dcoApi(DCO_WORKERS.partialDelivery);
+
+// الفحص الذاتي وحارس النسخة بيمشوا على الـ Worker ده بس.
+const PAGE_WORKERS = ['partialDelivery'];
+
+// العقد اللي باقي كود الأداة بيقرا منه (`employee` مع كل `remove_items`).
+let currentEmployee = { username: dcoSession.username, displayName: dcoSession.displayName };
+
+// ⛔ `esc` · `isConfigured` · `openSettings`/`closeSettings`/`saveSettings` ·
+//    `showToast` · `playBeep` · `cmpVersion`/`checkWorkerVersion`/
+//    `showWorkerStale` · `openAbout`/`openChangelog` · `runDiag` ·
+//    §AUTH-JS كلها (قايمة الموظفين · شاشة الـ PIN · `verify_employee` ·
+//    `finishLogin` · `doLogout`) — اتشالوا، بقوا من `shared/shell.js`.
+//    ⚠️ **الحذف مش اختياري** — بعضهم `const`/`let` (`CAIRO_TZ` ·
+//       `_cairoFmt`) كانت هترمي «Identifier has already been declared»
+//       وتقتل سكربت الصفحة كله لو فضلت مع نسخة الـ shell.
+// ⚠️ **و`formatDateTime` بقت نسخة الـ shell** — نفس الصيغة (📅 يوم/شهر/سنة
+//    🕐 ساعة:دقيقة)، والفرق الوحيد المُعلَن: صباحًا/مساءً بالكامل بدل
+//    اختصار ص/م. و`cairoDateStr()` بقت `cairoDayStr(new Date())`.
+
+// ══════════════════════════════════════════════════════
+// §SCAN
+// ══════════════════════════════════════════════════════
+let scanTimer;
+document.getElementById('scanInput').addEventListener('input', () => {
+  clearTimeout(scanTimer);
+  const isBurst = document.getElementById('scanInput').value.length > 3;
+  scanTimer = setTimeout(handleScan, isBurst ? 150 : 400);
+});
+document.getElementById('scanInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { clearTimeout(scanTimer); handleScan(); } });
+
+let currentOrder = null;
+
+async function handleScan() {
+  const input = document.getElementById('scanInput');
+  const val = input.value.trim();
+  if (!val) return;
+  input.value = '';
+  input.focus();
+  await lookupOrder(val);
+}
+
+// ══════════════════════════════════════════════════════
+// §ORDER-JS
+// ══════════════════════════════════════════════════════
+async function lookupOrder(q) {
+  const card = document.getElementById('orderCard');
+  card.style.display = '';
+  card.innerHTML = '<div class="card"><div class="q-empty">⏳ جاري البحث عن الأوردر...</div></div>';
+  try {
+    const d = await apiGet('lookup_order', { q });
+    if (!d.ok) { card.innerHTML = `<div class="card"><div class="pd-elig-banner bad">${esc(d.error)}</div></div>`; playBeep('warn'); return; }
+    currentOrder = d.order;
+    renderOrder(d.order, d.eligibility);
+  } catch (e) {
+    card.innerHTML = `<div class="card"><div class="pd-elig-banner bad">تعذّر الاستعلام: ${esc(e.message)}</div></div>`;
+    playBeep('error');
+  }
+}
+
+function renderOrder(order, elig) {
+  const card = document.getElementById('orderCard');
+  const items = order.lineItems || [];
+  const itemsHtml = items.map((li, i) => `
+    <div class="pd-item ${li.removed ? 'removed' : ''}">
+      ${li.image ? `<img src="${esc(li.image)}" alt="">` : `<div class="pd-item img" style="width:46px;height:46px;background:var(--surface-2);border-radius:6px;"></div>`}
+      <input type="checkbox" data-li="${esc(li.id)}" ${li.removed ? 'disabled' : ''} onchange="updateRemoveBtn()">
+      <div class="info">
+        <div class="t" title="${esc(li.title)}">${esc(li.title)}${li.variantTitle ? ' — ' + esc(li.variantTitle) : ''}</div>
+        <div class="s">${esc(li.sku || '—')}</div>
+      </div>
+      <div class="qty">${li.removed ? 'اتشال' : `الكمية: ${li.currentQuantity}`}</div>
+    </div>`).join('');
+
+  card.innerHTML = `
+    <div class="card">
+      <div class="pd-order-hdr">
+        <div>
+          <a class="order-link" href="https://admin.shopify.com/store/6c7e1a-53/orders/${esc(order.id)}" target="_blank" rel="noopener">${esc(order.name)}</a>
+          <span style="margin-inline-start:8px;color:var(--text-secondary);">${esc(order.customer || '—')}</span>
+        </div>
+        <div>
+          <span class="pd-badge mono">S1: ${esc(order.s1 || '—')}</span>
+          <span class="pd-badge mono">${esc(order.fulfillmentStatus)}</span>
+        </div>
+      </div>
+      <div class="pd-elig-banner ${elig.eligible ? 'ok' : 'bad'}">
+        ${elig.eligible ? '✅ الأوردر مؤهّل للتسليم الجزئي' : `⛔ ${esc(elig.reason)}`}
+      </div>
+      ${elig.eligible ? `
+        <h3>المنتجات</h3>
+        ${itemsHtml}
+        <div class="pd-opts">
+          <label><input type="checkbox" id="optRestock"> رجّع الكمية للمخزون (Restock)</label>
+          <input type="text" id="optReason" placeholder="سبب الحذف (اختياري)">
+        </div>
+        <button class="btn btn-red" id="removeBtn" disabled onclick="confirmRemove()">🗑 شيل المنتجات المحددة</button>
+        <div id="removeResult"></div>
+      ` : ''}
+    </div>`;
+}
+
+function updateRemoveBtn() {
+  const n = document.querySelectorAll('#orderCard input[type="checkbox"][data-li]:checked').length;
+  const btn = document.getElementById('removeBtn');
+  if (!btn) return;
+  btn.disabled = n === 0;
+  btn.textContent = n ? `🗑 شيل ${n} منتج محدد` : '🗑 شيل المنتجات المحددة';
+}
+
+// ══════════════════════════════════════════════════════
+// §REMOVE-JS
+// ══════════════════════════════════════════════════════
+async function confirmRemove() {
+  const checked = [...document.querySelectorAll('#orderCard input[type="checkbox"][data-li]:checked')];
+  if (!checked.length) return;
+  const ids = checked.map(c => c.dataset.li);
+  const restock = document.getElementById('optRestock').checked;
+  const reason  = document.getElementById('optReason').value.trim();
+
+  const ok = await askConfirm({
+    header: '⚠️ تأكيد التسليم الجزئي',
+    lead: `هتشيل ${ids.length} منتج من الأوردر ${currentOrder.name}:`,
+    lines: [
+      { text: '🚫 الحذف نهائي — الأوردر هيرجع Shipped بمنتجات أقل' },
+      { text: restock ? '📦 الكمية هترجع للمخزون' : '⚠️ الكمية مش هترجع للمخزون (بلا Restock)', soft: true },
+    ],
+    okLabel: `تأكيد — شيل ${ids.length} منتج`,
+  });
+  if (!ok) return;
+
+  const btn = document.getElementById('removeBtn');
+  btn.disabled = true;
+  const resEl = document.getElementById('removeResult');
+  resEl.innerHTML = '<div class="q-empty">⏳ جاري التنفيذ — من فضلك متقفلش الصفحة...</div>';
+
+  try {
+    const d = await apiPost('remove_items', {
+      employee: currentEmployee.username, orderId: currentOrder.id, lineItemIds: ids, restock, reason,
+    });
+    renderRemoveResult(d);
+    if (d.status === 'success' || d.status === 'already') { playBeep('success'); await lookupOrder(currentOrder.name); }
+    else if (d.status === 'warning') { playBeep('warn'); await lookupOrder(currentOrder.name); }
+    else { playBeep('error'); btn.disabled = false; }
+  } catch (e) {
+    resEl.innerHTML = `<div class="pd-result error"><span class="badge">✗ فشل</span>${esc(e.message)}</div>`;
+    playBeep('error'); btn.disabled = false;
+  }
+}
+
+function renderRemoveResult(d) {
+  const resEl = document.getElementById('removeResult');
+  const map = { success: ['success', '✓ تم'], warning: ['warning', '⚠ تم جزئيًا'], error: ['error', '✗ فشل'], already: ['already', 'ℹ️ متعمل خلاص'] };
+  const [cls, label] = map[d.status] || ['error', d.status];
+  const actions = (d.actions || []).map(a => `<li>${esc(a)}</li>`).join('');
+  const warnings = (d.warnings || []).map(w => `<li>${esc(w)}</li>`).join('');
+  resEl.innerHTML = `
+    <div class="pd-result ${cls}">
+      <span class="badge">${label}</span>
+      ${d.error ? esc(d.error) : ''}
+      ${actions ? `<ul>${actions}</ul>` : ''}
+      ${warnings ? `<ul>${warnings}</ul>` : ''}
+      ${d.logged === false ? '<div style="margin-top:6px;color:var(--amber-dark);">⚠️ العملية تمت لكن ما اتسجّلتش في السجل</div>' : ''}
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// §LOG-JS — multi-select minimal + server pagination
+// ══════════════════════════════════════════════════════
+const LOG_PAGE_SIZE = 100;
+let logCurrentPage = 1, logTotalCount = 0, logSearchTimer = null;
+const msState = { employee: new Set(), type: new Set() };
+const TYPE_LABELS = { remove_item: 'شيل منتج', remove_failed: 'فشل الشيل', rejected: 'مرفوض' };
+let allEmployeesCache = null;
+
+document.getElementById('logSearch').addEventListener('input', function () {
+  this.classList.toggle('has-value', !!this.value);
+  clearTimeout(logSearchTimer);
+  logSearchTimer = setTimeout(() => { logCurrentPage = 1; fetchLog(); }, 400);
+});
+
+function msToggle(key) {
+  document.querySelectorAll('.ms-list').forEach(l => { if (l.id !== `msList-${key}`) l.classList.remove('open'); });
+  document.getElementById(`msList-${key}`).classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+  if (!document.contains(e.target)) return;
+  if (e.target.closest('.ms-wrap')) return;
+  document.querySelectorAll('.ms-list').forEach(l => l.classList.remove('open'));
+});
+
+async function syncMsItems() {
+  if (!allEmployeesCache) {
+    try { allEmployeesCache = (await apiGet('get_employees')).employees || []; } catch { allEmployeesCache = []; }
+  }
+  renderMsList('employee', allEmployeesCache.map(e => ({ value: e.username, label: e.display_name })));
+  renderMsList('type', Object.entries(TYPE_LABELS).map(([value, label]) => ({ value, label })));
+}
+function renderMsList(key, options) {
+  const list = document.getElementById(`msList-${key}`);
+  list.innerHTML = `<div class="ms-ftr-top"><button onclick="msClear('${key}')">مسح الاختيار</button></div>` +
+    options.map(o => `<label class="ms-item"><input type="checkbox" data-v="${esc(o.value)}" ${msState[key].has(o.value) ? 'checked' : ''} onchange="msItemChange('${key}', this)"> ${esc(o.label)}</label>`).join('');
+  const btn = document.getElementById(`msBtn-${key}`);
+  btn.classList.toggle('active', msState[key].size > 0);
+}
+function msItemChange(key, el) {
+  const v = el.dataset.v;
+  if (el.checked) msState[key].add(v); else msState[key].delete(v);
+  document.getElementById(`msBtn-${key}`).classList.toggle('active', msState[key].size > 0);
+  onLogFilterChange();
+}
+function msClear(key) {
+  msState[key].clear();
+  syncMsItems();
+  onLogFilterChange();
+}
+
+function onLogFilterChange() { logCurrentPage = 1; clearExportWarn(); fetchLog(); }
+function clearExportWarn() { const w = document.getElementById('logExportWarn'); w.style.display = 'none'; w.innerHTML = ''; }
+
+function logParams() {
+  const p = {};
+  if (msState.employee.size) p.employees = [...msState.employee].join(',');
+  if (msState.type.size)     p.types     = [...msState.type].join(',');
+  const search = document.getElementById('logSearch').value.trim();
+  if (search) p.search = search;
+  const dateFrom = document.getElementById('logDateFrom').value;
+  const dateTo   = document.getElementById('logDateTo').value;
+  if (dateFrom) p.dateFrom = dateFrom + 'T00:00:00.000Z';
+  if (dateTo)   p.dateTo   = dateTo   + 'T23:59:59.999Z';
+  return p;
+}
+
+async function fetchLog() {
+  if (!isConfigured() || !currentEmployee) return;
+  const offset = (logCurrentPage - 1) * LOG_PAGE_SIZE;
+  const base = logParams();
+  try {
+    const [pageData, countData] = await Promise.all([
+      apiGet('get_logs', { ...base, limit: LOG_PAGE_SIZE, offset }),
+      apiGet('get_logs_count', base),
+    ]);
+    logTotalCount = countData.total || 0;
+    renderLog(pageData.entries || []);
+    renderPagination();
+    document.getElementById('logResultsCount').textContent = logTotalCount.toLocaleString('en-US');
+  } catch (e) { showToast(`تعذّر تحميل السجل: ${e.message}`, 'error'); }
+}
+
+function safeExtra(entry) { try { return entry.extra ? JSON.parse(entry.extra) : {}; } catch { return {}; } }
+
+function renderLog(entries) {
+  const body = document.getElementById('logTableBody');
+  if (!entries.length) { body.innerHTML = '<tr><td colspan="6" class="q-empty">مفيش نتايج</td></tr>'; return; }
+  body.innerHTML = entries.map(e => {
+    const extra = safeExtra(e);
+    const result = extra.result || null;
+    const chip = result ? `<span class="result-chip ${result}">${esc(result)}</span>` : '—';
+    return `<tr>
+      <td>${esc(formatDateTime(e.timestamp))}</td>
+      <td>${e.order_id ? `<a class="order-link" href="https://admin.shopify.com/store/6c7e1a-53/orders/${esc(e.order_id)}" target="_blank" rel="noopener">${esc(e.order_name || e.order_id)}</a>` : '—'}</td>
+      <td>${esc(TYPE_LABELS[e.type] || e.type)}</td>
+      <td>${chip}</td>
+      <td>${esc(e.employee || '—')}</td>
+      <td>${esc(e.notes || '—')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPagination() {
+  const totalPages = Math.max(1, Math.ceil(logTotalCount / LOG_PAGE_SIZE));
+  document.getElementById('paginationRow').style.display = totalPages > 1 ? '' : 'none';
+  document.getElementById('pageInfo').textContent = `صفحة ${logCurrentPage} من ${totalPages}`;
+  document.getElementById('btnPrevPage').disabled = logCurrentPage <= 1;
+  document.getElementById('btnNextPage').disabled = logCurrentPage >= totalPages;
+}
+function goPage(dir) {
+  const totalPages = Math.ceil(logTotalCount / LOG_PAGE_SIZE);
+  const next = logCurrentPage + dir;
+  if (next < 1 || next > totalPages) return;
+  logCurrentPage = next; fetchLog();
+}
+
+async function exportLogXLSX() {
+  clearExportWarn();
+  if (typeof ExcelJS === 'undefined') { showToast('مكتبة التصدير ما اتحمّلتش — تأكد إن CDN مش محجوب', 'error', 7000); return; }
+  let data;
+  try { data = await apiGet('get_logs_export', logParams()); }
+  catch (e) { showToast(`تعذّر التصدير: ${e.message}`, 'error'); return; }
+  const entries = data.entries || [];
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('السجل');
+  ws.columns = [
+    { header: 'الوقت', key: 'timestamp', width: 22 },
+    { header: 'الأوردر', key: 'order_name', width: 14 },
+    { header: 'النوع', key: 'type', width: 14 },
+    { header: 'النتيجة', key: 'result', width: 12 },
+    { header: 'الموظف', key: 'employee', width: 16 },
+    { header: 'ملاحظات', key: 'notes', width: 40 },
+  ];
+  entries.forEach(e => ws.addRow({
+    timestamp: e.timestamp, order_name: e.order_name || e.order_id || '', type: TYPE_LABELS[e.type] || e.type,
+    result: safeExtra(e).result || '', employee: e.employee || '', notes: e.notes || '',
+  }));
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type: 'application/octet-stream' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `partial-delivery-log-${cairoDayStr(new Date())}.xlsx`;
+  a.click();
+
+  const truncated = data.truncated === true || (data.cap && entries.length >= data.cap);
+  const warn = document.getElementById('logExportWarn');
+  if (truncated) {
+    warn.innerHTML = `⚠️ <b>التصدير اتقص</b> — الملف فيه ${entries.length.toLocaleString('en-US')} صف من أصل <b>${(data.total||0).toLocaleString('en-US')}</b> مطابقين للفلاتر. ضيّق الفترة أو الفلاتر وصدّر على دفعات.`;
+    warn.style.display = '';
+    showToast('⚠️ التصدير اتقص — الملف مش كامل', 'error', 7000);
+  } else { showToast(`تم تصدير ${entries.length.toLocaleString('en-US')} عملية ✓`, 'success'); }
+}
+
+// ── generic confirm — الـ shell مالوش نافذة تأكيد خالص ──────────
+let _confirmResolve = null;
+function askConfirm({ header, lead, lines, okLabel }) {
+  document.getElementById('confirmHdr').textContent = header;
+  document.getElementById('confirmLead').textContent = lead;
+  document.getElementById('confirmLines').innerHTML = (lines || []).map(l => `<li class="${l.soft ? 'soft' : ''}">${esc(l.text)}</li>`).join('');
+  document.getElementById('confirmOkBtn').textContent = okLabel;
+  document.getElementById('confirmOverlay').classList.add('open');
+  return new Promise(resolve => { _confirmResolve = resolve; });
+}
+function closeConfirm(result) {
+  document.getElementById('confirmOverlay').classList.remove('open');
+  if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
+}
+
+function switchMainTab(tab) {
+  document.getElementById('toolTabContent').style.display = tab === 'tool' ? '' : 'none';
+  document.getElementById('logTabContent').style.display  = tab === 'log' ? '' : 'none';
+  document.getElementById('tabTool').classList.toggle('active', tab === 'tool');
+  document.getElementById('tabLog').classList.toggle('active', tab === 'log');
+  if (tab === 'log') { syncMsItems(); fetchLog(); }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('settingsOverlay')?.classList.contains('open')) closeSettings();
+  document.getElementById('aboutOverlay')?.classList.remove('open');
+  document.getElementById('changelogOverlay')?.classList.remove('open');
+  document.getElementById('confirmOverlay')?.classList.remove('open');
+});
+
+// ══════════════════════════════════════════════════════
+// §INIT
+// ══════════════════════════════════════════════════════
+document.getElementById('headerMount').innerHTML = dcoHeader({
+  icon:     '🧩',
+  title:    'التسليم الجزئي',
+  subtitle: 'حذف منتج من أوردر مشحون بلا ما تلمس الباقي',
+  session:  dcoSession,
+});
+
+renderVersionUI();
+
+// ⚠️ حارس النسخة بياخد مفاتيح الـ Workers اللي الصفحة بتناديها — رسالة
+//    «الـ Worker نسخة قديمة» من غير اسم الأداة بتخلّي الموظف يدوّر.
+checkWorkerVersion(PAGE_WORKERS);
+
+document.getElementById('scanInput').focus();
+</script>
+</body>
+</html>

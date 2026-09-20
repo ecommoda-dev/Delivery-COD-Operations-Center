@@ -1,13 +1,20 @@
 // ══════════════════════════════════════════════════════════════
-// docs/tools-check.mjs — فحص **عقد الدمج** للأداتين (v1.5.0)
+// docs/tools-check.mjs — فحص **عقد الدمج** للأدوات (v1.5.0 · وسّعت v1.10.0)
 //
 // 🔴 **ليه ملف رابع؟** التلاتة اللي قبله بيقيسوا حاجات تانية خالص:
 //    · `rules-check.mjs`  → منطق الطوابير والجرد على مدخلات باظة.
 //    · `queues-check.mjs` → الطابورين والشاشة الرئيسية على بيانات كاملة.
 //    · `css-check.js`     → التوكنز بالـ parser.
-//    الملف ده بيقيس حاجة واحدة بس: **إن الأداتين المدموجتين بقوا فعلاً
+//    الملف ده بيقيس حاجة واحدة بس: **إن الأدوات المدموجة بقت فعلاً
 //    جوّه الهب** — جلسة واحدة · سر واحد · شِل واحد · وصفر بقايا من شاشة
 //    الدخول والسر القديم.
+//
+// 🔴 **من v1.10.0 بقى فيه تلات أدوات في `TOOLS`** (`order-status.html` ·
+//    `cod-payment.html` · `partial-delivery.html`) — مش اتنين. البنود
+//    الجينيريك (⓪ عدا بند البايتات · ① · ② · ③ · ④ · ⑥) بتمشي على
+//    التلاتة تلقائيًا لأنها بتلف على `TOOLS`. البنود الخاصة بمنطق كل أداة
+//    (⑤ · بعض بنود ⑦) لسه مكتوبة يدوي لكل أداة — أضيف بند `partial-delivery`
+//    لو منطقها اتغيّر يومًا بطريقة تستاهل فحص مخصّص.
 //
 // ⛔ **وهو مش بديل عن فحص الأداتين نفسهم.** منطق التحصيل ومنطق تحديث
 //    الحالة **ما اتلمسوش** في الدمج، فحصهم في ريبوهاتهم. البنود هنا كلها
@@ -35,6 +42,12 @@ if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION م�
 
 // 🔴 **الأداتين والعقد المتوقّع لكل واحدة.** القايمة دي هي اللي البنود
 //    بتمشي عليها — إضافة أداة تالتة للمركز معناها سطر هنا، مش نسخ كتلة.
+// ⚠️ **`source` اختياري من v1.10.0.** الأداتين الأولانيين ليهم نسخة
+//    مستقلة شغّالة في ريبو تاني (`source`)، والصفحة هنا **متولّدة** منه —
+//    فيه بند تحت (⓪) بيشغّل `port-standalone.py` ويقارن البايتات، وده
+//    محتاج المصدر يكون موجود جنب الهب. `partial-delivery.html` **مش
+//    متولّدة** (الريبو المستقل بتاعها بقى Worker وبس، مفيش HTML يتولّد
+//    منه)، فبند البايتات ده بيتخطّاها — راجع الفلترة على `t.source` تحت.
 const TOOLS = [
   {
     page:      'order-status.html',
@@ -53,6 +66,15 @@ const TOOLS = [
     oldSecret: 'cod_payment_center_worker_secret',
     tabs:      2,
     source:    'COD-Payment-Center',
+  },
+  {
+    page:      'partial-delivery.html',
+    title:     'التسليم الجزئي',
+    workerKey: 'partialDelivery',
+    host:      'partial-delivery-worker.ecommoda-dev.workers.dev',
+    oldSecret: 'partial_delivery_worker_secret',
+    tabs:      2,
+    // ⛔ صفر `source` عن قصد — راجع الشرح فوق.
   },
 ];
 
@@ -173,14 +195,19 @@ for (const t of TOOLS) {
 
 // الصفحة متولّدة — تشغيل المولّد تاني لازم يدّي **نفس البايتات**
 // ⚠️ بيتخطّى لو الريبوهات الأصلية مش جنب بعض (مش كل بيئة فيها التلاتة).
-const sourcesPresent = TOOLS.every(t => fs.existsSync(path.join(ROOT, '..', t.source, 'index.html')));
+// 🔴 **وبيمشي على الأداتين اللي ليهم `source` بس** — `partial-delivery.html`
+//    مالهاش (مفيش HTML في ريبوها تتولّد منه)، فتضمينها هنا كان هيخلّي
+//    `sourcesPresent` ترجع `false` **دايمًا** ويتخطّى بند البايتات حتى
+//    للأداتين اللي فعلاً متولّدتين.
+const GENERATED_TOOLS = TOOLS.filter(t => t.source);
+const sourcesPresent = GENERATED_TOOLS.every(t => fs.existsSync(path.join(ROOT, '..', t.source, 'index.html')));
 if (!sourcesPresent) {
   console.log('  ⏭️  الريبوهات الأصلية مش جنب الهب — بند «الصفحة متولّدة» اتخطّى');
 } else {
-  const before = TOOLS.map(t => read(t.page));
+  const before = GENERATED_TOOLS.map(t => read(t.page));
   try {
     execFileSync('python3', [path.join(ROOT, 'docs', 'port-standalone.py')], { stdio: 'pipe' });
-    const same = TOOLS.every((t, i) => read(t.page) === before[i]);
+    const same = GENERATED_TOOLS.every((t, i) => read(t.page) === before[i]);
     is(same, '🔴 الصفحتان **متولّدتان فعلاً** — تشغيل `docs/port-standalone.py` بيدّي نفس البايتات',
        'فيه تعديل يدوي في الملف المتولّد — هيضيع مع أول تشغيل');
   } catch (e) {
@@ -450,8 +477,8 @@ for (const t of TOOLS) {
 // ══════════════════════════════════════════════════════════════
 sec('⑥ رسايل الفشل بتسمّي الأداة');
 // ══════════════════════════════════════════════════════════════
-// ⚠️ الهب بينادي **خمس** Workers. رسالة «تعذّر الوصول» بلا اسم بتخلّي
-//    الموظف يدوّر في الخمسة.
+// ⚠️ الهب بينادي **ستة** Workers. رسالة «تعذّر الوصول» بلا اسم بتخلّي
+//    الموظف يدوّر في الستة.
 for (const t of TOOLS) {
   const { ctx, page } = await freshPage();
   await page.route('**/*.workers.dev/**', r => r.abort('failed'));
@@ -461,7 +488,7 @@ for (const t of TOOLS) {
     try { await apiGet('get_config'); return '(ما رماش)'; } catch (e) { return e.message; }
   });
   const label = JSON.parse(JSON.stringify(
-    { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD' }))[t.workerKey];
+    { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD', partialDelivery: 'التسليم الجزئي' }))[t.workerKey];
   is(msg.includes(label), `${t.page}: رسالة الفشل بتسمّي الأداة («${label}»)`, msg);
   await ctx.close();
 }
@@ -491,6 +518,8 @@ sec('⑦ التصدير — حارس المكتبة الخارجية (CDN محج
     { page: 'order-status.html', fn: 'exportSelectedLogXLSX', label: 'تصدير المحدد' },
     { page: 'cod-payment.html',  fn: 'exportXLSX', arg: false, label: 'تصدير الكل' },
     { page: 'cod-payment.html',  fn: 'exportXLSX', arg: true,  label: 'تصدير المحدد' },
+    // partial-delivery.html عندها زرار واحد بس (بلا تصدير محدد/select rows)
+    { page: 'partial-delivery.html', fn: 'exportLogXLSX', label: 'تصدير XLSX' },
   ];
   for (const e of EXPORTS) {
     const { ctx, page } = await freshPage();

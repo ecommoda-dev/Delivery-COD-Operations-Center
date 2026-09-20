@@ -236,18 +236,22 @@
 
   <!-- ══ قسم «أدوات» ══════════════════════════════════════════
        🔴 **بلا عدّاد عن قصد** — والكلام ده مكتوب في `shared/shell.css`
-          §DCO-HOME من قبل ما الأداتين يدخلوا: عدّاد حيّ معناه **جلب تقيل
+          §DCO-HOME من قبل ما الأدوات تدخل: عدّاد حيّ معناه **جلب تقيل
           عند كل دخول وكل تحديث تلقائي**، وماياخدهوش إلا اللي عنده طابور
-          حقيقي وجلبه رخيص. الأداتين دول **أدوات فعل** مش طوابير: مفيش
+          حقيقي وجلبه رخيص. التلاتة دول **أدوات فعل** مش طوابير: مفيش
           «رقم» يوصفهم أصلاً.
        🔴 **والكروت بتفتح صفحة في نفس التاب** (مش رابط خارجي بـ`target`)
-          — الأداتين دول بقوا **جوّه الهب** (`order-status.html` ·
-          `cod-payment.html`) وبيقروا نفس الجلسة. رابط خارجي كان معناه
-          دخول تاني وسر تاني.
-       ⚠️ **والأداتين دول أدوات كتابة** — مش عرض بحت زي الطابورين فوق:
+          — التلاتة بقوا **جوّه الهب** (`order-status.html` ·
+          `cod-payment.html` · `partial-delivery.html`) وبيقروا نفس
+          الجلسة. رابط خارجي كان معناه دخول تاني وسر تاني.
+          ⚠️ **والتسليم الجزئي (v1.10.0) مختلف عن التلاتة**: الريبو
+          المستقل بتاعه (`Partial-Delivery`) بقى **Worker وبس** — مفيش
+          نسخة تانية شغّالة في مكان تاني أصلاً (عكس التاتين التانيين
+          اللي روابطهم القديمة لسه شغّالة في ريبوهم).
+       ⚠️ **والتلاتة دول أدوات كتابة** — مش عرض بحت زي الطابورين فوق:
           `update_status` بتكتب حالة على شوبيفاي، و`pay`/`refund` بيسجّلوا
-          فلوس. الوصف تحت كل واحدة بيقول كده بالنص عشان الموظف يعرف إنه
-          داخل على فعل. -->
+          فلوس، و`remove_items` بتشيل منتج من أوردر. الوصف تحت كل واحدة
+          بيقول كده بالنص عشان الموظف يعرف إنه داخل على فعل. -->
   <div class="dco-home-sec">
     <div class="dco-home-sec-title">قسم أدوات العمليات</div>
     <div class="dco-tools-grid">
@@ -262,12 +266,7 @@
         <div class="dco-card-name">تحصيل الأوردرات COD</div>
       </a>
 
-      <!-- 🔴 التسليم الجزئي — أداة مستقلة في ريبو Worker خاصين بيها (نفس
-           نمط ready-orders.html/shipped-orders.html)، مش صفحة مدموجة زي
-           التلاتة فوق. رابط خارجي فبيفتح تاب جديد + `rel="noopener"`،
-           ودخولها ودخول الهب ده مستقلان — الموظف بيدخل مرتين لو فتح
-           الاتنين (نفس ثمن الطابورين، وهو مقبول ومقصود). -->
-      <a class="dco-tool" href="https://ecommoda-dev.github.io/Partial-Delivery/" target="_blank" rel="noopener">
+      <a class="dco-tool" href="partial-delivery.html">
         <span class="dco-card-ico ico-amber">🧩</span>
         <div class="dco-card-name">التسليم الجزئي</div>
       </a>
@@ -289,12 +288,15 @@
         <div class="about-sec-body">
           <p><b>هب واحد لمحطة الشحن والتحصيل.</b> الموظف بيدخل مرة واحدة وبيشوف
              طوابير الشحن: اللي <b>جاهز يخرج</b>، واللي <b>خرج ولسه بلا نتيجة</b>،
-             <b>وتحتهم الأدوات</b>: تحديث حالة الأوردرات وتحصيل الأوردرات COD.</p>
+             <b>وتحتهم الأدوات</b>: تحديث حالة الأوردرات وتحصيل الأوردرات COD
+             والتسليم الجزئي.</p>
           <p>🔴 <b>والفرق بين القسمين هو الفرق بين قراءة وكتابة.</b>
              <b>الطوابير</b> عرض بحت — بتقول لك إيه اللي مستني.
              <b>الأدوات</b> بتكتب فعلاً: <code>update_status</code> بتغيّر حالة الأوردر على
-             شوبيفاي، و<code>pay</code>/<code>refund</code> بيسجّلوا فلوس في السجل.
-             وعشان كده الأدوات <b>بلا عدّاد</b> في الشاشة دي: مفيش «رقم» يوصف شغل.</p>
+             شوبيفاي، و<code>pay</code>/<code>refund</code> بيسجّلوا فلوس في السجل،
+             و<code>remove_items</code> بتشيل منتج من أوردر (إلغاء فلفلمنت → تعديل
+             → إعادة فلفلمنت). وعشان كده الأدوات <b>بلا عدّاد</b> في الشاشة دي:
+             مفيش «رقم» يوصف شغل.</p>
           <p>🔴 <b>الطابورين دول عرض بحت.</b> مفيش أي فعل بيتكتب على شوبيفاي ولا في
              السجل — لا تغيير حالة ولا إلغاء ولا تسجيل تحصيل. الـ Workers بتوعهم
              <b>قراءة بحتة</b>، ومالهمش <code>[[d1_databases]]</code> أصلاً.</p>
@@ -344,14 +346,16 @@
             <li>ده <b>مابيضيفش</b> أي صلاحية: <code>employee</code> بيتبعت من العميل،
                 والـ Worker بيتحقق من السر مش من هوية الموظف.</li>
             <li>السر لمجموعة <b><code>delivery_cod_ops</code></b> — <b>مستقلة عن محطة المخزن</b>،
-                وقيمة واحدة <b>للخمس Workers</b> (الدخول · الطابورين · محدّث الحالة · التحصيل).
-                الجهاز اللي عليه المخزن محتاج يلزق السر الجديد <b>مرة واحدة</b>.</li>
+                وقيمة واحدة <b>للستة Workers</b> (الدخول · الطابورين · محدّث الحالة · التحصيل ·
+                التسليم الجزئي). الجهاز اللي عليه المخزن محتاج يلزق السر الجديد <b>مرة واحدة</b>.</li>
             <li>🔴 <b>والدخول مرة واحدة بيغطّي الأدوات كمان</b> — تحديث حالة الأوردرات
-                وتحصيل الأوردرات COD كان لكل واحد فيهم شاشة دخول وسر خاص، والاتنين اتشالوا. ⚠️ ومعنى كده
-                إن صف الدخول في D1 بيتكتب باسم <code>delivery_cod_ops_center</code> بس —
-                عدّادات <code>login</code> بتاعة <code>order_status</code> و<code>cod_payment</code>
+                وتحصيل الأوردرات COD والتسليم الجزئي كان كل واحدة فيهم شاشة دخول وسر خاص،
+                والتلاتة اتشالوا. ⚠️ ومعنى كده إن صف الدخول في D1 بيتكتب باسم
+                <code>delivery_cod_ops_center</code> بس — عدّادات <code>login</code> بتاعة
+                <code>order_status</code> و<code>cod_payment</code> و<code>partial_delivery</code>
                 <b>بتقف عند رقمها</b>. وصفوف الشغل نفسها (<code>update</code> ·
-                <code>payment</code> · <code>refund</code>) لسه فيها اسم الموظف زي ما هي.</li>
+                <code>payment</code> · <code>refund</code> · <code>remove_item</code>) لسه فيها
+                اسم الموظف زي ما هي.</li>
             <li>الدخول على <b>Worker الهب نفسه</b> (عايش في نفس الريبو) — مش على Worker
                 أداة تانية. وصف الدخول في D1 بيتسجّل باسم
                 <code>delivery_cod_ops_center</code> <b>من أول يوم</b>.</li>
@@ -371,7 +375,19 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.8.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.10.0</span>
+          <span class="cl-ver-date">20-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>«التسليم الجزئي» بقت تالت أداة مدموجة</b> — كارت «التسليم الجزئي» في «قسم أدوات العمليات» بقى بيفتح <code>partial-delivery.html</code> جوّه الهب بدل رابط خارجي. الدخول والسر بقوا زي باقي المركز (مجموعة <code>delivery_cod_ops</code>، بقت <b>ستة Workers</b>).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⛔ <b>وعكس الأداتين التانيين، الريبو المستقل (<code>Partial-Delivery</code>) بقى Worker وبس</b> — الصفحة اللي كانت فيه اتشالت خالص، فمفيش نسختين شغّالتين على الهوا لنفس الأداة دي.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span><b>ومنطق الحذف ما اتلمسش ولا سطر</b> — نفس الـ Worker (<code>partial-delivery-worker</code>) ونفس ترتيب إلغاء الفلفلمنت → Order Edit → إعادة الفلفلمنت.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.8.0</span>
           <span class="cl-ver-date">17-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -538,7 +554,7 @@ const { apiGet, apiPost } = dcoApi(DCO_WORKERS.auth);
 // ✅ **والفشل هنا مابيولّعش تحذير نسخة كاذب** — `checkWorkerVersion`
 //    بتبلع الاستثناء عن قصد: الـ Worker اللي لسه ما انضمّش لمجموعة السر
 //    بيرجّع `401`، ودي **مش** «نسخة قديمة». اللي بيقولها بالنص هو 🩺.
-const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment'];
+const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery'];
 
 // §AUTH-JS — Unified Login UI (منقولة من أداة التغليف)
 // ══════════════════════════════════════════════════════════════
