@@ -109,9 +109,27 @@ const DCO_WORKERS = {
   //    بتسمّي الأداة. البند مفتوح في `CLAUDE.md`.
   orderStatus: { url: 'https://order-status-updater-worker.ecommoda-dev.workers.dev', min: '4.7.0', label: 'تحديث حالة الأوردرات' },
   codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.5.0', label: 'تحصيل الأوردرات COD' },
+
+  // 🔴 **التسليم الجزئي (v1.10.0) — تالت أداة مدموجة، وأول واحدة من غير
+  //    رابط قديم شغّال.** الأداتين اللي فوق (`orderStatus`/`codPayment`)
+  //    لسه ليهم نسخة مستقلة في ريبوهم (قرار أحمد ③: الروابط القديمة تفضل
+  //    شغّالة). دي مختلفة: الريبو المستقل (`Partial-Delivery`) بقى
+  //    **Worker وبس** — الصفحة اللي كانت فيه اتشالت خالص، فمفيش نسختين
+  //    تفترقوا (درس R1 غير منطبق هنا أصلاً).
+  //    ⚠️ **والـ Worker نفسه ما اتلمسش** — نفس منطق الحذف ونفس الترتيب
+  //       (إلغاء فلفلمنت → Order Edit → إعادة فلفلمنت) ونفس السجل.
+  //    🔴 **`min = '1.0.1'`** — النسخة اللي فيها إصلاح `calculatedOrder_lookup`
+  //       (بلاغ #55619، 20-09-2026): Worker `1.0.0` كان بيفشل في **كل**
+  //       محاولة حذف بعد نجاح إلغاء الفلفلمنت، فمينفعش يبقى الحد الأدنى.
+  //    🔴 **والسر هنا سر الهب** (`delivery_cod_ops`) — نفس شرط الأداتين
+  //       فوق: `partial-delivery-worker` لازم يكون **اتضمّ للمجموعة**
+  //       (`WORKER_SECRET` اتدوّر لقيمة المجموعة من داشبورد كلاودفلير).
+  //       قبل الضم كل نداء من الصفحة دي بيرجّع **401**. البند مفتوح في
+  //       `CLAUDE.md`.
+  partialDelivery: { url: 'https://partial-delivery-worker.ecommoda-dev.workers.dev', min: '1.0.1', label: 'التسليم الجزئي' },
 };
 
-const TOOL_VERSION = 'v1.9.0';                       // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.10.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -123,8 +141,12 @@ const TOOL_VERSION = 'v1.9.0';                       // الهب كله — مص
 //    ده حقيقي **بس لو أجهزة الشحن غير أجهزة المخزن**. الجهاز اللي بيفتح
 //    الاتنين بيبقى شايل السرّين.
 // ⛔ **والانضمام لازم يتسجّل** في `ecommoda-constants` →
-//    `references/secret-groups.md` (قاعدة ٢): المجموعة = ٣ Workers + الهب
-//    كمستهلك رابع. عضو غير مسجّل = إجراء التدوير بيتكسر **بصمت**.
+//    `references/secret-groups.md` (قاعدة ٢): المجموعة بقت **ستة Workers**
+//    من v1.10.0 (الدخول · الطابورين · محدّث الحالة · التحصيل · التسليم
+//    الجزئي) + الهب كمستهلك سابع. ⚠️ **والرقم ده اتنسى يتحدّث لما الأداتين
+//    الأولانيين انضموا في v1.5.0** (فضل مكتوب «٣ Workers + رابع» من v1.0.0)
+//    — نفس فخ «حالة مكتوبة بدل قاعدة» المحذّر منه في قسم «النشر» بـ
+//    `CLAUDE.md`. عضو غير مسجّل = إجراء التدوير بيتكسر **بصمت**.
 // ⚠️ **وثمن تشغيلي مُعلَن:** الجهاز اللي عليه محطة المخزن **مش** هيبقى
 //    مضبوط هنا تلقائيًا — السر الجديد بيتلزق مرة واحدة على كل جهاز.
 const LS_SECRET    = 'delivery_cod_ops_worker_secret';
@@ -1274,11 +1296,11 @@ function dcoSharedModals() {
                  والسطر الثابت تحت، مش نص رمادي جوّه الحقل بيختفي أول ما
                  الموظف يكتب حرف. -->
             <input type="password" class="settings-input" id="cfgSecret" autocomplete="off">
-            <div class="settings-static">السر المشترك لمجموعة <code>delivery_cod_ops</code> — <b>قيمة واحدة للخمس Workers</b>، ومستقلة عن سر محطة المخزن</div>
+            <div class="settings-static">السر المشترك لمجموعة <code>delivery_cod_ops</code> — <b>قيمة واحدة للستة Workers</b>، ومستقلة عن سر محطة المخزن</div>
           </div>
           <div class="settings-field">
             <label class="settings-label">الـ Workers</label>
-            <div class="settings-static">delivery-cod-operations-center-worker (الدخول) · ready-orders-worker · shipped-orders-worker · order-status-updater-worker · cod-payment-center-worker</div>
+            <div class="settings-static">delivery-cod-operations-center-worker (الدخول) · ready-orders-worker · shipped-orders-worker · order-status-updater-worker · cod-payment-center-worker · partial-delivery-worker</div>
           </div>
           <div class="settings-field">
             <label class="settings-label">فحص النظام</label>
