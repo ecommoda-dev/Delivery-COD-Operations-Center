@@ -1906,8 +1906,8 @@ node docs/rules-check.mjs        # بلا أي تنصيب — منطق بحت
 | المهارة | الإصدار وقت آخر تعديل |
 |---|---|
 | ecommoda-html-builder | **v6.6.0** |
-| ecommoda-worker-builder | **v3.3.0** |
-| ecommoda-constants | **v2.6.0** |
+| ecommoda-worker-builder | **v3.7.0** |
+| ecommoda-constants | **v3.1.0** |
 | ecommoda-order-lifecycle | **v1.8.0** |
 | shopify-graphql-helper | **v1.1.0** |
 | ecommoda-tool-migration-playbook | §13 (Promote) |
@@ -1921,6 +1921,15 @@ node docs/rules-check.mjs        # بلا أي تنصيب — منطق بحت
 > v1.10.0)، اللي اتراجع هو **الإطار** بس. ادعاء إنهم اتراجعوا على
 > الإصدارات دي هيبقى **غلط**، والبصمة اللي بتدّعي مراجعة ما حصلتش أسوأ من
 > مفيش بصمة.
+> 🔴 **و`ecommoda-worker-builder`/`ecommoda-constants` في الجدول ده بصمة
+> `index.js` كمان** (٢٢-٠٩-٢٠٢٦) — استبدال `check-log-values.mjs` بالنسخة
+> المصلَّحة (بتمسك object shorthand `{ tool, type }`) وتنفيذ الحارس
+> الديناميكي لقيم اللوج (الطبقة ٥ · `worker-builder` Step 7-ج): `§LOG-REG`
+> (`LOG_REGISTRY` · `isRegisteredLogValue` · `noteUnregisteredLogValues`)
+> جوّه `writeLog` — بيكتب الصف عادي دايمًا حتى لو `(tool,type)` مش مسجّلة،
+> ويعلّم `extra._unregistered` + UPSERT صامت في `log_value_alerts`، مفيش
+> رفض كتابة أبدًا. `WORKER_VERSION` بقى `1.0.1`. `log_value_alerts` جدول
+> مشترك على مستوى الستاك ومتفرضش إنه اتعمل هنا لأول مرة.
 
 آخر مطابقة: 20-09-2026 · الهب `v1.10.0`
 ✅ **اتقفل 16-09-2026:** إنشاء Workers الدخول والجاهز + ربط Builds +
