@@ -473,7 +473,7 @@ function renderOrder(order, elig) {
         <h3>المنتجات</h3>
         ${itemsHtml}
         <div class="pd-opts">
-          <label><input type="checkbox" id="optRestock"> رجّع الكمية للمخزون (Restock)</label>
+          <label><input type="checkbox" id="optRestock" checked disabled> رجّع الكمية للمخزون (Restock)</label>
           <input type="text" id="optReason" placeholder="سبب الحذف (اختياري)">
         </div>
         <button class="btn btn-red" id="removeBtn" disabled onclick="confirmRemove()">🗑 شيل المنتجات المحددة</button>
