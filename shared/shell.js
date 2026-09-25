@@ -88,8 +88,8 @@ const DCO_WORKERS = {
   auth:    { url: 'https://delivery-cod-operations-center-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'الدخول' },
 
   // 🔴 **الأداتين المدموجتين (v1.5.0) — Workers موجودة من قبل الهب، وعايشة
-  //    في ريبوهاتها.** الهب ضمّ **الواجهة** بس (`order-status.html` ·
-  //    `cod-payment.html`)؛ الـ Worker بتاع كل واحدة ما اتلمسش ولا سطر —
+  //    في ريبوهاتها.** الهب ضمّ **الواجهة** بس (`Order-Status-Updater.html` ·
+  //    `COD-Payment-Center.html`)؛ الـ Worker بتاع كل واحدة ما اتلمسش ولا سطر —
   //    نفس شكل الطابورين بالظبط (قرار ٨: أداة = Worker واحد + ريبو واحد).
   // ⚠️ **الاتنين أدوات كتابة** — مش عرض بحت زي الطابورين: `update_status`
   //    بتكتب حالة على شوبيفاي، و`pay`/`refund` بتسجّلوا فلوس. فالتدهور هنا
@@ -129,7 +129,7 @@ const DCO_WORKERS = {
   partialDelivery: { url: 'https://partial-delivery-worker.ecommoda-dev.workers.dev', min: '1.0.1', label: 'التسليم الجزئي' },
 };
 
-const TOOL_VERSION = 'v1.10.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.11.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +

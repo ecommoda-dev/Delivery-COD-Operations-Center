@@ -12,7 +12,8 @@
     ✅ **اللي بيقلّل الخطر:** النسخة اللي هنا **متولّدة** من الأصلية مش
        متكتوبة بالإيد. التعديل بيتعمل في الريبو الأصلي، وبعدين السكربت ده
        بيتشغّل فيولّد نسخة الهب من جديد.
-    ⛔ **وممنوع تعديل `order-status.html` أو `cod-payment.html` بالإيد** —
+    ⛔ **وممنوع تعديل `Order-Status-Updater.html` أو `COD-Payment-Center.html`
+       بالإيد** —
        التعديل بيضيع في صمت مع أول تشغيل، وفيه بانر في أول كل ملف بيقول كده.
 
  🔴 **وكل تحويل هنا مربوط بـ«مرساة» نصّية، والمرساة الغايبة بتوقّف
@@ -200,10 +201,10 @@ def banner(src_repo, worker_key, worker_repo):
 
 
 # ══════════════════════════════════════════════════════════════
-# ① order-status.html — من ريبو `Order-Status-Updater`
+# ① Order-Status-Updater.html — من ريبو `Order-Status-Updater`
 # ══════════════════════════════════════════════════════════════
 def build_order_status():
-    p = Port('order-status.html', read_source('Order-Status-Updater/index.html'))
+    p = Port('Order-Status-Updater.html', read_source('Order-Status-Updater/index.html'))
 
     # ── الرأس — shell.css أولاً، وستايل الصفحة بعده وبيغلب ──────
     p.swap(
@@ -595,16 +596,16 @@ checkWorkerVersion(PAGE_WORKERS);
     p.forbid(r'id="loginOverlay"',                          'شاشة الدخول لازم تكون اختفت')
     p.forbid(r'^\s*:root \{\s*$',                           'كتلة توكنز في الصفحة')
     p.check_dom_ids(shell_ids(), 'حارس المراجع المعلّقة — عنصر اتشال والـ JS لسه بينده عليه')
-    p.write(os.path.join(HUB, 'order-status.html'))
+    p.write(os.path.join(HUB, 'Order-Status-Updater.html'))
     return p
 
 
 
 # ══════════════════════════════════════════════════════════════
-# ② cod-payment.html — من ريبو `COD-Payment-Center`
+# ② COD-Payment-Center.html — من ريبو `COD-Payment-Center`
 # ══════════════════════════════════════════════════════════════
 def build_cod_payment():
-    p = Port('cod-payment.html', read_source('COD-Payment-Center/index.html'))
+    p = Port('COD-Payment-Center.html', read_source('COD-Payment-Center/index.html'))
 
     # ── الرأس + كتلة الستايل الأولى (كلها chrome بتاع الـ shell) ─
     # ⚠️ الكتلة دي (١٧٠ سطر) كانت **توكنز + شِل بالكامل**: reset · `body` ·
@@ -655,7 +656,7 @@ def build_cod_payment():
    (`#tabBadgeCount` · `#tabBadgeLog`) بيترسموا **نص عاري** بلا خلفية ولا
    إطار، وصفر خطأ في أي مكان.
    ⚠️ **ومكانها الصفحة مش الـ shell** — البادج ده مستهلكه **صفحة واحدة**
-      (`order-status.html` مابتستخدمهوش أصلاً)، والقاعدة بتقول «`shell.css`
+      (`Order-Status-Updater.html` مابتستخدمهوش أصلاً)، والقاعدة بتقول «`shell.css`
       فيه الـ chrome بس، وأي CSS خاص بأداة بيفضل في صفحته». وحطّها في الـ
       shell كان هيفتح كمان التزام «أي تعديل على الـ chrome يتعمل في
       الهبين في نفس التمريرة». */
@@ -987,7 +988,7 @@ loadLogEmployeeFilter();  // محميّ جوّاه
     p.forbid(r"localStorage\.getItem\(LS_SECRET\)",              'قراءة السر القديم لازم تكون اختفت')
     p.forbid(r'id="loginOverlay"',                               'شاشة الدخول لازم تكون اختفت')
     p.check_dom_ids(shell_ids(), 'حارس المراجع المعلّقة — عنصر اتشال والـ JS لسه بينده عليه')
-    p.write(os.path.join(HUB, 'cod-payment.html'))
+    p.write(os.path.join(HUB, 'COD-Payment-Center.html'))
     return p
 
 

@@ -9,8 +9,8 @@
 //    جوّه الهب** — جلسة واحدة · سر واحد · شِل واحد · وصفر بقايا من شاشة
 //    الدخول والسر القديم.
 //
-// 🔴 **من v1.10.0 بقى فيه تلات أدوات في `TOOLS`** (`order-status.html` ·
-//    `cod-payment.html` · `partial-delivery.html`) — مش اتنين. البنود
+// 🔴 **من v1.10.0 بقى فيه تلات أدوات في `TOOLS`** (`Order-Status-Updater.html` ·
+//    `COD-Payment-Center.html` · `Partial-Delivery.html`) — مش اتنين. البنود
 //    الجينيريك (⓪ عدا بند البايتات · ① · ② · ③ · ④ · ⑥) بتمشي على
 //    التلاتة تلقائيًا لأنها بتلف على `TOOLS`. البنود الخاصة بمنطق كل أداة
 //    (⑤ · بعض بنود ⑦) لسه مكتوبة يدوي لكل أداة — أضيف بند `partial-delivery`
@@ -45,12 +45,12 @@ if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION م�
 // ⚠️ **`source` اختياري من v1.10.0.** الأداتين الأولانيين ليهم نسخة
 //    مستقلة شغّالة في ريبو تاني (`source`)، والصفحة هنا **متولّدة** منه —
 //    فيه بند تحت (⓪) بيشغّل `port-standalone.py` ويقارن البايتات، وده
-//    محتاج المصدر يكون موجود جنب الهب. `partial-delivery.html` **مش
+//    محتاج المصدر يكون موجود جنب الهب. `Partial-Delivery.html` **مش
 //    متولّدة** (الريبو المستقل بتاعها بقى Worker وبس، مفيش HTML يتولّد
 //    منه)، فبند البايتات ده بيتخطّاها — راجع الفلترة على `t.source` تحت.
 const TOOLS = [
   {
-    page:      'order-status.html',
+    page:      'Order-Status-Updater.html',
     title:     'تحديث حالة الأوردرات',
     workerKey: 'orderStatus',
     host:      'order-status-updater-worker.ecommoda-dev.workers.dev',
@@ -59,7 +59,7 @@ const TOOLS = [
     source:    'Order-Status-Updater',
   },
   {
-    page:      'cod-payment.html',
+    page:      'COD-Payment-Center.html',
     title:     'تحصيل الأوردرات COD',
     workerKey: 'codPayment',
     host:      'cod-payment-center-worker.ecommoda-dev.workers.dev',
@@ -68,7 +68,7 @@ const TOOLS = [
     source:    'COD-Payment-Center',
   },
   {
-    page:      'partial-delivery.html',
+    page:      'Partial-Delivery.html',
     title:     'التسليم الجزئي',
     workerKey: 'partialDelivery',
     host:      'partial-delivery-worker.ecommoda-dev.workers.dev',
@@ -195,7 +195,7 @@ for (const t of TOOLS) {
 
 // الصفحة متولّدة — تشغيل المولّد تاني لازم يدّي **نفس البايتات**
 // ⚠️ بيتخطّى لو الريبوهات الأصلية مش جنب بعض (مش كل بيئة فيها التلاتة).
-// 🔴 **وبيمشي على الأداتين اللي ليهم `source` بس** — `partial-delivery.html`
+// 🔴 **وبيمشي على الأداتين اللي ليهم `source` بس** — `Partial-Delivery.html`
 //    مالهاش (مفيش HTML في ريبوها تتولّد منه)، فتضمينها هنا كان هيخلّي
 //    `sourcesPresent` ترجع `false` **دايمًا** ويتخطّى بند البايتات حتى
 //    للأداتين اللي فعلاً متولّدتين.
@@ -324,7 +324,7 @@ for (const t of TOOLS) {
 {
   const { ctx, page } = await freshPage();
   await mockWorker(page, []);
-  await page.goto(`${BASE}/cod-payment.html`);
+  await page.goto(`${BASE}/COD-Payment-Center.html`);
   await page.waitForTimeout(800);
   const st = await page.evaluate(() => {
     const el = document.querySelector('.mtb-badge');
@@ -333,7 +333,7 @@ for (const t of TOOLS) {
     const c = getComputedStyle(el);
     return { radius: parseFloat(c.borderRadius), bg: c.backgroundColor, size: parseFloat(c.fontSize) };
   });
-  is(!!st, 'cod-payment.html: بادج التاب `.mtb-badge` موجود في الماركب', String(st));
+  is(!!st, 'COD-Payment-Center.html: بادج التاب `.mtb-badge` موجود في الماركب', String(st));
   is(st && st.radius > 0 && st.bg !== 'rgba(0, 0, 0, 0)' && st.size > 0,
      '🔴 وليه ستايل محسوب فعلاً — مش نص عاري بعد ما المولّد شال كتلة التابات',
      JSON.stringify(st));
@@ -379,13 +379,13 @@ sec('⑤ منطق الأداة ما اتلمسش — البنود اللي ال�
 {
   const { ctx, page } = await freshPage();
   const calls = []; await mockWorker(page, calls);
-  await page.goto(`${BASE}/cod-payment.html`);
+  await page.goto(`${BASE}/COD-Payment-Center.html`);
   await page.waitForTimeout(900);
   const res = await page.evaluate(async () => {
     try { await apiPostLegacy('preview', { orderNumber: '#55001' }); } catch {}
     return typeof apiPostLegacy === 'function' && typeof apiGet === 'function' && typeof apiPost === 'function';
   });
-  is(res, 'cod-payment.html: التلات أشكال (\`apiGet\` · \`apiPost\` · \`apiPostLegacy\`) لسه موجودة');
+  is(res, 'COD-Payment-Center.html: التلات أشكال (\`apiGet\` · \`apiPost\` · \`apiPostLegacy\`) لسه موجودة');
   const legacy = calls.find(c => c.body && c.body.action === 'preview');
   is(!!legacy, '🔴 و`apiPostLegacy` لسه بيبعت `action` في **جسم** الطلب',
      JSON.stringify(calls.slice(-1)));
@@ -401,13 +401,13 @@ sec('⑤ منطق الأداة ما اتلمسش — البنود اللي ال�
 {
   const { ctx, page } = await freshPage();
   await mockWorker(page, []);
-  await page.goto(`${BASE}/cod-payment.html`);
+  await page.goto(`${BASE}/COD-Payment-Center.html`);
   await page.waitForTimeout(900);
   const offs = await page.evaluate(() => {
     const off = iso => (toCairo(iso).getTime() - new Date(iso).getTime()) / 3600000;
     return { summer: off('2026-09-01T12:00:00Z'), winter: off('2026-11-01T12:00:00Z') };
   });
-  is(offs.summer === 3, 'cod-payment.html: قبل التحويل الشتوي الإزاحة +٣', String(offs.summer));
+  is(offs.summer === 3, 'COD-Payment-Center.html: قبل التحويل الشتوي الإزاحة +٣', String(offs.summer));
   is(offs.winter === 2, '🔴 وبعد 29-10-2026 بتبقى **+٢ لوحدها** — الصفحة خرجت من نطاق البند ده',
      String(offs.winter));
   // والرمز جوّه الدالة مش في الـ HTML — وإلا بيطلع 📅 مرتين
@@ -452,7 +452,7 @@ for (const t of TOOLS) {
 {
   const { ctx, page, errs } = await freshPage();
   const calls = []; await mockWorker(page, calls);
-  await page.goto(`${BASE}/order-status.html`);
+  await page.goto(`${BASE}/Order-Status-Updater.html`);
   await page.waitForTimeout(900);
   const before = calls.length;
   await page.evaluate(() => {
@@ -462,7 +462,7 @@ for (const t of TOOLS) {
   await page.waitForTimeout(900);
   const after = calls.slice(before);
   is(errs.filter(e => !/ERR_|net::/.test(e)).length === 0,
-     '🔴 order-status.html: اختيار حالة `Returned` **بلا أي خطأ** — الرمي بيقطع باقي الدالة في صمت',
+     '🔴 Order-Status-Updater.html: اختيار حالة `Returned` **بلا أي خطأ** — الرمي بيقطع باقي الدالة في صمت',
      errs.join('\n       '));
   is(after.some(c => c.action === 'reason_values'),
      '🔴 و`reason_values` **اتنادى فعلاً** — النداء ده آخر سطر في `selectTargetLabel()`',
@@ -514,12 +514,12 @@ sec('⑦ التصدير — حارس المكتبة الخارجية (CDN محج
 //       · ورسالة إنجليزي تقنية — كلهم **مش** النص المطلوب.
 {
   const EXPORTS = [
-    { page: 'order-status.html', fn: 'exportLogXLSX',         label: 'تصدير الكل' },
-    { page: 'order-status.html', fn: 'exportSelectedLogXLSX', label: 'تصدير المحدد' },
-    { page: 'cod-payment.html',  fn: 'exportXLSX', arg: false, label: 'تصدير الكل' },
-    { page: 'cod-payment.html',  fn: 'exportXLSX', arg: true,  label: 'تصدير المحدد' },
-    // partial-delivery.html عندها زرار واحد بس (بلا تصدير محدد/select rows)
-    { page: 'partial-delivery.html', fn: 'exportLogXLSX', label: 'تصدير XLSX' },
+    { page: 'Order-Status-Updater.html', fn: 'exportLogXLSX',         label: 'تصدير الكل' },
+    { page: 'Order-Status-Updater.html', fn: 'exportSelectedLogXLSX', label: 'تصدير المحدد' },
+    { page: 'COD-Payment-Center.html',  fn: 'exportXLSX', arg: false, label: 'تصدير الكل' },
+    { page: 'COD-Payment-Center.html',  fn: 'exportXLSX', arg: true,  label: 'تصدير المحدد' },
+    // Partial-Delivery.html عندها زرار واحد بس (بلا تصدير محدد/select rows)
+    { page: 'Partial-Delivery.html', fn: 'exportLogXLSX', label: 'تصدير XLSX' },
   ];
   for (const e of EXPORTS) {
     const { ctx, page } = await freshPage();
