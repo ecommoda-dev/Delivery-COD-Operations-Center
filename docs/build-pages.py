@@ -3,7 +3,7 @@
 # docs/build-pages.py — مولّد صفحتَي الطابور (نسخة واحدة بمعاملين)
 #
 # 🔴 **الصفحتان متولّدتان من هنا — مش مكتوبتين بالإيد.**
-#    `ready-orders.html` و`shipped-orders.html` **متطابقتان بالحرف** فيما عدا
+#    `Ready-Orders.html` و`Shipped-Orders.html` **متطابقتان بالحرف** فيما عدا
 #    المعاملات تحت. ده تطبيق مباشر لدرس R1: نسختان بتتعدّلا بالإيد بيفترقا
 #    مع أول تعديل.
 # ⛔ **ممنوع تعديل الـ HTML مباشرةً** — التعديل بيضيع في صمت مع أول تشغيل.
@@ -1261,7 +1261,7 @@ SHIPPED_ABOUT_COLS = '''            <li><b>رقم التتبع</b> — الجد�
 
 PAGES = [
   dict(
-    file='ready-orders.html', key='ready', status='Ready', action='get_ready_queue',
+    file='Ready-Orders.html', key='ready', status='Ready', action='get_ready_queue',
     worker='ready', cache='DCO_CACHE_READY',
     # 🔴 «قسم» مش «طابور» (طلب أحمد 16-09-2026) — يطابق تسمية المحطة
     #    التانية («قسم التغليف» · «قسم الطباعة» · «قسم تسليمات بوسطة»)،
@@ -1327,7 +1327,7 @@ PAGES = [
              ولسه ما اتسجّلش عليها شحن.''',
   ),
   dict(
-    file='shipped-orders.html', key='shipped', status='Shipped', action='get_shipped_queue',
+    file='Shipped-Orders.html', key='shipped', status='Shipped', action='get_shipped_queue',
     worker='shipped', cache='DCO_CACHE_SHIPPED',
     icon='🚚', title='طابور المشحون', subtitle='مركز عمليات الشحن والتحصيل',
     emptyOk='مفيش شحنات مفتوحة دلوقتي',
@@ -1363,7 +1363,7 @@ TPL = r'''<!DOCTYPE html>
 <!-- skills: html-builder v6.6.0 · worker-builder v3.3.0 · constants v2.6.0 · order-lifecycle v1.8.0 — 15-09-2026 -->
 <!-- ══════════════════════════════════════════════════════════════
      🔴 **الملف ده متولّد من `docs/build-pages.py`.**
-     الصفحتان (`ready-orders.html` · `shipped-orders.html`) **متطابقتان
+     الصفحتان (`Ready-Orders.html` · `Shipped-Orders.html`) **متطابقتان
      بالحرف** فيما عدا المعاملات في أول المولّد (الحالة · الـ endpoint ·
      العمود الزيادة). ده تطبيق مباشر لدرس R1: نسختان بتتعدّلا بالإيد
      بيفترقا مع أول تعديل، واتصلح في واحدة وفضل مكسور في التانية لشهور.
@@ -1382,7 +1382,7 @@ __AUDIT_LIB__
 <style>
 /* ══════════════════════════════════════════════════════════════
    §STYLES — الصفحة دي بس. مفيش كتلة توكنز هنا (كلها في الـ shell).
-   ⚠️ الملفين (`ready-orders.html` · `shipped-orders.html`) **متطابقين
+   ⚠️ الملفين (`Ready-Orders.html` · `Shipped-Orders.html`) **متطابقين
       بالحرف** في الكتلة دي — أي تعديل يتعمل في الاتنين في نفس التمريرة
       (درس R1).
    ══════════════════════════════════════════════════════════════ */

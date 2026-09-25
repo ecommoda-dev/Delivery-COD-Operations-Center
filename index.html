@@ -147,7 +147,7 @@
             الماكينتين: الشحنة الأصلية (`custom.manual_status`) أو دورة
             الاستبدال/الاسترجاع (`custom.status_2_r_e`).
          🔴 **والعدّ بيعدّي على `dcoQueueRows` في `shared/shell.js`
-            §QUEUE-RULES** — **نفس** الدالة اللي `ready-orders.html` بتبني
+            §QUEUE-RULES** — **نفس** الدالة اللي `Ready-Orders.html` بتبني
             بيها القايمة، على **نفس** رد الـ endpoint. ⛔ ممنوع أي حساب
             هنا: نسخة تانية من القاعدة = الرقم هنا يخالف القايمة هناك،
             وده بالظبط باج v1.11.0 في هب المخزن (الرئيسية قالت ٦٦ والصفحة
@@ -155,7 +155,7 @@
          ⚠️ **وصفر فلترة**: الأوردر الشاذ (ملغي · حالة بره القايمة · بلا
             قناة) **بيتعدّ وبياخد علامة** — مربع «محتاجة مراجعة» بيقول
             عددهم. إخفاؤه كان هيخلّي سؤال «الأوردر ده فين؟» بلا إجابة. -->
-      <a class="dco-row" href="ready-orders.html">
+      <a class="dco-row" href="Ready-Orders.html">
         <div class="dco-row-id">
           <span class="dco-card-ico ico-blue">📋</span>
           <div>
@@ -202,7 +202,7 @@
             بتعتبرها `Shipped` في العدّ، بس المواصفات المتفق عليها بتقول
             `Shipped` بالحرف. البند مفتوح في `CLAUDE.md` ومستني قرار —
             والعنوان بيقول اللي بيتعرض بالظبط، فالغياب **معلوم مش خفي**. -->
-      <a class="dco-row" href="shipped-orders.html">
+      <a class="dco-row" href="Shipped-Orders.html">
         <div class="dco-row-id">
           <span class="dco-card-ico ico-amber">🚚</span>
           <div>
@@ -375,7 +375,18 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.11.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.12.0</span>
+          <span class="cl-ver-date">25-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>القاعدة اتوسّعت لكل صفحة في الهب، مش الأدوات المدموجة بس</b> — اسم ملف أي صفحة جوّه الهب بقى اسم ريبو الـ Worker بتاعها بالحرف، سواء كان ليها واجهة مستقلة يومًا (زي الأدوات المدموجة) أو اتولدت من الأول جوّه الهب (زي الطابورين): <code>ready-orders.html</code> → <code>Ready-Orders.html</code> · <code>shipped-orders.html</code> → <code>Shipped-Orders.html</code>. صفر تغيير في منطق أو شِل أي صفحة، الأسماء بس.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⛔ <b>مفيش تحويل من الاسم القديم للجديد</b> — نفس قاعدة v1.11.0 بالحرف.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.11.0</span>
           <span class="cl-ver-date">25-09-2026</span>
         </div>
         <ul class="cl-items">

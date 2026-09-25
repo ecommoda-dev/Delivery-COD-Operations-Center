@@ -14,8 +14,8 @@
 | الصفحة | بتعمل إيه | الـ Worker |
 |---|---|---|
 | `index.html` | الدخول + الشاشة الرئيسية (الطابورين بأرقامهم) | **`delivery-cod-operations-center-worker`** (في الريبو ده) |
-| `ready-orders.html` | **أوردرات جاهزة للشحن** — حالته `Ready` (S1 أو S2) | `ready-orders-worker` **1.3.0** |
-| `shipped-orders.html` | **أوردرات تحت التوصيل** — حالته `Shipped` ولسه بلا `Delivered`/`Returned` | `shipped-orders-worker` |
+| `Ready-Orders.html` | **أوردرات جاهزة للشحن** — حالته `Ready` (S1 أو S2) | `ready-orders-worker` **1.3.0** |
+| `Shipped-Orders.html` | **أوردرات تحت التوصيل** — حالته `Shipped` ولسه بلا `Delivered`/`Returned` | `shipped-orders-worker` |
 | `Order-Status-Updater.html` 🔗 | **تحديث حالة الأوردرات** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `order-status-updater-worker` (في ريبوه) |
 | `COD-Payment-Center.html` 🔗 | **تحصيل الأوردرات COD** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `cod-payment-center-worker` (في ريبوه) |
 | `Partial-Delivery.html` 🔗 | **التسليم الجزئي** — أداة مدموجة (v1.10.0 · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` (في ريبوه) |
@@ -35,8 +35,8 @@
 index.js              🔴 Worker الدخول (دخول/خروج بس · binding DB)
 wrangler.toml         إعدادات الـ Worker
 index.html            الدخول + الشاشة الرئيسية
-ready-orders.html     قسم الجاهز للشحن + 🧮 تاب جرد المكتب
-shipped-orders.html   طابور المشحون
+Ready-Orders.html     قسم الجاهز للشحن + 🧮 تاب جرد المكتب
+Shipped-Orders.html   طابور المشحون
 shared/shell.css      التوكنز + الـ chrome (نسخة واحدة)
 shared/shell.js       الإعدادات + الجلسة + §QUEUE-RULES + §AUDIT-RULES (مصدر الاشتقاق الوحيد)
 docs/build-pages.py   مولّد الصفحتين — 🔴 الـ HTML **متولّد**، عدّل هنا
@@ -54,7 +54,7 @@ docs/tools-check.mjs  فحص عقد الدمج — ١٠٦ بند
 
 ```bash
 npm i playwright postcss --no-save
-node docs/css-check.js shared/shell.css index.html ready-orders.html shipped-orders.html \
+node docs/css-check.js shared/shell.css index.html Ready-Orders.html Shipped-Orders.html \
                        Order-Status-Updater.html COD-Payment-Center.html Partial-Delivery.html
 node docs/rules-check.mjs
 node docs/queues-check.mjs

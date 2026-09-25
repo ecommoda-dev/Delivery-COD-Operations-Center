@@ -1,6 +1,6 @@
 // ══════════════════════════════════════════════════════════════
 // docs/queues-check.mjs — فحص متصفح فعلي للهب كله
-// (`index.html` · `ready-orders.html` · `shipped-orders.html`)
+// (`index.html` · `Ready-Orders.html` · `Shipped-Orders.html`)
 //
 // 🔴 **ليه ملف واحد للتلاتة هنا؟** عكس قرار هب المخزن (خمس ملفات) — وده
 //    مقصود: التلات صفحات دي بيقروا **نفس شكل الرد بالحرف** (طابور أوردرات
@@ -9,7 +9,7 @@
 //    في الملف ده إن **الرقم في الرئيسية == عدد صفوف الصفحة**، ومستحيل
 //    تقيسه لو كل صفحة بتشوف بيانات مختلفة.
 //
-// ⚠️ **وبقى فيه تاب تاني في `ready-orders.html`** — «جرد المكتب» (v1.3.0،
+// ⚠️ **وبقى فيه تاب تاني في `Ready-Orders.html`** — «جرد المكتب» (v1.3.0،
 //    وتمريرة شكله في v1.4.0).
 //    بنوده في §⑨ تحت، وكلها بتشغّل **الدورة الفعلية**: بدء · سكان · مكرر ·
 //    كود غلط · إنهاء · استعلام · refresh. ⛔ وفيه بند بيمنع إن التاب يتحقن
@@ -281,16 +281,16 @@ console.log('\n══ ① الجلسة والهيدر ══');
 {
   // بلا جلسة → تحويل لشاشة الدخول ومعاها وجهة الرجوع
   const { page, ctx } = await newPage({ withSession:false });
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForTimeout(700);
   const u = new URL(page.url());
-  is(u.pathname.endsWith('index.html') && u.searchParams.get('next') === 'ready-orders.html',
+  is(u.pathname.endsWith('index.html') && u.searchParams.get('next') === 'Ready-Orders.html',
      'بلا جلسة → تحويل لـ index.html بـ ?next=', page.url());
   await ctx.close();
 }
 {
   const { page, ctx, errors } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForTimeout(900);
   is(await page.textContent('.app-title-text h1') === 'قسم الجاهز للشحن', 'الهيدر الموحّد بعنوان الصفحة');
   is(await page.isVisible('.hbtn-home'), 'زرار 🏠 الرئيسية موجود');
@@ -311,10 +311,10 @@ console.log('\n══ ① الجلسة والهيدر ══');
 // ══════════════════════════════════════════════════════════════
 // ② طابور «جاهز للشحن» — العدّ والاشتقاق
 // ══════════════════════════════════════════════════════════════
-console.log('\n══ ② ready-orders.html ══');
+console.log('\n══ ② Ready-Orders.html ══');
 {
   const { page, ctx, errors } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr', { timeout: 5000 });
 
   const rows = await page.$$eval('#qBody tr', els => els.length);
@@ -551,7 +551,7 @@ console.log('\n══ ② ready-orders.html ══');
 console.log('\n══ ③ المراجعة والفلتر والبحث ══');
 {
   const { page, ctx, errors } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
 
   // نافذة العلامات — **السبب والفعل**، مش «فيه حاجة»
@@ -684,7 +684,7 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
 //    مش بيقرا خريطة في الكود.
 {
   const { page, ctx, errors } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
   await page.click('.flt-header');
   await page.waitForTimeout(200);
@@ -754,7 +754,7 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
 //    مش خريطة في الكود.
 {
   const { page, ctx, errors } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
 
   const chipText = () => page.$$eval('#qWaChips .zchip', e => e.map(x => x.innerText.replace(/\s+/g, ' ').trim()));
@@ -841,7 +841,7 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
 {
   state.readyRows = READY_RAW.filter(o => o.whereaboutsS1 !== 'Courier');
   const { page, ctx, errors } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
   const chips = await page.$$eval('#qWaChips .zchip', e => e.map(x => x.innerText.replace(/\s+/g, ' ').trim()));
   is(chips.length === 4 && chips.some(t => t === '⚠ مع المندوب 0'),
@@ -859,7 +859,7 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
 // ⚠️ **والبند بيقرا التخطيط الفعلي** (`getClientRects().length`) مش اسم
 //    كلاس ولا قيمة CSS — لفّ سطر بيحصل من عرض الشاشة والخط الفعلي،
 //    ومقارنة على `white-space` كانت هتعدّي على الحالة اللي بتكسر.
-for (const [file, total] of [['ready-orders.html', 'الجاهز'], ['shipped-orders.html', 'المشحون']]) {
+for (const [file, total] of [['Ready-Orders.html', 'الجاهز'], ['Shipped-Orders.html', 'المشحون']]) {
   const { page, ctx, errors } = await newPage();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${BASE}/${file}`);
@@ -893,7 +893,7 @@ for (const [file, total] of [['ready-orders.html', 'الجاهز'], ['shipped-or
 {
   const { page, ctx, errors } = await newPage({ });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
   const W = await page.$$eval('#qTable thead th', ths => Object.fromEntries(
     ths.map(t => [t.textContent.trim().replace(/[▲▼]/g, ''), Math.round(t.getBoundingClientRect().width)])));
@@ -925,7 +925,7 @@ console.log('\n══ ③-ج عمود «العميل» — سطران بالكت
   state.readyRows = READY_RAW.map((r, i) => i === 0 ? { ...r, customer: LONG } : r);
   const { page, ctx, errors } = await newPage();
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
 
   const m = await page.$$eval('#qBody tr td.cust-cell', tds => {
@@ -980,7 +980,7 @@ console.log('\n══ ③-ج عمود «العميل» — سطران بالكت
   SHIPPED_RAW[0].customer = 'عبدالرحمن محمود عبدالرحمن محمود السيد';
   const { page, ctx } = await newPage();
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto(`${BASE}/shipped-orders.html`);
+  await page.goto(`${BASE}/Shipped-Orders.html`);
   await page.waitForSelector('#qBody tr');
   const m = await page.$$eval('#qBody tr td.cust-cell .cust-txt', sps => {
     const sp = sps.find(x => x.title.includes('عبدالرحمن محمود عبدالرحمن'));
@@ -1007,7 +1007,7 @@ console.log('\n══ ③-ج عمود «العميل» — سطران بالكت
 //    (Worker بلا الحقل) هو اللي بيثبت كده: لو التاريخ كان مكتوب في
 //    الصفحة، كان هيفضل ظاهر وهو مش مطبّق.
 console.log('\n══ ③-د أرضية تاريخ الطابور ══');
-for (const [file, label] of [['ready-orders.html', 'الجاهز للشحن'], ['shipped-orders.html', 'المشحون']]) {
+for (const [file, label] of [['Ready-Orders.html', 'الجاهز للشحن'], ['Shipped-Orders.html', 'المشحون']]) {
   const { page, ctx } = await newPage();
   await page.goto(`${BASE}/${file}`);
   await page.waitForSelector('#qBody tr');
@@ -1023,7 +1023,7 @@ for (const [file, label] of [['ready-orders.html', 'الجاهز للشحن'], [
   //    الطابور مفلتر وهو راجع بالكامل.
   state.minDay = null;
   const { page, ctx } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
   is(await page.$eval('#qScope', el => el.hidden),
      '⛔ وعلى Worker مابيرجّعش الأرضية الشيب **بيختفي خالص** — التاريخ جاي من الرد مش مكتوب في الصفحة');
@@ -1038,7 +1038,7 @@ console.log('\n══ ④ الفشل والاقتطاع ══');
 {
   state.readyFail = true;
   const { page, ctx } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForTimeout(900);
   is(await page.isVisible('#qFail'), 'فشل الجلب بيطلّع بانر أحمر');
   is((await page.textContent('#qCount')).includes('تعذّر'),
@@ -1050,7 +1050,7 @@ console.log('\n══ ④ الفشل والاقتطاع ══');
 {
   state.truncated = true;
   const { page, ctx } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
   is(await page.isVisible('#qTrunc'), 'الاقتطاع بيطلّع بانر **منفصل** عن بانر الفشل');
   is(!(await page.isVisible('#qFail')), 'وبانر الفشل مابيظهرش مع الاقتطاع — دول حالتين مختلفتين');
@@ -1061,11 +1061,11 @@ console.log('\n══ ④ الفشل والاقتطاع ══');
 // ══════════════════════════════════════════════════════════════
 // ⑤ طابور «مشحون» — رقم التتبع وحارس الفلفلمنت
 // ══════════════════════════════════════════════════════════════
-console.log('\n══ ⑤ shipped-orders.html ══');
+console.log('\n══ ⑤ Shipped-Orders.html ══');
 {
   const { page, ctx, errors } = await newPage();
   state.calls.length = 0;
-  await page.goto(`${BASE}/shipped-orders.html`);
+  await page.goto(`${BASE}/Shipped-Orders.html`);
   await page.waitForSelector('#qBody tr');
 
   is(state.calls.includes('get_shipped_queue'), 'الصفحة بتنادي `get_shipped_queue`');
@@ -1204,7 +1204,7 @@ console.log('\n══ ⑦ الفحص الذاتي ══');
         body: JSON.stringify({ ok:true, version:'0.9.0' }) });
     return makeStub()(route);
   });
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForTimeout(1200);
   is(await page.isVisible('#verStaleBtn'), 'Worker أقدم من الحد الأدنى → تحذير النسخة بيظهر');
   const t = await page.textContent('#verStaleBtn');
@@ -1219,7 +1219,7 @@ console.log('\n══ ⑧ الدخول ══');
 {
   state.authBodies.length = 0;
   const { page, ctx, errors } = await newPage({ withSession:false });
-  await page.goto(`${BASE}/index.html?next=shipped-orders.html`);
+  await page.goto(`${BASE}/index.html?next=Shipped-Orders.html`);
   await page.waitForTimeout(800);
   is(await page.isVisible('#loginOverlay .login-card'), 'بلا جلسة → شاشة الدخول');
   const opts = await page.$$eval('#loginSelect option', e => e.length);
@@ -1245,7 +1245,7 @@ console.log('\n══ ⑧ الدخول ══');
 
   // 🔴 `?next=` بيحوّل للوجهة بعد الدخول — وبيتفحص بـ regex قبل التحويل
   await page.waitForTimeout(700);
-  is(page.url().endsWith('shipped-orders.html'), '`?next=` بيرجّع الموظف لوجهته بعد الدخول', page.url());
+  is(page.url().endsWith('Shipped-Orders.html'), '`?next=` بيرجّع الموظف لوجهته بعد الدخول', page.url());
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
 }
@@ -1263,7 +1263,7 @@ console.log('\n══ ⑧ الدخول ══');
   // الخروج بيبعت `appId` كمان — الزوج (دخول/خروج) لازم يتقفل تحت نفس الاسم
   state.logoutUrls.length = 0;
   const { page, ctx } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
   await page.click('#activeUserBtn');
   await page.waitForTimeout(900);
@@ -1290,7 +1290,7 @@ console.log('\n══ ⑧ الدخول ══');
 console.log('\n══ ⑨ تاب «جرد المكتب» ══');
 {
   const { page, ctx, errors } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
   const scan = async (code) => {
     await page.fill('#audScanInput', code);
@@ -1514,7 +1514,7 @@ console.log('\n══ ⑨ تاب «جرد المكتب» ══');
 //    **بلا أي تفسير على الشاشة**. دلوقتي التاب ليها فلترينها هي.
 {
   const { page, ctx, errors } = await newPage();
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
   await page.click('#tabAuditBtn');
   await page.waitForTimeout(250);
@@ -1622,7 +1622,7 @@ console.log('\n══ ⑨ تاب «جرد المكتب» ══');
   const { page, ctx, errors } = await newPage();
   state.lookupFail = true;
   const before = state.lookupBodies.length;
-  await page.goto(`${BASE}/ready-orders.html`);
+  await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
   await page.click('#tabAuditBtn');
   await page.waitForTimeout(200);
@@ -1669,7 +1669,7 @@ console.log('\n══ ⑨ تاب «جرد المكتب» ══');
 //    يتقرر **إيه المفروض يكون موجود** هناك (قرار أحمد مش قرار كود).
 {
   const { page, ctx, errors } = await newPage();
-  await page.goto(`${BASE}/shipped-orders.html`);
+  await page.goto(`${BASE}/Shipped-Orders.html`);
   await page.waitForSelector('#qBody tr');
   is(!(await page.$('#tabAuditBtn')) && !(await page.$('#viewAudit')),
      '⛔ صفحة المشحون **مالهاش** تاب جرد ولا ماركب جرد');
