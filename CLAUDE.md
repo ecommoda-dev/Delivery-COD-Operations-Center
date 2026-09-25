@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center (`Delivery-COD-Operations-Center`)
 
-![version](https://img.shields.io/badge/version-v1.10.0-blue)
+![version](https://img.shields.io/badge/version-v1.11.0-blue)
 
 **بتعمل إيه:** هب واحد لمحطة الشحن والتحصيل. الموظف بيدخل **مرة واحدة**،
 وبيشوف طوابير الشحن: اللي **جاهز يخرج**، واللي **خرج ولسه بلا نتيجة** —
@@ -10,7 +10,7 @@
 **وبيشتغل على تلات أدوات مدموجة تحت المركز**: **تحديث حالة الأوردرات**
 و**تحصيل الأوردرات COD** (v1.5.0)، و**التسليم الجزئي** (v1.10.0).
 **مين بيستخدمها:** الشحن والتحصيل
-**الإصدار:** `v1.10.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/shell.js`)
+**الإصدار:** `v1.11.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/shell.js`)
 
 > 🔴 **الريبو ده فيه النُصّين: الواجهة + Worker الدخول** (`index.js` ·
 > `wrangler.toml`). وده **الشكل القياسي** مش استثناء — قرار ٨ في
@@ -23,13 +23,15 @@
 > `Shipped-Orders`) — **مفيش Promote ليهم من هنا**.
 
 > 🔴 **وبطاقة «التسليم الجزئي» في «قسم أدوات العمليات» بقت صفحة مدموجة
-> جوّه الهب من v1.10.0 (`partial-delivery.html`) — بدل الرابط الخارجي
-> اللي كانت عليه.** التفاصيل الكاملة في قسم «الأدوات المدموجة» تحت.
-> ⛔ **وعكس order-status.html/cod-payment.html، الريبو المستقل بتاعها
-> (`Partial-Delivery`) بقى Worker وبس** — الصفحة اللي كانت فيه اتشالت
-> خالص، فمفيش نسخة تانية شغّالة في مكان تاني ولا رابط قديم. أي تعديل على
-> منطق الأداة (لا الشِل) بيتعمل في `partial-delivery.html` هنا مباشرة، وأي
-> تعديل على الـ Worker بيتعمل في ريبو `Partial-Delivery`.
+> جوّه الهب من v1.10.0 (`Partial-Delivery.html` — اسم الملف اتغيّر لاسم
+> الريبو بالحرف في v1.11.0) — بدل الرابط الخارجي اللي كانت عليه.**
+> التفاصيل الكاملة في قسم «الأدوات المدموجة» تحت.
+> ⛔ **وعكس Order-Status-Updater.html/COD-Payment-Center.html، الريبو
+> المستقل بتاعها (`Partial-Delivery`) بقى Worker وبس** — الصفحة اللي
+> كانت فيه اتشالت خالص، فمفيش نسخة تانية شغّالة في مكان تاني ولا رابط
+> قديم. أي تعديل على منطق الأداة (لا الشِل) بيتعمل في
+> `Partial-Delivery.html` هنا مباشرة، وأي تعديل على الـ Worker بيتعمل في
+> ريبو `Partial-Delivery`.
 > ⛔ **ومفيش Promote للـ Worker من هنا** (نفس قرار ٨: Worker بتاعها في
 > ريبوها). **وقيمة `tool = 'partial_delivery'` لسه مش مسجّلة في
 > `ecommoda-constants` §7** — حاجز نشر مستقل عن أي حاجة في الهب ده.
@@ -65,8 +67,10 @@ tool في D1 : delivery_cod_ops_center   ← login · logout بس (ولسه مط
 ```
 
 > 🔴 **ومن v1.5.0 الهب بقى بيخدم أدوات كتابة جوّاه** (قرار أحمد
-> 16-09-2026 · 17-09-2026): `order-status.html` و`cod-payment.html`،
-> وانضمّ لهم `partial-delivery.html` في v1.10.0. التفاصيل الكاملة في قسم
+> 16-09-2026 · 17-09-2026): `Order-Status-Updater.html` و
+> `COD-Payment-Center.html`، وانضمّ لهم `Partial-Delivery.html` في
+> v1.10.0 (أسماء الملفات التلاتة اتغيّرت لاسم ريبوها بالحرف في v1.11.0).
+> التفاصيل الكاملة في قسم
 > «الأدوات المدموجة» تحت — والفرق الجوهري إن الطوابير **عرض بحت** والتلات
 > أدوات دول **بيكتبوا**: حالة أوردر على شوبيفاي، وصفوف فلوس في D1، وحذف
 > منتج من أوردر (Order Edit).
@@ -78,9 +82,9 @@ tool في D1 : delivery_cod_ops_center   ← login · logout بس (ولسه مط
 | `index.html` | الدخول + الشاشة الرئيسية | **`delivery-cod-operations-center-worker`** (الدخول) + الاتنين (للأعداد) | **`1.0.0`** | L (1400) |
 | `ready-orders.html` | **قسم الجاهز للشحن** + 🧮 **تاب جرد المكتب** | `ready-orders-worker` | **`1.4.0`** | L (1400) |
 | `shipped-orders.html` | **طابور المشحون** | `shipped-orders-worker` | **`1.1.0`** | L (1400) |
-| `order-status.html` | 🔗 **تحديث حالة الأوردرات** (مدموجة) | `order-status-updater-worker` | **`4.7.0`** | **M (1200)** |
-| `cod-payment.html` | 🔗 **تحصيل الأوردرات COD** (مدموجة) | `cod-payment-center-worker` | **`3.5.0`** | **M (1200)** |
-| `partial-delivery.html` | 🔗 **التسليم الجزئي** (مدموجة من v1.10.0 · بلا نسخة قديمة) | `partial-delivery-worker` | **`1.0.1`** | **M (1200)** |
+| `Order-Status-Updater.html` | 🔗 **تحديث حالة الأوردرات** (مدموجة · اسم الملف اتغيّر v1.11.0) | `order-status-updater-worker` | **`4.7.0`** | **M (1200)** |
+| `COD-Payment-Center.html` | 🔗 **تحصيل الأوردرات COD** (مدموجة · اسم الملف اتغيّر v1.11.0) | `cod-payment-center-worker` | **`3.5.0`** | **M (1200)** |
+| `Partial-Delivery.html` | 🔗 **التسليم الجزئي** (مدموجة من v1.10.0 · بلا نسخة قديمة · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` | **`1.0.1`** | **M (1200)** |
 
 > ⚠️ **تلات `min` مستقلة تمامًا** — مالهمش أي علاقة ببعض ولا بـ`TOOL_VERSION`.
 > `min` مايترفعش إلا لما الهب **يعتمد فعلاً** على حاجة جديدة في الـ Worker ده
@@ -280,11 +284,12 @@ dcoMachineOf(o, status) → 's1' | 's2' | null   // S1 الأول
 
 > 🔴 **كتلة التوكنز في `shared/shell.css` بس.** أي كتلة توكنز في صفحة = التوكنز
 > اتفرّقت. التلات صفحات الأصلية كلها Tier L فمحتاجتش حتى `--container-max`.
-> ⚠️ **والاستثناء الوحيد من v1.5.0** — `order-status.html` و`cod-payment.html`
-> فيهم **تاب سجل**، يعني Tier M (1200) مش L (1400)، فكل واحدة فيها **سطر
-> واحد**: `:root { --container-max: 1200px; }`.
+> ⚠️ **والاستثناء بدأ v1.5.0 على `Order-Status-Updater.html` و
+> `COD-Payment-Center.html`، وانضمّت لهم `Partial-Delivery.html` في
+> v1.10.0** — فيهم **تاب سجل**، يعني Tier M (1200) مش L (1400)، فكل واحدة
+> فيها **سطر واحد**: `:root { --container-max: 1200px; }`.
 > 🔴 **وسطر واحد ≠ كتلة توكنز** — وفيه بند في `docs/tools-check.mjs` بيقرا
-> كل `:root` في الصفحتين وبيفشل لو فيها **أي متغيّر تاني** غير ده.
+> كل `:root` في التلات صفحات وبيفشل لو فيها **أي متغيّر تاني** غير ده.
 
 > 🔴 **`shared/shell.css` و`shared/shell.js` نسخة من هب المخزن — والخطر ده
 > لازم يتقال بالاسم.** درس R1: منطق واحد في ملفين بيفترق مع أول تعديل. والنسخ
@@ -1122,13 +1127,13 @@ Center تحت مركز الشحن والتحصيل». والقرارات الت�
 - 🔴 **مفيش نسخة قديمة تفضل شغّالة.** `Partial-Delivery/index.html` **اتشال
   خالص** من الريبو المستقل — مش «فضل شغّال بشاشة دخوله» زي order-status/
   cod-payment. الريبو المستقل بقى **Worker + `wrangler.toml` بس**.
-- 🔴 **ومعناه إن `partial-delivery.html` هنا مش متولّدة بسكربت.** لا بانر
+- 🔴 **ومعناه إن `Partial-Delivery.html` هنا مش متولّدة بسكربت.** لا بانر
   «ممنوع تتعدّل بالإيد» ولا `docs/port-standalone.py` — التعديل على منطق
   الأداة بيتعمل **في الملف ده مباشرة**، لأن مفيش نسخة تانية تفترق عنه
   (درس R1 مش منطبق هنا: مفيش نسختين أصلاً).
   ⚠️ **وده قرار متعمَّد مش سهو** — `docs/tools-check.mjs` بيفلتر بند
   «الصفحة متولّدة فعلاً» على الأدوات اللي ليها `source` بس (راجع الملف)،
-  عشان غياب مصدر لـ`partial-delivery.html` ما يوقفش الفحص ده للتنين
+  عشان غياب مصدر لـ`Partial-Delivery.html` ما يوقفش الفحص ده للتنين
   التانيين.
 - 🔴 **والتحويل اتعمل بالإيد على نفس نمط `port-standalone.py`** (مش
   بتشغيله، لأنه مقفول على أداتين معروفتين بالاسم ومحتاج مصدر جنب الهب):
@@ -1159,11 +1164,12 @@ Center تحت مركز الشحن والتحصيل». والقرارات الت�
 
 ```bash
 # لازم الريبوهات التلاتة تكون جنب بعض
-python3 docs/port-standalone.py     # بيولّد order-status.html · cod-payment.html
+python3 docs/port-standalone.py     # بيولّد Order-Status-Updater.html · COD-Payment-Center.html
 node docs/tools-check.mjs
 ```
 
-- ⛔ **ممنوع تعديل `order-status.html` أو `cod-payment.html` بالإيد** —
+- ⛔ **ممنوع تعديل `Order-Status-Updater.html` أو `COD-Payment-Center.html`
+  بالإيد** —
   التعديل بيضيع في صمت مع أول تشغيل، وفيه بانر في أول كل ملف بيقول كده.
   **التعديل بيتعمل في الريبو الأصلي، وبعدين المولّد بيتشغّل.**
 - 🔴 **وكل تحويل في المولّد مربوط بـ«مرساة» نصّية، والمرساة الغايبة
@@ -1214,7 +1220,7 @@ node docs/tools-check.mjs
 > · **`shopifyOrderUrl`/`orderLink` بتوع الأداة** — بتشيل `gid://` من الـ ID
 >   وبتحط `#` قدام رقم الأوردر. نسخة الـ shell مابتعملش الاتنين، واستخدامها
 >   كان بيدّي **رابط باظ** على أي ID جاي كـ gid.
-> · **بانر «الأداة غير مضبوطة»** في `cod-payment.html` — بيتعرض **جوّه
+> · **بانر «الأداة غير مضبوطة»** في `COD-Payment-Center.html` — بيتعرض **جوّه
 >   الشاشة** قبل أي نداء، فالموظف يعرف قبل ما يمسك السكانر.
 > · **`apiPostLegacy`** (اسمها في الـ shell `apiPostRoot`) — الراوتينج
 >   المختلط بتاع `cod-payment-center-worker`: `action` في **جسم** الطلب
@@ -1315,7 +1321,7 @@ type  : login · logout      ← بس. الهب **مابيكتبش** أي فعل
 > المدموجتين كانوا **أصلاً** على نفس الأصل بنفس القايمة الصارمة
 > (`ALLOWED_ORIGINS = ['https://ecommoda-dev.github.io']`) وبنفس
 > `Access-Control-Allow-Methods: GET, POST, OPTIONS`. صفحة في الهب
-> (`/Delivery-COD-Operations-Center/cod-payment.html`) وصفحة في ريبو الأداة
+> (`/Delivery-COD-Operations-Center/COD-Payment-Center.html`) وصفحة في ريبو الأداة
 > (`/COD-Payment-Center/`) **ليهم نفس الـ Origin بالظبط** — المسار مش جزء
 > منه.
 > ⚠️ ودي **الحاجة الوحيدة** اللي خلّت القرار ③ (الروابط القديمة تفضل
@@ -1448,7 +1454,7 @@ node docs/rules-check.mjs && node docs/queues-check.mjs
 ```bash
 npm i postcss --no-save
 node docs/css-check.js shared/shell.css index.html ready-orders.html shipped-orders.html \
-                       order-status.html cod-payment.html
+                       Order-Status-Updater.html COD-Payment-Center.html Partial-Delivery.html
 ```
 
 > 🔴 **والصفحتين المدموجتين لازم يدخلوا في نفس النداء** — كتلة التوكنز
@@ -1747,8 +1753,8 @@ node docs/rules-check.mjs        # بلا أي تنصيب — منطق بحت
   | `cod-payment-center-worker` | `COD-Payment-Center` | نفس القيمة |
   | `partial-delivery-worker` | `Partial-Delivery` | نفس القيمة (كانت سر مستقل تمامًا قبل v1.10.0) |
 
-  ⛔ **قبل الخطوة دي `order-status.html`/`cod-payment.html`/
-  `partial-delivery.html` بيرجّعوا `401` على كل نداء.**
+  ⛔ **قبل الخطوة دي `Order-Status-Updater.html`/`COD-Payment-Center.html`/
+  `Partial-Delivery.html` بيرجّعوا `401` على كل نداء.**
   ✅ **والفشل مش صامت:** الرسالة بتسمّي الأداة، و🩺 فحص النظام من الشاشة
   الرئيسية بيعرض الستة Workers ويقول أنهي واحد رافض. وحارس النسخة **مابيولّعش
   تحذير كاذب** — `401` معناه «مش واصل» مش «نسخة قديمة».
@@ -1878,8 +1884,8 @@ node docs/rules-check.mjs        # بلا أي تنصيب — منطق بحت
 - ✅ **`.dco-tool*` بقى ليه تلات مستهلكين فعليين** — البند ده كان بايت من
   قبل (اتكتب وقت v1.0.0 لما الهب كان طوابير بس، وفضل زي ما هو من غير
   تحديث حتى بعد ما order-status/cod-payment دخلوا في v1.5.0). دلوقتي
-  «قسم أدوات العمليات» فيه تلات كروت (`order-status.html` ·
-  `cod-payment.html` · `partial-delivery.html`)، و`auto-fit` في الشبكة
+  «قسم أدوات العمليات» فيه تلات كروت (`Order-Status-Updater.html` ·
+  `COD-Payment-Center.html` · `Partial-Delivery.html`)، و`auto-fit` في الشبكة
   عدّى الاختبار العملي: التلات كروت دخلوا بلا أي تعديل CSS.
 
 - 🟢 **مفيش session token موقّع** — الهوية لسه من العميل، زي كل الستاك.
@@ -1915,8 +1921,9 @@ node docs/rules-check.mjs        # بلا أي تنصيب — منطق بحت
 > ⚠️ **البصمة ادعاء عن الملف، مش عن الريبو** — والتلات ملفات
 > (`index.html` · `ready-orders.html` · `shipped-orders.html`) و`shared/*`
 > كلهم اتكتبوا على الإصدارات دي في نفس التمريرة.
-> 🔴 **والتلات صفحات المدموجة (`order-status.html` · `cod-payment.html` ·
-> `partial-delivery.html`) بصمتهم بصمة ريبوهاتهم الأصلية، مش دي** —
+> 🔴 **والتلات صفحات المدموجة (`Order-Status-Updater.html` ·
+> `COD-Payment-Center.html` · `Partial-Delivery.html`) بصمتهم بصمة
+> ريبوهاتهم الأصلية، مش دي** —
 > منطق أدواتهم ما اتراجعش على أي مهارة في تمريرة الدمج (لا v1.5.0 ولا
 > v1.10.0)، اللي اتراجع هو **الإطار** بس. ادعاء إنهم اتراجعوا على
 > الإصدارات دي هيبقى **غلط**، والبصمة اللي بتدّعي مراجعة ما حصلتش أسوأ من
@@ -1931,7 +1938,7 @@ node docs/rules-check.mjs        # بلا أي تنصيب — منطق بحت
 > رفض كتابة أبدًا. `WORKER_VERSION` بقى `1.0.1`. `log_value_alerts` جدول
 > مشترك على مستوى الستاك ومتفرضش إنه اتعمل هنا لأول مرة.
 
-آخر مطابقة: 20-09-2026 · الهب `v1.10.0`
+آخر مطابقة: 25-09-2026 · الهب `v1.11.0`
 ✅ **اتقفل 16-09-2026:** إنشاء Workers الدخول والجاهز + ربط Builds +
 `Build watch paths` + أسرار مجموعة `delivery_cod_ops` + OAuth + **نشر
 `ready-orders-worker` v1.1.0** — كلهم متأكَّدين بالعين والأداة شغّالة حيًا.
@@ -1945,7 +1952,19 @@ Workers)** · **تسجيل `delivery_cod_ops_center` في `ecommoda-constants` �
 
 ---
 
-آخر تحديث: 20-09-2026 — v1.10.0 (**دمج «التسليم الجزئي» بلا رابط خارجي ·
+آخر تحديث: 25-09-2026 — v1.11.0 (**اسم صفحة أي أداة مدموجة = اسم ريبوها
+بالحرف · تطبيق `ecommoda-constants` §5**: 🔴 **الأسماء المختصرة القديمة
+اتلغت** — `order-status.html` → `Order-Status-Updater.html` ·
+`cod-payment.html` → `COD-Payment-Center.html` ·
+`partial-delivery.html` → `Partial-Delivery.html`. صفر تعديل في منطق أو
+شِل أي أداة — الأسماء بس، وكل رابط داخلي ليهم (كروت الرئيسية ·
+`docs/port-standalone.py` · `docs/tools-check.mjs` · أوامر الفحص في
+`README.md`) اتحدّث معاهم في نفس التمريرة. ⛔ **ومفيش تحويل من الاسم
+القديم للجديد** — نفس النمط اللي اتقبل في `shipped.html → bosta-shipped.html`
+بستاك المخزن: بوكمارك قديم بيدّي `404` بقرار، مش تحويل صامت.
+`TOOL_VERSION` اترفع لـ`v1.11.0` كمصدر واحد للنسخة)
+
+v1.10.0 (**دمج «التسليم الجزئي» بلا رابط خارجي ·
 طلب أحمد**: 🔴 **بطاقة «التسليم الجزئي» بقت بتفتح `partial-delivery.html`
 جوّه الهب** بدل رابط خارجي — نفس دخول وسر وشِل باقي المركز (مجموعة
 `delivery_cod_ops` بقت **ستة Workers**). ⛔ **وعكس order-status.html/

@@ -16,8 +16,9 @@
 | `index.html` | الدخول + الشاشة الرئيسية (الطابورين بأرقامهم) | **`delivery-cod-operations-center-worker`** (في الريبو ده) |
 | `ready-orders.html` | **أوردرات جاهزة للشحن** — حالته `Ready` (S1 أو S2) | `ready-orders-worker` **1.3.0** |
 | `shipped-orders.html` | **أوردرات تحت التوصيل** — حالته `Shipped` ولسه بلا `Delivered`/`Returned` | `shipped-orders-worker` |
-| `order-status.html` 🔗 | **تحديث حالة الأوردرات** — أداة مدموجة (v1.5.0) | `order-status-updater-worker` (في ريبوه) |
-| `cod-payment.html` 🔗 | **تحصيل الأوردرات COD** — أداة مدموجة (v1.5.0) | `cod-payment-center-worker` (في ريبوه) |
+| `Order-Status-Updater.html` 🔗 | **تحديث حالة الأوردرات** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `order-status-updater-worker` (في ريبوه) |
+| `COD-Payment-Center.html` 🔗 | **تحصيل الأوردرات COD** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `cod-payment-center-worker` (في ريبوه) |
+| `Partial-Delivery.html` 🔗 | **التسليم الجزئي** — أداة مدموجة (v1.10.0 · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` (في ريبوه) |
 
 > 🔴 **الريبو ده فيه النُصّين** — الواجهة على GitHub Pages، و**Worker الدخول**
 > (`index.js`) على Cloudflare. ده الشكل القياسي (قرار ٨ في الـ playbook).
@@ -42,10 +43,11 @@ docs/build-pages.py   مولّد الصفحتين — 🔴 الـ HTML **متو�
 docs/css-check.js     فحص CSS بـ parser حقيقي
 docs/rules-check.mjs  فحص منطق §QUEUE-RULES و§AUDIT-RULES — ٩٠ بند (بلا تنصيب)
 docs/queues-check.mjs فحص متصفح فعلي — ١٩٦ بند
-order-status.html     🔗 محدّث حالة الأوردر — 🔴 **متولّدة**، عدّل في ريبوها
-cod-payment.html      🔗 مركز التحصيل — 🔴 **متولّدة**، عدّل في ريبوها
+Order-Status-Updater.html 🔗 محدّث حالة الأوردر — 🔴 **متولّدة**، عدّل في ريبوها
+COD-Payment-Center.html   🔗 مركز التحصيل — 🔴 **متولّدة**، عدّل في ريبوها
+Partial-Delivery.html     🔗 التسليم الجزئي — عدّل هنا مباشرة (بلا مولّد)
 docs/port-standalone.py  مولّد صفحتَي الأداتين من ريبوهاتهم
-docs/tools-check.mjs  فحص عقد الدمج — ٦٥ بند
+docs/tools-check.mjs  فحص عقد الدمج — ١٠٦ بند
 ```
 
 ## الفحوص — قبل أي تسليم
@@ -53,7 +55,7 @@ docs/tools-check.mjs  فحص عقد الدمج — ٦٥ بند
 ```bash
 npm i playwright postcss --no-save
 node docs/css-check.js shared/shell.css index.html ready-orders.html shipped-orders.html \
-                       order-status.html cod-payment.html
+                       Order-Status-Updater.html COD-Payment-Center.html Partial-Delivery.html
 node docs/rules-check.mjs
 node docs/queues-check.mjs
 node docs/tools-check.mjs

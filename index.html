@@ -241,8 +241,8 @@
           حقيقي وجلبه رخيص. التلاتة دول **أدوات فعل** مش طوابير: مفيش
           «رقم» يوصفهم أصلاً.
        🔴 **والكروت بتفتح صفحة في نفس التاب** (مش رابط خارجي بـ`target`)
-          — التلاتة بقوا **جوّه الهب** (`order-status.html` ·
-          `cod-payment.html` · `partial-delivery.html`) وبيقروا نفس
+          — التلاتة بقوا **جوّه الهب** (`Order-Status-Updater.html` ·
+          `COD-Payment-Center.html` · `Partial-Delivery.html`) وبيقروا نفس
           الجلسة. رابط خارجي كان معناه دخول تاني وسر تاني.
           ⚠️ **والتسليم الجزئي (v1.10.0) مختلف عن التلاتة**: الريبو
           المستقل بتاعه (`Partial-Delivery`) بقى **Worker وبس** — مفيش
@@ -256,17 +256,17 @@
     <div class="dco-home-sec-title">قسم أدوات العمليات</div>
     <div class="dco-tools-grid">
 
-      <a class="dco-tool" href="order-status.html">
+      <a class="dco-tool" href="Order-Status-Updater.html">
         <span class="dco-card-ico ico-purple">📦</span>
         <div class="dco-card-name">تحديث حالة الأوردرات</div>
       </a>
 
-      <a class="dco-tool" href="cod-payment.html">
+      <a class="dco-tool" href="COD-Payment-Center.html">
         <span class="dco-card-ico ico-green">💳</span>
         <div class="dco-card-name">تحصيل الأوردرات COD</div>
       </a>
 
-      <a class="dco-tool" href="partial-delivery.html">
+      <a class="dco-tool" href="Partial-Delivery.html">
         <span class="dco-card-ico ico-amber">🧩</span>
         <div class="dco-card-name">التسليم الجزئي</div>
       </a>
@@ -375,7 +375,18 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.10.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.11.0</span>
+          <span class="cl-ver-date">25-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>اسم ملف صفحة أي أداة مدموجة جوّه الهب بقى اسم ريبوها بالحرف</b> (قاعدة <code>ecommoda-constants</code> §5) — <code>order-status.html</code> → <code>Order-Status-Updater.html</code> · <code>cod-payment.html</code> → <code>COD-Payment-Center.html</code> · <code>partial-delivery.html</code> → <code>Partial-Delivery.html</code>. صفر تغيير في منطق أي أداة، الأسماء بس.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⛔ <b>مفيش تحويل من الاسم القديم للجديد</b> — أي بوكمارك على الاسم القديم بيدّي <code>404</code> نهائي، من غير أي redirect صامت.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.10.0</span>
           <span class="cl-ver-date">20-09-2026</span>
         </div>
         <ul class="cl-items">
