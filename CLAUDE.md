@@ -80,8 +80,8 @@ tool في D1 : delivery_cod_ops_center   ← login · logout بس (ولسه مط
 | الصفحة | الأداة | الـ Worker | الحد الأدنى | Tier |
 |---|---|---|---|---|
 | `index.html` | الدخول + الشاشة الرئيسية | **`delivery-cod-operations-center-worker`** (الدخول) + الاتنين (للأعداد) | **`1.0.0`** | L (1400) |
-| `ready-orders.html` | **قسم الجاهز للشحن** + 🧮 **تاب جرد المكتب** | `ready-orders-worker` | **`1.4.0`** | L (1400) |
-| `shipped-orders.html` | **طابور المشحون** | `shipped-orders-worker` | **`1.1.0`** | L (1400) |
+| `Ready-Orders.html` | **قسم الجاهز للشحن** + 🧮 **تاب جرد المكتب** (اسم الملف اتغيّر v1.12.0) | `ready-orders-worker` | **`1.4.0`** | L (1400) |
+| `Shipped-Orders.html` | **طابور المشحون** (اسم الملف اتغيّر v1.12.0) | `shipped-orders-worker` | **`1.1.0`** | L (1400) |
 | `Order-Status-Updater.html` | 🔗 **تحديث حالة الأوردرات** (مدموجة · اسم الملف اتغيّر v1.11.0) | `order-status-updater-worker` | **`4.7.0`** | **M (1200)** |
 | `COD-Payment-Center.html` | 🔗 **تحصيل الأوردرات COD** (مدموجة · اسم الملف اتغيّر v1.11.0) | `cod-payment-center-worker` | **`3.5.0`** | **M (1200)** |
 | `Partial-Delivery.html` | 🔗 **التسليم الجزئي** (مدموجة من v1.10.0 · بلا نسخة قديمة · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` | **`1.0.1`** | **M (1200)** |
@@ -122,7 +122,7 @@ tool في D1 : delivery_cod_ops_center   ← login · logout بس (ولسه مط
 
 
 > 🔴 **و`ready.min = '1.1.0'` كان أول حارس مشروع في الهب ده (v1.1.0).**
-> `ready-orders.html` بقت معتمدة فعلاً على `address1`/`address2` في رد
+> `Ready-Orders.html` بقت معتمدة فعلاً على `address1`/`address2` في رد
 > `get_ready_queue` (Worker v1.1.0): **عمود «العنوان»** مبني عليهم. على
 > Worker `1.0.0` العمود بيقول **«بلا عنوان» على كل صف**، وعمود كامل بجملة
 > تحذير بيتقري **عطل في الأداة** مش «Worker قديم» — فالحارس بيسمّي السبب
@@ -1407,7 +1407,7 @@ Exclude paths : (فاضي — النص الرمادي placeholder مش قيمة)
 
 ## 🔴 الصفحتان **متولّدتان** — `docs/build-pages.py`
 
-`ready-orders.html` و`shipped-orders.html` **متطابقتان بالحرف** فيما عدا خمس
+`Ready-Orders.html` و`Shipped-Orders.html` **متطابقتان بالحرف** فيما عدا خمس
 معاملات (الحالة · الـ endpoint · الكاش · العمود الزيادة ونصوصه).
 
 > 🔴 **ومن v1.1.0 بقى فيه معامل تاني للأعمدة — `addrHead`/`addrCell`/`addrFn`.**
@@ -1453,7 +1453,7 @@ node docs/rules-check.mjs && node docs/queues-check.mjs
 
 ```bash
 npm i postcss --no-save
-node docs/css-check.js shared/shell.css index.html ready-orders.html shipped-orders.html \
+node docs/css-check.js shared/shell.css index.html Ready-Orders.html Shipped-Orders.html \
                        Order-Status-Updater.html COD-Payment-Center.html Partial-Delivery.html
 ```
 
@@ -1919,7 +1919,7 @@ node docs/rules-check.mjs        # بلا أي تنصيب — منطق بحت
 | ecommoda-tool-migration-playbook | §13 (Promote) |
 
 > ⚠️ **البصمة ادعاء عن الملف، مش عن الريبو** — والتلات ملفات
-> (`index.html` · `ready-orders.html` · `shipped-orders.html`) و`shared/*`
+> (`index.html` · `Ready-Orders.html` · `Shipped-Orders.html`) و`shared/*`
 > كلهم اتكتبوا على الإصدارات دي في نفس التمريرة.
 > 🔴 **والتلات صفحات المدموجة (`Order-Status-Updater.html` ·
 > `COD-Payment-Center.html` · `Partial-Delivery.html`) بصمتهم بصمة
@@ -1938,7 +1938,7 @@ node docs/rules-check.mjs        # بلا أي تنصيب — منطق بحت
 > رفض كتابة أبدًا. `WORKER_VERSION` بقى `1.0.1`. `log_value_alerts` جدول
 > مشترك على مستوى الستاك ومتفرضش إنه اتعمل هنا لأول مرة.
 
-آخر مطابقة: 25-09-2026 · الهب `v1.11.0`
+آخر مطابقة: 25-09-2026 · الهب `v1.12.0`
 ✅ **اتقفل 16-09-2026:** إنشاء Workers الدخول والجاهز + ربط Builds +
 `Build watch paths` + أسرار مجموعة `delivery_cod_ops` + OAuth + **نشر
 `ready-orders-worker` v1.1.0** — كلهم متأكَّدين بالعين والأداة شغّالة حيًا.
@@ -1952,7 +1952,21 @@ Workers)** · **تسجيل `delivery_cod_ops_center` في `ecommoda-constants` �
 
 ---
 
-آخر تحديث: 25-09-2026 — v1.11.0 (**اسم صفحة أي أداة مدموجة = اسم ريبوها
+آخر تحديث: 25-09-2026 — v1.12.0 (**القاعدة اتوسّعت لكل صفحة في الهب،
+مش الأدوات المدموجة بس · طلب أحمد**: 🔴 **اسم ملف أي صفحة جوّه الهب بقى
+اسم ريبو الـ Worker بتاعها بالحرف** — القاعدة كانت مقصورة على الأدوات
+اللي كان ليها واجهة مستقلة يومًا (v1.11.0)، ودلوقتي بتنطبق على أي صفحة
+بغض النظر عن أصلها: `ready-orders.html` → `Ready-Orders.html` ·
+`shipped-orders.html` → `Shipped-Orders.html` — الصفحتين دول **اتولدوا
+من الأول جوّه الهب** (`docs/build-pages.py`) ومالهمش نسخة مستقلة خالص،
+بس الاسم بقى يطابق اسم ريبو الـ Worker بتاعهم (`Ready-Orders` ·
+`Shipped-Orders`) زي أي صفحة تانية. صفر تعديل في منطق أو شِل أي صفحة —
+الأسماء بس، وكل رابط داخلي ليهم (كارتَي الرئيسية · `docs/build-pages.py`
+→ معامل `file` · `docs/queues-check.mjs` · أوامر الفحص في `README.md`)
+اتحدّث معاهم في نفس التمريرة. ⛔ **ومفيش تحويل من الاسم القديم للجديد** —
+نفس قاعدة v1.11.0 بالحرف. `TOOL_VERSION` اترفع لـ`v1.12.0`)
+
+v1.11.0 (**اسم صفحة أي أداة مدموجة = اسم ريبوها
 بالحرف · تطبيق `ecommoda-constants` §5**: 🔴 **الأسماء المختصرة القديمة
 اتلغت** — `order-status.html` → `Order-Status-Updater.html` ·
 `cod-payment.html` → `COD-Payment-Center.html` ·
