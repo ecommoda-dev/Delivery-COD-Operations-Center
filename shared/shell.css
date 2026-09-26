@@ -496,3 +496,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 /* أيقونات الصفوف — لون المربع هو اللي بيفرّق الطابورين قبل قراءة الاسم */
 .dco-card-ico.ico-amber{background:var(--amber-light);border-color:var(--amber-border)}
 .dco-card-ico.ico-purple{background:var(--purple-light);border-color:var(--purple-border)}
+/* 🔴 «رفع بوسطة» (v1.13.0) — أول كارت بيستخدم لوجو حقيقي (bosta-logo.png)
+   بدل إيموجي، بلون بوسطة الرسمي (أحمر) بدل تلوين الأداة العشوائي. */
+.dco-card-ico.ico-red{background:var(--red-light);border-color:var(--red-border)}
+.dco-card-ico.ico-red img{width:26px;height:26px;object-fit:contain}
