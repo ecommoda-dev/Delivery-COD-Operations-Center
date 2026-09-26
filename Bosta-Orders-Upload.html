@@ -768,6 +768,15 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
           <span class="cl-ver-date">26-09-2026</span>
         </div>
         <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🎯 <b>احتمالين بالظبط في «❓ احتمالات متعددة»، وواحد منهم بس اسمه == اسم مدينة بوسطة اللي الاتنين تابعين لها</b> (زي منطقة «بلقاس» جوّه مدينة بوسطة «بلقاس» نفسها — #55191) <b>بيترفعوا تلقائيًا</b> على الاحتمال التاني بلا مراجعة يدوية، ببادج مستقل «🎯 استبعاد تكرار الاسم» (Worker <code>bosta-orders-upload-worker</code> v2.12.0 · قرار أحمد 26-09-2026). ⛔ <b>٣ احتمالات فأكتر بتفضل ❓ زي ما هي</b> — بلا اختيار تلقائي، لأن الحسم مش واضح بنفس القوة مع مرشحين تلاتة فأكتر. راجع الصف من بادجه لو الاستبعاد غلط (العميل فعلًا في مركز المدينة). ⚠️ **الميزة دي في الـ Worker** — الرابط القديم المستقل بيستفيد منها كمان لما تروح نسخته المحلية (نفس الـ Worker، منطق مدموج مش موروث).</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.14.0 — الدمج جوّه المركز</span>
+          <span class="cl-ver-date">26-09-2026</span>
+        </div>
+        <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>الأداة دي بقت متاحة كمان جوّه مركز عمليات الشحن والتحصيل</strong> (قسم أدوات العمليات). الدخول من هنا بقى <strong>مرة واحدة</strong> من الشاشة الرئيسية للمركز، والسر بقى <strong>قيمة واحدة</strong> لكل أدوات المركز (مجموعة <code>delivery_cod_ops</code>، بقت سبعة Workers). وفيه زرار <strong>🏠 الرئيسية</strong> في الهيدر بيرجّعك للمركز.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>⚠️ <strong>الرابط القديم لسه شغّال</strong> بشاشة دخوله وسرّه المستقل — نفس نمط دمج «تحديث حالة الأوردرات»/«تحصيل الأوردرات COD» (v1.5.0)، مش نمط «التسليم الجزئي» (v1.10.0): مجموعة الاختبارات الكبيرة (١٦ ملف) في الريبو المستقل بتحمّل <code>index.html</code> بتاعه مباشرة، فمسحه كان هيسيب الاختبارات بلا ملف.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>منطق الأداة ما اتلمسش ولا سطر.</strong> نفس الـ Worker (<code>bosta-orders-upload-worker</code>) ونفس التلات أوضاع (🚚 شحن · ↩️ استرجاع · 🔄 استبدال) ونفس محرك مطابقة العنوان ونفس السجل بالظبط — اللي اتغيّر هو <strong>الإطار</strong> بس.</span></li>
@@ -2459,6 +2468,12 @@ const ADDR_MODE_ITEMS = [
   //    بين تخمين وحقيقة. توحيدها مع «عنوان مظبوط» بيخلي الموظف يعدّي على
   //    التخمين وهو فاكره مطابقة.
   { value: 'anchor',   label: '🔍 مرشّح تلقائي' },
+  // 🎯 (Worker v2.12.0 · قرار أحمد 26-09-2026) غموض احتمالين واحد منهم بس
+  //    اسمه == اسم الزون اللي الاتنين تابعين له (منطقة «بلقاس» جوّه مدينة
+  //    «بلقاس» — #55191). الشحنة **بتترفع** على الاحتمال التاني تلقائيًا،
+  //    بلا مراجعة يدوية — بادج مستقل عن «مرشّح تلقائي» لأن مصدر التخمين
+  //    مختلف (استبعاد تكرار اسم، مش كلمة واحدة من العنوان).
+  { value: 'cityTiebreak', label: '🎯 استبعاد تكرار الاسم' },
   // 🔴 درجة وسيطة حقيقية بين المنطقة والمحافظة (واجهة v2.4.0) — مش تسمية
   //    تجميلية. الـ`zoneId` بيغيّر **الهب وكود الفرز** على البوليصة،
   //    و«المحافظة فقط» بتاخد هب افتراضي. لازم الموظف يفرّق بين الاتنين.
@@ -2967,6 +2982,9 @@ function rowAddrMode(r) {
   //    كأن الأداة طابقت اسم المنطقة كامل. ⚠️ **وبعد `ov?.districtId`**:
   //    الموظف اللي اختار بإيده بقى صاحب القرار، والصف بقى مطابقة يدوية.
   if (r.districtFromAnchor) return 'anchor';
+  // 🎯 نفس السبب فوق بالحرف — الـ Worker بيرجّع `district` للحالة دي كمان
+  //    (غموض احتمالين اتحسم باستبعاد المكرر مع اسم الزون، Worker v2.12.0).
+  if (r.districtFromCityTiebreak) return 'cityTiebreak';
   return r.mode;
 }
 // حالة العنوان **المعروضة** للموظف (بادج/فلتر/تصدير) — بقرار أحمد 15-09-2026
@@ -3126,6 +3144,16 @@ function addrModeInfo(r) {
           + 'دي **كلمة واحدة مش اسم كامل**، فلو الكلمة دي علامة مميزة (مستشفى · مسجد · سنتر) '
           + 'مش عنوان العميل، افتح وغيّر المنطقة.' };
   }
+  // 🎯 استبعاد تكرار الاسم — **أسبق من `district`** لنفس سبب المرشّح
+  //    التلقائي فوق: الـ Worker بيرجّع نفس الـ`mode`، والفرق في العلم.
+  if (r.districtFromCityTiebreak) {
+    const d = r.cityTiebreakDropped || {};
+    return { label: `🎯 ${displayName(r.districtName, r.districtNameAr)}`, set: true, candidate: true,
+      hint: `العنوان طابق احتمالين متساويين — واحد منهم (${displayName(d.name, d.nameAr) || '—'}) `
+          + `اسمه نفس اسم مدينة بوسطة اللي الاتنين تابعين لها، فاتستبعد تلقائيًا والشحنة هتترفع `
+          + `على الاحتمال التاني. **قرار آلي مش مطابقة اسم كامل مؤكَّدة** — لو الاستبعاد غلط `
+          + '(العميل فعلًا في مركز المدينة)، افتح وغيّر المنطقة.' };
+  }
   if (r.mode === 'district') return { label: `📍 ${displayName(r.districtName, r.districtNameAr)}`, set: true,
     hint: 'المطابقة التلقائية لقت منطقة واحدة في كتالوج بوسطة — الشحنة هتترفع بالمنطقة دي' };
   // 🗺️ درجة الزون — بين المنطقة والمحافظة. `set: true` لأن الشحنة **بتترفع
@@ -3203,7 +3231,7 @@ function addrModeCell(r) {
   const cls  = rowNeedsManualAddressConfirm(r) ? 'badge-warn'
              // 🔍 مرشّح تلقائي — **مش أخضر ومش رمادي**: أخضر بيقرا «متأكَّد»،
              //    ورمادي بيقرا «مالوش لازمة» وهو صف **هيترفع**.
-             : mode === 'anchor' ? 'badge-info'
+             : (mode === 'anchor' || mode === 'cityTiebreak') ? 'badge-info'
              : (mode === 'district' || mode === 'zone' || mode === 'province') ? 'badge-success'
              : (mode === 'blocked' || mode === 'coverageBlocked') ? 'badge-danger' : 'badge-muted';
   return `<span class="badge ${cls}" title="${esc(addrModeInfo(r).hint)}">${esc(ADDR_MODE_LABEL[mode] || mode)}</span>`;
@@ -3216,7 +3244,7 @@ function addrModeCell(r) {
 //    اللي `addrModeCell` بيدّيها للمجموعة قبل أي تثبيت يدوي.
 function addrChipClass(mode) {
   if (mode === 'blocked' || mode === 'coverageBlocked') return 'badge-danger';
-  if (mode === 'anchor') return 'badge-info';
+  if (mode === 'anchor' || mode === 'cityTiebreak') return 'badge-info';
   if (mode === 'ambiguous' || mode === 'cityDoubt' || mode === 'province') return 'badge-warn';
   if (mode === 'district' || mode === 'zone') return 'badge-success';
   return 'badge-muted';
@@ -4433,12 +4461,19 @@ function renderDistrictList() {
       //    دي الشاشة اللي الموظف بيراجع فيها. توحيد النص كان هيخلي «كلمة
       //    واحدة من الاسم» تتقرا زي «الاسم كامل» على نفس الشريط الأخضر.
       const anchored = !manual && !!r?.districtFromAnchor;
+      // 🎯 نفس فكرة `anchored` فوق بالحرف — الشحنة بترفع على قرار آلي مش
+      //    مطابقة اسم كامل، فالنافذة لازم تقول كده صراحةً هنا بالذات.
+      const tiebreak = !manual && !!r?.districtFromCityTiebreak;
       const aTxt = r?.addressAnchor?.text || '';
-      head += `<div class="dp-group-hdr ${anchored ? 'pick' : 'match'}">${
+      const dropped = r?.cityTiebreakDropped || {};
+      head += `<div class="dp-group-hdr ${(anchored || tiebreak) ? 'pick' : 'match'}">${
         anchored ? `🔍 مرشّح تلقائي — دي اللي الشحنة هتترفع عليها. <b>راجعها</b>`
+        : tiebreak ? `🎯 اختيار آلي — دي اللي الشحنة هتترفع عليها. <b>راجعها</b>`
                  : `✅ ${manual ? 'المنطقة اللي اخترتها' : 'المطابقة التلقائية'} — دي اللي الشحنة هتترفع عليها`}</div>`;
-      head += dpRow(md, anchored ? 'suggested' : 'is-match', true,
+      head += dpRow(md, (anchored || tiebreak) ? 'suggested' : 'is-match', true,
         anchored ? `كلمة «${aTxt}» في العنوان موجودة في اسم المنطقة دي وبس — مش مطابقة لاسم المنطقة كامل`
+        : tiebreak ? `فيه احتمال تاني (${displayName(dropped.name, dropped.nameAr) || '—'}) اسمه نفس اسم `
+                    + 'مدينة بوسطة، فاتستبعد تلقائيًا — دي مش مطابقة اسم كامل مؤكَّدة'
                  : (manual ? 'اختيار يدوي — اختيار منطقة تانية من القايمة بيغيّره'
                            : (cand?.matchedText ? `طابق "${cand.matchedText}" في ${cand.fieldLabel || 'العنوان'}` : '')),
         anchored ? '🔍 مرشّح' : (manual ? '✅ اختيارك' : '✅ المطابقة الحالية'));
