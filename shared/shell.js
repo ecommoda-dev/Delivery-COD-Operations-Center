@@ -103,12 +103,16 @@ const DCO_WORKERS = {
   // ⚠️ `codPayment.min = '3.5.0'` — النسخة اللي ضافت `cap`/`total`/
   //    `truncated` في `get_logs_export` و`checks` الموحّدة في `diag`،
   //    والواجهة بتقرا الاتنين.
+  // 🔴 `codPayment.min = '3.6.0'` (26-09-2026) — Worker أقدم **بيسجّل المتبقي
+  //    على شوبيفاي** لأي أوردر مسجّل مسبقًا (فرق استبدال S2 اتعلّم مدفوع من
+  //    غير ما يتقبض — ١٤ أوردر)، ومابيرجّعش `preRegBlock`/`s2Due` اللي الصفحة
+  //    بتوقف عليهم الجلسة. الحارس ده مش تجميلي.
   // 🔴 **والسر هنا سر الهب** (`delivery_cod_ops`) — الـ Workers دول لازم
   //    يكونوا **اتضمّوا للمجموعة** (`WORKER_SECRET` اتدوّر لقيمة المجموعة
   //    من داشبورد كلاودفلير). قبل الضم النداء بيرجّع **401** والرسالة
   //    بتسمّي الأداة. البند مفتوح في `CLAUDE.md`.
   orderStatus: { url: 'https://order-status-updater-worker.ecommoda-dev.workers.dev', min: '4.7.0', label: 'تحديث حالة الأوردرات' },
-  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.5.0', label: 'تحصيل الأوردرات COD' },
+  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.6.0', label: 'تحصيل الأوردرات COD' },
 
   // 🔴 **التسليم الجزئي (v1.10.0) — تالت أداة مدموجة، وأول واحدة من غير
   //    رابط قديم شغّال.** الأداتين اللي فوق (`orderStatus`/`codPayment`)
@@ -159,7 +163,7 @@ const DCO_WORKERS = {
   bostaUpload: { url: 'https://bosta-orders-upload-worker.ecommoda-dev.workers.dev', min: '2.12.0', label: 'رفع بوسطة' },
 };
 
-const TOOL_VERSION = 'v1.15.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.16.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +

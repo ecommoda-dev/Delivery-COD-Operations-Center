@@ -753,7 +753,7 @@ const PAGE_WORKERS = ['codPayment'];
 // ══════════════════════════════════════════════════════════════
 //
 // ⛔ **اتشال من هنا ودلوقتي في `shared/shell.js`:** `TOOL_VERSION` ·
-//    `MIN_WORKER_VERSION` (بقت `DCO_WORKERS.codPayment.min` = `3.5.0`) ·
+//    `MIN_WORKER_VERSION` (بقت `DCO_WORKERS.codPayment.min` = `3.6.0`) ·
 //    `cmpVersion` · `checkWorkerVersion` · `showWorkerStale` ·
 //    `renderVersionUI` · مودال الإعدادات (`openSettings`/`saveSettings`/
 //    `updateSettingsBtn`) · `diagRows`/`runDiag` (→ `dcoRunDiag`) ·
@@ -901,10 +901,22 @@ loadLogEmployeeFilter();  // محميّ جوّاه
         'الـ Init — حقن الهيدر وحارس النسخة')
 
     # ── سجل التحديثات + «عن الأداة» ────────────────────────────
-    p.sub('          <span class="cl-ver-badge" id="clVerBadge">v3.4.0</span>\n'
+    # 🔴 أحدث بلوك في الواجهة الأصلية (v3.5.0 · 26-09-2026 — التسجيل المسبق
+    #    مابيتسجّلش على شوبيفاي) بياخد بادج الهب (`#clLatestVerBadge` =
+    #    `TOOL_VERSION` بتاع الهب)، وبند دمج الهب v1.5.0 بينزل تحته قبل
+    #    v3.4.0 — كده الترتيب بالتاريخ: 26-09 ← 16-09 ← 06-09.
+    p.sub('          <span class="cl-ver-badge" id="clVerBadge">v3.5.0</span>\n'
+          '          <span class="cl-ver-date">26-09-2026</span>\n'
+          '        </div>',
+          '''          <span class="cl-ver-badge" id="clLatestVerBadge">v1.16.0</span>
+          <span class="cl-ver-date">26-09-2026 · الواجهة الأصلية v3.5.0</span>
+        </div>''',
+          'سجل التحديثات — أحدث بلوك بياخد بادج الهب')
+
+    p.sub('          <span class="cl-ver-badge old">v3.4.0</span>\n'
           '          <span class="cl-ver-date">06-09-2026</span>\n'
           '        </div>',
-          '''          <span class="cl-ver-badge" id="clLatestVerBadge">v1.5.0</span>
+          '''          <span class="cl-ver-badge old">v1.5.0</span>
           <span class="cl-ver-date">16-09-2026</span>
         </div>
         <ul class="cl-items">
