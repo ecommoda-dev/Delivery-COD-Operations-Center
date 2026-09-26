@@ -151,10 +151,15 @@ const DCO_WORKERS = {
   //       الأدوات فوق: `bosta-orders-upload-worker` لازم يكون **اتضمّ
   //       للمجموعة** (`WORKER_SECRET` اتدوّر لقيمة المجموعة من داشبورد
   //       كلاودفلير). قبل الضم كل نداء من الصفحة دي بيرجّع **401**.
-  bostaUpload: { url: 'https://bosta-orders-upload-worker.ecommoda-dev.workers.dev', min: '2.11.0', label: 'رفع بوسطة' },
+  // 🎯 min اترفع لـ2.12.0 (26-09-2026) — `Bosta-Orders-Upload.html` بقت
+  //    بتقرا `districtFromCityTiebreak`/`cityTiebreakDropped` من الرد (غموض
+  //    احتمالين واحد منهم بس اسمه == اسم الزون بيترفع تلقائيًا على التاني).
+  //    على Worker أقدم الحقلين مش موجودين، فالصف بيفضل ❓ `ambiguous` موقوف
+  //    زي قبل الميزة دي — مش خطر (بيفشل مقفول)، بس الميزة مابتشتغلش.
+  bostaUpload: { url: 'https://bosta-orders-upload-worker.ecommoda-dev.workers.dev', min: '2.12.0', label: 'رفع بوسطة' },
 };
 
-const TOOL_VERSION = 'v1.14.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.15.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
