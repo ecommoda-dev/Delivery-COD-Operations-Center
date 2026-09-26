@@ -677,17 +677,54 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
    اللي تحتها. والشرح الطويل كان بياخد نُص الشريط ومحدش بيقراه بعد أول يوم.
    ⚠️ **`justify-content:center` مش تجميل** — من غيره الأزرار بتتراص من أول
    الشريط وتسيب تلتينه فاضيين بعد ما الشرح اتشال. */
-.job-bar{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;
+/* 🔴 الشريط بقى `grid` بتلات أعمدة (v2.21.0 · طلب أحمد 26-09-2026) —
+   عمود نص فاضي · أزرار الوضع في النص · قسم «آخر تحديث» + زرار التحديث
+   على الشمال. `1fr auto 1fr` هي اللي بتخلي أزرار الوضع **في نص الشريط
+   فعليًا** بغض النظر عن عرض قسم التحديث جنبها — لو استُبدلت بـ`flex` +
+   `justify-content:center` وحدها، وجود عنصر يمين بيزقّ الأزرار شمال
+   المنتصف الحقيقي. */
+.job-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;
   padding:11px 14px;background:var(--surface-2);border:1px solid var(--border);
   border-radius:var(--radius);margin-bottom:12px;}
-.job-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.job-btns{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.job-bar-act{grid-column:3;display:flex;align-items:stretch;gap:9px;justify-content:flex-end;flex-wrap:wrap;}
 .job-btn{padding:8px 14px;border:2px solid var(--border-strong);background:var(--surface);
   color:var(--text-secondary);border-radius:var(--radius-sm);font-family:var(--font-body);
-  font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;white-space:nowrap;}
+  font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:7px;}
 .job-btn:hover{background:var(--surface-2);color:var(--text-primary);}
 .job-btn.active{background:var(--accent);color:var(--on-accent);border-color:var(--accent);}
 .job-btn.active.re{background:var(--amber);border-color:var(--amber);color:#fff;}
 .job-btn:disabled{opacity:.5;cursor:not-allowed;}
+/* 🔴 عدّاد كل وضع جوّه زراره (طلب أحمد 26-09-2026) — `—` قبل أول عدّ ناجح
+   لنفس السبب اللي «مستحق التحصيل» بيتبع فيه: «ما اتحسبش» ≠ «صفر». */
+.job-btn .jb-n{display:inline-flex;align-items:center;justify-content:center;min-width:20px;
+  height:18px;padding:0 5px;border-radius:20px;background:var(--surface);border:1px solid currentColor;
+  font-family:var(--font-mono);font-size:11px;font-weight:800;line-height:1;direction:ltr;
+  font-variant-numeric:tabular-nums;color:inherit;}
+
+/* ── مربعات «حالة العنوان» فوق الجدول — نسخة من `.zchip` بتاعة قسم
+   الجاهز للشحن بالحرف (طلب أحمد 26-09-2026): نفس المقاس ونفس بادج
+   العدّ ونفس علامة ✕ على المختار، وبتكتب في **نفس** فلتر «حالة العنوان»
+   اللي في لوحة الفلاتر تحت — مش حالة تانية جنبه.
+   🔴 **وبتعدّ من `allRows` الكاملة مش من `visibleRows`** — العدّ على
+   المفلتر كان هيصفّر باقي المربعات بعد أول ضغطة (نفس درس مربعات موقع
+   الشحنة في قسم الجاهز للشحن). */
+.addr-chips{display:flex;gap:9px;flex-wrap:wrap;align-items:center;justify-content:center;
+  padding:0 16px 12px;}
+.addr-chips:empty{display:none;}
+.addr-chip{display:inline-flex;align-items:center;gap:9px;padding:8px 14px;
+  border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface-2);
+  color:var(--text-secondary);font-family:var(--font-body);font-size:12.5px;font-weight:800;
+  cursor:pointer;white-space:nowrap;transition:filter .12s,transform .1s,box-shadow .15s;}
+.addr-chip:hover{filter:brightness(.97);}
+.addr-chip:active{transform:translateY(1px);}
+.addr-chip-n{display:inline-flex;align-items:center;justify-content:center;min-width:26px;
+  height:22px;padding:0 7px;border-radius:20px;background:var(--surface);border:1px solid currentColor;
+  font-family:var(--font-mono);font-size:12.5px;font-weight:800;line-height:1;direction:ltr;
+  font-variant-numeric:tabular-nums;}
+.addr-chip.on{box-shadow:0 0 0 2px currentColor inset;}
+.addr-chip.on::after{content:'✕';font-size:11px;font-weight:800;opacity:.75;}
 /* صف الاسترداد — الاتجاه لازم يبان في الجدول نفسه، مش في النافذة فقط */
 .cod-refund{color:var(--red);font-weight:800;}
 .cod-collect{font-weight:700;}
@@ -1552,8 +1589,32 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
   <!-- مبدّل نوع الرفع — v2.0.0. الترتيب مقصود: الشحن العادي الأول وهو
        الافتراضي، والاتنين اللي بيعملوا شحنات R/E بعده وبلون تاني. -->
   <div class="job-bar" id="jobBar">
+    <div></div>
     <div class="job-btns" id="jobBtns"></div>
+    <!-- 🔴 «آخر تحديث» + زرار التحديث — نفس الكتلة بالحرف اللي في قسم
+         الجاهز للشحن (`.dco-fresh` · `.dco-rbtn` من `shared/shell.css`)،
+         وبتحدّث الوضع الحالي **والتلات عدّادات** مع بعض (طلب أحمد
+         26-09-2026). ⛔ وزرار «تحديث» القديم اللي كان في هيدر الصفحة
+         اتشال — كان مكرر مع زرار «تحديث» في شريط الجدول وزرار سجل
+         العمليات، والكتلة دي بقت المصدر الوحيد لـ«آخر تحديث». -->
+    <div class="job-bar-act">
+      <div class="dco-fresh">
+        <div class="dco-fresh-row">
+          <span class="dco-fresh-lbl">آخر تحديث</span>
+          <span class="dco-ago" id="mainAgo">لسه ما اتحدّثش</span>
+        </div>
+        <div class="dco-fresh-row" id="mainStamp"><span class="dco-stamp-chip">—</span></div>
+      </div>
+      <button class="dco-rbtn" id="mainRefreshBtn" type="button" onclick="refreshMain()">
+        <span class="dco-rbtn-ico">↺</span><span>تحديث</span>
+      </button>
+    </div>
   </div>
+
+  <!-- ══ مربعات «حالة العنوان» — فوق الجدول ومربوطة بيه (طلب أحمد
+       26-09-2026)، زي مربعات «موقع الشحنة» في قسم الجاهز للشحن بالظبط:
+       بتعدّ من الأوردرات الكاملة وبتكتب في نفس فلتر «حالة العنوان» تحت. ══ -->
+  <div class="addr-chips" id="addrChips"></div>
 
   <div class="unified-section">
 
@@ -2217,19 +2278,61 @@ function cairoNow()   { return toCairo(new Date().toISOString()); }
 //    hh:mm صباحاً/مساءً)، و`cairoDateStr` بقت `cairoDayStr` بتاعة الـ
 //    shell (نفس الشكل YYYY-MM-DD).
 const fmtNum = n => Number(n || 0).toLocaleString('en-US');
-// ── تحديث ──
-function setRefreshing(active) {
-  const btn = document.getElementById('refreshBtn');
-  if (!btn) return;
-  btn.disabled = active;
-  btn.classList.toggle('refreshing', active);
+// ── «آخر تحديث» + زرار التحديث (طلب أحمد 26-09-2026) ──
+// 🔴 نفس دالة `agoInfo` بتاعة قسم الجاهز للشحن — مصدر واحد للسلّم اللوني
+//    في الهب كله (§ «مصدر واحد للريبو كله» في `shared/shell.js`).
+let mainLoadedAt = null;
+function setMainFresh() {
+  const info  = agoInfo(mainLoadedAt, Date.now());
+  const agoEl = document.getElementById('mainAgo');
+  const btn   = document.getElementById('mainRefreshBtn');
+  if (agoEl) { agoEl.className = 'dco-ago ' + info.cls; agoEl.textContent = info.text; }
+  if (btn)   btn.classList.toggle('is-stale', info.stale);
+  const stamp = document.getElementById('mainStamp');
+  if (stamp) {
+    stamp.innerHTML = mainLoadedAt
+      ? `<span class="dco-stamp-chip">${esc(formatDate(mainLoadedAt.toISOString()))}</span>` +
+        `<span class="dco-stamp-chip">${esc(formatTimeOnly(mainLoadedAt.toISOString()))}</span>`
+      : '<span class="dco-stamp-chip">—</span>';
+  }
 }
-async function doRefresh() {
-  setRefreshing(true);
+// نبضة عرض بحت كل ٣٠ ثانية — صفر نداء شبكة، بس بتحدّث «منذ كام» في مكانها
+setInterval(setMainFresh, 30000);
+
+// ── عدّادات الأوضاع التلاتة فوق (طلب أحمد 26-09-2026) ──
+// 🔴 `get_orders`/`fetch_candidates` بيرجّعوا القايمة كاملة مش عدد بس — مفيش
+//    endpoint عدّ خفيف في الـ Worker، فالعدّاد بيتاخد من طول `rows` بعد نداء
+//    كامل. ⚠️ **الوضع النشط بياخد عدده من `allRows.length` على طول** (مفيش
+//    داعي لنداء تاني)، والاتنين التانيين بيتجابوا في الخلفية بلا ما يوقفوا
+//    الشاشة — فشل أي واحد فيهم بيسيب عدّاده `—` مش بيوقّف الأداة كلها.
+const jobCounts = { s1: null, return: null, exchange: null };
+async function fetchJobCount(key) {
+  const j = JOBS[key];
   try {
-    if (currentTab === 'log') await fetchLog();
-    else                      await loadOrders(true);
-  } finally { setRefreshing(false); }
+    const d = key === 's1'
+      ? await apiGet(j.listAction)
+      : await apiPost(j.listAction, { jobType: j.key, employee: currentEmployee?.username || null });
+    return (d.rows || []).length;
+  } catch { return null; }
+}
+// `includeCurrent=false` (الافتراضي): الوضع النشط عدده معروف أصلًا من
+// `allRows.length`، فمفيش داعي نطلبه تاني. الزرار اليدوي بيطلب التلاتة
+// عشان «تحديث» يعني «كل حاجة فوق اتزامنت» بالحرف.
+async function refreshJobCounts(includeCurrent) {
+  const keys = includeCurrent ? Object.keys(JOBS) : Object.keys(JOBS).filter(k => k !== currentJobKey);
+  const results = await Promise.all(keys.map(fetchJobCount));
+  keys.forEach((k, i) => { jobCounts[k] = results[i]; });
+  renderJobBar();
+}
+async function refreshMain() {
+  const btn = document.getElementById('mainRefreshBtn');
+  if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+  try {
+    await loadOrders(true);
+    await refreshJobCounts(true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+  }
 }
 
 // ── التابات + Freeze on Scroll ──
@@ -2348,7 +2451,7 @@ const UP_STATE_ITEMS = [
   { value: 'uploaded',    label: '🔁 مرفوع قبل كده' },
 ];
 const ADDR_MODE_ITEMS = [
-  { value: 'district', label: '📍 عنوان مظبوط' },
+  { value: 'district', label: '📍 مطابقة كاملة' },
   // 🔴 **مرساة مش مطابقة** (Worker v2.6.0): المنطقة اتحددت من **كلمة واحدة**
   //    في العنوان موجودة في اسم منطقة واحدة بس في المحافظة — مش من اسم
   //    المنطقة كامل. الشحنة **بتترفع عليها** (الصف قابل للرفع وداخل «رفع
@@ -3106,6 +3209,53 @@ function addrModeCell(r) {
   return `<span class="badge ${cls}" title="${esc(addrModeInfo(r).hint)}">${esc(ADDR_MODE_LABEL[mode] || mode)}</span>`;
 }
 
+// ── مربعات «حالة العنوان» فوق الجدول (طلب أحمد 26-09-2026) ──────
+// 🔴 لون كل مربع بمجموعته (`rowAddrModeGroup`) لا بحالة الصف الفردية —
+//    مجموعة `province` مثلًا فيها صفوف اتثبّتت يدويًا وصفوف لسه محتاجة
+//    قرار، والمربع تجميعي مش بديل عن عمود الجدول. نفس الألوان الافتراضية
+//    اللي `addrModeCell` بيدّيها للمجموعة قبل أي تثبيت يدوي.
+function addrChipClass(mode) {
+  if (mode === 'blocked' || mode === 'coverageBlocked') return 'badge-danger';
+  if (mode === 'anchor') return 'badge-info';
+  if (mode === 'ambiguous' || mode === 'cityDoubt' || mode === 'province') return 'badge-warn';
+  if (mode === 'district' || mode === 'zone') return 'badge-success';
+  return 'badge-muted';
+}
+// 🔴 العدّ من `allRows` الكاملة — مش `visibleRows` — بنفس سبب مربعات موقع
+//    الشحنة في قسم الجاهز للشحن: العدّ على المفلتر بيصفّر باقي المربعات
+//    بعد أول ضغطة، والموظف مايقدرش يرجع منها.
+function addrChipCounts() {
+  const counts = new Map(ADDR_MODE_ITEMS.map(it => [it.value, 0]));
+  for (const r of allRows) {
+    const v = rowAddrModeGroup(r);
+    counts.set(v, (counts.get(v) || 0) + 1);
+  }
+  return counts;
+}
+function renderAddrChips() {
+  const box = document.getElementById('addrChips');
+  if (!box) return;
+  const sel = msState.addrMode.selected;
+  const counts = addrChipCounts();
+  // 🔴 **التسعة بتظهر حتى بصفر** — نفس قاعدة مربعات موقع الشحنة: مربع
+  //    بيختفي لما يبقى صفر معناه إن الموظف مش عارف إن الحالة دي موجودة
+  //    في الأداة أصلًا.
+  box.innerHTML = ADDR_MODE_ITEMS.map(it => {
+    const n = counts.get(it.value) || 0;
+    const on = sel.has(it.value);
+    return `<button type="button" class="addr-chip ${addrChipClass(it.value)}${on ? ' on' : ''}" data-am="${esc(it.value)}"
+      aria-pressed="${on ? 'true' : 'false'}"><span>${esc(it.label)}</span><span class="addr-chip-n">${n}</span></button>`;
+  }).join('');
+}
+// 🔴 المربع بيكتب في **نفس** فلتر «حالة العنوان» اللي في لوحة الفلاتر تحت —
+//    مش حالة تانية جنبه (نفس قاعدة مربعات موقع الشحنة بالحرف).
+document.getElementById('addrChips').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-am]');
+  if (!btn) return;
+  msToggleItem('addrMode', btn.dataset.am);
+  renderAddrChips();
+});
+
 // ─── §TOOL-JS::columns ───
 // 🔴 مصدر **واحد** للأعمدة: الترويسة والجسم والـ colspan بتاع الصف الفاضي كلهم
 //    بيتبنوا منه. قبل الدمج كانت الترويسة مكتوبة في الـ HTML و`colspan="11"`
@@ -3437,9 +3587,12 @@ function renderJobBar() {
   const btns = document.getElementById('jobBtns');
   btns.innerHTML = Object.values(JOBS).map(j => {
     const on = j.key === currentJobKey;
+    // 🔴 عدّاد الأوضاع الثلاثة (طلب أحمد 26-09-2026) — `—` قبل أول عدّ ناجح
+    //    لنفس الأوضاع اللي لسه ما اتحمّلتش، مش «صفر أوردر».
+    const n = jobCounts[j.key] == null ? '—' : fmtNum(jobCounts[j.key]);
     return `<button class="job-btn ${on ? 'active' : ''} ${j.key !== 's1' ? 're' : ''}"
                     id="jobBtn-${esc(j.key)}" ${uploadRunning ? 'disabled' : ''}
-                    onclick="switchJob('${jsq(j.key)}')">${j.icon} ${esc(j.label)}</button>`;
+                    onclick="switchJob('${jsq(j.key)}')">${j.icon} ${esc(j.label)}<span class="jb-n">${n}</span></button>`;
   }).join('');
   // زرار تصدير ملف بوسطة بيبان في أوضاع R/E فقط — الشحن العادي مالوش مسار إكسيل
   const ex = document.getElementById('bostaExcelBtn');
@@ -3470,6 +3623,7 @@ async function switchJob(key) {
   renderTableHead();
   msRenderList('s1');
   renderChips();
+  renderAddrChips();
   await loadOrders(false);
 }
 
@@ -3503,12 +3657,22 @@ async function loadOrders(force) {
 
     renderChips();
     applyFilters();
+
+    // 🔴 «آخر تحديث» ومربعات «حالة العنوان» ومربعات الأوضاع (طلب أحمد
+    //    26-09-2026) — الوضع النشط عدده من `allRows.length` على طول، مفيش
+    //    داعي نداء تاني.
+    mainLoadedAt = new Date();
+    jobCounts[currentJobKey] = allRows.length;
+    setMainFresh();
+    renderJobBar();
+    renderAddrChips();
   } catch (e) {
     allRows = [];
     renderTable([]);
     banner.style.display = '';
     banner.textContent = `تعذّر تحميل الأوردرات: ${e.message}`;
     showToast(e.message, 'error', 7000);
+    renderAddrChips();
   }
 }
 
@@ -5580,7 +5744,6 @@ document.getElementById('headerMount').innerHTML = dcoHeader({
   subtitle: 'شحن · استرجاع · استبدال — كل شحنات بوسطة من مكان واحد',
   session:  dcoSession,
   extras: `
-    <button class="hbtn" id="refreshBtn" onclick="doRefresh()"><span class="ico">↺</span> تحديث</button>
     <div class="active-tab-chip" id="activeTabChip" onclick="toggleTabChipMenu(event)">
       <span id="activeTabChipLabel">🚚 الرفع</span><span class="chip-arrow">▾</span>
       <div class="tab-chip-menu" id="tabChipMenu"></div>
@@ -5596,6 +5759,8 @@ updateFilterIconState();
 updateLogFilterIconState();
 updateSelectionUI();
 renderJobBar();
+setMainFresh();
+renderAddrChips();
 renderTableHead();
 renderTable([]);
 buildTabChipMenu();
@@ -5606,7 +5771,10 @@ checkWorkerVersion(PAGE_WORKERS);
 // ⛔ loadEmployeesList() اتشالت مع شاشة الدخول — الجلسة جاهزة من أول
 //    سطر (dcoSession)، فالتحميل بيبدأ على طول بدل ما يستنى اختيار موظف.
 loadEmployeeFilterOptions();
-loadOrders(false);
+// 🔴 عدّادَي الوضعين التانيين بيتجابوا في الخلفية بعد ما الوضع الافتراضي
+//    (شحن عادي) يخلص تحميله — بلا ما يأخّروا أول رسم للجدول (طلب أحمد
+//    26-09-2026).
+loadOrders(false).then(() => refreshJobCounts(false));
 </script>
 
 </body>
