@@ -749,6 +749,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 
     <div class="main-tabs-bar" id="mainTabsBar">
     <button class="main-tab-btn active" id="tabMain" onclick="switchMainTab('main')">🚚 الرفع</button>
+    <!-- 🔁 «إعادة رفع» (طلب أحمد 27-09-2026) — نفس جدول «الرفع» بالحرف
+         (`#panelMain`)، مقصور على الأوردرات اللي اترفعت قبل كده. التفاصيل
+         عند `UPLOAD_TABS`. -->
+    <button class="main-tab-btn" id="tabReupload" onclick="switchMainTab('reupload')">🔁 إعادة رفع</button>
     <button class="main-tab-btn" id="tabLog" onclick="switchMainTab('log')">📜 سجل العمليات</button>
   </div>
 
@@ -765,6 +769,16 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge"></span>
+          <span class="cl-ver-date">27-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔁 <b>تاب جديد «إعادة رفع»</b> فيه الأوردرات اللي <b>اترفعت قبل كده</b> بس، وتاب <b>«الرفع»</b> بقى مخصّص للأوردرات اللي <b>لم يتم رفعها</b> (طلب أحمد). نفس الجدول والفلاتر ومسار الرفع في التابين — والرفع من «إعادة رفع» لسه بيعدّي على نافذة تأكيد الشحنة المكررة زي ما هو.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>عدّاد كل وضع (🚚 · ↩️ · 🔄) ومربعات «حالة العنوان» بقوا بيعدّوا <b>صفوف التاب المفتوح</b> بس — نفس نطاق الجدول تحتهم. وفلتر «حالة الرفع» اتشال من اللوحة (قيمته بقت ثابتة جوّه أي تاب)؛ العمود نفسه فضل.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.16.0</span>
           <span class="cl-ver-date">26-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -1689,26 +1703,6 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
         </div>
 
         <div class="flt-g">
-          <span class="flt-label">حالة الرفع</span>
-          <div class="ms-wrap" id="msWrap-upState">
-            <button class="ms-btn" id="msBtn-upState" onclick="msToggle('upState')">
-              <span id="msBtnLabel-upState">الكل</span><span class="ms-arrow">▾</span>
-            </button>
-            <div class="ms-menu" id="msMenu-upState">
-              <div class="ms-ftr-top">
-                <button class="ms-ftr-clear" onclick="msClear('upState')">مسح الاختيار</button>
-                <span class="ms-ftr-count" id="msFtrCount-upState"></span>
-              </div>
-              <div class="ms-selectall-row" onclick="msToggleSelectAll('upState')">
-                <input type="checkbox" id="msSelectAll-upState" onclick="event.stopPropagation()" onchange="msToggleSelectAll('upState', this.checked)">
-                <span id="msSelectAllLabel-upState">تحديد الكل</span>
-              </div>
-              <div class="ms-list" id="msList-upState"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="flt-g">
           <span class="flt-label">حالة العنوان</span>
           <div class="ms-wrap" id="msWrap-addrMode">
             <button class="ms-btn" id="msBtn-addrMode" onclick="msToggle('addrMode')">
@@ -1797,7 +1791,6 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 
       <div class="ms-chips-row" id="chipsRow-s1"></div>
       <div class="ms-chips-row" id="chipsRow-province"></div>
-      <div class="ms-chips-row" id="chipsRow-upState"></div>
       <div class="ms-chips-row" id="chipsRow-addrMode"></div>
 
     </div>
@@ -2314,14 +2307,24 @@ setInterval(setMainFresh, 30000);
 //    كامل. ⚠️ **الوضع النشط بياخد عدده من `allRows.length` على طول** (مفيش
 //    داعي لنداء تاني)، والاتنين التانيين بيتجابوا في الخلفية بلا ما يوقفوا
 //    الشاشة — فشل أي واحد فيهم بيسيب عدّاده `—` مش بيوقّف الأداة كلها.
+// 🔁 (27-09-2026) كل وضع بقى ليه رقمين — `main` (لم يتم الرفع) و`reupload`
+//    (مرفوع قبل كده) — والزرار بيعرض رقم **التاب المفتوح**، نفس نطاق الجدول
+//    تحته بالظبط. رقم إجمالي فوق جدول مقصور كان هيبقى رقمين مختلفين لنفس
+//    السؤال على نفس الشاشة.
 const jobCounts = { s1: null, return: null, exchange: null };
+function jobCountOf(rows) {
+  return {
+    main:     rows.filter(UPLOAD_TABS.main).length,
+    reupload: rows.filter(UPLOAD_TABS.reupload).length,
+  };
+}
 async function fetchJobCount(key) {
   const j = JOBS[key];
   try {
     const d = key === 's1'
       ? await apiGet(j.listAction)
       : await apiPost(j.listAction, { jobType: j.key, employee: currentEmployee?.username || null });
-    return (d.rows || []).length;
+    return jobCountOf(d.rows || []);
   } catch { return null; }
 }
 // `includeCurrent=false` (الافتراضي): الوضع النشط عدده معروف أصلًا من
@@ -2345,18 +2348,62 @@ async function refreshMain() {
 }
 
 // ── التابات + Freeze on Scroll ──
-const TAB_IDS = ['main', 'log'];
+const TAB_IDS = ['main', 'reupload', 'log'];
+const TAB_BTN_IDS = { main: 'tabMain', reupload: 'tabReupload', log: 'tabLog' };
 let currentTab = 'main';
+// آخر تاب رفع اتفتح (main/reupload) — الجدول والعدّادات بيتقروا منه حتى
+// والموظف واقف على تاب السجل.
+let currentUploadTab = 'main';
+
+// 🔴 تاب «الرفع» وتاب «إعادة رفع» (طلب أحمد 27-09-2026) — **جدول واحد
+//    ونطاقين**، مش نسختين من الجدول. الاتنين بيعرضوا `#panelMain` بنفس
+//    الفلاتر والأعمدة ونفس مسار الرفع؛ الفرق الوحيد هو **الصفوف**:
+//      · «الرفع»      → `!alreadyUploaded` (لم يتم الرفع)
+//      · «إعادة رفع»  → `alreadyUploaded`  (مرفوع قبل كده)
+//    ⛔ نسخة تانية من الجدول كانت هتفترق مع أول تعديل (درس R1).
+//    ⚠️ و`alreadyUploaded` هو **نفس** العلم اللي بيحرّك نافذة «مرفوع قبل
+//       كده» في الرفع (`pendingUpload.dups`)، فأي رفع من تاب «إعادة رفع»
+//       لسه بيعدّي على التأكيد الصريح بتاع الشحنة المكررة — ده الحارس
+//       الحقيقي على الفلوس، والتاب نفسه ترتيب عرض بس.
+//    ⚠️ وفلتر «حالة الرفع» اتشال من اللوحة — جوّه أي تاب قيمته ثابتة،
+//       فالفلتر بقى اختيار مالوش أثر. العمود نفسه (`rowUpLabel`) فضل.
+const UPLOAD_TABS = {
+  main:     r => !r.alreadyUploaded,
+  reupload: r => !!r.alreadyUploaded,
+};
+function tabRows() { return allRows.filter(UPLOAD_TABS[currentUploadTab]); }
 
 function switchMainTab(tab) {
+  const prevUploadTab = currentUploadTab;
   currentTab = tab;
-  document.getElementById('tabMain').classList.toggle('active', tab === 'main');
-  document.getElementById('tabLog') .classList.toggle('active', tab === 'log');
-  document.getElementById('panelMain').classList.toggle('active', tab === 'main');
+  if (UPLOAD_TABS[tab]) currentUploadTab = tab;
+  TAB_IDS.forEach(id => document.getElementById(TAB_BTN_IDS[id]).classList.toggle('active', id === tab));
+  document.getElementById('panelMain').classList.toggle('active', tab !== 'log');
   document.getElementById('panelLog') .classList.toggle('active', tab === 'log');
   if (tab === 'log' && !logLoaded) { logLoaded = true; fetchLog(); }
+  if (currentUploadTab !== prevUploadTab) onUploadTabChanged();
   updateTabChip();
   closeTabChipMenu();
+}
+// تبديل النطاق — التحديد بيتمسح (صف محدد في تاب مايترفعش من التاني)،
+// والفلاتر والترتيب بيفضلوا زي ما هما: الموظف غالبًا بيقارن نفس الفلتر
+// في التابين.
+function onUploadTabChanged() {
+  selected.clear();
+  rebuildProvinceItems();
+  renderChips();
+  applyFilters();
+  renderAddrChips();
+  renderJobBar();
+}
+// قايمة المحافظات في الفلتر من صفوف التاب الحالي — محافظة مالهاش ولا صف
+// في التاب ده اختيار بيفضّي الجدول بلا سبب ظاهر.
+function rebuildProvinceItems() {
+  const provinces = [...new Set(tabRows().map(r => r.province || '—'))].sort();
+  msState.province.items = provinces.map(p => ({ value: p, label: p }));
+  const valid = new Set(provinces);
+  [...msState.province.selected].forEach(v => { if (!valid.has(v)) msState.province.selected.delete(v); });
+  msRenderList('province');
 }
 
 const stickyWrap = document.getElementById('stickyWrap');
@@ -2400,7 +2447,7 @@ window.addEventListener('resize', () => {
 });
 
 function updateTabChip() {
-  const label = document.getElementById(currentTab === 'main' ? 'tabMain' : 'tabLog').textContent.trim();
+  const label = document.getElementById(TAB_BTN_IDS[currentTab]).textContent.trim();
   document.getElementById('activeTabChipLabel').textContent = label;
   document.querySelectorAll('#tabChipMenu .tab-chip-item').forEach(el => {
     el.classList.toggle('active', el.dataset.tab === currentTab);
@@ -2409,7 +2456,7 @@ function updateTabChip() {
 function buildTabChipMenu() {
   const menu = document.getElementById('tabChipMenu');
   menu.innerHTML = TAB_IDS.map(id => {
-    const btn = document.getElementById(id === 'main' ? 'tabMain' : 'tabLog');
+    const btn = document.getElementById(TAB_BTN_IDS[id]);
     return `<div class="tab-chip-item ${id === currentTab ? 'active' : ''}" data-tab="${id}"
       onclick="event.stopPropagation(); switchMainTab('${id}');">${esc(btn.textContent.trim())}</div>`;
   }).join('');
@@ -2455,10 +2502,6 @@ let currentEmployee = { username: dcoSession.username, displayName: dcoSession.d
 //    ده فيه مشكلة عنوان/بيانات محتاجة تتصلّح». منع الرفع نفسه **ما اتغيّرش
 //    حرف** — لسه عايش في `rowUploadable` (الصف الأحمر · الشيك بوكس المقفول ·
 //    الاستبعاد من «رفع الكل») ومش في العمود ده.
-const UP_STATE_ITEMS = [
-  { value: 'notUploaded', label: '⬜ لم يتم الرفع' },
-  { value: 'uploaded',    label: '🔁 مرفوع قبل كده' },
-];
 const ADDR_MODE_ITEMS = [
   { value: 'district', label: '📍 مطابقة كاملة' },
   // 🔴 **مرساة مش مطابقة** (Worker v2.6.0): المنطقة اتحددت من **كلمة واحدة**
@@ -2525,13 +2568,12 @@ const msState = {
   // عناصر فلتر الحالة بتتبدّل مع الوضع (`switchJob`) — S1 في الشحن، S2 في R/E
   s1:       { owner: 'main', items: JOBS.s1.statusItems, selected: new Set(), search: '', mode: 'list' },
   province: { owner: 'main', items: [], selected: new Set(), search: '', mode: 'list' },
-  upState:  { owner: 'main', items: UP_STATE_ITEMS, selected: new Set(), search: '', mode: 'list' },
   addrMode: { owner: 'main', items: ADDR_MODE_ITEMS, selected: new Set(), search: '', mode: 'list' },
   logType:  { owner: 'log',  items: LOG_TYPE_ITEMS, selected: new Set(), search: '', mode: 'list' },
   logEmp:   { owner: 'log',  items: [], selected: new Set(), search: '', mode: 'list' },
 };
 const filterLabels = {
-  s1: 'الحالة', province: 'المحافظة (شوبيفاي)', upState: 'حالة الرفع', addrMode: 'حالة العنوان',
+  s1: 'الحالة', province: 'المحافظة (شوبيفاي)', addrMode: 'حالة العنوان',
   logType: 'نوع العملية', logEmp: 'الموظف',
 };
 
@@ -3064,12 +3106,11 @@ function districtZoneCell(r) {
 function applyFilters() {
   updateFilterIconState();
   const q = searchTerm.trim().toLowerCase();
-  const filtered = allRows.filter(r => {
+  const filtered = tabRows().filter(r => {
     if (q && !([r.orderNumber, r.customer, r.phone, r.addressCity, r.address1]
       .join(' ').toLowerCase().includes(q))) return false;
     if (msState.s1.selected.size       && !msState.s1.selected.has(r[job().statusField])) return false;
     if (msState.province.selected.size && !msState.province.selected.has(r.province || '—')) return false;
-    if (msState.upState.selected.size  && !msState.upState.selected.has(rowUpState(r))) return false;
     if (msState.addrMode.selected.size && !msState.addrMode.selected.has(rowAddrModeGroup(r))) return false;
     const d = cairoDayStr(r.createdAt);
     if (dateState.main.from && d < dateState.main.from) return false;
@@ -3254,7 +3295,7 @@ function addrChipClass(mode) {
 //    بعد أول ضغطة، والموظف مايقدرش يرجع منها.
 function addrChipCounts() {
   const counts = new Map(ADDR_MODE_ITEMS.map(it => [it.value, 0]));
-  for (const r of allRows) {
+  for (const r of tabRows()) {
     const v = rowAddrModeGroup(r);
     counts.set(v, (counts.get(v) || 0) + 1);
   }
@@ -3617,7 +3658,7 @@ function renderJobBar() {
     const on = j.key === currentJobKey;
     // 🔴 عدّاد الأوضاع الثلاثة (طلب أحمد 26-09-2026) — `—` قبل أول عدّ ناجح
     //    لنفس الأوضاع اللي لسه ما اتحمّلتش، مش «صفر أوردر».
-    const n = jobCounts[j.key] == null ? '—' : fmtNum(jobCounts[j.key]);
+    const n = jobCounts[j.key] == null ? '—' : fmtNum(jobCounts[j.key][currentUploadTab]);
     return `<button class="job-btn ${on ? 'active' : ''} ${j.key !== 's1' ? 're' : ''}"
                     id="jobBtn-${esc(j.key)}" ${uploadRunning ? 'disabled' : ''}
                     onclick="switchJob('${jsq(j.key)}')">${j.icon} ${esc(j.label)}<span class="jb-n">${n}</span></button>`;
@@ -3640,7 +3681,6 @@ async function switchJob(key) {
   msState.s1.selected.clear();
   msState.s1.items = job().statusItems;
   msState.province.selected.clear(); msState.province.items = [];
-  msState.upState.selected.clear();
   msState.addrMode.selected.clear();
   document.getElementById('msBtnLabel-s1').textContent = 'الكل';
   const lblEl = document.querySelector('#msWrap-s1')?.closest('.flt-g')?.querySelector('.flt-label');
@@ -3678,10 +3718,8 @@ async function loadOrders(force) {
     renderGuardBanner(d);
     renderCatalogBanner(d);
 
-    // قايمة المحافظات في الفلتر بتتبني من البيانات نفسها
-    const provinces = [...new Set(allRows.map(r => r.province || '—'))].sort();
-    msState.province.items = provinces.map(p => ({ value: p, label: p }));
-    msRenderList('province');
+    // قايمة المحافظات في الفلتر بتتبني من البيانات نفسها (صفوف التاب الحالي)
+    rebuildProvinceItems();
 
     renderChips();
     applyFilters();
@@ -3690,7 +3728,7 @@ async function loadOrders(force) {
     //    26-09-2026) — الوضع النشط عدده من `allRows.length` على طول، مفيش
     //    داعي نداء تاني.
     mainLoadedAt = new Date();
-    jobCounts[currentJobKey] = allRows.length;
+    jobCounts[currentJobKey] = jobCountOf(allRows);
     setMainFresh();
     renderJobBar();
     renderAddrChips();
@@ -5212,11 +5250,10 @@ async function buildXLSX(sheetName, columns, rows, filename) {
 
 function currentFilteredRows() {
   const q = searchTerm.trim().toLowerCase();
-  return allRows.filter(r => {
+  return tabRows().filter(r => {
     if (q && !([r.orderNumber, r.customer, r.phone, r.addressCity, r.address1].join(' ').toLowerCase().includes(q))) return false;
     if (msState.s1.selected.size       && !msState.s1.selected.has(r[job().statusField])) return false;
     if (msState.province.selected.size && !msState.province.selected.has(r.province || '—')) return false;
-    if (msState.upState.selected.size  && !msState.upState.selected.has(rowUpState(r))) return false;
     if (msState.addrMode.selected.size && !msState.addrMode.selected.has(rowAddrModeGroup(r))) return false;
     const d = cairoDayStr(r.createdAt);
     if (dateState.main.from && d < dateState.main.from) return false;

@@ -428,6 +428,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .dco-chip.qc-bosta{background:var(--red-light);color:var(--red-dark);border-color:var(--red-border)}
 .dco-chip.qc-showroom{background:var(--teal-light);color:var(--teal-dark);border-color:var(--teal-border)}
 .dco-chip.qc-courier{background:var(--accent-light);color:var(--accent-dark);border-color:var(--accent-border)}
+/* صف «رفع بوسطة» في الرئيسية — مربع لكل وضع رفع (v1.17.0) */
+.dco-chip.qc-job-s1{background:var(--accent-light);color:var(--accent-dark);border-color:var(--accent-border)}
+.dco-chip.qc-job-return{background:var(--amber-light);color:var(--amber-dark);border-color:var(--amber-border)}
+.dco-chip.qc-job-exchange{background:var(--teal-light);color:var(--teal-dark);border-color:var(--teal-border)}
 /* لوحة «آخر تحديث» — **نفس شكل `.rdy-fresh` في `pack.html`** بالحرف:
    صندوق محدّد بسطرين، الأول اللافتة + عدّاد القِدَم والتاني ختم
    التاريخ والوقت، وملزوق بزرار التحديث في منطقة واحدة.
