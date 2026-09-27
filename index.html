@@ -233,20 +233,50 @@
         </div>
       </a>
 
-    <!-- ══ كارت «رفع بوسطة» — نُقل هنا لـ«قسم الحالات الانتقالية»
-         (طلب أحمد 26-09-2026)، وهو لسه بيكتب على شوبيفاي وبينشئ شحنات
-         حقيقية بفلوس (نفس التلات أدوات التانية) — **مش عرض بحت** زي
-         الصفَّين فوقه. النقل ده **مكانه بس** — بلا عدّاد وبلا تغيير في
-         شكل الكارت (`.dco-tool` جوّه `.dco-tools-grid` بتاعته زي ما كانت
-         في «قسم أدوات العمليات» بالحرف)، عشان قاعدة «الأدوات بلا عدّاد»
-         تفضل صحيحة: الكارت ده فعل مش طابور، ونقله لقسم تاني ما يديهوش
-         رقم حيّ من غير ما حد يقرر كده. -->
-    <div class="dco-tools-grid" style="margin-top:10px">
-      <a class="dco-tool" href="Bosta-Orders-Upload.html">
-        <span class="dco-card-ico ico-red"><img src="assets/bosta-logo.png" alt="Bosta"></span>
-        <div class="dco-card-name">رفع بوسطة</div>
+    <!-- ══ صف ③ — «رفع بوسطة» (طلب أحمد 27-09-2026) ══════════════
+         🔴 **بقى صف بعدّاد حيّ بنفس شكل «Ready»/«Shipped» بالحرف** — كان
+            كارت أداة بلا عدّاد (v1.14.0). الرقم الكبير = الأوردرات اللي
+            **مستنية رفع** على بوسطة في التلات أوضاع مع بعض، والمربعات =
+            عدد كل وضع (🚚 شحن عادي · ↩️ استرجاع · 🔄 استبدال).
+         🔴 **«مستنية رفع» = `!alreadyUploaded`** — **نفس** شرط تاب «الرفع»
+            جوّه الأداة (`UPLOAD_TABS.main` في `Bosta-Orders-Upload.html`)،
+            على **نفس** الـ endpoints (`get_orders` · `fetch_candidates`).
+            ⛔ شرط تاني هنا = الرقم في الرئيسية يخالف التاب (درس R1).
+         ⚠️ **ومالوش «مستحق تحصيل»** — الأداة دي بتنشئ شحنات مش بتحصّل،
+            والسطر ده في الصفّين فوق خاص بالطابورين.
+         ⚠️ **والنداءات قراءة بحتة** — `fetch_candidates` بطّل يكتب صف
+            `scan` من Worker v2.4.0، فالتحديث التلقائي كل ١٥ دقيقة مابيملاش
+            السجل. -->
+      <a class="dco-row" href="Bosta-Orders-Upload.html">
+        <div class="dco-row-id">
+          <span class="dco-card-ico ico-red"><img src="assets/bosta-logo.png" alt="Bosta"></span>
+          <div>
+            <div class="dco-card-name">رفع بوسطة</div>
+            <div class="dco-card-code">لم يتم الرفع</div>
+          </div>
+        </div>
+        <div class="dco-row-num dco-num">
+          <span class="dco-count pending" id="cntBosta">—</span><span class="dco-unit">أوردر</span>
+        </div>
+        <div class="dco-row-mid">
+          <div class="dco-chips" id="chipsBosta"></div>
+          <div class="home-money-row" id="moneyBosta"></div>
+          <div class="dco-fail" id="failBosta" style="display:none"></div>
+        </div>
+        <div class="dco-row-act">
+          <div class="dco-fresh">
+            <div class="dco-fresh-row">
+              <span class="dco-fresh-lbl">آخر تحديث</span>
+              <span class="dco-ago" id="agoBosta">لسه ما اتحدّثش</span>
+            </div>
+            <div class="dco-fresh-row" id="stampBosta"><span class="dco-stamp-chip">—</span></div>
+          </div>
+          <button class="dco-rbtn" id="btnBosta"
+                  onclick="event.preventDefault();event.stopPropagation();loadQueue('bosta', false)">
+            <span class="dco-rbtn-ico">↺</span><span>تحديث</span><span class="dco-rbtn-badge" id="badgeBosta">—</span>
+          </button>
+        </div>
       </a>
-    </div>
   </div>
 
   <!-- ══ قسم «أدوات» ══════════════════════════════════════════
@@ -390,7 +420,18 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.16.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.17.0</span>
+          <span class="cl-ver-date">27-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>«رفع بوسطة» في الرئيسية بقى صف بعدّاد حيّ</b> بنفس شكل «أوردرات جاهزة للشحن»/«أوردرات تحت التوصيل» (طلب أحمد): الرقم الكبير = الأوردرات اللي <b>لم يتم رفعها</b> في التلات أوضاع، ومربعات بعدد كل وضع (🚚 شحن عادي · ↩️ استرجاع · 🔄 استبدال)، و«آخر تحديث» وزرار تحديث وتحديث تلقائي كل ١٥ دقيقة زي الصفّين فوقه.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔁 <b>«رفع بوسطة»: تاب جديد «إعادة رفع»</b> للأوردرات المرفوعة قبل كده، وتاب «الرفع» بقى للأوردرات اللي لم يتم رفعها بس.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.16.0</span>
           <span class="cl-ver-date">26-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -611,7 +652,7 @@ const { apiGet, apiPost } = dcoApi(DCO_WORKERS.auth);
 // ✅ **والفشل هنا مابيولّعش تحذير نسخة كاذب** — `checkWorkerVersion`
 //    بتبلع الاستثناء عن قصد: الـ Worker اللي لسه ما انضمّش لمجموعة السر
 //    بيرجّع `401`، ودي **مش** «نسخة قديمة». اللي بيقولها بالنص هو 🩺.
-const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery'];
+const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery', 'bostaUpload'];
 
 // §AUTH-JS — Unified Login UI (منقولة من أداة التغليف)
 // ══════════════════════════════════════════════════════════════
@@ -854,11 +895,41 @@ const HOME_QUEUES = {
       return { total: rows.length, chips: dcoChips(rows), cod: dcoCod(rows), truncated: !!data.truncated };
     },
   },
+  // 🔴 «رفع بوسطة» — التلات أوضاع بالتوازي على نفس الـ Worker، والعدّ بنفس
+  //    شرط تاب «الرفع» جوّه الأداة (`!alreadyUploaded`). ⚠️ لو أي وضع فشل
+  //    الصف كله بيقول فشل (بيسمّي الوضع) — رقم إجمالي ناقص وضع شكله سليم
+  //    وهو أقل من الحقيقة (قاعدة ٤: الفشل مش صفر).
+  bosta: {
+    err: 'تعذّر جلب أوردرات رفع بوسطة',
+    ids: { count:'cntBosta', chips:'chipsBosta', money:'moneyBosta', fail:'failBosta',
+           ago:'agoBosta', stamp:'stampBosta', btn:'btnBosta', badge:'badgeBosta' },
+    async fetch() {
+      const api = dcoApi(DCO_WORKERS.bostaUpload);
+      const s = getSession();
+      const modes = [
+        { key: 's1',       label: '🚚 شحن عادي', cls: 'qc-job-s1',       get: () => api.apiGet('get_orders') },
+        { key: 'return',   label: '↩️ استرجاع',  cls: 'qc-job-return',   get: () => api.apiPost('fetch_candidates', { jobType: 'return',   employee: s?.username || null }) },
+        { key: 'exchange', label: '🔄 استبدال',  cls: 'qc-job-exchange', get: () => api.apiPost('fetch_candidates', { jobType: 'exchange', employee: s?.username || null }) },
+      ];
+      const res = await Promise.allSettled(modes.map(m => m.get()));
+      const failed = modes.filter((m, i) => res[i].status === 'rejected');
+      if (failed.length) {
+        const first = res.find(r => r.status === 'rejected').reason;
+        throw new Error(`تعذّر جلب ${failed.map(m => m.label).join(' · ')} — ${first?.message || 'خطأ غير معروف'}`);
+      }
+      const chips = modes.map((m, i) => ({
+        cls: m.cls, label: m.label,
+        n: (res[i].value.rows || []).filter(r => !r.alreadyUploaded).length,
+      }));
+      return { total: chips.reduce((a, c) => a + c.n, 0), chips, cod: null };
+    },
+  },
 };
 
 const homeQ = {
   ready:   { at: null, dirty: false, timer: null, loading: false },
   shipped: { at: null, dirty: false, timer: null, loading: false },
+  bosta:   { at: null, dirty: false, timer: null, loading: false },
 };
 let homeTickTimer = null;
 
@@ -935,6 +1006,8 @@ function setCount(key, r) {
   //    عدد أوردرات: رقم غلط شكله سليم.
   // ⚠️ والمدفوع مقدمًا **بيتقال بعدده** — استبعاد صامت من رقم فلوس
   //    بيخلّي الفرق بين المجموع والواقع بلا تفسير.
+  // ⚠️ `cod: null` = الصف مالوش سطر فلوس أصلًا (رفع بوسطة) — مش «صفر مستحق».
+  if (r.cod === null) { document.getElementById(ids.money).innerHTML = ''; return; }
   const cod = r.cod || { due: 0, dueCount: 0, prepaidCount: 0, unknownCount: 0, currency: 'EGP' };
   const parts = [`<span class="dco-money${cod.due ? '' : ' is-zero'}">💰 مستحق التحصيل <b>${esc(dcoMoney(cod.due, cod.currency))}</b>`
                + ` <span style="opacity:.7">(${cod.dueCount} أوردر)</span></span>`];
