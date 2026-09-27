@@ -164,7 +164,7 @@ const DCO_WORKERS = {
   bostaUpload: { url: 'https://bosta-orders-upload-worker.ecommoda-dev.workers.dev', min: '2.12.0', label: 'رفع بوسطة' },
 };
 
-const TOOL_VERSION = 'v1.18.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.19.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +

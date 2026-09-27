@@ -774,6 +774,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
         <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔁 <b>تاب جديد «إعادة رفع»</b> فيه الأوردرات اللي <b>اترفعت قبل كده</b> بس، وتاب <b>«الرفع»</b> بقى مخصّص للأوردرات اللي <b>لم يتم رفعها</b> (طلب أحمد). نفس الجدول والفلاتر ومسار الرفع في التابين — والرفع من «إعادة رفع» لسه بيعدّي على نافذة تأكيد الشحنة المكررة زي ما هو.</span></li>
           <li class="cl-item"><span class="cl-tag change">تعديل</span><span>عدّاد كل وضع (🚚 · ↩️ · 🔄) ومربعات «حالة العنوان» بقوا بيعدّوا <b>صفوف التاب المفتوح</b> بس — نفس نطاق الجدول تحتهم. وفلتر «حالة الرفع» اتشال من اللوحة (قيمته بقت ثابتة جوّه أي تاب)؛ العمود نفسه فضل.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⛔ <b>بادج «🎯 استبعاد تكرار الاسم» اتلغى نهائيًا</b> (Worker <code>bosta-orders-upload-worker</code> v2.13.0 · قرار أحمد 27-09-2026). الحالة اللي كان بيتعرض عليها (احتمالين بالظبط، واحد منهم اسمه == اسم مدينة بوسطة اللي الاتنين تابعين لها — #55191) لسه بترفع تلقائيًا على الاحتمال غير المكرر، بس <b>بتتعرض دلوقتي «📍 مطابقة كاملة»</b> زي أي مطابقة مؤكَّدة — مش حالة وسطى ليها بادج وتحذير مستقلين.</span></li>
         </ul>
       </div>
       <div class="cl-version-block">
@@ -2511,12 +2512,13 @@ const ADDR_MODE_ITEMS = [
   //    بين تخمين وحقيقة. توحيدها مع «عنوان مظبوط» بيخلي الموظف يعدّي على
   //    التخمين وهو فاكره مطابقة.
   { value: 'anchor',   label: '🔍 مرشّح تلقائي' },
-  // 🎯 (Worker v2.12.0 · قرار أحمد 26-09-2026) غموض احتمالين واحد منهم بس
-  //    اسمه == اسم الزون اللي الاتنين تابعين له (منطقة «بلقاس» جوّه مدينة
-  //    «بلقاس» — #55191). الشحنة **بتترفع** على الاحتمال التاني تلقائيًا،
-  //    بلا مراجعة يدوية — بادج مستقل عن «مرشّح تلقائي» لأن مصدر التخمين
-  //    مختلف (استبعاد تكرار اسم، مش كلمة واحدة من العنوان).
-  { value: 'cityTiebreak', label: '🎯 استبعاد تكرار الاسم' },
+  // ⛔ **بادج «🎯 استبعاد تكرار الاسم» اتلغى نهائيًا** (Worker v2.13.0 ·
+  //    قرار أحمد 27-09-2026). كان بيتعرض على غموض احتمالين واحد منهم بس
+  //    اسمه == اسم الزون (منطقة «بلقاس» جوّه مدينة «بلقاس» — #55191)؛
+  //    الـ Worker لسه بيستبعد الاحتمال المكرر ويرفع على التاني تلقائيًا،
+  //    بس بيرجّعها دلوقتي **بنفس شكل مطابقة واحدة بالظبط** (`mode: 'district'`
+  //    بلا أي علم تمييز) — يعني الحالة دي بتتعرض «📍 مطابقة كاملة» زي أي
+  //    مطابقة مؤكَّدة، مش حالة وسطى ليها بادج وتحذير مستقلين.
   // 🔴 درجة وسيطة حقيقية بين المنطقة والمحافظة (واجهة v2.4.0) — مش تسمية
   //    تجميلية. الـ`zoneId` بيغيّر **الهب وكود الفرز** على البوليصة،
   //    و«المحافظة فقط» بتاخد هب افتراضي. لازم الموظف يفرّق بين الاتنين.
@@ -3024,9 +3026,6 @@ function rowAddrMode(r) {
   //    كأن الأداة طابقت اسم المنطقة كامل. ⚠️ **وبعد `ov?.districtId`**:
   //    الموظف اللي اختار بإيده بقى صاحب القرار، والصف بقى مطابقة يدوية.
   if (r.districtFromAnchor) return 'anchor';
-  // 🎯 نفس السبب فوق بالحرف — الـ Worker بيرجّع `district` للحالة دي كمان
-  //    (غموض احتمالين اتحسم باستبعاد المكرر مع اسم الزون، Worker v2.12.0).
-  if (r.districtFromCityTiebreak) return 'cityTiebreak';
   return r.mode;
 }
 // حالة العنوان **المعروضة** للموظف (بادج/فلتر/تصدير) — بقرار أحمد 15-09-2026
@@ -3185,16 +3184,11 @@ function addrModeInfo(r) {
           + 'دي **كلمة واحدة مش اسم كامل**، فلو الكلمة دي علامة مميزة (مستشفى · مسجد · سنتر) '
           + 'مش عنوان العميل، افتح وغيّر المنطقة.' };
   }
-  // 🎯 استبعاد تكرار الاسم — **أسبق من `district`** لنفس سبب المرشّح
-  //    التلقائي فوق: الـ Worker بيرجّع نفس الـ`mode`، والفرق في العلم.
-  if (r.districtFromCityTiebreak) {
-    const d = r.cityTiebreakDropped || {};
-    return { label: `🎯 ${displayName(r.districtName, r.districtNameAr)}`, set: true, candidate: true,
-      hint: `العنوان طابق احتمالين متساويين — واحد منهم (${displayName(d.name, d.nameAr) || '—'}) `
-          + `اسمه نفس اسم مدينة بوسطة اللي الاتنين تابعين لها، فاتستبعد تلقائيًا والشحنة هتترفع `
-          + `على الاحتمال التاني. **قرار آلي مش مطابقة اسم كامل مؤكَّدة** — لو الاستبعاد غلط `
-          + '(العميل فعلًا في مركز المدينة)، افتح وغيّر المنطقة.' };
-  }
+  // ⛔ **بادج «🎯 استبعاد تكرار الاسم» اتلغى نهائيًا** (Worker v2.13.0 · قرار
+  //    أحمد 27-09-2026) — كان هنا فرع مستقل بيتعامل مع الحالة دي كتخمين آلي
+  //    مش مطابقة مؤكَّدة. الـ Worker بيرجّع `district` عادي للحالة دي دلوقتي
+  //    (بلا `districtFromCityTiebreak`)، فبتاخد نفس فرع `r.mode === 'district'`
+  //    تحت مباشرةً — «📍 مطابقة كاملة» زي أي مطابقة أخرى.
   if (r.mode === 'district') return { label: `📍 ${displayName(r.districtName, r.districtNameAr)}`, set: true,
     hint: 'المطابقة التلقائية لقت منطقة واحدة في كتالوج بوسطة — الشحنة هتترفع بالمنطقة دي' };
   // 🗺️ درجة الزون — بين المنطقة والمحافظة. `set: true` لأن الشحنة **بتترفع
@@ -3272,7 +3266,7 @@ function addrModeCell(r) {
   const cls  = rowNeedsManualAddressConfirm(r) ? 'badge-warn'
              // 🔍 مرشّح تلقائي — **مش أخضر ومش رمادي**: أخضر بيقرا «متأكَّد»،
              //    ورمادي بيقرا «مالوش لازمة» وهو صف **هيترفع**.
-             : (mode === 'anchor' || mode === 'cityTiebreak') ? 'badge-info'
+             : (mode === 'anchor') ? 'badge-info'
              : (mode === 'district' || mode === 'zone' || mode === 'province') ? 'badge-success'
              : (mode === 'blocked' || mode === 'coverageBlocked') ? 'badge-danger' : 'badge-muted';
   return `<span class="badge ${cls}" title="${esc(addrModeInfo(r).hint)}">${esc(ADDR_MODE_LABEL[mode] || mode)}</span>`;
@@ -3285,7 +3279,7 @@ function addrModeCell(r) {
 //    اللي `addrModeCell` بيدّيها للمجموعة قبل أي تثبيت يدوي.
 function addrChipClass(mode) {
   if (mode === 'blocked' || mode === 'coverageBlocked') return 'badge-danger';
-  if (mode === 'anchor' || mode === 'cityTiebreak') return 'badge-info';
+  if (mode === 'anchor') return 'badge-info';
   if (mode === 'ambiguous' || mode === 'cityDoubt' || mode === 'province') return 'badge-warn';
   if (mode === 'district' || mode === 'zone') return 'badge-success';
   return 'badge-muted';
@@ -4499,19 +4493,12 @@ function renderDistrictList() {
       //    دي الشاشة اللي الموظف بيراجع فيها. توحيد النص كان هيخلي «كلمة
       //    واحدة من الاسم» تتقرا زي «الاسم كامل» على نفس الشريط الأخضر.
       const anchored = !manual && !!r?.districtFromAnchor;
-      // 🎯 نفس فكرة `anchored` فوق بالحرف — الشحنة بترفع على قرار آلي مش
-      //    مطابقة اسم كامل، فالنافذة لازم تقول كده صراحةً هنا بالذات.
-      const tiebreak = !manual && !!r?.districtFromCityTiebreak;
       const aTxt = r?.addressAnchor?.text || '';
-      const dropped = r?.cityTiebreakDropped || {};
-      head += `<div class="dp-group-hdr ${(anchored || tiebreak) ? 'pick' : 'match'}">${
+      head += `<div class="dp-group-hdr ${anchored ? 'pick' : 'match'}">${
         anchored ? `🔍 مرشّح تلقائي — دي اللي الشحنة هتترفع عليها. <b>راجعها</b>`
-        : tiebreak ? `🎯 اختيار آلي — دي اللي الشحنة هتترفع عليها. <b>راجعها</b>`
                  : `✅ ${manual ? 'المنطقة اللي اخترتها' : 'المطابقة التلقائية'} — دي اللي الشحنة هتترفع عليها`}</div>`;
-      head += dpRow(md, (anchored || tiebreak) ? 'suggested' : 'is-match', true,
+      head += dpRow(md, anchored ? 'suggested' : 'is-match', true,
         anchored ? `كلمة «${aTxt}» في العنوان موجودة في اسم المنطقة دي وبس — مش مطابقة لاسم المنطقة كامل`
-        : tiebreak ? `فيه احتمال تاني (${displayName(dropped.name, dropped.nameAr) || '—'}) اسمه نفس اسم `
-                    + 'مدينة بوسطة، فاتستبعد تلقائيًا — دي مش مطابقة اسم كامل مؤكَّدة'
                  : (manual ? 'اختيار يدوي — اختيار منطقة تانية من القايمة بيغيّره'
                            : (cand?.matchedText ? `طابق "${cand.matchedText}" في ${cand.fieldLabel || 'العنوان'}` : '')),
         anchored ? '🔍 مرشّح' : (manual ? '✅ اختيارك' : '✅ المطابقة الحالية'));
