@@ -405,7 +405,20 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 
 .problem-text{color:var(--red);font-size:11px;font-weight:700;white-space:normal;max-width:240px;
   display:block;line-height:1.6;text-align:right;}
-.act-list{font-size:11px;color:var(--text-secondary);white-space:normal;max-width:260px;line-height:1.7;text-align:right;}
+/* 🔴 `word-break` مضافة — أسماء ميتافيلدز شوبيفاي (`custom.bosta_tracking_number_s2`)
+   كلمة واحدة بلا مسافات، وعمود «ما تم فعليًا» في اوردرات الاسترجاع بيعرض
+   منها أربعة في نفس الخلية. من غيرها الكلمة الطويلة كانت بتفرض عرض أوسع من
+   الـ`max-width` بدل ما تتكسر، والجدول كله يزحزح تحت إيد الموظف (طلب أحمد
+   28-09-2026). */
+.act-list{font-size:11px;color:var(--text-secondary);white-space:normal;max-width:260px;
+  word-break:break-word;line-height:1.7;text-align:right;}
+/* 🔴 «المدينة»/«المنطقة المبعوتة» في جدول (نتيجة الرفع) كانا بلا عرض ثابت —
+   اسم منطقة طويل (زي "Industrial Zone") كان بياخد عرضه الكامل ويوسّع
+   الجدول لحد ما عمود «إجراء» (زرار «إلغاء الشحنة») ينزّ برّه حدود النافذة
+   (طلب أحمد 28-09-2026، وده بالظبط اللي حصل في اوردرات الاسترجاع — قوائم
+   «ما تم فعليًا» فيها أطول من الشحن العادي فبتوسّع الجدول أكتر). عرض ثابت +
+   لفّ بدل ما الاسم يمدّد العمود. */
+.res-loc{width:100px;white-space:normal;word-break:break-word;}
 /* ℹ️ الملحوظة الإعلامية — لون تالت غير الأخضر والأصفر **عن قصد**: دي مش حالة
    الصف، دي معلومة جنبه (المبلغ اتقص · المحافظة اتعدّلت · العنوان نزل درجة).
    توحيدها بصريًا مع التحذير الأصفر بيرجّع الباج اللي v2.18.0 اتعملت عشانه:
@@ -728,16 +741,27 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .addr-chips-row{display:flex;gap:9px;flex-wrap:wrap;align-items:center;justify-content:center;}
 .addr-chips-row:empty{display:none;}
 /* 🔴 زرار «تحديد الصف» — أول عنصر في الصف (يمين في RTL)، طلب أحمد
-   28-09-2026. مقاس أصغر ونمط `outline` عن قصد — هو فعل على **الصف**
-   مش قيمة فلتر زي المربعات جنبه، والمقاس الأكبر كان هيخلّيه يتقرا مربع
-   فلتر خامس. */
-.addr-chip-row-all{display:inline-flex;align-items:center;padding:7px 12px;
-  border-radius:var(--radius-sm);border:1.5px dashed var(--border-strong);background:transparent;
-  color:var(--text-secondary);font-family:var(--font-body);font-size:11.5px;font-weight:800;
-  cursor:pointer;white-space:nowrap;transition:filter .12s,transform .1s;}
-.addr-chip-row-all:hover{filter:brightness(.95);background:var(--surface-2);}
+   28-09-2026. مقاس أصغر عن قصد — هو فعل على **الصف** مش قيمة فلتر زي
+   المربعات جنبه، والمقاس الأكبر كان هيخلّيه يتقرا مربع فلتر خامس.
+   🔴 اللون بقى بمعنى الصف (`tone-ok`/`tone-warn`/`tone-bad` — أخضر/كهرماني/
+   أحمر، نفس ألوان `addrChipClass` بالحرف) بدل الرمادي الموحّد القديم —
+   ولونين لكل تون: **حدّ ملوّن على خلفية فاتحة** وهو غير محدَّد، و**تعبئة
+   صلبة** لما يبقى محدِّد الصف كله (طلب أحمد 28-09-2026: "لونين مثلاً
+   Active/Inactive"). النص نفسه ثابت (اسم الصف) — الحالة في اللون
+   والعلامة `✕` بس، نفس نمط `.addr-chip.on::after` تحت بالظبط. */
+.addr-chip-row-all{display:inline-flex;align-items:center;gap:4px;padding:7px 12px;
+  border-radius:var(--radius-sm);border:1.5px solid transparent;
+  font-family:var(--font-body);font-size:11.5px;font-weight:800;
+  cursor:pointer;white-space:nowrap;transition:filter .12s,transform .1s,background .12s,color .12s;}
+.addr-chip-row-all:hover{filter:brightness(.94);}
 .addr-chip-row-all:active{transform:translateY(1px);}
-.addr-chip-row-all.on{border-style:solid;border-color:var(--accent);color:var(--accent-dark);background:var(--accent-light);}
+.addr-chip-row-all.tone-ok{border-color:var(--green-border);color:var(--green-dark);background:var(--green-light);}
+.addr-chip-row-all.tone-ok.on{border-color:var(--green);background:var(--green);color:var(--on-accent);}
+.addr-chip-row-all.tone-warn{border-color:var(--amber-border);color:var(--amber-dark);background:var(--amber-light);}
+.addr-chip-row-all.tone-warn.on{border-color:var(--amber);background:var(--amber);color:var(--on-accent);}
+.addr-chip-row-all.tone-bad{border-color:var(--red-border);color:var(--red);background:var(--red-light);}
+.addr-chip-row-all.tone-bad.on{border-color:var(--red);background:var(--red);color:var(--on-accent);}
+.addr-chip-row-all.on::after{content:'✕';font-size:11px;font-weight:800;opacity:.85;}
 .addr-chip{display:inline-flex;align-items:center;gap:9px;padding:8px 14px;
   border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface-2);
   color:var(--text-secondary);font-family:var(--font-body);font-size:12.5px;font-weight:800;
@@ -794,6 +818,17 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge"></span>
+          <span class="cl-ver-date">28-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>جدول «نتيجة الرفع» بقى محسوب مقاساته صح</b> — عمودا «المدينة»/«المنطقة المبعوتة» كان عرضهم بلا سقف (اسم منطقة طويل زي <code>Industrial Zone</code> كان بياخد عرضه الكامل)، وقايمة «ما تم فعليًا» في اوردرات الاسترجاع بتحتوي على أسماء ميتافيلدز طويلة بلا مسافات (<code>custom.bosta_tracking_number_s2</code>) بتفرض عرض أوسع من حد العمود بدل ما تتكسر — الاتنين مع بعض كانوا بيوسّعوا الجدول لحد ما عمود «إجراء» (زرار «إلغاء الشحنة») يحتاج سكرول أفقي يوصله من غير أي إشارة واضحة. دلوقتي عمودا المدينة/المنطقة بعرض ثابت مع لفّ، وقوائم «ما تم فعليًا» بتتكسر عند أي حرف لو احتاجت، ونافذة النتيجة بقت أوسع (طلب أحمد).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🎨 <b>زرار «تحديد الصف» فوق مربعات «حالة العنوان» بقى بلونين واضحين (نشط/غير نشط)</b> بدل النمط الرمادي المنقّط الموحّد — حدّ ملوّن على خلفية فاتحة وهو غير محدِّد، وتعبئة صلبة بنفس اللون لما يحدِّد الصف كله. اللون بمعنى الصف نفسه (أخضر · كهرماني · أحمر) — نفس ألوان مربعات الصف اللي تحته بالحرف (طلب أحمد).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>✏️ <b>اسم زرار «تحديد الصف» بقى ثابت لكل صف بيقول معناه</b> بدل «☑ تحديد الصف»/«✕ إلغاء تحديد الصف» العام: الصف الأول <b>«✅ قابل للرفع»</b>، الصف الثاني (المحافظة فقط) <b>«⚠️ تأكيد المحافظة»</b>، والصف الثالث <b>«⛔ يحتاج تعديل»</b>. حالة التحديد بقت في اللون والعلامة <code>✕</code> بس — مش في النص (طلب أحمد).</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.22.0</span>
           <span class="cl-ver-date">28-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -1501,7 +1536,15 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
      ⚠️ وبتفضل قابلة للفتح بالإيد حتى في النجاح الكامل: زرار «✕ إلغاء الشحنة»
      على صفوف R/E الناجحة عايش جوّه التفاصيل دي. -->
 <div class="eco-overlay" id="resultsOverlay" onclick="if(event.target===this)closeResultsModal()">
-  <div class="eco-modal" style="max-width:1100px;">
+  <!-- 🔴 max-width كان 1100px وبيخلّي عمود «إجراء» (زرار «إلغاء الشحنة»)
+       محتاج سكرول أفقي يوصله — تسع أعمدة + قوائم «ما تم فعليًا»/«السبب»
+       بعرضهم الأقصى 260px كل واحدة بيعدّوا 1100px بسهولة (خصوصًا في اوردرات
+       الاسترجاع، قايمة أفعالها أطول من الشحن العادي). 1400px بيقفل الفرق
+       عمليًا على شاشة ≥1600px (فرق باقي حوالي 15px بس)، وعلى شاشة أضيق
+       (لابتوب 1366/1440) لسه محتاج سكرول أفقي بسيط — `.tbl-scroll`
+       (overflow-x:auto) هو الحل الاحتياطي هناك، نفس آلية باقي جداول الأداة
+       (طلب أحمد 28-09-2026). -->
+  <div class="eco-modal" style="max-width:1400px;">
     <div class="eco-modal-hdr">
       <span id="resTitle">نتيجة الرفع</span>
       <button class="modal-close-x" onclick="closeResultsModal()">✕</button>
@@ -3352,12 +3395,18 @@ function renderAddrChips() {
   //    بضغطة واحدة بدل ما الموظف يضغط كل مربع لوحده (طلب أحمد 28-09-2026).
   //    حالته (`on`) بتتحسب من نفس مجموعة `sel` اللي المربعات بتتحسب منها،
   //    فمستحيل يفترق عن حالة المربعات اللي تحته.
-  const rowSelectAll = values => {
+  // 🔴 الاسم بقى ثابت لكل صف (طلب أحمد) بدل «☑ تحديد الصف»/«✕ إلغاء تحديد
+  //    الصف» — بيقول معنى الصف نفسه («قابل للرفع»/«تأكيد المحافظة»/«يحتاج
+  //    تعديل») بدل ما يقول فعل عام محايد. حالة التحديد بقت في اللون والـ
+  //    `.on::after` بس (نفس نمط `.addr-chip.on` بالحرف تحت) — مش في النص.
+  //    و`tone` بيحدد لون الصف (أخضر/كهرماني/أحمر) عشان اللون يتفق مع معنى
+  //    الصف، مش لون رمادي واحد بيتكرر في التلاتة (طلب أحمد).
+  const rowSelectAll = (values, label, tone) => {
     const allOn = values.length > 0 && values.every(v => sel.has(v));
-    return `<button type="button" class="addr-chip-row-all${allOn ? ' on' : ''}"
-      data-am-row="${esc(values.join(','))}">${allOn ? '✕ إلغاء تحديد الصف' : '☑ تحديد الصف'}</button>`;
+    return `<button type="button" class="addr-chip-row-all tone-${tone}${allOn ? ' on' : ''}"
+      data-am-row="${esc(values.join(','))}" aria-pressed="${allOn ? 'true' : 'false'}">${esc(label)}</button>`;
   };
-  const row = items => `<div class="addr-chips-row">${rowSelectAll(items.map(it => it.value))}${items.map(chip).join('')}</div>`;
+  const row = (items, label, tone) => `<div class="addr-chips-row">${rowSelectAll(items.map(it => it.value), label, tone)}${items.map(chip).join('')}</div>`;
   // 🔴 تلات صفوف دلوقتي (v1.22.0 · طلب أحمد 28-09-2026) — كانوا صفّين على
   //    معنى الحالة (`it.up`)، و«المحافظة فقط» اتفردت بصف نص لوحدها: هي
   //    الدرجة الوسيطة الوحيدة بين «قابل للرفع بلا تدخّل» و«محتاج قرار
@@ -3365,9 +3414,9 @@ function renderAddrChips() {
   //    زحمة أربع مربعات تانية في نفس الصف فمابتاخدش الاهتمام اللي المخاطرة
   //    بتاعتها (هب افتراضي على بوليصة حقيقية) مستاهلاها.
   box.innerHTML =
-    row(ADDR_MODE_ITEMS.filter(it => it.up)) +
-    row(ADDR_MODE_ITEMS.filter(it => it.value === 'province')) +
-    row(ADDR_MODE_ITEMS.filter(it => !it.up && it.value !== 'province'));
+    row(ADDR_MODE_ITEMS.filter(it => it.up), '✅ قابل للرفع', 'ok') +
+    row(ADDR_MODE_ITEMS.filter(it => it.value === 'province'), '⚠️ تأكيد المحافظة', 'warn') +
+    row(ADDR_MODE_ITEMS.filter(it => !it.up && it.value !== 'province'), '⛔ يحتاج تعديل', 'bad');
 }
 // 🔴 المربع بيكتب في **نفس** فلتر «حالة العنوان» اللي في لوحة الفلاتر تحت —
 //    مش حالة تانية جنبه (نفس قاعدة مربعات موقع الشحنة بالحرف).
@@ -5216,8 +5265,8 @@ function renderResults() {
       <td class="col-num">${trackingLink(r.trackingNumber)}</td>
       <td>${r.contractUsed === 'documented' ? '<span class="badge badge-info">موثّق</span>'
             : r.contractUsed === 'undocumented' ? '<span class="badge badge-purple">غير موثّق</span>' : '—'}</td>
-      <td>${esc(r.citySent || '—')}</td>
-      <td>${esc(r.districtSent || '—')}</td>
+      <td class="res-loc">${esc(r.citySent || '—')}</td>
+      <td class="res-loc">${esc(r.districtSent || '—')}</td>
       <td class="act-list">${(r.actions || []).length ? (r.actions || []).map(a => `• ${esc(a)}`).join('<br>') : '—'}</td>
       <td class="act-list">${(reason || notes) ? `${reason}${notes}` : '—'}${notLogged}</td>
       <td>${resultAction(r)}</td>
