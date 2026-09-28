@@ -502,6 +502,13 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
    القوايم الصغيرة التلاتة فوقها مفتوحة (`.dp-picking` على النافذة نفسها) —
    عرض الاتنين مع بعض كان بيعمل لخبطة بصرية (v2.14.0 · طلب أحمد). */
 #districtOverlay.dp-picking #dpBigList{display:none;}
+/* 🔴 والنافذة نفسها كانت بتنكمش لما القايمة الكبيرة تتخفي — محتوى النافذة
+   المتبقي (السياق + السطور) بيبقى أقصر من اللوحة (`.dp-pick-panel`) اللي
+   هتتفتح تحت الخانة، فاللوحة بتترسم في مساحة أضيق من طولها الحقيقي والموظف
+   يحتاج سكرول صعب جوّه مساحة قصيرة عشان يشوفها كاملة (بند بلاغ 28-09-2026).
+   `min-height` على جسم النافذة بيسيب مساحة كافية للوحة (بحث ٣٠px + قايمة
+   حد أقصى ٣٠٠px + هامش) حتى مع أقل سياق ممكن يظهر فوقها. */
+#districtOverlay.dp-picking .eco-modal.dp .eco-modal-body{min-height:480px;}
 /* 🔴 الترتيب **المدينة ← المنطقة** (يمين ← شمال في RTL) عن قصد — نفس ترتيب
    جدول السياق فوق (المحافظة │ المدينة │ المنطقة). قبل v2.17.0 كانت القايمة
    مقلوبة (المنطقة يمين والمدينة شمال)، فالموظف بيقرا عمودين بترتيب معكوس عن
@@ -714,11 +721,23 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
    الشحنة في قسم الجاهز للشحن). */
 .addr-chips{display:flex;flex-direction:column;gap:7px;padding:0 16px 12px;}
 .addr-chips:empty{display:none;}
-/* 🔴 صفّين — قابل للرفع بلا تدخّل فوق (`up:true`)، ومحتاج قرار/موقوف تحت
-   (v2.14.0 · طلب أحمد). التقسيم بمعنى الحالة نفسها لا بعرض الشاشة —
-   مش التفاف سطر بالصدفة زي ما كان قبل كده. */
+/* 🔴 تلات صفوف — قابل للرفع بلا تدخّل فوق (`up:true`)، «المحافظة فقط» في
+   صف نص لوحده، والباقي (محتاج قرار حقيقي/موقوف) تحت (v1.22.0 · طلب أحمد
+   28-09-2026 — كانوا صفّين من v2.14.0). التقسيم بمعنى الحالة نفسها لا
+   بعرض الشاشة — مش التفاف سطر بالصدفة. */
 .addr-chips-row{display:flex;gap:9px;flex-wrap:wrap;align-items:center;justify-content:center;}
 .addr-chips-row:empty{display:none;}
+/* 🔴 زرار «تحديد الصف» — أول عنصر في الصف (يمين في RTL)، طلب أحمد
+   28-09-2026. مقاس أصغر ونمط `outline` عن قصد — هو فعل على **الصف**
+   مش قيمة فلتر زي المربعات جنبه، والمقاس الأكبر كان هيخلّيه يتقرا مربع
+   فلتر خامس. */
+.addr-chip-row-all{display:inline-flex;align-items:center;padding:7px 12px;
+  border-radius:var(--radius-sm);border:1.5px dashed var(--border-strong);background:transparent;
+  color:var(--text-secondary);font-family:var(--font-body);font-size:11.5px;font-weight:800;
+  cursor:pointer;white-space:nowrap;transition:filter .12s,transform .1s;}
+.addr-chip-row-all:hover{filter:brightness(.95);background:var(--surface-2);}
+.addr-chip-row-all:active{transform:translateY(1px);}
+.addr-chip-row-all.on{border-style:solid;border-color:var(--accent);color:var(--accent-dark);background:var(--accent-light);}
 .addr-chip{display:inline-flex;align-items:center;gap:9px;padding:8px 14px;
   border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface-2);
   color:var(--text-secondary);font-family:var(--font-body);font-size:12.5px;font-weight:800;
@@ -775,6 +794,17 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge"></span>
+          <span class="cl-ver-date">28-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>☑️ <b>زرار «تحديد الصف» أول (يمين) كل صف من صفوف مربعات «حالة العنوان»</b> — ضغطة واحدة بتحدد/بتلغي كل مربعات الصف مع بعض بدل ما الموظف يضغط كل مربع لوحده. الزرار بيكتب في نفس فلتر «حالة العنوان» زي أي مربع (طلب أحمد).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔀 <b>«🏙️ المحافظة فقط» بقت في صف نص لوحدها</b> — بقوا تلات صفوف بدل صفّين: القابل للرفع بلا تدخّل فوق، «المحافظة فقط» في النص، والباقي (محتاج قرار حقيقي/موقوف) تحت. هي الدرجة الوسيطة الوحيدة (هب افتراضي على بوليصة حقيقية) وكانت وسط زحمة أربع مربعات تانية.</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>نافذة اختيار المنطقة كانت بتنكمش لما إحدى القوايم الصغيرة (محافظة/مدينة/منطقة) تتفتح</b> — القايمة الكبيرة بتتخفي وقتها (بقصد، من v2.14.0)، وباقي المحتوى بيبقى أقصر من اللوحة اللي بتتفتح تحته، فاللوحة تبان مقصوصة ومحتاجة سكرول صعب جوّه مساحة قصيرة. دلوقتي جسم النافذة له حد أدنى للارتفاع وقت الاختيار يسيب مكان كافي للوحة.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.21.0</span>
           <span class="cl-ver-date">28-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -3318,17 +3348,42 @@ function renderAddrChips() {
     return `<button type="button" class="addr-chip ${addrChipClass(it.value)}${on ? ' on' : ''}" data-am="${esc(it.value)}"
       aria-pressed="${on ? 'true' : 'false'}"><span>${esc(it.label)}</span><span class="addr-chip-n">${n}</span></button>`;
   };
-  // 🔴 صفّين على معنى الحالة (`it.up`) مش على عرض الشاشة (v2.14.0): فوق
-  //    القابل للرفع بلا تدخّل (مطابقة كاملة · مدينة فقط)، وتحت اللي محتاج
-  //    قرار أو موقوف (محافظة فقط · احتمالات متعددة · محافظة مشكوك فيها ·
-  //    خارج التغطية/الجدول).
+  // 🔴 زرار «تحديد الكل» أول (يمين) كل صف — بيحدد/بيلغي كل مربعات الصف ده
+  //    بضغطة واحدة بدل ما الموظف يضغط كل مربع لوحده (طلب أحمد 28-09-2026).
+  //    حالته (`on`) بتتحسب من نفس مجموعة `sel` اللي المربعات بتتحسب منها،
+  //    فمستحيل يفترق عن حالة المربعات اللي تحته.
+  const rowSelectAll = values => {
+    const allOn = values.length > 0 && values.every(v => sel.has(v));
+    return `<button type="button" class="addr-chip-row-all${allOn ? ' on' : ''}"
+      data-am-row="${esc(values.join(','))}">${allOn ? '✕ إلغاء تحديد الصف' : '☑ تحديد الصف'}</button>`;
+  };
+  const row = items => `<div class="addr-chips-row">${rowSelectAll(items.map(it => it.value))}${items.map(chip).join('')}</div>`;
+  // 🔴 تلات صفوف دلوقتي (v1.22.0 · طلب أحمد 28-09-2026) — كانوا صفّين على
+  //    معنى الحالة (`it.up`)، و«المحافظة فقط» اتفردت بصف نص لوحدها: هي
+  //    الدرجة الوسيطة الوحيدة بين «قابل للرفع بلا تدخّل» و«محتاج قرار
+  //    حقيقي» (هب افتراضي بس مش موقوفة زي خارج التغطية/الجدول)، وكانت وسط
+  //    زحمة أربع مربعات تانية في نفس الصف فمابتاخدش الاهتمام اللي المخاطرة
+  //    بتاعتها (هب افتراضي على بوليصة حقيقية) مستاهلاها.
   box.innerHTML =
-    `<div class="addr-chips-row">${ADDR_MODE_ITEMS.filter(it => it.up).map(chip).join('')}</div>` +
-    `<div class="addr-chips-row">${ADDR_MODE_ITEMS.filter(it => !it.up).map(chip).join('')}</div>`;
+    row(ADDR_MODE_ITEMS.filter(it => it.up)) +
+    row(ADDR_MODE_ITEMS.filter(it => it.value === 'province')) +
+    row(ADDR_MODE_ITEMS.filter(it => !it.up && it.value !== 'province'));
 }
 // 🔴 المربع بيكتب في **نفس** فلتر «حالة العنوان» اللي في لوحة الفلاتر تحت —
 //    مش حالة تانية جنبه (نفس قاعدة مربعات موقع الشحنة بالحرف).
 document.getElementById('addrChips').addEventListener('click', (e) => {
+  // 🔴 زرار الصف بيتفحص الأول — مالوش `data-am` فمابيدخلش شرط المربع
+  //    العادي تحته، وعلى العكس زرار المربع مالوش `data-am-row`.
+  const rowBtn = e.target.closest('[data-am-row]');
+  if (rowBtn) {
+    const values = rowBtn.dataset.amRow.split(',').filter(Boolean);
+    const sel = msState.addrMode.selected;
+    const allOn = values.length > 0 && values.every(v => sel.has(v));
+    values.forEach(v => allOn ? sel.delete(v) : sel.add(v));
+    renderAddrChips();
+    onMsChanged('addrMode');
+    return;
+  }
   const btn = e.target.closest('[data-am]');
   if (!btn) return;
   msToggleItem('addrMode', btn.dataset.am);
