@@ -821,6 +821,16 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
           <span class="cl-ver-date">29-09-2026</span>
         </div>
         <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>مطابقة المنطقة بقت على حدود كلمة مش احتواء حرفي</b> (Worker <code>bosta-orders-upload-worker</code> v2.16.0 · طلب أحمد). أوردر <code>#57158</code> (العبور) كان بياخد منطقة «قليوب» «📍 مطابقة كاملة» لأن «قليوب» جوّه «القليوبيه» (اسم المحافظة نفسها) والعنوان مفيهوش الكلمة أصلًا. دلوقتي الاسم لازم يبقى كلمة كاملة في العنوان، مع سوابق «ال» و«و» بس (هرم = الهرم · «كفر سعد وشربين»). ⚠️ عنوان بلا مسافات («شارعالمعادي») مابيطابقش تلقائيًا وبينزل لدرجة أقل أو تأكيد يدوي.</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>خانة «المدينة» في نافذة اختيار المنطقة بقت بتعكس المدينة اللي الموظف اختارها</b> (<code>#57148</code>). اختيار مدينة (Agouza) كان بيقصّر القايمة تحت ويطلع التوست، بس الخانة نفسها تفضل على مدينة المطابقة القديمة (Nasr City). دلوقتي بتعرض المدينة المختارة بلون 🔵 «ترشيح عرض» وبتقول إن المنطقة الحالية لسه هي اللي هتترفع لحد ما تختار منطقة جديدة. عرض بس — الـ payload ما اتغيّرش.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.24.0</span>
+          <span class="cl-ver-date">29-09-2026</span>
+        </div>
+        <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>عمود «منطقة بوسطة» بقى <code>—</code> لما المطابقة على مستوى المدينة أو المحافظة بس</b> — كان بيعرض مربع أخضر باسم المدينة (أو «المحافظة فقط») جوّه عمود المنطقة وده غير منطقي، لأن الأوردر ماتطابقش على منطقة أصلاً. الزرار لسه قابل للضغط وبيفتح نافذة اختيار المنطقة، والدرجة الحقيقية باقية في عمود «حالة العنوان».</span></li>
         </ul>
       </div>
@@ -4277,6 +4287,20 @@ function dpPickCurrent(key) {
     }
     const chosenId = dpChosenDistrictId(r);
     const chosenD  = chosenId ? dpDistricts.find(d => d.id === chosenId) : null;
+    // 🔴 (v1.25.0 · #57148) **الترشيح اللي الموظف عمله بإيده أسبق من زون المنطقة
+    //    المختارة تلقائيًا لو مختلف عنه.** قبل كده `if (chosenD)` كان بيرجع الأول،
+    //    فاختيار مدينة (Agouza) كان بيقصّر القايمة تحت ويطلع التوست، والخانة
+    //    نفسها بتفضل على زون المطابقة القديم (Nasr City) — يعني الفعل نجح والشاشة
+    //    بتقول إنه ما حصلش. 🔵 مش 🟢: ده ترشيح عرض، **والمنطقة القديمة لسه هي
+    //    اللي هتتبعت** لحد ما الموظف يختار منطقة جديدة.
+    const zf = dpZoneFilter ? dpZoneFilter.toLowerCase() : null;
+    const chosenZoneDiffers = chosenD && zf
+      && (chosenD.zone || '').toLowerCase() !== zf && (chosenD.zoneAr || '').toLowerCase() !== zf;
+    if (chosenZoneDiffers) {
+      return { text: cur?.label || dpZoneFilter, cls: 'filter',
+               hint: `ترشيح عرض فقط — القايمة تحت مقصورة على مدينة ${dpZoneFilter}. `
+                   + `المنطقة الحالية (${chosenD.name}) لسه هي اللي هتترفع عليها لحد ما تختار منطقة من القايمة.` };
+    }
     if (chosenD) {
       const z = zoneLabel(chosenD);
       return z.none
