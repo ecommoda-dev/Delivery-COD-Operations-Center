@@ -818,6 +818,15 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge"></span>
+          <span class="cl-ver-date">29-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>عمود «منطقة بوسطة» بقى <code>—</code> لما المطابقة على مستوى المدينة أو المحافظة بس</b> — كان بيعرض مربع أخضر باسم المدينة (أو «المحافظة فقط») جوّه عمود المنطقة وده غير منطقي، لأن الأوردر ماتطابقش على منطقة أصلاً. الزرار لسه قابل للضغط وبيفتح نافذة اختيار المنطقة، والدرجة الحقيقية باقية في عمود «حالة العنوان».</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.23.0</span>
           <span class="cl-ver-date">28-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -3335,6 +3344,14 @@ function districtCell(r) {
   // منهم يبان كأنه ما اتعملش.
   // 🔴 `rowNeedsManualAddressConfirm` بتاخد 'doubt' (أصفر) — نفس تلوين
   //    «محتاج مراجعة»، بدل ما تفضل بلا لون لحد ما الموظف يفتح النافذة بالصدفة.
+  // 🔴 مطابقة على مستوى المدينة (`zone`/`zoneName`) أو المحافظة (`province`،
+  //    تلقائية أو مثبّتة) = **مفيش منطقة** — العمود بيقول `—` بدل مربع أخضر
+  //    باسم المدينة/المحافظة (كان بيتقري إن المنطقة اتحدّدت). الزرار لسه
+  //    بيفتح النافذة، والدرجة الحقيقية في عمود «حالة العنوان» وفي الـ hint.
+  if (mode === 'zone' || mode === 'zoneName' || mode === 'province') {
+    return `<button class="mini-btn" title="${esc(info.label + ' — ' + info.hint)}"
+                    onclick="openDistrictPicker('${jsq(r.orderId)}')">—</button>`;
+  }
   const cls = mode === 'coverageBlocked' ? ' doubt'
             : (info.set || info.pinned) ? ' set'
             : (rowNeedsManualAddressConfirm(r) ? ' doubt' : '');
