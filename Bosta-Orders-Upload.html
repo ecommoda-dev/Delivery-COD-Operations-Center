@@ -4224,10 +4224,10 @@ function dpPickOptions(key) {
   // والموظف يفتكر إن القصر مابيشتغلش.
   // ⚠️ والبحث جوّه القايمة دي بيلغي القصر برضه (`renderDpPickList`) — نفس
   //    قاعدة القايمة الكبيرة بالظبط.
-  if (dpZoneFilter && !(dpPickSearch.district || '').trim()) {
-    const zf = dpZoneFilter.toLowerCase();
-    list = list.filter(d => (d.zone || '').toLowerCase() === zf || (d.zoneAr || '').toLowerCase() === zf);
-  }
+  // 🔴 (v1.27.0 · #57140) **البحث بيفضل جوّه المدينة المقصورة** — كان بيلغي القصر
+  //    ويطلّع مناطق كل مدن المحافظة. لو مفيش نتيجة جوّه المدينة، `renderDpPickList`
+  //    بتعرض زرار صريح «ابحث في كل مدن المحافظة» بدل الطريق المسدود.
+  list = list.filter(d => dpZoneIs(d.zone, d.zoneAr));
   return [...list]
     .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'en'))
     .map(d => ({
@@ -4416,6 +4416,14 @@ async function dpPickChoose(key, id) {
   chooseDistrict(id);
 }
 
+// 🔴 (v1.27.0) توسيع البحث لكل مدن المحافظة — بضغطة صريحة من الموظف بعد ما البحث
+//    ما لقاش حاجة جوّه المدينة المقصورة. بيشيل القصر ويسيب نص البحث مكانه.
+function dpSearchAllZones(key) {
+  dpZoneFilter = null;
+  renderDistrictList();   // بيعيد رسم السياق والقوايم الثلاث (وقايمة `key` لسه مفتوحة)
+  if (key) renderDpPickList(key);
+}
+
 // 🔴 اختيار زون = **قصر القايمة**، مش اختيار منطقة. الزون جواه مناطق كتير،
 //    واختيار واحدة منها تلقائيًا تخمين (8.10). و«الكل» بيشيل القصر.
 function dpPickZone(id) {
@@ -4440,6 +4448,12 @@ function renderDpPickList(key) {
   // 🔍 نفس تطبيع القايمة الكبيرة بالظبط — قايمتين بحث بقاعدتين مختلفتين معناها
   //    إن الموظف يلاقي المنطقة في وحدة ومايلاقيهاش في التانية لنفس النص.
   if (q) opts = opts.filter(o => normSearch(`${o.label} ${o.sub}`).includes(q));
+  // 🔴 لا نتيجة جوّه المدينة المقصورة → مخرج صريح بدل طريق مسدود: البحث بيتوسّع
+  //    لكل مدن المحافظة **بضغطة الموظف بس**، مش لوحده.
+  const scoped = key === 'district' && !!dpZoneFilter;
+  const widen = scoped && raw
+    ? `<div class="dp-pick-opt" onclick="event.stopPropagation();dpSearchAllZones('${key}')">🔍 ابحث في كل مدن المحافظة</div>`
+    : '';
 
   // «الكل» في قايمة الزون فقط — هو اللي بيشيل القصر ويرجّع كل مناطق المدينة
   const head = (key === 'zone' && !q)
@@ -4450,7 +4464,8 @@ function renderDpPickList(key) {
     : '';
 
   if (!opts.length && !head) {
-    el.innerHTML = `<div class="dp-pick-empty">لا توجد نتائج${raw ? ` لـ"${esc(raw)}"` : ''}</div>`;
+    el.innerHTML = `<div class="dp-pick-empty">لا توجد نتائج${raw ? ` لـ"${esc(raw)}"` : ''}${
+      scoped ? ` داخل مدينة ${esc(dpZoneFilter)}` : ''}</div>${widen}`;
     return;
   }
   // القايمة مقصوصة على ٤٠٠ زي القايمة الكبيرة — والبحث هو وسيلة الوصول
@@ -4641,12 +4656,12 @@ function renderDistrictList() {
   let head = '';
   // 🗺️ قصر القايمة على زون واحد — ده اللي بيحوّل ٥٩٠ منطقة لـ٦
   if (dpZoneFilter) {
+    // 🔴 (v1.27.0 · #57140) **البحث بيفضل جوّه المدينة المقصورة** — v2.6.1 كان
+    //    بيلغي القصر لأن القصر بقى بيتطبّق لوحده وبحث بلا نتيجة كان طريق مسدود.
+    //    الحل مش إلغاء القصر: لو مفيش نتيجة جوّه المدينة فيه زرار صريح تحت.
     head += q
-      // ⚠️ الحالة دي لازم تتقال صراحةً: القصر لسه متسجّل، لكن البحث شغّال على
-      //    المدينة كلها. سكوت هنا بيخلّي الموظف يفتكر إنه بيدوّر جوّه الزون.
-      ? `<div class="dp-group-hdr pick">🔍 البحث بيلف على <b>كل مناطق المحافظة</b> —
-          قصر مدينة <b>${esc(dpZoneFilter)}</b> بيرجع أول ما تفضّي خانة البحث
-          <button class="dp-clear-zone" onclick="event.stopPropagation();clearZoneFilter()">✕ شيل القصر</button></div>`
+      ? `<div class="dp-group-hdr pick">🔍 البحث جوّه مدينة <b>${esc(dpZoneFilter)}</b> بس
+          <button class="dp-clear-zone" onclick="event.stopPropagation();clearZoneFilter()">🔍 ابحث في كل المحافظة</button></div>`
       : `<div class="dp-group-hdr pick">🗺️ مقصورة على مدينة <b>${esc(dpZoneFilter)}</b>
           <button class="dp-clear-zone" onclick="event.stopPropagation();clearZoneFilter()">✕ شيل القصر</button></div>`;
   }
@@ -4665,8 +4680,18 @@ function renderDistrictList() {
   //    القايمة** بعلامة بصرية صريحة. قبل كده كانت مجرد صف أزرق مكانه أبجدي
   //    وسط ٤٠٠ صف — يعني الموظف كان بيدوّر بالبحث على الحاجة اللي الأداة
   //    لقتها له أصلًا. بتفضل موجودة في مكانها الأبجدي كمان بنفس التمييز.
-  if (!q && chosen) {
-    const md = dpDistricts.find(d => d.id === chosen);
+  // 🔴 (v1.27.0 · #57140) **الشريط الأخضر بس لو المنطقة جوّه المدينة المعروضة.**
+  //    الموظف اللي بدّل المدينة من الخانة فوق كان لسه بيشوف «✅ المطابقة التلقائية»
+  //    على منطقة من المدينة القديمة أول القايمة المقصورة على مدينة تانية. المنطقة
+  //    القديمة لسه هي المتسجّلة (بتترفع) — فبتتقال بسطر محايد بدل الشريط.
+  const chosenD0 = chosen ? dpDistricts.find(d => d.id === chosen) : null;
+  const chosenInView = !!chosenD0 && dpZoneIs(chosenD0.zone, chosenD0.zoneAr);
+  if (!q && chosenD0 && !chosenInView) {
+    head += `<div class="dp-group-hdr pick">ℹ️ المنطقة الحالية (<b>${esc(bilingualName(chosenD0.name, chosenD0.nameAr))}</b>)
+      من مدينة تانية — لسه هي اللي هتترفع عليها لحد ما تختار منطقة من القايمة دي</div>`;
+  }
+  if (!q && chosen && chosenInView) {
+    const md = chosenD0;
     if (md) {
       const manual = !!ov?.districtId;
       const cand = (r?.candidates || []).find(c => c.id === chosen);
@@ -4724,11 +4749,8 @@ function renderDistrictList() {
   //    منطقة موجودة فعلًا في المدينة ويقرا «مفيش مناطق مطابقة» — طريق مسدود
   //    من غير أي خطأ. والفخ ده بقى أقرب بكتير من v2.6.0 لأن القصر بقى
   //    **بيتطبّق لوحده** على صف الزون أول ما النافذة تفتح.
-  let list = dpDistricts;
-  if (dpZoneFilter && !q) {
-    const zf = dpZoneFilter.toLowerCase();
-    list = list.filter(d => (d.zone || '').toLowerCase() === zf || (d.zoneAr || '').toLowerCase() === zf);
-  }
+  // 🔴 (v1.27.0) القصر بيتطبّق **مع البحث كمان** (`dpZoneIs` بلا قصر = الكل).
+  let list = dpDistricts.filter(d => dpZoneIs(d.zone, d.zoneAr));
   // 🔍 المقارنة **مطبَّعة على الناحيتين** — الكتالوج بيكتب «المنشية» والموظف
   //    بيكتب «المنشيه»، والمقارنة الخام كانت بترجّع «مفيش مناطق مطابقة» على
   //    منطقة معروضة قدامه في نفس القايمة **من غير أي خطأ**.
@@ -4738,7 +4760,13 @@ function renderDistrictList() {
   // معروف بتخلي التنقّل فيها تخمين
   list = [...list].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'en'));
   if (!list.length && !head) { el.innerHTML = '<div class="ms-empty">مفيش مناطق مطابقة</div>'; return; }
-  const cityTxt = dpCities.find(c => c.cityId === dpCityId)?.cityName || r?.cityName || '';
+  // مقصورة ومفيش نتيجة → الرسالة بتقول جوّه أنهي مدينة، والزرار في الهيدر فوق
+  if (!list.length && dpZoneFilter) {
+    el.innerHTML = dpTableHead() + head +
+      `<div class="ms-empty">مفيش مناطق مطابقة جوّه مدينة ${esc(dpZoneFilter)} — اضغط «ابحث في كل المحافظة»</div>`;
+    return;
+  }
+  const cityTxt = dpZoneFilter || dpCities.find(c => c.cityId === dpCityId)?.cityName || r?.cityName || '';
   // العدّاد بيقول المعروض فعلًا — القايمة مقصوصة على ٤٠٠ صف، وكتابة العدد
   // الكامل جنب قايمة مقصوصة بتخلّي الموظف يفتكر إنه شاف الآخر
   const shown = Math.min(list.length, 400);
