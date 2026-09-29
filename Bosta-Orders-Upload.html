@@ -821,6 +821,15 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
           <span class="cl-ver-date">29-09-2026</span>
         </div>
         <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>تكملة إصلاح خانة «المدينة» في نافذة اختيار المنطقة</b> (<code>#57140</code>) — الإصلاح السابق غطّى الأوردر اللي مالوش تثبيت بس. الأوردر <b>المثبّت</b> بـ«ارفع على المدينة فقط» كان لسه بيعرض المدينة المثبّتة (أخضر) حتى بعد ما تختار مدينة تانية، <b>والأسوأ:</b> زرار «ارفع على المدينة فقط» كان بيعيد تثبيت المدينة القديمة مش اللي اخترتها. دلوقتي الاختيار الأخير هو اللي بيظهر (🔵 ترشيح) وهو اللي الزرار بيثبّته — في الحالتين (مثبّت / غير مثبّت).</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.25.0</span>
+          <span class="cl-ver-date">29-09-2026</span>
+        </div>
+        <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>مطابقة المنطقة بقت على حدود كلمة مش احتواء حرفي</b> (Worker <code>bosta-orders-upload-worker</code> v2.16.0 · طلب أحمد). أوردر <code>#57158</code> (العبور) كان بياخد منطقة «قليوب» «📍 مطابقة كاملة» لأن «قليوب» جوّه «القليوبيه» (اسم المحافظة نفسها) والعنوان مفيهوش الكلمة أصلًا. دلوقتي الاسم لازم يبقى كلمة كاملة في العنوان، مع سوابق «ال» و«و» بس (هرم = الهرم · «كفر سعد وشربين»). ⚠️ عنوان بلا مسافات («شارعالمعادي») مابيطابقش تلقائيًا وبينزل لدرجة أقل أو تأكيد يدوي.</span></li>
           <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>خانة «المدينة» في نافذة اختيار المنطقة بقت بتعكس المدينة اللي الموظف اختارها</b> (<code>#57148</code>). اختيار مدينة (Agouza) كان بيقصّر القايمة تحت ويطلع التوست، بس الخانة نفسها تفضل على مدينة المطابقة القديمة (Nasr City). دلوقتي بتعرض المدينة المختارة بلون 🔵 «ترشيح عرض» وبتقول إن المنطقة الحالية لسه هي اللي هتترفع لحد ما تختار منطقة جديدة. عرض بس — الـ payload ما اتغيّرش.</span></li>
         </ul>
@@ -4244,6 +4253,15 @@ function dpChosenDistrictId(r) {
   return ov?.districtId || (dpCityId === r.cityId ? r.districtId : null);
 }
 
+// هل زون (بالاسمين) هو نفسه الزون اللي القايمة مقصورة عليه؟ بلا قصر = آه.
+// 🔴 مصدر واحد للمقارنة — خانة الزون و`dpEffectiveZone` (اللي بيقرا منها زرار
+//    «ارفع على المدينة فقط») لازم يتفقوا، وإلا الخانة تقول زون والزرار يثبّت غيره.
+function dpZoneIs(en, ar) {
+  if (!dpZoneFilter) return true;
+  const zf = dpZoneFilter.toLowerCase();
+  return (en || '').toLowerCase() === zf || (ar || '').toLowerCase() === zf;
+}
+
 // النص المعروض على الزرار وهو مقفول — القيمة السارية فعلًا
 function dpPickCurrent(key) {
   const r = allRows.find(x => x.orderId === dpOrderId);
@@ -4280,6 +4298,17 @@ function dpPickCurrent(key) {
     // 🔴 التثبيت اليدوي على الزون أسبق من كل حاجة — ده **قرار الموظف** وهو
     //    اللي هيتبعت، فبياخد 🟢 زي المنطقة المختارة بالظبط.
     const ovZ = districtOverride[dpOrderId];
+    // 🔴 (v1.26.0 · #57140) **الترشيح اللي الموظف اختاره أسبق من التثبيت القديم لو
+    //    مختلف عنه.** التثبيت السابق («ارفع على المدينة فقط») كان بيكسب على
+    //    الترشيح بلا شرط، فالموظف اللي يفتح أوردر مثبّت ويختار مدينة تانية كان
+    //    بيشوف الخانة على المدينة القديمة وكأن الاختيار ما حصلش. 🔵 مش 🟢: ده
+    //    ترشيح، والتثبيت القديم لسه هو المتسجّل لحد ما الموظف يضغط الزرار.
+    const zfNow = dpZoneFilter ? dpZoneFilter.toLowerCase() : null;
+    if (ovZ?.forceZone && zfNow && !dpZoneIs(ovZ.zoneName, ovZ.zoneNameAr)) {
+      return { text: cur?.label || dpZoneFilter, cls: 'filter',
+               hint: `ترشيح عرض فقط — القايمة تحت مقصورة على مدينة ${dpZoneFilter}. `
+                   + `التثبيت الحالي (${ovZ.zoneName}) لسه هو المتسجّل لحد ما تضغط «ارفع على المدينة فقط».` };
+    }
     if (ovZ?.forceZone) {
       return { text: ovZ.zoneName, cls: 'set',
                hint: `متثبّت يدويًا — الشحنة هتترفع على مدينة ${ovZ.zoneName} (zoneId) `
@@ -4293,9 +4322,7 @@ function dpPickCurrent(key) {
     //    نفسها بتفضل على زون المطابقة القديم (Nasr City) — يعني الفعل نجح والشاشة
     //    بتقول إنه ما حصلش. 🔵 مش 🟢: ده ترشيح عرض، **والمنطقة القديمة لسه هي
     //    اللي هتتبعت** لحد ما الموظف يختار منطقة جديدة.
-    const zf = dpZoneFilter ? dpZoneFilter.toLowerCase() : null;
-    const chosenZoneDiffers = chosenD && zf
-      && (chosenD.zone || '').toLowerCase() !== zf && (chosenD.zoneAr || '').toLowerCase() !== zf;
+    const chosenZoneDiffers = chosenD && dpZoneFilter && !dpZoneIs(chosenD.zone, chosenD.zoneAr);
     if (chosenZoneDiffers) {
       return { text: cur?.label || dpZoneFilter, cls: 'filter',
                hint: `ترشيح عرض فقط — القايمة تحت مقصورة على مدينة ${dpZoneFilter}. `
@@ -4788,14 +4815,18 @@ async function chooseCrossCity(cityId, cityName, districtId, districtName) {
 //    اللي قدامه في الخانة.
 function dpEffectiveZone(r) {
   const ov = districtOverride[dpOrderId];
-  if (ov?.forceZone) return { id: ov.zoneName, zoneId: ov.zoneId,
-                              label: bilingualName(ov.zoneName, ov.zoneNameAr) || ov.zoneName,
-                              labelAr: ov.zoneNameAr || '' };
+  // 🔴 (v1.26.0) الترشيح المختلف عن التثبيت/المنطقة المختارة هو **اختيار الموظف
+  //    الأخير** — زرار «ارفع على المدينة فقط» لازم يثبّته هو، مش المدينة القديمة
+  //    (#57140 · #57148). نفس شرط الخانة بالظبط (`dpZoneIs`).
+  if (ov?.forceZone && dpZoneIs(ov.zoneName, ov.zoneNameAr))
+    return { id: ov.zoneName, zoneId: ov.zoneId,
+             label: bilingualName(ov.zoneName, ov.zoneNameAr) || ov.zoneName,
+             labelAr: ov.zoneNameAr || '' };
   const chosenId = dpChosenDistrictId(r);
   const chosenD  = chosenId ? dpDistricts.find(d => d.id === chosenId) : null;
-  const name = chosenD ? (chosenD.zone || chosenD.zoneAr || '')
-             : dpZoneFilter
-             || ((r.mode === 'zone' && dpCityId === r.cityId) ? r.zoneName : '');
+  const name = (dpZoneFilter && !(chosenD && dpZoneIs(chosenD.zone, chosenD.zoneAr))) ? dpZoneFilter
+             : chosenD ? (chosenD.zone || chosenD.zoneAr || '')
+             : ((r.mode === 'zone' && dpCityId === r.cityId) ? r.zoneName : '');
   if (!name) return null;
   const opt = dpPickOptions('zone').find(o => o.id.toLowerCase() === String(name).toLowerCase());
   return opt ? { id: opt.id, zoneId: opt.zoneId, label: opt.label, labelAr: opt.nameAr || '' } : null;
