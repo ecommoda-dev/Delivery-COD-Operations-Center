@@ -373,6 +373,9 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 /* 🔴 التلات عواميد بتوع بوسطة (محافظة · مدينة · منطقة) بعرض ثابت متساوي —
    قبل كده كل عمود ياخد عرض محتواه فيطلعوا متفاوتين جنب بعض. */
 .data-table tbody td.cell-bosta-col{width:130px;}
+/* 🔴 قيم التلات أعمدة بتوع بوسطة (محافظة · مدينة · منطقة) — أكبر وأغمق من باقي
+   الجدول (طلب أحمد 30-09-2026): دي القيم اللي الموظف بيراجعها قبل الرفع. */
+.data-table tbody td.bosta-val{font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.4;}
 /* 🔴 دمج «العنوان كامل» + «المحافظة (شوبيفاي)» (واجهة v2.20.0) — سطر أول
    المحافظة ◀ المدينة (بارز، نفس وزن العمود القديم)، وسطر تاني باقي العنوان
    (أصغر شوية بس بنفس لون النص الأساسي الصريح — مش Bold ومش باهت، عشان يفضل
@@ -402,6 +405,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
   font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;color:var(--text-secondary);white-space:nowrap;}
 .mini-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
 .mini-btn.set{border-color:var(--green);color:var(--green);background:var(--green-light);}
+/* 🔴 المنطقة فاضية (`—`) — مربع بارز بحدود متقطعة زرقاء بدل مربع رمادي باهت:
+   الخانة دي فيها قرار مطلوب من الموظف (اختيار منطقة)، والباهت بيتقري «مفيش حاجة». */
+.mini-btn.zone-empty{min-width:56px;padding:6px 14px;font-size:18px;line-height:1;border:2px dashed var(--accent);
+  color:var(--accent-dark);background:var(--accent-light);}
 
 .problem-text{color:var(--red);font-size:11px;font-weight:700;white-space:normal;max-width:240px;
   display:block;line-height:1.6;text-align:right;}
@@ -3368,7 +3375,7 @@ function districtCell(r) {
   //    باسم المدينة/المحافظة (كان بيتقري إن المنطقة اتحدّدت). الزرار لسه
   //    بيفتح النافذة، والدرجة الحقيقية في عمود «حالة العنوان» وفي الـ hint.
   if (mode === 'zone' || mode === 'zoneName' || mode === 'province') {
-    return `<button class="mini-btn" title="${esc(info.label + ' — ' + info.hint)}"
+    return `<button class="mini-btn zone-empty" title="${esc(info.label + ' — ' + info.hint)}"
                     onclick="openDistrictPicker('${jsq(r.orderId)}')">—</button>`;
   }
   const cls = mode === 'coverageBlocked' ? ' doubt'
@@ -3506,9 +3513,9 @@ function tableColumns() {
     // 🔴 عرض ثابت متساوي للتلاتة (`cell-bosta-col`) — كانوا بياخدوا عرض المحتوى
     //    تلقائيًا فكانت تلاتة أعمدة بعروض مختلفة جنب بعض تعمل تعرّج بصري
     //    (طلب أحمد 26-09-2026).
-    { key: 'cityName',     label: 'محافظة بوسطة', sort: 'cityName', cls: 'cell-wrap cell-bosta-col', cell: cityCell },
-    { key: 'districtZone', label: 'مدينة بوسطة', sort: 'districtZone', cls: 'cell-wrap cell-bosta-col', cell: districtZoneCell },
-    { key: 'district',     label: 'منطقة بوسطة', cls: 'cell-wrap cell-bosta-col', cell: districtCell },
+    { key: 'cityName',     label: 'محافظة بوسطة', sort: 'cityName', cls: 'cell-wrap cell-bosta-col bosta-val', cell: cityCell },
+    { key: 'districtZone', label: 'مدينة بوسطة', sort: 'districtZone', cls: 'cell-wrap cell-bosta-col bosta-val', cell: districtZoneCell },
+    { key: 'district',     label: 'منطقة بوسطة', cls: 'cell-wrap cell-bosta-col bosta-val', cell: districtCell },
     { key: 'addrMode',     label: 'حالة العنوان', sort: 'addrMode', cell: addrModeCell },
   ];
 
