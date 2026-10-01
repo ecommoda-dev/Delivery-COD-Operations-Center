@@ -426,6 +426,16 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
    «ما تم فعليًا» فيها أطول من الشحن العادي فبتوسّع الجدول أكتر). عرض ثابت +
    لفّ بدل ما الاسم يمدّد العمود. */
 .res-loc{width:100px;white-space:normal;word-break:break-word;}
+/* 🔴 السبب الجذري لخروج النص من الجدول في «نتيجة الرفع» (طلب أحمد 01-10-2026):
+   `.data-table tbody td` فوق فيها `white-space:nowrap` بوزن (0,1,2)، و`.act-list`
+   و`.res-loc` (0,1,0) — يعني `white-space:normal` فيهم **كانت بتتغلب** من غير
+   أي خطأ، والنص (رسالة الرفض الطويلة في «السبب / الملحوظة» و«ما تم فعليًا»)
+   كان بيتمدّ على سطر واحد ويفرض عرض الجدول. نفس فخ `.cell-wrap` فوق بالظبط.
+   الإصلاح: وزن أعلى + `width` حقيقي (`max-width` على td بيتتجاهل) + اتجاه يمين. */
+.data-table tbody td.act-list,.data-table tbody td.res-loc{white-space:normal;overflow-wrap:anywhere;word-break:break-word;text-align:right;}
+.data-table tbody td.res-loc{width:100px;}
+.data-table tbody td.act-list{width:240px;line-height:1.7;}
+.data-table tbody td.act-list.res-reason{width:300px;}
 /* ℹ️ الملحوظة الإعلامية — لون تالت غير الأخضر والأصفر **عن قصد**: دي مش حالة
    الصف، دي معلومة جنبه (المبلغ اتقص · المحافظة اتعدّلت · العنوان نزل درجة).
    توحيدها بصريًا مع التحذير الأصفر بيرجّع الباج اللي v2.18.0 اتعملت عشانه:
@@ -5375,7 +5385,7 @@ function renderResults() {
       <td class="res-loc">${esc(r.citySent || '—')}</td>
       <td class="res-loc">${esc(r.districtSent || '—')}</td>
       <td class="act-list">${(r.actions || []).length ? (r.actions || []).map(a => `• ${esc(a)}`).join('<br>') : '—'}</td>
-      <td class="act-list">${(reason || notes) ? `${reason}${notes}` : '—'}${notLogged}</td>
+      <td class="act-list res-reason">${(reason || notes) ? `${reason}${notes}` : '—'}${notLogged}</td>
       <td>${resultAction(r)}</td>
     </tr>`;
   }).join('');
