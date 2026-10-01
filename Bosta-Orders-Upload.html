@@ -835,6 +835,25 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge"></span>
+          <span class="cl-ver-date">01-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>دورة اتفتحت تاني بنفس الرقم (R1) بقت بتترفع</b> (Worker <code>bosta-orders-upload-worker</code> v2.18.0 · <code>#54549</code> · طلب أحمد). استبدال تاني على نفس الدورة كان بيترفض <code>11000</code> لأن المرجع الفريد <code>#54549-EX1</code> لسه محجوز عند بوسطة على الشحنة القديمة (حتى لو Returned — الفرادة بتتحرر بالإلغاء بس). دلوقتي لو الأوردر عليه رفع سابق (تاج <code>Bosta_Uploaded_S2</code> أو رقم تتبع <code>_s2</code>) الأداة بتعيد المحاولة بلاحقة: <code>#54549-EX1-2</code> ثم <code>-3</code>… (٥ محاولات كحد أقصى)، والصف بيطلع نجاح بملحوظة بتسمّي المرجع الجديد. ⚠️ من غير رفع سابق <code>11000</code> لسه خطأ — هو الحارس ضد شحنة تانية بفلوس لنفس الدورة.</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>النص الطويل كان بيخرج من جدول «نتيجة الرفع»</b> — قاعدة <code>white-space:nowrap</code> بتاعة خلايا الجدول كانت بتغلب <code>white-space:normal</code> بتاعة أعمدة «السبب / الملحوظة» و«ما تم فعليًا» والمدينة/المنطقة، فالرسائل الطويلة (زي رفض بوسطة) كانت بتتمدد على سطر واحد. دلوقتي بتلف وبعرض ثابت.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.27.0</span>
+          <span class="cl-ver-date">30-09-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>البحث في نافذة اختيار المنطقة بيفضل جوّه المدينة المقصورة</b> (<code>#57140</code>) — وشريط المطابقة الأخضر القديم بيتشال لما المدينة تتغيّر. عرض بس — الـ payload ما اتغيّرش.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.26.0</span>
           <span class="cl-ver-date">29-09-2026</span>
         </div>
         <ul class="cl-items">
