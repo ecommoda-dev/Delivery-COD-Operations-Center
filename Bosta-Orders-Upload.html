@@ -273,7 +273,6 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .up-prog-sub{text-align:center;font-size:13px;font-weight:700;color:var(--text-secondary);}
 .up-prog-warn{margin-top:12px;text-align:center;font-size:12.5px;font-weight:700;color:var(--amber-dark);}
 .eco-modal.res{transition:max-width .2s ease;}
-.data-table tbody td.bosta-green,.data-table tbody td.bosta-green .mini-btn.set{color:var(--green-dark);}
 .bulk-note{background:var(--amber-light);border:1px solid var(--amber-border);
   color:var(--amber-dark);border-radius:var(--radius-sm);padding:10px 12px;
   font-size:13px;line-height:1.7;}
@@ -389,6 +388,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 /* 🔴 قيم التلات أعمدة بتوع بوسطة (محافظة · مدينة · منطقة) — أكبر وأغمق من باقي
    الجدول (طلب أحمد 30-09-2026): دي القيم اللي الموظف بيراجعها قبل الرفع. */
 .data-table tbody td.bosta-val{font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.4;}
+/* خط عمودي «مدينة بوسطة» و«منطقة بوسطة» أخضر (طلب أحمد 03-10-2026) — بعد `.bosta-val` عشان نفس الوزن والأحدث يكسب */
+.data-table tbody td.bosta-green,.data-table tbody td.bosta-green .mini-btn.set{color:var(--green-dark);}
 /* 🔴 دمج «العنوان كامل» + «المحافظة (شوبيفاي)» (واجهة v2.20.0) — سطر أول
    المحافظة ◀ المدينة (بارز، نفس وزن العمود القديم)، وسطر تاني باقي العنوان
    (أصغر شوية بس بنفس لون النص الأساسي الصريح — مش Bold ومش باهت، عشان يفضل
