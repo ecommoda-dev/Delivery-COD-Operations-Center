@@ -261,6 +261,18 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 /* سطر نقلة الحالة في نافذة تأكيد الرفع — متغيّرات اللوحة بتاعة الصفحة دي
    نفسها (`--amber…`)، مش متغيّرات متنقّلة من أداة تانية: الـ CSS مابيشتكيش
    من متغيّر مش معرّف، بيعرض اللون الافتراضي وخلاص. */
+/* نافذة تقدّم الرفع (v1.29.0 · طلب أحمد) — بتتفتح من أول ضغطة تأكيد وبتفضل
+   لحد ما النتيجة تظهر، ومالهاش زرار قفل ولا Esc ولا ضغط برّه: الرفع شحنات
+   بفلوس، وقفل النافذة كان هيدّي الموظف انطباع إن العملية وقفت. */
+.up-prog-bar{height:16px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border-strong);overflow:hidden;margin:6px 0 10px;}
+.up-prog-fill{height:100%;width:0;border-radius:99px;transition:width .4s ease;
+  background:repeating-linear-gradient(45deg,var(--accent) 0 12px,var(--accent-dark) 12px 24px);
+  background-size:34px 34px;animation:up-stripes 1s linear infinite;}
+@keyframes up-stripes{to{background-position:34px 0;}}
+.up-prog-num{font-family:var(--font-mono);font-size:34px;font-weight:800;text-align:center;color:var(--accent-dark);line-height:1.1;}
+.up-prog-sub{text-align:center;font-size:13px;font-weight:700;color:var(--text-secondary);}
+.up-prog-warn{margin-top:12px;text-align:center;font-size:12.5px;font-weight:700;color:var(--amber-dark);}
+.eco-modal.res{transition:max-width .2s ease;}
 .bulk-note{background:var(--amber-light);border:1px solid var(--amber-border);
   color:var(--amber-dark);border-radius:var(--radius-sm);padding:10px 12px;
   font-size:13px;line-height:1.7;}
@@ -376,6 +388,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 /* 🔴 قيم التلات أعمدة بتوع بوسطة (محافظة · مدينة · منطقة) — أكبر وأغمق من باقي
    الجدول (طلب أحمد 30-09-2026): دي القيم اللي الموظف بيراجعها قبل الرفع. */
 .data-table tbody td.bosta-val{font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.4;}
+/* خط عمودي «مدينة بوسطة» و«منطقة بوسطة» أخضر (طلب أحمد 03-10-2026) — بعد `.bosta-val` عشان نفس الوزن والأحدث يكسب */
+.data-table tbody td.bosta-green,.data-table tbody td.bosta-green .mini-btn.set{color:var(--green-dark);}
 /* 🔴 دمج «العنوان كامل» + «المحافظة (شوبيفاي)» (واجهة v2.20.0) — سطر أول
    المحافظة ◀ المدينة (بارز، نفس وزن العمود القديم)، وسطر تاني باقي العنوان
    (أصغر شوية بس بنفس لون النص الأساسي الصريح — مش Bold ومش باهت، عشان يفضل
@@ -835,9 +849,11 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge"></span>
-          <span class="cl-ver-date">01-10-2026</span>
+          <span class="cl-ver-date">03-10-2026</span>
         </div>
         <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>⏳ <b>نافذة تقدّم الرفع</b> — شريط تقدّم وعدّاد <code>5/12</code> بيظهروا طول ما الرفع شغّال (بدل النص الصغير على الزرار)، ومالهاش قفل لحد ما النتيجة تظهر.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>Esc بيقفل نافذة اختيار المنطقة · نافذة «نتيجة الرفع» أصغر (بتكبر لما تفتح التفاصيل) · مربع «الإجمالي» اتشال من نافذتي الرفع · خانة «مدينة بوسطة» الفاضية بنفس شكل خانة المنطقة · وخط عمودي المدينة والمنطقة أخضر.</span></li>
           <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>دورة اتفتحت تاني بنفس الرقم (R1) بقت بتترفع</b> (Worker <code>bosta-orders-upload-worker</code> v2.18.0 · <code>#54549</code> · طلب أحمد). استبدال تاني على نفس الدورة كان بيترفض <code>11000</code> لأن المرجع الفريد <code>#54549-EX1</code> لسه محجوز عند بوسطة على الشحنة القديمة (حتى لو Returned — الفرادة بتتحرر بالإلغاء بس). دلوقتي لو الأوردر عليه رفع سابق (تاج <code>Bosta_Uploaded_S2</code> أو رقم تتبع <code>_s2</code>) الأداة بتعيد المحاولة بلاحقة: <code>#54549-EX1-2</code> ثم <code>-3</code>… (٥ محاولات كحد أقصى)، والصف بيطلع نجاح بملحوظة بتسمّي المرجع الجديد. ⚠️ من غير رفع سابق <code>11000</code> لسه خطأ — هو الحارس ضد شحنة تانية بفلوس لنفس الدورة.</span></li>
           <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>النص الطويل كان بيخرج من جدول «نتيجة الرفع»</b> — قاعدة <code>white-space:nowrap</code> بتاعة خلايا الجدول كانت بتغلب <code>white-space:normal</code> بتاعة أعمدة «السبب / الملحوظة» و«ما تم فعليًا» والمدينة/المنطقة، فالرسائل الطويلة (زي رفض بوسطة) كانت بتتمدد على سطر واحد. دلوقتي بتلف وبعرض ثابت.</span></li>
         </ul>
@@ -1608,7 +1624,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
        (لابتوب 1366/1440) لسه محتاج سكرول أفقي بسيط — `.tbl-scroll`
        (overflow-x:auto) هو الحل الاحتياطي هناك، نفس آلية باقي جداول الأداة
        (طلب أحمد 28-09-2026). -->
-  <div class="eco-modal" style="max-width:1400px;">
+  <div class="eco-modal res" id="resModal" style="max-width:760px;">
     <div class="eco-modal-hdr">
       <span id="resTitle">نتيجة الرفع</span>
       <button class="modal-close-x" onclick="closeResultsModal()">✕</button>
@@ -1670,6 +1686,19 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
     <div class="eco-modal-ftr">
       <button class="btn-modal-save" id="bulkAllOkBtn" onclick="confirmBulkUpload()">تأكيد الرفع</button>
       <button class="btn-red" onclick="closeBulkAllConfirm()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- تقدّم الرفع — نافذة بلا قفل (انظر `.up-prog-fill` في الـ CSS) -->
+<div class="eco-overlay" id="uploadProgressOverlay">
+  <div class="eco-modal" style="max-width:520px;">
+    <div class="eco-modal-hdr"><span id="upProgTitle">⏳ جاري رفع الأوردرات...</span></div>
+    <div class="eco-modal-body">
+      <div class="up-prog-num" id="upProgNum">0/0</div>
+      <div class="up-prog-bar"><div class="up-prog-fill" id="upProgFill"></div></div>
+      <div class="up-prog-sub" id="upProgSub"></div>
+      <div class="up-prog-warn">⚠️ متقفلش الصفحة ومتعيدش الرفع لحد ما النتيجة تظهر</div>
     </div>
   </div>
 </div>
@@ -3263,7 +3292,11 @@ function rowBostaZone(r) {
   return { en: '', ar: '' };
 }
 function districtZoneCell(r) {
-  return esc(displayName(rowBostaZone(r).en, rowBostaZone(r).ar) || '—');
+  const txt = displayName(rowBostaZone(r).en, rowBostaZone(r).ar);
+  if (txt) return esc(txt);
+  // فاضية = نفس شكل خانة المنطقة الفاضية (زرار متقطع بيفتح نافذة الاختيار)
+  return `<button class="mini-btn zone-empty" title="المدينة لسه ما اتحدّدتش — اضغط لاختيارها"
+                  onclick="openDistrictPicker('${jsq(r.orderId)}')">—</button>`;
 }
 
 function applyFilters() {
@@ -3543,8 +3576,8 @@ function tableColumns() {
     //    تلقائيًا فكانت تلاتة أعمدة بعروض مختلفة جنب بعض تعمل تعرّج بصري
     //    (طلب أحمد 26-09-2026).
     { key: 'cityName',     label: 'محافظة بوسطة', sort: 'cityName', cls: 'cell-wrap cell-bosta-col bosta-val', cell: cityCell },
-    { key: 'districtZone', label: 'مدينة بوسطة', sort: 'districtZone', cls: 'cell-wrap cell-bosta-col bosta-val', cell: districtZoneCell },
-    { key: 'district',     label: 'منطقة بوسطة', cls: 'cell-wrap cell-bosta-col bosta-val', cell: districtCell },
+    { key: 'districtZone', label: 'مدينة بوسطة', sort: 'districtZone', cls: 'cell-wrap cell-bosta-col bosta-val bosta-green', cell: districtZoneCell },
+    { key: 'district',     label: 'منطقة بوسطة', cls: 'cell-wrap cell-bosta-col bosta-val bosta-green', cell: districtCell },
     { key: 'addrMode',     label: 'حالة العنوان', sort: 'addrMode', cell: addrModeCell },
   ];
 
@@ -3770,8 +3803,6 @@ function renderBulkConfirmStats(rows) {
   if (!el) return;
   const byLabel = Object.fromEntries(ADDR_MODE_ITEMS.map(it => [it.label, BULK_STAT_CLS[it.value] || '']));
   el.innerHTML =
-    `<div class="res-stat total on"><span class="res-stat-num">${fmtNum(rows.length)}</span>` +
-    `<span class="res-stat-lbl">الإجمالي</span></div>` +
     bulkAddrModeStats(rows).map(st =>
       `<div class="res-stat ${byLabel[st.label] || ''} on">` +
       `<span class="res-stat-num">${fmtNum(st.count)}</span>` +
@@ -4581,7 +4612,10 @@ document.addEventListener('click', () => { if (dpPickOpen) dpPickClose(); });
 // زي الضغط برّه اللوحة بالظبط، بس من الكيبورد. لازم `stopPropagation` عشان
 // Esc ما يقفلش نافذة اختيار المنطقة نفسها (`districtOverlay`) كمان في نفس الضغطة.
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && dpPickOpen) { e.stopPropagation(); dpPickClose(); }
+  if (e.key !== 'Escape') return;
+  if (dpPickOpen) { e.stopPropagation(); dpPickClose(); return; }
+  // Esc تاني (أو أول واحدة لو مفيش قايمة مفتوحة) بيقفل نافذة اختيار المنطقة نفسها
+  if (document.getElementById('districtOverlay')?.classList.contains('open')) closeDistrictPicker();
 });
 
 function renderDistrictState() {
@@ -5043,6 +5077,15 @@ function confirmDuplicates(includeDups) {
   runUpload(rows, includeDups);
 }
 
+// نافذة التقدّم: الشريط بيتحرك بعد كل دفعة، والخطوط المتحركة بتقول إن الرفع شغّال
+function upProgress(done, total, j) {
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('upProgNum').textContent = `${fmtNum(done)}/${fmtNum(total)}`;
+  document.getElementById('upProgFill').style.width = Math.max(pct, 4) + '%';
+  document.getElementById('upProgSub').textContent = `${j.label} — ${fmtNum(pct)}٪`;
+  document.getElementById('uploadProgressOverlay').classList.add('open');
+}
+
 async function runUpload(rows, allowDuplicate) {
   uploadRunning = true;
   const btn = document.getElementById('bulkBtn');
@@ -5058,6 +5101,7 @@ async function runUpload(rows, allowDuplicate) {
   for (let i = 0; i < rows.length; i += UPLOAD_CHUNK) chunks.push(rows.slice(i, i + UPLOAD_CHUNK));
 
   let done = 0;
+  upProgress(0, rows.length, j);
   try {
     for (const chunk of chunks) {
       document.getElementById('bulkSelLbl').textContent = '⏳ جاري الرفع...';
@@ -5076,12 +5120,14 @@ async function runUpload(rows, allowDuplicate) {
       }
       lastResults.push(...(res.results || []));
       done += chunk.length;
+      upProgress(done, rows.length, j);
       renderResults();
       // حارس الدورات رفض الدفعة كلها قبل أي شحنة — مفيش فايدة من إكمال الباقي
       // على نفس الحالة، والموظف لازم يشوف السبب مش «فشل» عام.
       if (res.cycleBlocked) break;
     }
   } finally {
+    document.getElementById('uploadProgressOverlay').classList.remove('open');
     uploadRunning = false;
     renderJobBar();
     updateSelectionUI();
@@ -5349,6 +5395,9 @@ function openResultsModal() {
 function closeResultsModal() { document.getElementById('resultsOverlay').classList.remove('open'); }
 function setResultDetails(open) {
   document.getElementById('resDetails').classList.toggle('collapsed', !open);
+  // 🔴 النافذة صغيرة (760px) والتفاصيل مقفولة — لما تتفتح الجدول (٩ أعمدة)
+  //    محتاج العرض الكبير القديم، وإلا بيطلع سكرول أفقي على كل صف.
+  document.getElementById('resModal').style.maxWidth = open ? '1400px' : '760px';
   document.getElementById('resDetailsBtn').textContent = open ? '▲ اخفي التفاصيل' : '▾ عرض التفاصيل';
 }
 function toggleResultDetails() {
@@ -5358,7 +5407,6 @@ function toggleResultDetails() {
 //    الترتيب هنا هو ترتيب العرض، والصفر بيفضل رمادي: «فشل 0» بالأحمر
 //    بيخلي شاشة كلها نجاح تبان فيها فشل.
 const RESULT_STATS = [
-  { key: 'total',   cls: 'total',   label: 'الإجمالي', pick: (s, n) => n },
   { key: 'success', cls: 'success', label: 'نجاح',     pick: s => s.success },
   { key: 'warning', cls: 'warn',    label: 'تحذير',    pick: s => s.warning },
   { key: 'error',   cls: 'error',   label: 'فشل',      pick: s => s.error },
