@@ -76,6 +76,16 @@ const TOOLS = [
     tabs:      2,
     // ⛔ صفر `source` عن قصد — راجع الشرح فوق.
   },
+  {
+    // 🔴 v1.30.0 — «أسماء المناديب» (قسم «أدوات أخرى»). Worker وبس، مفيش
+    //    نسخة مستقلة ولا `source`. تاب واحد (القايمة)، ومفيش سر قديم أصلاً.
+    page:      'Courier-Names.html',
+    title:     'أسماء المناديب',
+    workerKey: 'couriers',
+    host:      'courier-names-worker.ecommoda-dev.workers.dev',
+    oldSecret: 'courier_names_worker_secret',
+    tabs:      0,
+  },
 ];
 
 const MIME = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8' };
@@ -488,7 +498,7 @@ for (const t of TOOLS) {
     try { await apiGet('get_config'); return '(ما رماش)'; } catch (e) { return e.message; }
   });
   const label = JSON.parse(JSON.stringify(
-    { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD', partialDelivery: 'التسليم الجزئي' }))[t.workerKey];
+    { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD', partialDelivery: 'التسليم الجزئي', couriers: 'أسماء المناديب' }))[t.workerKey];
   is(msg.includes(label), `${t.page}: رسالة الفشل بتسمّي الأداة («${label}»)`, msg);
   await ctx.close();
 }

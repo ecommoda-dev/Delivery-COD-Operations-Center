@@ -162,9 +162,18 @@ const DCO_WORKERS = {
   //    على Worker أقدم الحقلين مش موجودين، فالصف بيفضل ❓ `ambiguous` موقوف
   //    زي قبل الميزة دي — مش خطر (بيفشل مقفول)، بس الميزة مابتشتغلش.
   bostaUpload: { url: 'https://bosta-orders-upload-worker.ecommoda-dev.workers.dev', min: '2.16.0', label: 'رفع بوسطة' },
+
+  // 🔴 **أسماء المناديب (v1.30.0) — أول أداة في قسم «أدوات أخرى».** الريبو
+  //    (`Courier-Names`) **Worker وبس** — الواجهة `Courier-Names.html` جوّه
+  //    الهب هي النسخة الوحيدة (نفس نمط `Partial-Delivery`). بتعدّل تعريف
+  //    ميتافيلد `custom.courier` (إضافة · حذف · ترتيب) — صفر كتابة على أوردر.
+  //    `1.0.0` = أول نسخة (مفيش نسخة أقدم)، فالحارس بيمسك «ما اتنشرش/الـ
+  //    Promote ناقص» بس. 🔴 **والسر سر الهب** (`delivery_cod_ops`) — الـ Worker
+  //    لازم يتضم للمجموعة (قبلها كل نداء `401`).
+  couriers: { url: 'https://courier-names-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'أسماء المناديب' },
 };
 
-const TOOL_VERSION = 'v1.29.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.30.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -1331,11 +1340,11 @@ function dcoSharedModals() {
                  والسطر الثابت تحت، مش نص رمادي جوّه الحقل بيختفي أول ما
                  الموظف يكتب حرف. -->
             <input type="password" class="settings-input" id="cfgSecret" autocomplete="off">
-            <div class="settings-static">السر المشترك لمجموعة <code>delivery_cod_ops</code> — <b>قيمة واحدة للستة Workers</b>، ومستقلة عن سر محطة المخزن</div>
+            <div class="settings-static">السر المشترك لمجموعة <code>delivery_cod_ops</code> — <b>قيمة واحدة لكل Workers المركز</b>، ومستقلة عن سر محطة المخزن</div>
           </div>
           <div class="settings-field">
             <label class="settings-label">الـ Workers</label>
-            <div class="settings-static">delivery-cod-operations-center-worker (الدخول) · ready-orders-worker · shipped-orders-worker · order-status-updater-worker · cod-payment-center-worker · partial-delivery-worker</div>
+            <div class="settings-static">delivery-cod-operations-center-worker (الدخول) · ready-orders-worker · shipped-orders-worker · order-status-updater-worker · cod-payment-center-worker · partial-delivery-worker · bosta-orders-upload-worker · courier-names-worker</div>
           </div>
           <div class="settings-field">
             <label class="settings-label">فحص النظام</label>
