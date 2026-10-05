@@ -318,6 +318,24 @@
 
     </div>
   </div>
+
+  <!-- ══ قسم «أدوات أخرى» (v1.30.0 · طلب أحمد 05-10-2026) ═════════
+       🔴 **تحت «قسم أدوات العمليات» مباشرةً — قسم لوحده مش كارت جواه.**
+          أدوات العمليات بتتصرّف على **أوردرات** (حالة · تحصيل · حذف منتج)؛
+          «أسماء المناديب» بتعدّل **قايمة الاختيار نفسها** (`custom.courier`)
+          اللي كل الأوردرات بتختار منها — نوع تاني من الفعل، فقسم تاني.
+       ⚠️ **وبلا عدّاد** زي قسم الأدوات (فعل مش طابور). -->
+  <div class="dco-home-sec">
+    <div class="dco-home-sec-title">أدوات أخرى</div>
+    <div class="dco-tools-grid">
+
+      <a class="dco-tool" href="Courier-Names.html">
+        <span class="dco-card-ico ico-blue">🛵</span>
+        <div class="dco-card-name">أسماء المناديب</div>
+      </a>
+
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -391,7 +409,7 @@
             <li>ده <b>مابيضيفش</b> أي صلاحية: <code>employee</code> بيتبعت من العميل،
                 والـ Worker بيتحقق من السر مش من هوية الموظف.</li>
             <li>السر لمجموعة <b><code>delivery_cod_ops</code></b> — <b>مستقلة عن محطة المخزن</b>،
-                وقيمة واحدة <b>للستة Workers</b> (الدخول · الطابورين · محدّث الحالة · التحصيل ·
+                وقيمة واحدة <b>لكل Workers المركز</b> (الدخول · الطابورين · محدّث الحالة · التحصيل ·
                 التسليم الجزئي). الجهاز اللي عليه المخزن محتاج يلزق السر الجديد <b>مرة واحدة</b>.</li>
             <li>🔴 <b>والدخول مرة واحدة بيغطّي الأدوات كمان</b> — تحديث حالة الأوردرات
                 وتحصيل الأوردرات COD والتسليم الجزئي كان كل واحدة فيهم شاشة دخول وسر خاص،
@@ -420,7 +438,19 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.17.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.30.0</span>
+          <span class="cl-ver-date">05-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🛵 <b>قسم جديد «أدوات أخرى» وفيه أداة «أسماء المناديب»</b> (طلب أحمد): بتعرض قايمة <code>custom.courier</code> الحالية من شوبيفاي، وفيها <b>إضافة مندوب</b> · <b>حذف مندوب</b> · <b>تغيير الترتيب</b> (سحب أو أسهم) فقط.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⛔ <b>الريبو <code>Courier-Names</code> Worker وبس</b> (<code>courier-names-worker</code>) — الواجهة هنا هي النسخة الوحيدة. الأداة بتعدّل <b>تعريف</b> الميتافيلد، <b>صفر كتابة على أي أوردر</b>.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>حذف مندوب بيعرض عدد أوردراته النشطة وبيطلب تأكيد</b>، و«Bosta»/«Showroom» أسماء نظامية مابتتحذفش. وكل تعديل بيتسجّل في D1 باسم الموظف.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.17.0</span>
           <span class="cl-ver-date">27-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -652,7 +682,7 @@ const { apiGet, apiPost } = dcoApi(DCO_WORKERS.auth);
 // ✅ **والفشل هنا مابيولّعش تحذير نسخة كاذب** — `checkWorkerVersion`
 //    بتبلع الاستثناء عن قصد: الـ Worker اللي لسه ما انضمّش لمجموعة السر
 //    بيرجّع `401`، ودي **مش** «نسخة قديمة». اللي بيقولها بالنص هو 🩺.
-const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery', 'bostaUpload'];
+const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery', 'bostaUpload', 'couriers'];
 
 // §AUTH-JS — Unified Login UI (منقولة من أداة التغليف)
 // ══════════════════════════════════════════════════════════════

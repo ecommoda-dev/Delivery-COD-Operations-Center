@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أسماء المناديب — مركز عمليات الشحن والتحصيل</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
+<link rel="stylesheet" href="shared/shell.css">
+
+<style>
+/* ══════════════════════════════════════════════════════
+   §STYLES — الصفحة دي بس.
+   🔴 **الصفحة دي مش متولّدة بسكربت** — الريبو المستقل (Courier-Names) Worker
+      وبس (نفس نمط Partial-Delivery). أي تعديل على الشاشة بيتعمل هنا، وأي
+      تعديل على المنطق في ريبو Courier-Names.
+   🔴 **مفيش كتلة توكنز هنا** — كلها في shared/shell.css.
+   ══════════════════════════════════════════════════════ */
+
+/* 🔴 تاب واحد بس (مفيش تاب سجل كامل) — Tier M مناسب لقايمة ضيقة. السطر
+   الواحد ده هو الاستثناء الوحيد المسموح من «صفر توكنز في الصفحة». */
+:root { --container-max: 1200px; }
+
+.card h3 { margin: 0 0 12px; font-size: 15px; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.cn-sub { font-size: 12.5px; color: var(--text-secondary); margin: -6px 0 12px; }
+
+/* ── إضافة ── */
+.cn-add-row { display: flex; gap: 10px; }
+.cn-add-row input {
+  flex: 1; padding: 11px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+  font-size: 15px; font-family: var(--font-body);
+}
+.cn-add-row input:focus { outline: none; border-color: var(--accent); }
+.cn-add-row input.has-value { border-color: var(--accent-border); background: var(--accent-light); }
+
+/* ── القايمة ── */
+.cn-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.cn-count { font-weight: 800; font-size: 14px; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 6px; padding: 3px 10px; }
+.cn-dirty { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; margin-bottom: 10px;
+  border-radius: var(--radius-sm); background: var(--amber-light); border: 1px solid var(--amber); color: var(--amber-dark); font-size: 13px; font-weight: 600; }
+.cn-dirty .grow { flex: 1; }
+
+.cn-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); margin-bottom: 8px; background: var(--surface); }
+.cn-item.dragging { opacity: .45; }
+.cn-item.drop-before { box-shadow: 0 -3px 0 0 var(--accent); }
+.cn-item.drop-after  { box-shadow: 0 3px 0 0 var(--accent); }
+.cn-handle { cursor: grab; color: var(--text-muted); font-size: 18px; user-select: none; padding: 0 4px; }
+.cn-num { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); min-width: 24px; text-align: center; }
+.cn-name { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+.cn-lock { font-size: 11.5px; font-weight: 700; color: var(--neutral-dark); background: var(--surface-2);
+  border: 1px solid var(--border-strong); border-radius: 12px; padding: 2px 8px; white-space: nowrap; }
+.cn-mv { display: inline-flex; gap: 4px; }
+.cn-mv button, .cn-del { border: 1px solid var(--border); background: var(--surface); border-radius: 7px; cursor: pointer;
+  font-family: var(--font-body); font-size: 13px; padding: 5px 9px; }
+.cn-mv button:disabled { opacity: .35; cursor: not-allowed; }
+.cn-del { color: var(--red-dark); border-color: var(--red); }
+.cn-del:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── نتيجة العملية — أربع حالات ── */
+.cn-result { padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 13.5px; }
+.cn-result .badge { font-weight: 800; display: block; margin-bottom: 4px; }
+.cn-result.success { background: var(--green-light); border: 1px solid var(--green); }
+.cn-result.success .badge { color: var(--green-dark); }
+.cn-result.warning { background: var(--amber-light); border: 1px solid var(--amber); }
+.cn-result.warning .badge { color: var(--amber-dark); }
+.cn-result.error { background: var(--red-light); border: 1px solid var(--red); }
+.cn-result.error .badge { color: var(--red-dark); }
+.cn-result.already, .cn-result.rejected { background: var(--surface-2); border: 1px solid var(--border-strong); }
+.cn-result.already .badge, .cn-result.rejected .badge { color: var(--neutral-dark); }
+.cn-result ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: 12.5px; }
+
+.cn-banner { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 12px;
+  background: var(--amber-light); border: 1px solid var(--amber); color: var(--amber-dark); }
+.cn-banner.bad { background: var(--red-light); border-color: var(--red); color: var(--red-dark); }
+
+/* ── جدول آخر التعديلات ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.data-table th, .data-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: right; vertical-align: top; }
+.data-table th { background: var(--surface-2); font-weight: 700; border-bottom: 2px solid var(--border); }
+.result-chip { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.result-chip.success { background: var(--green-light); color: var(--green-dark); }
+.result-chip.warning { background: var(--amber-light); color: var(--amber-dark); }
+.result-chip.error   { background: var(--red-light); color: var(--red-dark); }
+.result-chip.rejected, .result-chip.already { background: var(--surface-2); color: var(--neutral-dark); }
+.q-empty { text-align: center; padding: 24px; color: var(--text-secondary); }
+
+/* ── محتوى نافذة التأكيد — الـ shell مالوش نافذة تأكيد خالص ── */
+.confirm-lines { text-align: right; margin: 10px 0; padding: 0; list-style: none; }
+.confirm-lines li { padding: 6px 10px; border-radius: 7px; background: var(--surface-2); margin-bottom: 6px; font-size: 13px; }
+.confirm-lines li.soft { color: var(--text-secondary); }
+.confirm-lines li.warn { background: var(--amber-light); color: var(--amber-dark); font-weight: 600; }
+.confirm-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-start; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     🔴 أسماء المناديب — صفحة جوّه المركز (قسم «أدوات أخرى»). الريبو
+        المستقل (Courier-Names) Worker وبس. تفاصيل الأداة في CLAUDE.md
+        بتاع ريبو Courier-Names.
+     ══════════════════════════════════════════════════════ -->
+<div id="headerMount"></div>
+
+<div class="container">
+
+  <div id="cnResult"></div>
+
+  <div class="card">
+    <h3>➕ إضافة مندوب</h3>
+    <div class="cn-sub">الاسم الجديد بيتضاف <b>في آخر القايمة</b> — رتّبه بعدها لو عايزه في مكان تاني.</div>
+    <div class="cn-add-row">
+      <input type="text" id="cnAddInput" maxlength="60" autocomplete="off" aria-label="اسم المندوب الجديد">
+      <button class="btn btn-primary" id="cnAddBtn">إضافة</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cn-head">
+      <h3 style="margin:0;">🛵 قايمة المناديب <span class="cn-count" id="cnCount">—</span></h3>
+      <button class="btn btn-outline btn-sm" id="cnReloadBtn">↺ تحديث</button>
+    </div>
+    <div id="cnBanner"></div>
+    <div id="cnDirty" style="display:none;"></div>
+    <div id="cnList"><div class="q-empty">⏳ جاري تحميل القايمة...</div></div>
+  </div>
+
+  <div class="card">
+    <h3>🧾 آخر التعديلات</h3>
+    <div style="overflow-x:auto;">
+      <table class="data-table">
+        <thead><tr><th>الوقت</th><th>الفعل</th><th>النتيجة</th><th>الموظف</th><th>تفاصيل</th></tr></thead>
+        <tbody id="cnLogBody"><tr><td colspan="5" class="q-empty">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- مودال الإعدادات + حاوية التوست — بيتحقنوا من الـ shell -->
+<div id="sharedMount"></div>
+
+<!-- ══════════════ §CHANGELOG ══════════════ -->
+<div class="eco-overlay" id="changelogOverlay">
+  <div class="eco-modal" style="max-width:560px;">
+    <div class="eco-modal-hdr"><h3>📋 سجل الإصدارات</h3><button class="modal-close-x" onclick="closeChangelog()">✕</button></div>
+    <div class="eco-modal-body">
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.30.0</span>
+          <span class="cl-ver-date">05-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>الإطلاق الأول: عرض قايمة <code>custom.courier</code> من شوبيفاي، وإضافة مندوب · حذف مندوب · تغيير الترتيب (سحب أو أسهم). مفيش تعديل اسم.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 حذف مندوب بيعرض <b>عدد أوردراته النشطة</b> وبيطلب تأكيد. «Bosta» و«Showroom» أسماء نظامية مابتتحذفش. وكل تعديل بيتسجّل باسمك.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ §ABOUT ══════════════ -->
+<div class="eco-overlay" id="aboutOverlay">
+  <div class="eco-modal">
+    <div class="eco-modal-hdr"><h3>ℹ️ عن الأداة — أسماء المناديب</h3><button class="modal-close-x" onclick="closeAbout()">✕</button></div>
+    <div class="eco-modal-body">
+      <details class="about-sec" open>
+        <summary>📋 بتعمل إيه</summary>
+        <div class="about-sec-body">
+          <p>بتعدّل <b>قايمة الاختيار</b> بتاعة ميتافيلد الأوردرات <code>custom.courier</code>
+             (Settings → Custom data → Orders → Courier) — دي القايمة اللي بتظهر لما حد
+             يختار مندوب على أوردر. ثلاث أفعال بس:</p>
+          <ul>
+            <li><b>إضافة مندوب</b> — بيتضاف في آخر القايمة.</li>
+            <li><b>حذف مندوب</b> — بيتعرض عدد أوردراته النشطة قبل التأكيد.</li>
+            <li><b>تغيير الترتيب</b> — سحب الصف أو الأسهم، وبعدها «حفظ الترتيب».</li>
+          </ul>
+          <p>⛔ <b>مفيش تعديل اسم</b> — اسم جديد معناه قيمة جديدة، والأوردرات القديمة بتفضل
+             بالاسم القديم.</p>
+        </div>
+      </details>
+      <details class="about-sec">
+        <summary>⚠️ لازم تعرف</summary>
+        <div class="about-sec-body">
+          <ul>
+            <li><b>حذف اسم مابيمسحش القيمة من الأوردرات</b> اللي عليه — شوبيفاي بتعلّمها «غير صالحة»
+                لحد ما حد يعدّلها. عشان كده بنعرض عدد الأوردرات النشطة (<code>Ready</code> ·
+                <code>Shipped</code> · <code>In-Return</code>) قبل التأكيد.</li>
+            <li><b>«Bosta» و«Showroom» أسماء نظامية</b> — الشاشة الرئيسية بتجمّع المناديب بالاسم ده،
+                وأدوات بوسطة بتعتمد عليه. حذفهم بيكسر التجميع في صمت، فمابيتحذفوش من هنا.</li>
+            <li><b>أي مندوب جديد بيتحسب «مناديب»</b> في تجميع الشاشة الرئيسية — مجموعة بوسطة وشو روم بالاسم بس.</li>
+            <li>القايمة بتتقرا من شوبيفاي <b>في كل فتح</b>، وكل فعل بيشتغل على القايمة الحالية — تعديل
+                موظف تاني مابيتمسحش. وبعد كل كتابة بنعيد القراءة ونتأكد.</li>
+            <li>الأرقام المعروضة للأوردرات النشطة بتتحسب لـ <b>S1 بس</b>.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="about-sec">
+        <summary>🔧 تشريح الكود</summary>
+        <div class="about-sec-body">
+          <ul>
+            <li>§CONFIG — <code>DCO_WORKERS.couriers</code> (في <code>shared/shell.js</code>) · الجلسة والسر من الـ shell.</li>
+            <li>§LIST — عرض القايمة · السحب · الأسهم · «حفظ الترتيب».</li>
+            <li>§ACTIONS — <code>add_courier</code> · <code>remove_courier</code> (بعد <code>courier_usage</code>) · <code>reorder_couriers</code>.</li>
+            <li>§LOG — <code>get_logs</code> (آخر ٣٠ تعديل).</li>
+          </ul>
+          <p>الـ Worker: <code>courier-names-worker</code> في ريبو <code>Courier-Names</code> —
+             Worker وبس، والصفحة دي هي النسخة الوحيدة.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ §CONFIRM ══════════════ -->
+<div class="eco-overlay" id="confirmOverlay">
+  <div class="eco-modal" style="max-width:440px;">
+    <div class="eco-modal-hdr"><h3 id="confirmHdr">⚠️ تأكيد</h3><button class="modal-close-x" onclick="closeConfirm(false)">✕</button></div>
+    <div class="eco-modal-body">
+      <p id="confirmLead"></p>
+      <ul class="confirm-lines" id="confirmLines"></ul>
+      <div class="confirm-actions">
+        <button class="btn btn-red" id="confirmOkBtn" onclick="closeConfirm(true)"></button>
+        <button class="btn btn-ghost" onclick="closeConfirm(false)">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="shared/shell.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script>
+// ══════════════════════════════════════════════════════
+// §CONFIG — بوابة الجلسة + نداءات الـ shell
+// ══════════════════════════════════════════════════════
+// 🔴 أول سطر — بوابة الجلسة (بترمي عن قصد لو مفيش جلسة).
+const dcoSession = requireSession();
+
+// 🔴 `courier-names-worker` لازم يكون **اتضمّ لمجموعة `delivery_cod_ops`**
+//    (WORKER_SECRET = قيمة المجموعة) — قبلها كل نداء `401`.
+const { apiGet, apiPost } = dcoApi(DCO_WORKERS.couriers);
+const PAGE_WORKERS = ['couriers'];
+
+// ⛔ كل أسماء الصفحة بادئتها `cn` — الـ shell و`<script>` الصفحة في نفس النطاق
+//    العام، وإعادة تعريف `const`/`let` بنفس الاسم بتقتل سكربت الصفحة كله.
+
+// ══════════════════════════════════════════════════════
+// §LIST
+// ══════════════════════════════════════════════════════
+let cnServer = [];        // القايمة زي ما شوبيفاي رجّعتها (الحقيقة)
+let cnLocal  = [];        // الترتيب المعروض (ممكن يكون اتغيّر محليًا ولسه ما اتحفظش)
+let cnProtected = [];
+let cnMax = 100, cnMaxLen = 60;
+let cnLoaded = false;
+let cnBusy = false;
+let cnDragFrom = null;
+
+const cnIsDirty = () => cnLoaded && cnLocal.join('\u0000') !== cnServer.join('\u0000');
+const cnIsProtected = (n) => cnProtected.some(p => p.toLowerCase() === String(n).toLowerCase());
+
+async function cnLoad(opts = {}) {
+  const listEl = document.getElementById('cnList');
+  if (!cnLoaded) listEl.innerHTML = '<div class="q-empty">⏳ جاري تحميل القايمة...</div>';
+  try {
+    const d = await apiGet('get_couriers');
+    cnServer = d.couriers || [];
+    cnLocal = [...cnServer];
+    cnProtected = d.protectedNames || [];
+    cnMax = d.maxCouriers || cnMax;
+    cnMaxLen = d.maxNameLen || cnMaxLen;
+    cnLoaded = true;
+    document.getElementById('cnAddInput').maxLength = cnMaxLen;
+    // ⚠️ التحقق لسه شغّال على شوبيفاي بعد تعديل القايمة — مش خطأ، بس بنقولها.
+    document.getElementById('cnBanner').innerHTML = d.validationStatus === 'IN_PROGRESS'
+      ? '<div class="cn-banner">⏳ شوبيفاي لسه بتراجع الأوردرات الحالية على القايمة (<code>IN_PROGRESS</code>) — ممكن تعديل جديد يترفض لحد ما تخلص. جرّب بعد دقيقة.</div>'
+      : '';
+  } catch (e) {
+    // ⚠️ فشل القراءة مش «قايمة فاضية» — لو فيه قايمة معروضة من قبل بتفضل زي ما هي.
+    document.getElementById('cnBanner').innerHTML =
+      `<div class="cn-banner bad">تعذّر تحميل القايمة من شوبيفاي: ${esc(e.message)}</div>`;
+    if (!cnLoaded) listEl.innerHTML = '<div class="q-empty">القايمة ما اتحمّلتش — اضغط «تحديث»</div>';
+    document.getElementById('cnCount').textContent = cnLoaded ? String(cnLocal.length) : '—';
+    return;
+  }
+  cnRender();
+  if (!opts.skipLog) cnLoadLog();
+}
+
+function cnRender() {
+  document.getElementById('cnCount').textContent = String(cnLocal.length);
+  const dirty = cnIsDirty();
+  const dEl = document.getElementById('cnDirty');
+  dEl.style.display = dirty ? '' : 'none';
+  dEl.innerHTML = dirty
+    ? `<div class="cn-dirty"><span class="grow">↕️ الترتيب اتغيّر ولسه ما اتحفظش — الإضافة والحذف مقفولين لحد ما تحفظ أو تتراجع.</span>
+         <button class="btn btn-primary btn-sm" id="cnSaveOrder">💾 حفظ الترتيب</button>
+         <button class="btn btn-ghost btn-sm" id="cnUndoOrder">تراجع</button></div>`
+    : '';
+  document.getElementById('cnAddBtn').disabled = dirty || cnBusy;
+  document.getElementById('cnAddInput').disabled = dirty;
+
+  const listEl = document.getElementById('cnList');
+  if (!cnLocal.length) { listEl.innerHTML = '<div class="q-empty">القايمة فاضية</div>'; return; }
+  listEl.innerHTML = cnLocal.map((name, i) => {
+    const prot = cnIsProtected(name);
+    return `<div class="cn-item" draggable="true" data-i="${i}">
+      <span class="cn-handle" title="اسحب لتغيير الترتيب" aria-hidden="true">⠿</span>
+      <span class="cn-num">${i + 1}</span>
+      <span class="cn-name">${esc(name)}</span>
+      ${prot ? '<span class="cn-lock" title="اسم نظامي — مابيتحذفش">🔒 نظامي</span>' : ''}
+      <span class="cn-mv">
+        <button data-act="up" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="فوق">▲</button>
+        <button data-act="down" data-i="${i}" ${i === cnLocal.length - 1 ? 'disabled' : ''} aria-label="تحت">▼</button>
+      </span>
+      ${prot ? '' : `<button class="cn-del" data-act="del" data-i="${i}" ${dirty || cnBusy ? 'disabled' : ''}>🗑 حذف</button>`}
+    </div>`;
+  }).join('');
+}
+
+// الأحداث بـ addEventListener على الحاوية (مش onclick بنص فيه الاسم)
+document.getElementById('cnList').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-act]');
+  if (!b || cnBusy) return;
+  const i = Number(b.dataset.i);
+  if (b.dataset.act === 'up')   cnMove(i, i - 1);
+  if (b.dataset.act === 'down') cnMove(i, i + 1);
+  if (b.dataset.act === 'del')  cnRemove(i);
+});
+document.getElementById('cnDirty').addEventListener('click', (e) => {
+  if (e.target.id === 'cnSaveOrder') cnSaveOrder();
+  if (e.target.id === 'cnUndoOrder') { cnLocal = [...cnServer]; cnRender(); }
+});
+
+function cnMove(from, to) {
+  if (from === to || to < 0 || to >= cnLocal.length) return;
+  const [x] = cnLocal.splice(from, 1);
+  cnLocal.splice(to, 0, x);
+  cnRender();
+}
+
+// السحب والإفلات
+(function () {
+  const list = document.getElementById('cnList');
+  const clear = () => list.querySelectorAll('.cn-item').forEach(el => el.classList.remove('dragging', 'drop-before', 'drop-after'));
+  list.addEventListener('dragstart', (e) => {
+    const it = e.target.closest('.cn-item');
+    if (!it || cnBusy) { e.preventDefault(); return; }
+    cnDragFrom = Number(it.dataset.i);
+    it.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', String(cnDragFrom)); } catch {}
+  });
+  list.addEventListener('dragover', (e) => {
+    if (cnDragFrom === null) return;
+    const it = e.target.closest('.cn-item');
+    if (!it) return;
+    e.preventDefault();
+    list.querySelectorAll('.cn-item').forEach(el => el.classList.remove('drop-before', 'drop-after'));
+    const r = it.getBoundingClientRect();
+    it.classList.add(e.clientY < r.top + r.height / 2 ? 'drop-before' : 'drop-after');
+  });
+  list.addEventListener('drop', (e) => {
+    if (cnDragFrom === null) return;
+    const it = e.target.closest('.cn-item');
+    if (!it) return;
+    e.preventDefault();
+    const r = it.getBoundingClientRect();
+    let to = Number(it.dataset.i) + (e.clientY < r.top + r.height / 2 ? 0 : 1);
+    if (cnDragFrom < to) to--;           // بعد الشيل الفهرس بيرجع واحد
+    const from = cnDragFrom;
+    cnDragFrom = null; clear();
+    cnMove(from, to);
+  });
+  list.addEventListener('dragend', () => { cnDragFrom = null; clear(); });
+})();
+
+// ══════════════════════════════════════════════════════
+// §ACTIONS
+// ══════════════════════════════════════════════════════
+// أربع حالات: success (أخضر) · warning (أصفر) · error (أحمر) · already/rejected (محايد)
+function cnShowResult(d, verb) {
+  const map = {
+    success:  ['success',  '✓ تم'],
+    warning:  ['warning',  '⚠ تم بس مش مؤكَّد'],
+    error:    ['error',    '✗ فشل'],
+    already:  ['already',  'ℹ️ متعمل خلاص'],
+    rejected: ['rejected', '⛔ مرفوض'],
+  };
+  const [cls, label] = map[d.status] || ['error', d.status || 'فشل'];
+  const warns = (d.warnings || []).map(w => `<li>${esc(w)}</li>`).join('');
+  document.getElementById('cnResult').innerHTML = `
+    <div class="cn-result ${cls}">
+      <span class="badge">${label} — ${esc(verb)}</span>
+      ${esc(d.error || d.message || '')}
+      ${warns ? `<ul>${warns}</ul>` : ''}
+      ${d.logged === false ? '<div style="margin-top:6px;color:var(--amber-dark);">⚠️ العملية تمت لكن ما اتسجّلتش في السجل</div>' : ''}
+    </div>`;
+  playBeep(d.status === 'success' ? 'success' : d.status === 'warning' ? 'warn' : d.status === 'error' ? 'error' : 'warn');
+}
+
+async function cnRun(fn, verb) {
+  if (cnBusy) return;
+  cnBusy = true; cnRender();
+  try {
+    const d = await fn();
+    cnShowResult(d, verb);
+    // الحقيقة بترجع من شوبيفاي في الرد — بنعيد القراءة بدل ما نصدّق نسخة محلية
+    await cnLoad();
+  } catch (e) {
+    // 🔴 فشل شبكة/401 بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل»
+    document.getElementById('cnResult').innerHTML =
+      `<div class="cn-result error"><span class="badge">✗ ما قدرناش نتأكد — ${esc(verb)}</span>${esc(e.message)}<br>حدّث القايمة وشوف إن كان التعديل اتنفّذ قبل ما تعيد المحاولة.</div>`;
+    playBeep('error');
+    await cnLoad();
+  } finally {
+    cnBusy = false; cnRender();
+  }
+}
+
+document.getElementById('cnAddBtn').addEventListener('click', cnAdd);
+document.getElementById('cnAddInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') cnAdd(); });
+document.getElementById('cnAddInput').addEventListener('input', function () { this.classList.toggle('has-value', !!this.value); });
+document.getElementById('cnReloadBtn').addEventListener('click', () => {
+  if (cnIsDirty() && !confirm('الترتيب اللي عدّلته ولسه ما اتحفظش هيضيع. متأكد؟')) return;
+  document.getElementById('cnResult').innerHTML = '';
+  cnLoad();
+});
+
+async function cnAdd() {
+  const input = document.getElementById('cnAddInput');
+  const name = input.value.replace(/\s+/g, ' ').trim();
+  if (!name || cnBusy || cnIsDirty()) return;
+  if (cnLocal.some(c => c.toLowerCase() === name.toLowerCase())) {
+    cnShowResult({ status: 'already', error: `«${name}» موجود في القايمة خلاص` }, 'إضافة مندوب');
+    return;
+  }
+  const ok = await askConfirm({
+    header: '➕ تأكيد إضافة مندوب',
+    lead: `هتضيف «${name}» في آخر قايمة المناديب على شوبيفاي:`,
+    lines: [
+      { text: 'الاسم بيتكتب بالحرف زي ما هو — بيتقارن بالحرف مع قيمة المندوب على الأوردرات', soft: true },
+      { text: 'القايمة بتتأثر على كل أدوات المركز فورًا', soft: true },
+    ],
+    okLabel: 'تأكيد الإضافة', cls: 'btn-primary',
+  });
+  if (!ok) return;
+  await cnRun(async () => {
+    const d = await apiPost('add_courier', { employee: dcoSession.username, name });
+    if (d.status === 'success' || d.status === 'warning' || d.status === 'already') input.value = '';
+    input.classList.remove('has-value');
+    return d;
+  }, 'إضافة مندوب');
+}
+
+async function cnRemove(i) {
+  const name = cnLocal[i];
+  if (name === undefined || cnBusy || cnIsDirty()) return;
+  // ① كام أوردر عليه؟ — قراءة بس
+  let usage = null, usageErr = null;
+  cnBusy = true; cnRender();
+  try { usage = await apiGet('courier_usage', { name }); }
+  catch (e) { usageErr = e.message; }
+  finally { cnBusy = false; cnRender(); }
+
+  const lines = [];
+  if (usageErr) {
+    lines.push({ text: `⚠️ ما قدرناش نعرف عدد الأوردرات على «${name}» (${usageErr}) — اتأكد على شوبيفاي قبل ما تكمّل`, warn: true });
+  } else if (!usage.reliable) {
+    lines.push({ text: '⚠️ عدّاد الأوردرات مش موثوق دلوقتي (فلتر شوبيفاي ما اشتغلش) — اتأكد على شوبيفاي قبل ما تكمّل', warn: true });
+  } else {
+    lines.push({
+      text: usage.active > 0
+        ? `⚠️ فيه ${usage.active.toLocaleString('en-US')} أوردر نشط (Ready/Shipped/In-Return) على «${name}» — هيفضل عليهم الاسم لكن «غير صالح»`
+        : `مفيش أوردرات نشطة على «${name}»`,
+      warn: usage.active > 0,
+    });
+    lines.push({ text: `إجمالي الأوردرات على الاسم ده: ${usage.total.toLocaleString('en-US')}${usage.capped ? '+ (العدّاد بيقف عند ١٠٬٠٠٠)' : ''} — S1 بس للنشط`, soft: true });
+  }
+  lines.push({ text: 'الحذف من القايمة بس — القيمة على الأوردرات القديمة مابتتمسحش', soft: true });
+  lines.push({ text: 'ترجيع الاسم بعد كده = إضافة من جديد (بيرجع في آخر القايمة)', soft: true });
+
+  const ok = await askConfirm({
+    header: '🗑 تأكيد حذف مندوب',
+    lead: `هتحذف «${name}» من قايمة المناديب على شوبيفاي:`,
+    lines, okLabel: `تأكيد — احذف «${name}»`, cls: 'btn-red',
+  });
+  if (!ok) return;
+  await cnRun(() => apiPost('remove_courier', { employee: dcoSession.username, name }), 'حذف مندوب');
+}
+
+async function cnSaveOrder() {
+  if (!cnIsDirty() || cnBusy) return;
+  const ok = await askConfirm({
+    header: '💾 تأكيد حفظ الترتيب',
+    lead: 'هيتحفظ الترتيب الجديد لقايمة المناديب على شوبيفاي:',
+    lines: [{ text: 'نفس الأسماء بترتيب جديد — لو حد عدّل القايمة بعد ما الصفحة اتحمّلت هيترفض ومش هيمسح تعديله', soft: true }],
+    okLabel: 'حفظ الترتيب', cls: 'btn-primary',
+  });
+  if (!ok) return;
+  await cnRun(() => apiPost('reorder_couriers', { employee: dcoSession.username, couriers: cnLocal }), 'حفظ الترتيب');
+}
+
+// ══════════════════════════════════════════════════════
+// §LOG — آخر ٣٠ تعديل
+// ══════════════════════════════════════════════════════
+const CN_TYPE_LABELS = { add_courier: 'إضافة مندوب', remove_courier: 'حذف مندوب', reorder_couriers: 'ترتيب القايمة', rejected: 'مرفوض / متعمل خلاص' };
+function cnExtra(e) { try { return e.extra ? JSON.parse(e.extra) : {}; } catch { return {}; } }
+async function cnLoadLog() {
+  const body = document.getElementById('cnLogBody');
+  try {
+    const d = await apiGet('get_logs', { limit: 30 });
+    const rows = d.entries || [];
+    if (!rows.length) { body.innerHTML = '<tr><td colspan="5" class="q-empty">لسه مفيش تعديلات</td></tr>'; return; }
+    body.innerHTML = rows.map(e => {
+      const x = cnExtra(e);
+      const chip = x.result ? `<span class="result-chip ${esc(x.result)}">${esc(x.result)}</span>` : '—';
+      return `<tr><td>${esc(formatDateTime(e.timestamp))}</td><td>${esc(CN_TYPE_LABELS[e.type] || e.type)}</td><td>${chip}</td><td>${esc(e.employee || '—')}</td><td>${esc(e.notes || '—')}</td></tr>`;
+    }).join('');
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan="5" class="q-empty">تعذّر تحميل السجل: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+// ── generic confirm — الـ shell مالوش نافذة تأكيد خالص ──────────
+let _confirmResolve = null;
+function askConfirm({ header, lead, lines, okLabel, cls }) {
+  document.getElementById('confirmHdr').textContent = header;
+  document.getElementById('confirmLead').textContent = lead;
+  document.getElementById('confirmLines').innerHTML = (lines || []).map(l => `<li class="${l.warn ? 'warn' : l.soft ? 'soft' : ''}">${esc(l.text)}</li>`).join('');
+  const ok = document.getElementById('confirmOkBtn');
+  ok.textContent = okLabel;
+  ok.className = `btn ${cls || 'btn-red'}`;
+  document.getElementById('confirmOverlay').classList.add('open');
+  return new Promise(resolve => { _confirmResolve = resolve; });
+}
+function closeConfirm(result) {
+  document.getElementById('confirmOverlay').classList.remove('open');
+  if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('settingsOverlay')?.classList.contains('open')) closeSettings();
+  document.getElementById('aboutOverlay')?.classList.remove('open');
+  document.getElementById('changelogOverlay')?.classList.remove('open');
+  if (document.getElementById('confirmOverlay')?.classList.contains('open')) closeConfirm(false);
+});
+
+// ══════════════════════════════════════════════════════
+// §INIT
+// ══════════════════════════════════════════════════════
+document.getElementById('headerMount').innerHTML = dcoHeader({
+  icon:     '🛵',
+  title:    'أسماء المناديب',
+  subtitle: 'قايمة الاختيار custom.courier — إضافة · حذف · ترتيب',
+  session:  dcoSession,
+});
+
+renderVersionUI();
+checkWorkerVersion(PAGE_WORKERS);
+cnLoad();
+</script>
+</body>
+</html>
