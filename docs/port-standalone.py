@@ -901,15 +901,15 @@ loadLogEmployeeFilter();  // محميّ جوّاه
         'الـ Init — حقن الهيدر وحارس النسخة')
 
     # ── سجل التحديثات + «عن الأداة» ────────────────────────────
-    # 🔴 أحدث بلوك في الواجهة الأصلية (v3.5.0 · 26-09-2026 — التسجيل المسبق
-    #    مابيتسجّلش على شوبيفاي) بياخد بادج الهب (`#clLatestVerBadge` =
+    # 🔴 أحدث بلوك في الواجهة الأصلية (v3.6.0 · 07-10-2026 — إشارة طرق الدفع
+    #    في الاسترداد وعمود الشحن) بياخد بادج الهب (`#clLatestVerBadge` =
     #    `TOOL_VERSION` بتاع الهب)، وبند دمج الهب v1.5.0 بينزل تحته قبل
-    #    v3.4.0 — كده الترتيب بالتاريخ: 26-09 ← 16-09 ← 06-09.
-    p.sub('          <span class="cl-ver-badge" id="clVerBadge">v3.5.0</span>\n'
-          '          <span class="cl-ver-date">26-09-2026</span>\n'
+    #    v3.4.0 — كده الترتيب بالتاريخ: 07-10 ← 26-09 ← 16-09 ← 06-09.
+    p.sub('          <span class="cl-ver-badge" id="clVerBadge">v3.6.0</span>\n'
+          '          <span class="cl-ver-date">07-10-2026</span>\n'
           '        </div>',
-          '''          <span class="cl-ver-badge" id="clLatestVerBadge">v1.16.0</span>
-          <span class="cl-ver-date">26-09-2026 · الواجهة الأصلية v3.5.0</span>
+          '''          <span class="cl-ver-badge" id="clLatestVerBadge">v1.31.0</span>
+          <span class="cl-ver-date">07-10-2026 · الواجهة الأصلية v3.6.0</span>
         </div>''',
           'سجل التحديثات — أحدث بلوك بياخد بادج الهب')
 

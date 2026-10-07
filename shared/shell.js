@@ -173,7 +173,7 @@ const DCO_WORKERS = {
   couriers: { url: 'https://courier-names-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'أسماء المناديب' },
 };
 
-const TOOL_VERSION = 'v1.30.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.31.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
