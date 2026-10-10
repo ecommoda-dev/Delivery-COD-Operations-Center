@@ -173,7 +173,7 @@ const DCO_WORKERS = {
   couriers: { url: 'https://courier-names-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'أسماء المناديب' },
 };
 
-const TOOL_VERSION = 'v1.31.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.32.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -238,6 +238,7 @@ const DCO_SESSION_KEY   = 'dco_session';
 const DCO_CACHE_READY   = 'dco_queue_ready';
 const DCO_CACHE_SHIPPED = 'dco_queue_shipped';
 const DCO_CACHE_TTL_MS  = 15 * 60 * 1000;      // ١٥ دقيقة
+const DCO_IDLE_KEY      = 'dco_last_activity';  // §IDLE — آخر نشاط (sessionStorage، لكل تاب لوحده)
 
 function getSession() {
   try {
@@ -255,6 +256,7 @@ function setSession(username, displayName) {
     sessionStorage.setItem(DCO_SESSION_KEY, JSON.stringify({
       v: 1, username, displayName, loginAt: new Date().toISOString(),
     }));
+    sessionStorage.setItem(DCO_IDLE_KEY, String(Date.now()));   // §IDLE — بداية العدّ من الدخول
   } catch {}
 }
 
@@ -263,6 +265,9 @@ function clearSession() {
     sessionStorage.removeItem(DCO_SESSION_KEY);
     sessionStorage.removeItem(DCO_CACHE_READY);
     sessionStorage.removeItem(DCO_CACHE_SHIPPED);
+    sessionStorage.removeItem(DCO_IDLE_KEY);
+    // ⚠️ `dco_audit_ready` (حالة جرد المكتب) **مش** بيتمسح هنا عن قصد —
+    //    مش بيانات حساسة، وبتتحمّل ساعات شغل (Standards #52 · multi-page-hub § ٩).
   } catch {}
 }
 
@@ -1260,21 +1265,147 @@ function showWorkerStale() {
   showToast(dcoStaleMsgs.join(' · '), 'error', 9000);
 }
 
-// ── الخروج ────────────────────────────────────────────────────
+// ── الخروج (Standards #52) ────────────────────────────────────
+// 🔴 **الخروج اليدوي فوري بلا أي تأكيد** (`confirm`/`showConfirm` ممنوعين) —
+//    والضغط على اسم الموظف في الهيدر يطلّع. الحارس الوحيد: دفعة شغّالة
+//    (toast مش تأكيد).
 // ⚠️ **بلا `appId`** — الـ Worker بيحدد الاسم بنفسه، فالزوج (دخول/خروج)
 //    بيتقفل تحت اسم واحد غصب عنه.
-// ⚠️ الجلسة والكاش بيتمسحوا **حتى لو** نداء التسجيل فشل — الخروج فعل
-//    محلي، ومانسيبش موظف داخل عشان D1 ما ردّتش.
-async function doLogout() {
+// ⚠️ الجلسة والكاش بيتمسحوا **حتى لو** نداء التسجيل فشل أو اتأخر — الخروج
+//    فعل محلي، ومانسيبش موظف داخل عشان D1 ما ردّتش. النداء ليه سقف ٣ ثواني.
+function doLogout() {
+  if (dcoIdleBusy()) {
+    showToast('فيه دفعة بتتنفّذ دلوقتي — استنى لحد ما تخلص', 'warning');
+    return;
+  }
+  performLogout('manual');
+}
+
+// مسار واحد للخروج اليدوي والتلقائي. `reason`: 'manual' | 'idle'.
+async function performLogout(reason = 'manual') {
+  idleStop();
   const s = getSession();
   try {
     if (s?.username) {
-      await dcoApi(DCO_WORKERS.auth).apiGet('log_logout', { username: s.username });
+      await Promise.race([
+        dcoApi(DCO_WORKERS.auth).apiGet('log_logout', { username: s.username }),
+        new Promise(r => setTimeout(r, 3000)),
+      ]);
     }
   } catch { /* الخروج بيتم برضه */ }
-  clearSession();
-  location.replace('index.html');
+  clearSession();                      // الجلسة + الكاش (حساس: أسماء وتليفونات وعناوين ومبالغ COD)
+  location.replace(reason === 'idle' ? 'index.html?reason=idle' : 'index.html');
 }
+
+// ══════════════════════════════════════════════════════════════
+// §IDLE — الخروج التلقائي لعدم النشاط (Standards #52 · idle-logout.md)
+// ══════════════════════════════════════════════════════════════
+// 🔴 **60 دقيقة لكل الأدوات بلا استثناء** — ممنوع قيمة مختلفة لصفحة بعينها.
+// 🔴 **مرة واحدة هنا مش في كل صفحة** — وآخر نشاط في `sessionStorage` (مش
+//    متغيّر): كل صفحة في الهب reload كامل، والمتغيّر بيضيع مع التنقل.
+// ⚠️ وقت فعلي (`Date.now()`) كل ٣٠ ث + عند `visibilitychange`/`focus` — مش
+//    `setTimeout` واحد ٦٠ دقيقة (المتصفح بيبطّئه في الخلفية والجهاز لما ينام
+//    بيوقفه).
+// ⚠️ النشاط = `keydown/pointerdown/wheel/touchstart/scroll` على `document`.
+//    ⛔ مش `mousemove` (ماوس مهزوز على المكتب ≠ موظف موجود) ولا أي polling.
+//    السكانر بيبعت ضغطات مفاتيح فبيتحسب نشاط لوحده.
+// ⚠️ الحماية على العميل بس — مش أمان حقيقي (الهوية من العميل أصلًا). الهدف:
+//    ماتفضلش بيانات حساسة على شاشة مهجورة.
+const IDLE_TIMEOUT_MIN = 60;
+const IDLE_WARN_SEC    = 60;
+const IDLE_CHECK_MS    = 30000;
+const IDLE_THROTTLE_MS = 10000;
+
+function idleGet() {
+  try { return +sessionStorage.getItem(DCO_IDLE_KEY) || Date.now(); } catch { return Date.now(); }
+}
+function idleSet(t) { try { sessionStorage.setItem(DCO_IDLE_KEY, String(t)); } catch {} }
+let idleLast = idleGet(), idleTimer = null, idleFast = null, idleDone = false;
+
+// صفحة فيها دفعة شغّالة بتعرّف `window.shellIsBusy = () => …`. والأدوات
+// المدموجة (متولّدة/منقولة) علم الدفعة عندها اسمه معروف، فبنقراه بالاسم —
+// `let` على مستوى السكربت بيتشاف من هنا (نفس النطاق العام).
+function dcoIdleBusy() {
+  try {
+    if (typeof window.shellIsBusy === 'function' && window.shellIsBusy()) return true;
+    if (typeof isUpdating !== 'undefined' && isUpdating) return true;        // Order-Status-Updater
+    if (typeof uploadRunning !== 'undefined' && uploadRunning) return true;  // Bosta-Orders-Upload
+    if (typeof cnBusy !== 'undefined' && cnBusy) return true;                // Courier-Names
+  } catch {}
+  return false;
+}
+
+function idleMark() {
+  const now = Date.now();
+  if (now - idleLast < IDLE_THROTTLE_MS) return;
+  idleLast = now; idleSet(now); idleHideWarn();
+}
+
+function idleWarnEl() {
+  let el = document.getElementById('idleWarn');
+  if (el) return el;
+  el = document.createElement('div');
+  el.id = 'idleWarn'; el.className = 'idle-warn';
+  el.setAttribute('role', 'alertdialog'); el.setAttribute('aria-live', 'assertive');
+  el.innerHTML =
+    '<div class="idle-warn-txt"><div class="idle-warn-l1"></div><div class="idle-warn-l2"></div></div>'
+    + '<button type="button" class="idle-warn-btn" id="idleWarnBtn">أنا موجود</button>';
+  document.body.appendChild(el);
+  el.querySelector('#idleWarnBtn').addEventListener('click', () => { idleLast = 0; idleMark(); });
+  return el;
+}
+function idleShowWarn(sec) {
+  const el = idleWarnEl();
+  const name = getSession()?.displayName || '';
+  el.querySelector('.idle-warn-l1').textContent = `سيتم تسجيل الخروج لعدم النشاط بعد ${sec} ثانية`;
+  el.querySelector('.idle-warn-l2').textContent = `هل أنت موجود يا ${name}؟`;
+  el.classList.add('visible');
+}
+function idleHideWarn() {
+  const el = document.getElementById('idleWarn');
+  if (el) el.classList.remove('visible');
+}
+
+function idleTick() {
+  if (idleDone || !getSession()) return;
+  if (dcoIdleBusy()) { idleLast = Date.now(); idleSet(idleLast); idleHideWarn(); return; }
+  // صفحة/تاب تاني ممكن يكون جدّد. قراءة خام: مفتاح غايب = 0 (مش «دلوقتي»)
+  // وإلا جلسة قديمة بلا مفتاح كانت هتفضل شغّالة للأبد.
+  let stored = 0; try { stored = +sessionStorage.getItem(DCO_IDLE_KEY) || 0; } catch {}
+  idleLast = Math.max(idleLast, stored);
+  const limit  = IDLE_TIMEOUT_MIN * 60000;
+  const idleMs = Date.now() - idleLast;
+  if (idleMs >= limit) { idleStop(); idleHideWarn(); performLogout('idle'); return; }
+  const remain = limit - idleMs;
+  if (remain <= IDLE_WARN_SEC * 1000) idleShowWarn(Math.ceil(remain / 1000)); else idleHideWarn();
+}
+
+function idleStart() {
+  idleDone = false;
+  if (idleTimer) return;
+  idleTimer = setInterval(idleTick, IDLE_CHECK_MS);
+}
+function idleStop() {
+  idleDone = true;
+  if (idleTimer) { clearInterval(idleTimer); idleTimer = null; }
+  if (idleFast)  { clearInterval(idleFast);  idleFast = null; }
+}
+function idleInit() {
+  ['keydown', 'pointerdown', 'wheel', 'touchstart', 'scroll'].forEach(ev =>
+    document.addEventListener(ev, idleMark, { capture: true, passive: true }));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) idleTick(); });
+  window.addEventListener('focus', idleTick);
+  if (getSession()) {
+    idleStart();
+    idleTick();          // reload بعد غياب طويل → خروج فوري
+    // بانر التحذير بيعدّ كل ثانية (الفحص الأساسي كل ٣٠ ث مش كفاية للعدّاد)
+    idleFast = setInterval(() => {
+      if (document.getElementById('idleWarn')?.classList.contains('visible')) idleTick();
+    }, 1000);
+  }
+}
+// ⚠️ حارس البيئة: فحص المنطق (rules-check.mjs) بيقيّم الملف في Node بلا DOM كامل
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') idleInit();
 
 // ══════════════════════════════════════════════════════════════
 // §HEADER — الهيدر الموحّد

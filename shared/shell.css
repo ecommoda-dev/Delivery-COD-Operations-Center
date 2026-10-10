@@ -48,8 +48,8 @@
   --border:         #e5e7eb;
   --border-strong:  #d1d5db;
   --text-primary:   #111827;
-  --text-secondary: #6b7280;
-  --text-muted:     #6b7280;
+  --text-secondary: #4b5563;
+  --text-muted:     #4b5563;
   --text-mid:       #374151;
   --accent:         #2563eb;
   --accent-light:   #eff6ff;
@@ -504,3 +504,15 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
    بدل إيموجي، بلون بوسطة الرسمي (أحمر) بدل تلوين الأداة العشوائي. */
 .dco-card-ico.ico-red{background:var(--red-light);border-color:var(--red-border)}
 .dco-card-ico.ico-red img{width:26px;height:26px;object-fit:contain}
+
+/* ── §IDLE — بانر الخروج التلقائي (Standards #52) ───────────────
+   z-index 9000: فوق المودالات (600) وتحت التوست (9999). */
+.idle-warn{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9000;display:none;align-items:center;gap:14px;max-width:calc(100vw - 32px);padding:12px 16px;border-radius:12px;border:1.5px solid var(--amber);background:var(--amber-light);color:var(--amber-dark);box-shadow:0 8px 28px rgba(0,0,0,.18);font-family:var(--font-body)}
+.idle-warn.visible{display:flex}
+.idle-warn-l1{font-size:14px;font-weight:800;line-height:1.6}
+.idle-warn-l2{font-size:13px;font-weight:600;line-height:1.6}
+.idle-warn-btn{flex-shrink:0;padding:8px 16px;border:none;border-radius:9px;background:var(--accent);color:var(--on-accent);font-family:var(--font-body);font-size:13px;font-weight:800;cursor:pointer}
+.idle-warn-btn:hover{background:var(--accent-dark)}
+/* إشعار شاشة الدخول بعد الخروج التلقائي */
+.login-notice{display:none;min-height:38px;border-radius:10px;border:1px solid var(--amber-border);background:var(--amber-light);color:var(--amber-dark);padding:9px 12px;font-size:12px;font-weight:800;text-align:center;line-height:1.6}
+.login-notice.visible{display:block}

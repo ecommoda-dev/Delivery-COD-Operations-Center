@@ -908,7 +908,7 @@ loadLogEmployeeFilter();  // محميّ جوّاه
     p.sub('          <span class="cl-ver-badge" id="clVerBadge">v3.6.0</span>\n'
           '          <span class="cl-ver-date">07-10-2026</span>\n'
           '        </div>',
-          '''          <span class="cl-ver-badge" id="clLatestVerBadge">v1.31.0</span>
+          '''          <span class="cl-ver-badge" id="clLatestVerBadge">v1.32.0</span>
           <span class="cl-ver-date">07-10-2026 · الواجهة الأصلية v3.6.0</span>
         </div>''',
           'سجل التحديثات — أحدث بلوك بياخد بادج الهب')

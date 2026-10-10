@@ -97,6 +97,7 @@
         </select>
         <div class="login-status warn" id="loginStatus">الإعدادات غير مكتملة — افتح الإعدادات أولًا.</div>
       </div>
+      <div class="login-notice" id="loginNotice" role="status"></div>
       <!-- ⚠️ loginAlert بره pin-zone — عشان أخطاء تحميل القائمة تبان في الخطوة الأولى -->
       <div class="login-alert" id="loginAlert"></div>
       <div class="pin-zone" id="pinZone">
@@ -438,7 +439,19 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.31.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.32.0</span>
+          <span class="cl-ver-date">10-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>الخروج التلقائي لعدم النشاط — 60 دقيقة لكل صفحات المركز</b> (Standards #52). مرة واحدة في <code>shared/shell.js</code> §IDLE، وآخر نشاط في <code>sessionStorage</code> (<code>dco_last_activity</code>) فيعيش عبر التنقل بين الصفحات. فحص بالوقت الفعلي كل 30 ثانية، والنشاط = ضغط مفتاح (السكانر بيتحسب) · ضغط · سكرول · لمس — <b>مش</b> حركة الماوس ولا التحديث التلقائي. قبل الخروج بدقيقة بانر «سيتم تسجيل الخروج لعدم النشاط بعد N ثانية — هل أنت موجود يا [الاسم]؟» وزرار «أنا موجود». واقف طول ما فيه دفعة شغّالة (تحديث الحالة · رفع بوسطة · أسماء المناديب). وشاشة الدخول بتعرض «تم تسجيل خروج تلقائي لعدم النشاط».</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><b>الخروج اليدوي (اسم الموظف في الهيدر) فوري</b> — بلا أي تأكيد. <code>doLogout()</code> اتقسمت لـ<code>doLogout()</code> (حارس الدفعة الشغّالة بتوست) و<code>performLogout(reason)</code> (مسار واحد لليدوي والتلقائي)، ونداء <code>log_logout</code> ليه سقف 3 ثواني فـWorker بطيء مايعطّلش الخروج. جرد المكتب (<code>dco_audit_ready</code>) <b>مابيتمسحش</b> — مش بيانات حساسة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>اللون الباهت <code>#6b7280</code> اتشال على مستوى التوكن (<code>--text-secondary</code> و<code>--text-muted</code> بقوا <code>#4b5563</code>) — كل نص ثانوي في الهب أوضح من غير ما يتلمس كود أي صفحة (Standards #48).</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.31.0</span>
           <span class="cl-ver-date">07-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -1165,6 +1178,12 @@ async function renderAboutWorkers() {
 // ══════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   renderVersionUI();
+  // الخروج التلقائي لعدم النشاط (Standards #52) — إشعار على شاشة الدخول.
+  // الخروج اليدوي: بلا إشعار.
+  if (new URLSearchParams(location.search).get('reason') === 'idle' && !getSession()) {
+    const n = document.getElementById('loginNotice');
+    if (n) { n.textContent = 'تم تسجيل خروج تلقائي لعدم النشاط'; n.classList.add('visible'); }
+  }
   // جلسة شغّالة؟ يبقى الريفريش مايطلّعش — ودي الوجهة لو جاي من `next`
   if (getSession()) {
     const next = new URLSearchParams(location.search).get('next');
