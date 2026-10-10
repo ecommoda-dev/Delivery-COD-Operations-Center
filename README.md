@@ -49,6 +49,7 @@ COD-Payment-Center.html   🔗 مركز التحصيل — 🔴 **متولّدة
 Partial-Delivery.html     🔗 التسليم الجزئي — عدّل هنا مباشرة (بلا مولّد)
 docs/port-standalone.py  مولّد صفحتَي الأداتين من ريبوهاتهم
 docs/tools-check.mjs  فحص عقد الدمج — ١٠٦ بند
+docs/idle-check.mjs   فحص الخروج التلقائي لعدم النشاط — ٢١ بند
 ```
 
 ## الفحوص — قبل أي تسليم
@@ -60,6 +61,7 @@ node docs/css-check.js shared/shell.css index.html Ready-Orders.html Shipped-Ord
 node docs/rules-check.mjs
 node docs/queues-check.mjs
 node docs/tools-check.mjs
+node docs/idle-check.mjs        # الخروج التلقائي لعدم النشاط (v1.32.0 · ٢١ بند)
 ```
 
 🔴 **ولو عدّلت في `Order-Status-Updater` أو `COD-Payment-Center`** — شغّل
