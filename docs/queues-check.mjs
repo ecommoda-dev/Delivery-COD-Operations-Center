@@ -1799,6 +1799,21 @@ console.log('\n══ ⑩-ب البحث والتاريخ في رأس العمو�
      '«✕ مسح الاختيار» بيرجّع الكل ويطفّي القمع ويشيل الـ chip');
   await page.keyboard.press('Escape');
 
+  // 🔴 كتابة وقفل أسرع من مهلة الـ debounce → المربع بيتفتح بالمكتوب والفلتر مطبّق
+  //    (اتمسك في المراجعة: كان بيتفتح فاضي والفلتر شغّال)
+  await open(S); await page.fill('#hSearchInput', '55002');
+  await page.mouse.click(5, 5); await page.waitForTimeout(50);
+  is(await rowsN() === 1, '🔴 قفل القايمة على طول بعد الكتابة → البحث اتثبّت فورًا');
+  await open(S);
+  is(await page.inputValue('#hSearchInput') === '55002', '🔴 وإعادة الفتح بتعرض المكتوب — مش مربع فاضي على فلتر شغّال');
+  // ⚠️ ✕ الـ chip والقايمة مفتوحة → البحث مايرجعش من مربع القايمة
+  await page.click('#qChipsSpecial .ms-chip button'); await page.waitForTimeout(450);
+  is(await rowsN() === total && !(await on(S)), '🔴 ✕ الـ chip والقايمة مفتوحة → البحث اتمسح وماترجعش');
+  // ⚠️ القايمة ممكن تفضل مفتوحة (الـ chip اتعاد رسمه — حارس #32)، بس مربعها لازم يبقى فاضي
+  is(!(await page.$('#hSearchInput')) || (await page.inputValue('#hSearchInput')) === '', 'ومربع البحث في القايمة اتفضّى معاه');
+  await page.keyboard.press('Escape'); await page.waitForTimeout(450);
+  is(await rowsN() === total && !(await on(S)), 'وقفلها بعدها مارجّعش البحث');
+
   // 🔴 ✕ على chip البحث = نفس المسح بالظبط
   await open(S); await type('سارة'); await page.keyboard.press('Enter');
   await page.click('#qChipsSpecial .ms-chip button'); await page.waitForTimeout(200);
@@ -1872,7 +1887,23 @@ console.log('\n══ ⑩-ج الجدول الفاضي · #49 خط وتثبيت 
   });
   is(scrollOk, '#49 — سكرول داخلي بسقف ارتفاع (العناوين بتثبت جوّاه)');
 
-  // ── #51
+  // ── #51 — 🔴 القياس التلقائي مش متثبّت على أول شاشة (اتمسك في المراجعة)
+  const fitsCard = async () => (await page.$eval('#qTable', e => e.getBoundingClientRect().width)) <= (await page.$eval('#qTableWrap', e => e.clientWidth)) + 0.5;
+  is(await fitsCard(), '🔴 أول قياس مابيعدّيش عرض الكارت ولا بـ١px (floor مش round)');
+  await page.setViewportSize({ width: 1100, height: 900 }); await page.waitForTimeout(400);
+  is(await fitsCard(), '🔴 تصغير الشباك (بلا أي سحب) → الأعمدة اتقاست تاني ومفيش سكرول أفقي');
+  await page.setViewportSize({ width: 1280, height: 900 }); await page.waitForTimeout(400);
+  is(await fitsCard(), 'وعلى 1280 كمان');
+  await page.setViewportSize({ width: 1500, height: 900 }); await page.waitForTimeout(400);
+  is(Math.abs(await page.$eval('#qTable', e => e.getBoundingClientRect().width) - await page.$eval('#qTableWrap', e => e.clientWidth)) < 2,
+     'والتكبير تاني بيملا الكارت');
+  // ⚠️ وتغيير الشاشة والتاب التانية ظاهرة → الرجوع بيعيد القياس
+  await page.evaluate(() => switchMainTab('audit'));
+  await page.setViewportSize({ width: 1100, height: 900 }); await page.waitForTimeout(400);
+  await page.evaluate(() => switchMainTab('queue')); await page.waitForTimeout(150);
+  is(await fitsCard(), 'تصغير الشباك وتاب الجرد ظاهرة → الرجوع للطابور بيعيد القياس');
+  await page.setViewportSize({ width: 1500, height: 900 }); await page.waitForTimeout(400);
+
   const w0 = await page.$$eval('#qTable colgroup col', e => e.map(c => parseFloat(c.style.width)));
   is(w0.length === await page.$$eval('#qTable thead th', e => e.length) && w0.every(x => x >= 64),
      '#51 — `colgroup` بعرض لكل عمود', JSON.stringify(w0));

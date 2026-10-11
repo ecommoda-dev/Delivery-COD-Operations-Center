@@ -43,7 +43,7 @@ shared/shell.js       الإعدادات + الجلسة + §QUEUE-RULES + §AUDI
 docs/build-pages.py   مولّد الصفحتين — 🔴 الـ HTML **متولّد**، عدّل هنا
 docs/css-check.js     فحص CSS بـ parser حقيقي
 docs/rules-check.mjs  فحص منطق §QUEUE-RULES و§AUDIT-RULES — ٩٠ بند (بلا تنصيب)
-docs/queues-check.mjs فحص متصفح فعلي — ٣٤٢ بند (فلاتر رأس العمود وعرض الأعمدة في §⑩)
+docs/queues-check.mjs فحص متصفح فعلي — ٣٥٢ بند (فلاتر رأس العمود وعرض الأعمدة في §⑩)
 Order-Status-Updater.html 🔗 محدّث حالة الأوردر — 🔴 **متولّدة**، عدّل في ريبوها
 COD-Payment-Center.html   🔗 مركز التحصيل — 🔴 **متولّدة**، عدّل في ريبوها
 Partial-Delivery.html     🔗 التسليم الجزئي — عدّل هنا مباشرة (بلا مولّد)

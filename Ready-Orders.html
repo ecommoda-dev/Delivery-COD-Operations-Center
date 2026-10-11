@@ -1493,7 +1493,21 @@ function hdrBuild() {
     th.appendChild(b);
   });
 }
-function hdrClose() { if (hPop) hPop.remove(); hPop = null; hKey = null; hAnchor = null; }
+// 🔴 قفل قايمة البحث **بيثبّت** المكتوب فورًا — من غير كده كتابة وقفل في أقل من
+//    مهلة الـ debounce (٣٠٠ms) بيسيب الفلتر يتطبّق بعدها، والمربع يتفتح فاضي
+//    وهو فلتر شغّال (اتمسك في المراجعة).
+function hdrClose() {
+  const si = hPop && hKey === 'search' ? hPop.querySelector('#hSearchInput') : null;
+  if (hPop) hPop.remove();
+  hPop = null; hKey = null; hAnchor = null;
+  if (si && si.value !== qSearchTerm) {
+    clearTimeout(qSearchTimer);
+    qSearchTerm = si.value;
+    const o = document.getElementById('qSearch');
+    if (o) { o.value = si.value; o.classList.toggle('has-value', !!si.value.trim()); }
+    qRender();
+  }
+}
 function hdrOpen(key, anchor) {
   if (hKey === key && hAnchor === anchor) { hdrClose(); return; }
   hdrClose(); hKey = key; hAnchor = anchor;
@@ -1605,6 +1619,10 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') hdrClose(); 
 const COL_LS = 'dco_col_widths_v1_' + (location.pathname.split('/').pop() || 'page');
 const COL_MIN = 64, COL_MAX = 700, COL_INIT_CAP = 320;
 const colW = {}; let colDrag = null, colBadge = null, colReady = false;
+// 🔴 `colCustom` = الموظف ظبط عرض بإيده (سحب/دبل كليك) أو فيه عرض محفوظ. من
+//    غيره العروض **قياس تلقائي** وبيتعاد مع أي تغيّر في عرض الشاشة — التثبيت
+//    على أول شاشة كان بيعمل سكرول أفقي لما الشباك يصغر (اتمسك في المراجعة).
+let colCustom = false;
 const colTbl = () => document.getElementById('qTable');
 const colKeys = () => [...colTbl().querySelectorAll('thead th')].map((th, i) => th.dataset.qSort || ('c' + i));
 function colSave() { try { localStorage.setItem(COL_LS, JSON.stringify(colW)); } catch (e) {} }
@@ -1627,13 +1645,21 @@ function colInit() {
     t.querySelectorAll('thead th').forEach((th, i) => { if (th.querySelector('.col-rz')) return; const h = document.createElement('span'); h.className = 'col-rz'; h.dataset.rz = keys[i]; th.appendChild(h); });
   }
   const saved = colLoad();
-  if (saved) { Object.assign(colW, saved); colReady = true; colFreeze(); return; }
+  if (saved) { Object.assign(colW, saved); colCustom = true; colReady = true; colFreeze(); return; }
+  colMeasure();
+  colReady = true;
+}
+// القياس التلقائي — ⚠️ `Math.floor` مش `round`: التقريب لفوق كان بيطلّع مجموع
+//    أكبر من عرض الكارت بـ١-٢px فيظهر سكرول أفقي من غير سبب. والفرق اللي
+//    بيتبقى بياخده آخر عمود وقت العرض (`colSlack`).
+function colMeasure() {
+  const t = colTbl(), keys = colKeys();
   t.classList.add('col-auto'); t.style.width = ''; t.querySelectorAll('colgroup col').forEach(c => c.style.width = '');
   let sum = 0;
-  t.querySelectorAll('thead th').forEach((th, i) => { const w = Math.min(COL_INIT_CAP, Math.max(COL_MIN, Math.round(th.getBoundingClientRect().width))); colW[keys[i]] = w; sum += w; });
+  t.querySelectorAll('thead th').forEach((th, i) => { const w = Math.min(COL_INIT_CAP, Math.max(COL_MIN, Math.floor(th.getBoundingClientRect().width))); colW[keys[i]] = w; sum += w; });
   const avail = document.getElementById('qTableWrap').clientWidth;
   if (sum < avail) { const f = avail / sum; keys.forEach(k => colW[k] = Math.floor(colW[k] * f)); }
-  colReady = true; colFreeze();
+  colFreeze();
 }
 function colShowBadge(w) { if (!colBadge) { colBadge = document.createElement('div'); colBadge.className = 'w-badge'; document.body.appendChild(colBadge); } colBadge.textContent = w + ' px'; }
 document.addEventListener('pointerdown', e => {
@@ -1655,7 +1681,7 @@ function colEnd() {
   if (!colDrag) return;
   colDrag.h.classList.remove('active'); document.body.classList.remove('col-resizing');
   colTbl().querySelectorAll('col.hl').forEach(c => c.classList.remove('hl'));
-  colDrag = null; if (colBadge) { colBadge.remove(); colBadge = null; } colSave();
+  colDrag = null; if (colBadge) { colBadge.remove(); colBadge = null; } colCustom = true; colSave();
 }
 document.addEventListener('pointerup', colEnd); document.addEventListener('pointercancel', colEnd);
 // ⚠️ المقبض جوّه <th> اللي عليه onclick للترتيب — الضغطة بعد السحب لازم ما توصلش للترتيب
@@ -1676,17 +1702,31 @@ function colFit(k) {
     const rg = document.createRange(); rg.selectNodeContents(td); w = Math.max(w, rg.getBoundingClientRect().width + 16);
   });
   t.classList.remove('col-measure');
-  colW[k] = Math.max(COL_MIN, Math.min(COL_MAX, Math.ceil(w))); colApply(); colSave();
+  colW[k] = Math.max(COL_MIN, Math.min(COL_MAX, Math.ceil(w))); colCustom = true; colApply(); colSave();
 }
 document.addEventListener('dblclick', e => {
   const h = e.target.closest && e.target.closest('[data-rz]'); if (h) colFit(h.dataset.rz);
 });
-window.addEventListener('resize', () => { if (colReady) colApply(); });
+// ⚠️ عرض متظبط بإيد الموظف بيفضل زي ما هو (أكبر من الشاشة = سكرول أفقي —
+//    نفس القالب 24)، والقياس التلقائي بيتعاد على الشاشة الجديدة (debounce).
+let colResizeT = null;
+window.addEventListener('resize', () => {
+  if (!colReady) return;
+  if (colCustom) { colApply(); return; }
+  clearTimeout(colResizeT);
+  colResizeT = setTimeout(() => { if (!colCustom && document.getElementById('qTableWrap').clientWidth) colMeasure(); }, 150);
+});
 let colFontWait = false;
 function colMaybeInit() {
-  if (colReady) { colApply(); return; }
   const wrap = document.getElementById('qTableWrap');
   if (!wrap || !wrap.clientWidth) return;                       // مخفي — نستنى
+  if (colReady) {
+    // ⚠️ الشاشة اتغيّرت والجدول مخفي (تاب الجرد / مطوي) — القياس التلقائي
+    //    بيتعاد لو العروض بقت أكبر من الكارت. العرض المتظبط بإيد بيفضل.
+    let sum = 0; colKeys().forEach(k => sum += colW[k] || 0);
+    if (!colCustom && sum > wrap.clientWidth) colMeasure(); else colApply();
+    return;
+  }
   if (!document.querySelectorAll('#qBody tr:not(.q-none-row)').length) return;
   if (document.fonts && document.fonts.status !== 'loaded') {
     if (!colFontWait) { colFontWait = true; document.fonts.ready.then(() => { colFontWait = false; colMaybeInit(); }); }
@@ -1786,13 +1826,17 @@ function qResetSearch() {
   qSearchTerm = '';
   const si = document.getElementById('qSearch');
   if (si) { si.value = ''; si.classList.remove('has-value'); }
+  // ⚠️ ومربع القايمة العائمة لو مفتوحة — وإلا قفلها بعد المسح (ضغطة على ✕ الـ
+  //    chip بتقفلها) كان هيثبّت النص القديم تاني.
+  const hi = document.getElementById('hSearchInput');
+  if (hi) { hi.value = ''; hi.classList.remove('has-value'); }
 }
 function qClearSearch() { qResetSearch(); qRender(); }
 function qClearAllFilters() {
+  hdrClose();          // ⚠️ الأول — قفلها بيثبّت المكتوب، والمسح بعده يشيله
   msClearAll('q');
   qResetSearch();
   qResetDateFilter();
-  hdrClose();
   qRender();
 }
 
