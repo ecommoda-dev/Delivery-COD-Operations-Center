@@ -33,6 +33,16 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 
+// 🔴 **البحث بقى في رأس عمود «رقم الأوردر»** (v1.33.0 · Standards #47) —
+//    القمع بيفتح قايمة عائمة فيها المربع، والكتابة بتعدّي على نفس الـ
+//    debounce (٣٠٠ms)، و`Enter` بيقفل القايمة والفلتر بيفضل.
+async function hsearch(page, v) {
+  await page.click('#qTableWrap th[data-fk="search"] .th-flt');
+  await page.fill('#hSearchInput', v);
+  await page.waitForTimeout(450);
+  await page.keyboard.press('Enter');
+}
+
 // 🔴 نسخة الهب — **مصدر واحد** (`TOOL_VERSION` في `shared/shell.js`، #24).
 const HUB_VERSION = (fs.readFileSync(new URL('../shared/shell.js', import.meta.url), 'utf8')
   .match(/const TOOL_VERSION\s*=\s*'([^']+)'/) || [])[1];
@@ -403,18 +413,13 @@ console.log('\n══ ② Ready-Orders.html ══');
      JSON.stringify(noteCells.noNote));
   // ⚠️ والبحث بيدوّر في الملحوظة كمان — عمود معروض ومش قابل للبحث بيخلّي
   //    الموظف يقرا الطابور صف صف.
-  // ⚠️ المربع جوّه لوحة الفلاتر المقفولة افتراضيًا — لازم تتفتح الأول.
-  await page.click('.flt-header');
-  await page.waitForTimeout(200);
-  await page.fill('#qSearch', 'العصر');
+  await hsearch(page, 'العصر');
   await page.waitForTimeout(450);
   const noteHits = await page.$$eval('#qBody tr', e => e.map(x => x.textContent.replace(/\s+/g, ' ').trim().slice(0, 40)));
   is(noteHits.length === 1 && noteHits[0].includes('#55001'),
      '🔴 والبحث بيدوّر في نص الملحوظة', JSON.stringify(noteHits));
-  await page.fill('#qSearch', '');
+  await hsearch(page, '');
   await page.waitForTimeout(450);
-  await page.click('.flt-header');
-  await page.waitForTimeout(200);
 
   // ══ «موقع الشحنة» بقى بادج (v1.6.0 · طلب أحمد 17-09-2026) ═════
   const waCells = await page.$$eval('#qBody tr', els => {
@@ -586,11 +591,13 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   is(m2.includes('مفلتر'), 'الفلوس بتقول «(مفلتر)» لما الفلتر شغّال — الرقم بقى عن المعروض');
 
   // 🔴 والمربع **كتب في فلتر المندوب** — مش حالة تانية جنبه
-  const msLabel = await page.textContent('#qMsBtnLabel-courier');
+  const msLabel = await page.$eval('#qChipsRow-courier .ms-chip', e => e.firstChild.textContent);
   is(msLabel.trim() === 'Bosta',
      '🔴 مربع الطابور **بيكتب في فلتر المندوب** — حالة واحدة مش اتنين', msLabel.trim());
-  is(await page.$eval('#qFltIcon', el => el.classList.contains('active')),
-     'أيقونة الفلتر بتولّع لما يبقى فيه فلتر شغّال (§3)');
+  // ⚠️ أيقونة لوحة الفلاتر اتشالت مع اللوحة (v1.33.0) — الحالة بقت **في رأس
+  //    العمود**: القمع بيتلوّن وعليه عدّاد.
+  is(await page.$eval('#qTableWrap th[data-fk="courier"]', el => el.classList.contains('flt-on')),
+     'قمع عمود «المندوب» بيولّع لما يبقى فيه فلتر شغّال (§3)');
   is(!(await page.$eval('#qClearAllBtn', el => el.classList.contains('inactive'))),
      'وزرار «مسح كل الفلاتر» بيبطّل يبقى باهت');
 
@@ -600,17 +607,16 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   shown = await page.$$eval('#qBody tr', e => e.length);
   is(shown === READY_TOTAL, 'ضغطة تانية على نفس المربع بترجّع الكل');
 
-  // البحث — 🔴 المربع جوّه لوحة الفلاتر، فلازم تتفتح الأول
-  await page.click('.flt-header');
-  await page.waitForTimeout(200);
-  is(await page.isVisible('#qSearch'), 'لوحة الفلاتر بتتفتح من الهيدر');
-  await page.fill('#qSearch', 'سارة');
+  // البحث — 🔴 من قمع رأس عمود «رقم الأوردر» (مفيش لوحة فلاتر)
+  is(!(await page.$('#viewQueue .flt-header')) && !(await page.isVisible('#qFltState')),
+     '⛔ مفيش لوحة فلاتر فوق جدول الطابور — الفلاتر في رؤوس الأعمدة (§47)');
+  await hsearch(page, 'سارة');
   await page.waitForTimeout(450);
   shown = await page.$$eval('#qBody tr', e => e.length);
   is(shown === 1, 'البحث باسم العميل بيفلتر', `شفت ${shown}`);
-  await page.fill('#qSearch', 'lkjhg');
+  await hsearch(page, 'lkjhg');
   await page.waitForTimeout(450);
-  is(await page.isVisible('#qEmpty') && (await page.textContent('#qEmpty')).includes('مفيش صفوف مطابقة'),
+  is(await page.isVisible('.q-none-row') && (await page.textContent('.q-none-row')).includes('مفيش صفوف مطابقة'),
      '🔴 «مفيش نتيجة للفلتر» ≠ «الطابور فاضي» — رسالتين مختلفتين');
 
   // 🔴 «مسح كل الفلاتر» بيرجّع كل حاجة لحالتها المحايدة (§3 — الحالة التالتة)
@@ -618,9 +624,9 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   await page.waitForTimeout(300);
   shown = await page.$$eval('#qBody tr', e => e.length);
   is(shown === READY_TOTAL, '«مسح كل الفلاتر» بيرجّع الطابور كامل', `شفت ${shown}`);
-  is(!(await page.$eval('#qFltIcon', el => el.classList.contains('active')))
+  is((await page.$$eval('#qTableWrap th.flt-on', e => e.length)) === 0
      && (await page.$eval('#qClearAllBtn', el => el.classList.contains('inactive'))),
-     '🔴 وبيرجّع الأيقونة والزرار لحالتهم المحايدة بالظبط');
+     '🔴 وبيرجّع القمعات والزرار لحالتهم المحايدة بالظبط');
 
   // ══ §SORT — الترتيب مستقل تمامًا عن الفلاتر (المعيار §8) ══════
   // 🔴 دورة تلات حالات، والسهم بيظهر **بس** على العمود المرتَّب عليه.
@@ -686,11 +692,9 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   const { page, ctx, errors } = await newPage();
   await page.goto(`${BASE}/Ready-Orders.html`);
   await page.waitForSelector('#qBody tr');
-  await page.click('.flt-header');
+  await page.click('#qTableWrap th[data-fk="where"] .th-flt');
   await page.waitForTimeout(200);
-  await page.click('#qMsBtn-where');
-  await page.waitForTimeout(200);
-  const waItems = await page.$$eval('#qMsList-where .ms-item-label', e => e.map(x => x.textContent.trim()));
+  const waItems = await page.$$eval('.hpop .hpop-item span', e => e.map(x => x.textContent.trim()));
   is(waItems.includes('✅ في المكتب') && waItems.includes('⚠ المخزن') && waItems.includes('⚠ مع المندوب'),
      '🔴 قايمة «موقع الشحنة» بنص البادج بالحرف — مش `Office`/`Warehouse`', JSON.stringify(waItems));
   is(!waItems.includes('Office') && !waItems.includes('Warehouse') && !waItems.includes('Courier'),
@@ -706,25 +710,25 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   is(waCell.trim() === '✅ في المكتب', 'ونص الخلية **نفسه بالحرف**', waCell.trim());
 
   // 🔴 والفلترة لسه على القيمة الخام — الاختيار بيفلتر فعلاً
-  await page.click('#qMsList-where .ms-item:has-text("✅ في المكتب")');
+  await page.click('.hpop .hpop-item:has-text("✅ في المكتب")');
   await page.waitForTimeout(250);
   is(await page.$$eval('#qBody tr', e => e.length) === 1,
      '🔴 والاختيار بيفلتر فعلاً — الليبل بيغيّر **العرض** بس، والفلترة على القيمة الخام');
   const waChip = await page.textContent('#qChipsRow-where');
   is(waChip.includes('✅ في المكتب') && !waChip.includes('Office'),
      'والشيب تحت الفلاتر بنفس الليبل — مش بالقيمة الخام', waChip.trim());
-  is((await page.textContent('#qMsBtnLabel-where')).trim() === '✅ في المكتب',
-     'وزرار الفلتر نفسه كمان');
+  is((await page.$eval('#qChipsRow-where .ms-chip', e => e.firstChild.textContent)).trim() === '✅ في المكتب',
+     'وأول chip في سطر الفلتر بنفس الليبل كمان');
   await page.click('#qClearAllBtn');
   await page.waitForTimeout(250);
 
   // ── 🔴 فلتر «التغليف» — قيمتان وبس (v1.7.0 · طلب أحمد) ──
-  await page.click('#qMsBtn-packed');
+  await page.click('#qTableWrap th[data-fk="packed"] .th-flt');
   await page.waitForTimeout(200);
-  const pkItems = await page.$$eval('#qMsList-packed .ms-item-label', e => e.map(x => x.textContent.trim()).sort());
+  const pkItems = await page.$$eval('.hpop .hpop-item span', e => e.map(x => x.textContent.trim()).sort());
   is(JSON.stringify(pkItems) === JSON.stringify(['تم التغليف', 'لم يتم التغليف'].sort()),
      '🔴 فلتر «التغليف» **قيمتان بالظبط** — مش قايمة تواريخ', JSON.stringify(pkItems));
-  await page.click('#qMsList-packed .ms-item:has-text("لم يتم التغليف")');
+  await page.click('.hpop .hpop-item:has-text("لم يتم التغليف")');
   await page.waitForTimeout(250);
   const notPacked = await page.$$eval('#qBody tr', e => e.map(r => r.textContent));
   is(notPacked.length === 1 && notPacked[0].includes('#55006'),
@@ -735,8 +739,8 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   const packTd = await page.$$eval('#qBody tr td.date-cell', e => e[e.length - 1].textContent.trim());
   is(packTd === '—',
      '⚠️ ونفس الصف عمود «تاريخ التغليف» بتاعه `—` — الفلتر والعمود من نفس الحقل');
-  await page.click('#qMsList-packed .ms-item:has-text("لم يتم التغليف")');
-  await page.click('#qMsList-packed .ms-item:has-text("تم التغليف")');
+  await page.click('.hpop .hpop-item:has-text("لم يتم التغليف")');
+  await page.click('.hpop .hpop-item:has-text("تم التغليف")');
   await page.waitForTimeout(250);
   is(await page.$$eval('#qBody tr', e => e.length) === READY_TOTAL - 1,
      'و«تم التغليف» بيطلّع الباقي — الاتنين بيكمّلوا الطابور بالظبط');
@@ -765,13 +769,12 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
 
   // 🔴 **نفس ليبل القايمة ونفس نص البادج في العمود** — تلات أماكن لنفس
   //    القيمة، وأي فرق بينهم معناه إن الموظف بيتعلّمها أكتر من مرة.
-  await page.click('.flt-header');
-  await page.click('#qMsBtn-where');
+  await page.click('#qTableWrap th[data-fk="where"] .th-flt');
   await page.waitForTimeout(200);
-  const msLabels = await page.$$eval('#qMsList-where .ms-item-label', e => e.map(x => x.textContent.trim()));
+  const msLabels = await page.$$eval('.hpop .hpop-item span', e => e.map(x => x.textContent.trim()));
   is(msLabels.every(l => labels.includes(l)),
      '🔴 وليبل كل مربع == ليبل القايمة بالحرف', JSON.stringify([labels, msLabels]));
-  await page.click('#qMsBtn-where');
+  await page.click('#qTableWrap th[data-fk="where"] .th-flt');
 
   // 🔴 **مجموع المربعات == الطابور كله** — قيمة بره القايمة من غير مربع
   //    كانت هتخلّي المجموع يقلّ عن الرقم الكبير **في صمت**.
@@ -795,8 +798,8 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   // 🔴 **المربع بيكتب في الفلتر نفسه** — مش حالة تانية جنبه
   await page.click('#qWaChips .zchip:nth-child(2)');
   await page.waitForTimeout(220);
-  is((await page.textContent('#qMsBtnLabel-where')).trim() === '⚠ المخزن',
-     '🔴 والضغطة **بتكتب في فلتر «موقع الشحنة»** نفسه — زرار الفلتر بقى بنفس الليبل');
+  is((await page.$eval('#qChipsRow-where .ms-chip', e => e.firstChild.textContent)).trim() === '⚠ المخزن',
+     '🔴 والضغطة **بتكتب في فلتر «موقع الشحنة»** نفسه — الـ chip بقى بنفس الليبل');
   is((await page.textContent('#qChipsRow-where')).includes('⚠ المخزن'),
      'وشيب الفلتر تحت اللوحة ظهر بيه — مش حالة مخفية فوق');
   is(await page.$eval('#qWaChips .zchip:nth-child(2)', el => el.classList.contains('on')),
@@ -805,8 +808,8 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
   // ⚠️ والاتجاه التاني: اختيار من القايمة بيولّع المربع
   await page.click('#qClearAllBtn');
   await page.waitForTimeout(200);
-  await page.click('#qMsBtn-where');
-  await page.click('#qMsList-where .ms-item:has-text("✅ في المكتب")');
+  await page.click('#qTableWrap th[data-fk="where"] .th-flt');
+  await page.click('.hpop .hpop-item:has-text("✅ في المكتب")');
   await page.waitForTimeout(220);
   const onFromList = await page.$$eval('#qWaChips .zchip.on', e => e.map(x => x.innerText.replace(/\s+/g, ' ').trim()));
   is(onFromList.length === 1 && onFromList[0].startsWith('✅ في المكتب'),
@@ -962,10 +965,7 @@ console.log('\n══ ③-ج عمود «العميل» — سطران بالكت
 
   // ⚠️ البحث بيدوّر في الاسم **كامل** — قص بلا منفذ للقيمة الكاملة كان
   //    هيخلّي الموظف يفتح الأوردر على شوبيفاي عشان يقرا اسم.
-  // ⚠️ المربع جوّه لوحة الفلاتر المقفولة افتراضيًا — لازم تتفتح الأول.
-  await page.click('.flt-header');
-  await page.waitForTimeout(200);
-  await page.fill('#qSearch', 'صبري محمد');
+  await hsearch(page, 'صبري محمد');
   await page.waitForTimeout(450);
   is(await page.$$eval('#qBody tr', r => r.length) === 1,
      '🔴 والبحث بيلاقيه بآخر الاسم — بيدوّر في **الاسم الكامل** مش في المقصوص');
@@ -1678,6 +1678,272 @@ console.log('\n══ ⑨ تاب «جرد المكتب» ══');
      '⚠️ ومكتبة التصدير مش محمّلة فيها — مكتبة بلا مستهلك تكلفة على كل تحميل');
   is(await page.isVisible('#viewQueue'), 'والطابور ظاهر عادي جوّه غلاف `#viewQueue`');
   is(errors.length === 0, 'وصفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ⑩ فلاتر رأس العمود والجدول (v1.33.0 · Standards #47 · #49 · #51 · v8.3.1)
+// ══════════════════════════════════════════════════════════════
+//
+// 🔴 كل البنود دي بتشغّل **الشاشة الفعلية** — القمع بيكتب في نفس حالة
+//    §MULTISELECT اللي المربعات فوق الطابور بتكتب فيها، فأخطر فشل هنا إن
+//    الاتنين يفترقوا **في صمت** (المربع مطفي والقمع مولّع والعكس).
+console.log('\n══ ⑩-أ قمع رأس العمود × مربعات المندوب ══');
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/Ready-Orders.html`);
+  await page.waitForSelector('#qBody tr');
+  const funnel = '#qTableWrap th[data-fk="courier"] .th-flt';
+  const cnt    = () => page.$eval('#qTableWrap th[data-fk="courier"] .th-cnt', e => e.textContent.trim());
+  const thOn   = () => page.$eval('#qTableWrap th[data-fk="courier"]', e => e.classList.contains('flt-on'));
+  const tileOn = (k) => page.$eval(`#qChips [data-fk="${k}"]`, e => e.classList.contains('on'));
+  const rowsN  = () => page.$$eval('#qBody tr', e => e.length);
+  const total  = await rowsN();
+
+  // 🔴 باج `!!value` / `!== null` — القمع **مطفي** من أول تحميل
+  is(!(await thOn()) && (await cnt()) === '', '🔴 أول تحميل: القمع مش مولّع والعدّاد فاضي');
+  const fks = await page.$$eval('#qTableWrap th[data-fk]', e => e.map(x => x.dataset.fk));
+  is(JSON.stringify(fks) === JSON.stringify(['search', 'courier', 'where', 'date', 'packed', 'type', 'flag']),
+     '🔴 القمعات على الأعمدة الصح بالترتيب — ومفيش قمع على عمود مالوش فلتر', JSON.stringify(fks));
+
+  await page.click('#qChips [data-fk="other"]'); await page.waitForTimeout(200);
+  is(await tileOn('other') && await thOn() && (await cnt()) === '2',
+     '🔴 مربع «مناديب» كتب أسماء المجموعة في الفلتر → القمع مولّع وعدّاده ٢', await cnt());
+  await page.click(funnel); await page.waitForTimeout(150);
+  is(await page.$$eval('.hpop .hpop-item.on', e => e.length) === 2, 'والقايمة العائمة فيها الاسمين مختارين');
+
+  const items = await page.$$('.hpop .hpop-item');
+  await items[0].click(); await page.waitForTimeout(150);
+  is(!!(await page.$('.hpop')), '🔴 القايمة لسه مفتوحة بعد أول اختيار (حارس `document.contains` · #32)');
+  is(!(await tileOn('other')), 'اختيار جزئي من المجموعة → المربع **مطفي** مش مضغوط');
+  is((await cnt()) === '●', 'والعدّاد على القمع `●` (اسم واحد)', await cnt());
+  const items2 = await page.$$('.hpop .hpop-item');
+  await items2[0].click(); await page.waitForTimeout(150);
+  is(!!(await page.$('.hpop')) && await tileOn('other'), 'رجّعت الاسم → المربع اتولّع تاني، والقايمة لسه مفتوحة');
+
+  const chipTxt = await page.$$eval('#qChips [data-fk]', els => els.map(e => e.innerText.replace(/\s+/g, ' ').trim()));
+  await page.click('.hpop [data-hact="clear"]'); await page.waitForTimeout(200);
+  const chipTxt2 = await page.$$eval('#qChips [data-fk]', els => els.map(e => e.innerText.replace(/\s+/g, ' ').trim()));
+  is(JSON.stringify(chipTxt) === JSON.stringify(chipTxt2), 'أعداد المربعات ما اتغيّرتش بين «مفلتر» و«بلا فلتر»');
+  is(!(await tileOn('other')) && !(await thOn()) && (await cnt()) === '' && (await rowsN()) === total,
+     '«✕ مسح الاختيار» من القمع → المربع مطفي والقمع مطفي والطابور كامل');
+
+  await page.click('.hpop [data-hact="all"]'); await page.waitForTimeout(200);
+  is(await tileOn('other') && await tileOn('bosta') && await tileOn('showroom'),
+     '«تحديد الكل» من القمع → مربعات المجموعات التلاتة مولّعة');
+  await page.click('.hpop [data-hact="clear"]'); await page.waitForTimeout(150);
+
+  const sortBefore = await page.$eval('#qTableWrap th[data-q-sort="courier"] .sort-icon', e => e.textContent);
+  await page.keyboard.press('Escape');
+  await page.click(funnel); await page.waitForTimeout(100);
+  const sortAfter = await page.$eval('#qTableWrap th[data-q-sort="courier"] .sort-icon', e => e.textContent);
+  is(sortBefore === sortAfter, '🔴 ضغطة القمع ما رتّبتش العمود — اسم العمود = ترتيب، والقمع = فلتر');
+
+  await page.mouse.click(5, 5); await page.waitForTimeout(120);
+  is(!(await page.$('.hpop')), 'ضغطة بره القايمة بتقفلها');
+  await page.click(funnel); await page.keyboard.press('Escape'); await page.waitForTimeout(100);
+  is(!(await page.$('.hpop')), 'و`Escape` بيقفلها');
+
+  // ⚠️ مندوب جديد ظهر بعد التحديث والموظف مختار «مناديب» — السلوك القايم
+  //    من قبل الترحيل: المربع **بيطفي** (مش كل أسماء المجموعة مختارة)،
+  //    والاسم الجديد بيظهر في القايمة **غير مختار** — مش مخفي.
+  await page.click('#qChips [data-fk="other"]'); await page.waitForTimeout(150);
+  await page.evaluate(() => {
+    const r = JSON.parse(JSON.stringify(qState.rows[0]));
+    r.courier = 'Ali'; r.orderId = '7212000099999'; r.orderName = '#59999';
+    qState.rows = qState.rows.concat([r]); qSyncMsItems(); qRender();
+  });
+  await page.waitForTimeout(250);
+  is(!(await tileOn('other')), 'مندوب جديد وأنا مختار «مناديب» → المربع اتطفى (اختيار جزئي)');
+  await page.click(funnel); await page.waitForTimeout(120);
+  is(!(await page.$eval('.hpop .hpop-item:has-text("Ali")', e => e.classList.contains('on'))),
+     'والاسم الجديد ظاهر في القايمة العائمة **غير مختار** — مش مخفي');
+  await page.keyboard.press('Escape');
+
+  await page.evaluate(() => { qRender(); qRender(); });
+  is(await page.$$eval('#qTableWrap th[data-fk="courier"] .th-flt', e => e.length) === 1,
+     'إعادة الرسم أكتر من مرة ما كرّرتش زرار القمع');
+  is(errors.length === 0, 'وصفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+console.log('\n══ ⑩-ب البحث والتاريخ في رأس العمود + الـ chips ══');
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/Ready-Orders.html`);
+  await page.waitForSelector('#qBody tr');
+  const rowsN = () => page.$$eval('#qBody tr', e => e.length);
+  const total = await rowsN();
+  const S = '#qTableWrap th[data-fk="search"]', D = '#qTableWrap th[data-fk="date"]';
+  const on   = (sel) => page.$eval(sel, e => e.classList.contains('flt-on'));
+  const open = async (sel) => { await page.click(sel + ' .th-flt'); await page.waitForTimeout(120); };
+  const type = async (v) => { await page.fill('#hSearchInput', v); await page.waitForTimeout(450); };
+  const special = () => page.$eval('#qChipsSpecial', e => e.innerText.replace(/\s+/g, ' ').trim());
+
+  is(!(await on(S)) && !(await on(D)), 'أول تحميل: قمعا البحث والتاريخ مطفيين');
+  is(!(await page.isVisible('#qFltState')), '⛔ حامل الحالة القديم مخفي — مفيش لوحة فلاتر ظاهرة');
+  await open(S);
+  await type('سارة');  is(await rowsN() === 1 && await on(S), 'بحث بالعميل بيفلتر والقمع بيولّع');
+  await type('الهرم'); is(await rowsN() >= 1 && await rowsN() < total, 'بحث بالعنوان');
+  await type('العصر'); is(await rowsN() === 1, 'بحث بالملحوظة');
+  await type('#55002'); is(await rowsN() === 1, 'بحث برقم الأوردر بـ`#`');
+  await type('55002');  is(await rowsN() === 1, 'ونفس الرقم من غير `#`');
+  await page.keyboard.press('Enter'); await page.waitForTimeout(100);
+  is(!(await page.$('.hpop')) && await on(S) && await rowsN() === 1, '🔴 `Enter` بيقفل القايمة والفلتر بيفضل (#50)');
+  is((await special()).includes('بحث:') && (await special()).includes('55002'),
+     '🔴 chip البحث ظاهر تحت صف النتائج بالنص المكتوب', await special());
+  await open(S);
+  is(await page.inputValue('#hSearchInput') === '55002', 'القيمة محفوظة عند إعادة فتح القمع');
+  await page.click('.hpop [data-hact="sclear"]'); await page.waitForTimeout(450);
+  is(await rowsN() === total && !(await on(S)) && !(await special()).includes('بحث:'),
+     '«✕ مسح الاختيار» بيرجّع الكل ويطفّي القمع ويشيل الـ chip');
+  await page.keyboard.press('Escape');
+
+  // 🔴 ✕ على chip البحث = نفس المسح بالظبط
+  await open(S); await type('سارة'); await page.keyboard.press('Enter');
+  await page.click('#qChipsSpecial .ms-chip button'); await page.waitForTimeout(200);
+  is(await rowsN() === total && !(await on(S)), '✕ على chip البحث بيمسحه زي القمع بالظبط');
+
+  // 🔴 مسح كل الفلاتر وسط مهلة الـ debounce — البحث مايرجعش بعد المسح
+  await open(S); await page.fill('#hSearchInput', 'سارة');
+  await page.click('#qClearAllBtn'); await page.waitForTimeout(500);
+  is(await rowsN() === total && !(await on(S)), '🔴 «مسح كل الفلاتر» وسط مهلة البحث — البحث مارجعش بعد المسح');
+
+  // التاريخ
+  await open(D);
+  is(await page.$$eval('.hpop [data-hpreset]', e => e.length) === 5, 'خمس فترات سريعة في قايمة التاريخ');
+  is(await page.$eval('.hpop', e => e.getBoundingClientRect().width) >= 330, 'عرض قايمة التاريخ ٣٤٠ (#50)');
+  await page.fill('.hpop [data-hdate="qDateFrom"]', '2026-09-10');
+  await page.fill('.hpop [data-hdate="qDateTo"]', '2026-09-10');
+  await page.waitForTimeout(250);
+  is(await rowsN() === 1 && await on(D), 'من/إلى = يوم واحد بيطلّع صف واحد (يوم القاهرة)', String(await rowsN()));
+  is((await special()).includes('من 📅 10/09/2026 إلى 📅 10/09/2026'),
+     '🔴 chip التاريخ بصيغة `من 📅 dd/mm/yyyy إلى 📅 dd/mm/yyyy`', await special());
+  await page.fill('.hpop [data-hdate="qDateTo"]', '2026-09-11'); await page.waitForTimeout(250);
+  is(await rowsN() === 2, 'المدى يومين = صفّين');
+  await page.click('.hpop [data-hact="dclear"]'); await page.waitForTimeout(250);
+  is(await rowsN() === total && !(await on(D)) && !(await special()).includes('تاريخ'), 'مسح التاريخ بيرجّع الكل ويشيل الـ chip');
+  await page.click('.hpop [data-hpreset="last30"]'); await page.waitForTimeout(250);
+  is(await page.evaluate(() => qActivePreset) === 'last30' && await on(D), 'الفترة السريعة اتسجّلت والقمع ولّع');
+  is((await special()).includes('آخر 30 يوم'), 'و chip التاريخ بيقول اسم الفترة', await special());
+  await page.fill('.hpop [data-hdate="qDateFrom"]', '2026-09-01'); await page.waitForTimeout(250);
+  is(!(await page.evaluate(() => qActivePreset)), 'تعديل يدوي في «من» بيشيل الفترة السريعة');
+  await page.keyboard.press('Escape');
+
+  await open(S); await type('سارة'); await page.keyboard.press('Escape');
+  await page.click('#qClearAllBtn'); await page.waitForTimeout(450);
+  is(await rowsN() === total && !(await on(S)) && !(await on(D)) && (await special()) === '',
+     '🔴 «مسح كل الفلاتر» بيطفّي القمعين ويرجّع الكل ويشيل كل الـ chips');
+  await open(S);
+  is(await page.inputValue('#hSearchInput') === '', 'ومربع البحث فاضي بعد المسح');
+  await page.keyboard.press('Escape');
+  is(errors.length === 0, 'وصفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+console.log('\n══ ⑩-ج الجدول الفاضي · #49 خط وتثبيت العناوين · #51 عرض الأعمدة ══');
+{
+  const { page, ctx, errors } = await newPage();
+  await page.setViewportSize({ width: 1500, height: 900 });
+  await page.goto(`${BASE}/Ready-Orders.html`);
+  await page.waitForSelector('#qBody tr');
+  await page.waitForTimeout(200);
+
+  // ── 🔴 صفر نتائج = الجدول والقمعات بيفضلوا
+  await hsearch(page, 'zzzz');
+  is(await page.isVisible('#qTableWrap') && await page.isVisible('#qTableWrap th[data-fk="search"] .th-flt'),
+     '🔴 صفر نتائج: الجدول والقمع لسه ظاهرين');
+  is(await page.isVisible('.q-none-row') && !(await page.isVisible('#qEmpty')), 'ورسالة «مفيش صفوف» صف جوّه الجدول');
+  is(await page.$eval('.q-none-row td', e => e.colSpan) === await page.$$eval('#qTable thead th', e => e.length),
+     'والصف بعرض كل الأعمدة (`colspan`)');
+  await page.click('#qTableWrap th[data-fk="search"] .th-flt'); await page.waitForTimeout(100);
+  is(await page.inputValue('#hSearchInput') === 'zzzz', '🔴 أقدر أفتح القمع تاني وأعدّل من غير «مسح الكل»');
+  await page.fill('#hSearchInput', ''); await page.waitForTimeout(500); await page.keyboard.press('Escape');
+  is(!(await page.$('.q-none-row')), 'ومسح البحث بيرجّع الصفوف');
+
+  // ── #49
+  const thS = await page.$eval('#qTable thead th', e => { const c = getComputedStyle(e); return [c.fontSize, c.fontWeight, c.position, c.backgroundColor]; });
+  is(thS[0] === '12px' && thS[1] === '700' && thS[2] === 'sticky', '#49 — العنوان 12px / 700 / sticky', JSON.stringify(thS));
+  is(thS[3] !== 'rgba(0, 0, 0, 0)', '🔴 والعنوان الثابت **ليه خلفية** — شفاف بيخلّي الصفوف تتقري فوقه', thS[3]);
+  is(await page.$eval('#qTable tbody td:nth-child(3)', e => getComputedStyle(e).fontSize) === '12.5px', '#49 — الخلية 12.5px');
+  const scrollOk = await page.evaluate(() => {
+    const w = document.getElementById('qTableWrap'), c = getComputedStyle(w);
+    return c.overflowY === 'auto' && c.maxHeight !== 'none';
+  });
+  is(scrollOk, '#49 — سكرول داخلي بسقف ارتفاع (العناوين بتثبت جوّاه)');
+
+  // ── #51
+  const w0 = await page.$$eval('#qTable colgroup col', e => e.map(c => parseFloat(c.style.width)));
+  is(w0.length === await page.$$eval('#qTable thead th', e => e.length) && w0.every(x => x >= 64),
+     '#51 — `colgroup` بعرض لكل عمود', JSON.stringify(w0));
+  is(await page.$$eval('#qTable thead th .col-rz', e => e.length) === w0.length, 'ومقبض سحب على كل عنوان');
+  is(Math.abs(await page.$eval('#qTable', e => e.getBoundingClientRect().width) - await page.$eval('#qTableWrap', e => e.clientWidth)) < 2,
+     '🔴 الجدول بيملا عرض الكارت (v8.3.1)');
+  const dates = await page.$$eval('#qTable thead th.col-date', e => e.map(x => Math.round(x.getBoundingClientRect().width)));
+  is(dates.length === 2 && dates[0] === dates[1], '🔴 عمودا التاريخ لسه بنفس العرض بعد التثبيت', JSON.stringify(dates));
+  const hnd = await page.$('#qTable thead th:nth-child(3) .col-rz'); const bb = await hnd.boundingBox();
+  const sortBefore = await page.evaluate(() => JSON.stringify(qSortState));
+  await page.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2); await page.mouse.down();
+  await page.mouse.move(bb.x - 60, bb.y + 5, { steps: 6 }); await page.mouse.up();
+  const w1 = await page.$$eval('#qTable colgroup col', e => e.map(c => parseFloat(c.style.width)));
+  is(Math.round(w1[2] - w0[2]) >= 50, '#51 — السحب لليسار وسّع العمود (RTL)', `${w0[2]} → ${w1[2]}`);
+  is(sortBefore === await page.evaluate(() => JSON.stringify(qSortState)), '🔴 والسحب ما رتّبش العمود');
+  is(Math.abs(await page.$eval('#qTable', e => e.getBoundingClientRect().width) - w1.reduce((a, b) => a + b, 0)) < 2,
+     'وعرض الجدول = مجموع الأعمدة');
+  is(await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('dco_col_widths')).length) === 1,
+     'والعرض اتحفظ (مفتاح واحد للصفحة)');
+  await page.reload(); await page.waitForSelector('#qBody tr'); await page.waitForTimeout(300);
+  const w2 = await page.$$eval('#qTable colgroup col', e => e.map(c => parseFloat(c.style.width)));
+  is(Math.abs(w2[2] - w1[2]) <= 1, '🔴 بعد refresh العرض رجع زي ما هو', `${w1[2]} vs ${w2[2]}`);
+  await page.dblclick('#qTable thead th:nth-child(3) .col-rz'); await page.waitForTimeout(100);
+  const w3 = await page.$$eval('#qTable colgroup col', e => e.map(c => parseFloat(c.style.width)));
+  is(w3[2] !== w2[2], 'دبل كليك = ضبط تلقائي على أطول محتوى', `${w2[2]} → ${w3[2]}`);
+  // 🔴 والضبط **بيصغّر كمان** — مش بيكبّر بس: عمود «رقم الأوردر» اتوسّع
+  //    بالسحب ١٢٠px، والدبل كليك لازم يرجّعه لعرض محتواه.
+  const h1 = await page.$('#qTable thead th:nth-child(1) .col-rz'); const b1 = await h1.boundingBox();
+  await page.mouse.move(b1.x + b1.width / 2, b1.y + 5); await page.mouse.down();
+  await page.mouse.move(b1.x - 120, b1.y + 5, { steps: 6 }); await page.mouse.up();
+  const wide = (await page.$$eval('#qTable colgroup col', e => e.map(c => parseFloat(c.style.width))))[0];
+  await page.dblclick('#qTable thead th:nth-child(1) .col-rz'); await page.waitForTimeout(100);
+  const fit1 = (await page.$$eval('#qTable colgroup col', e => e.map(c => parseFloat(c.style.width))))[0];
+  is(fit1 < wide - 60, '🔴 والدبل كليك **بيصغّر** العمود اللي اتوسّع لعرض محتواه', `${wide} → ${fit1}`);
+  const fitsAll = await page.$$eval('#qTable tbody tr td:first-child', e => e.every(td => td.scrollWidth <= td.clientWidth + 1));
+  is(fitsAll, 'وبعد الضبط محتوى العمود كله ظاهر — مفيش خلية مقصوصة');
+  const lastH = await page.$('#qTable thead th:last-child .col-rz'); const lb = await lastH.boundingBox();
+  await page.mouse.move(lb.x + lb.width / 2, lb.y + 5); await page.mouse.down();
+  await page.mouse.move(lb.x + 120, lb.y + 5, { steps: 6 }); await page.mouse.up();
+  is(await page.$eval('#qTable', e => e.getBoundingClientRect().width) >= await page.$eval('#qTableWrap', e => e.clientWidth) - 2,
+     '🔴 تصغير آخر عمود ما سابش فراغ بعد آخر عمود (v8.3.1)');
+  is(await page.evaluate(() => Object.keys(localStorage).filter(k => k !== 'delivery_cod_ops_worker_secret' && !k.startsWith('dco_col_widths')).length) === 0,
+     '⚠️ مفيش أي مفتاح `localStorage` جديد غير السر وعروض الأعمدة');
+
+  // 🔴 التاب المخفية — الرجوع للطابور بعد ما الأعمدة اتقاست بيعيد العرض صح
+  await page.evaluate(() => switchMainTab('audit'));
+  await page.evaluate(() => switchMainTab('queue'));
+  await page.waitForTimeout(150);
+  is(Math.abs(await page.$eval('#qTable', e => e.getBoundingClientRect().width) - await page.$eval('#qTableWrap', e => e.clientWidth)) < 2
+     || await page.$eval('#qTable', e => e.getBoundingClientRect().width) > await page.$eval('#qTableWrap', e => e.clientWidth),
+     'الرجوع من تاب الجرد: الجدول لسه بيملا الكارت');
+  is(errors.length === 0, 'وصفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+// ⚠️ صفحة المشحون — نفس المكوّن (متولّدة من نفس القالب)، وبيتأكد إنه بيشتغل
+//    على أعمدتها هي (رقم تتبع بدل العنوان/الملحوظة) من غير خطأ.
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/Shipped-Orders.html`);
+  await page.waitForSelector('#qBody tr');
+  await page.waitForTimeout(200);
+  const fks = await page.$$eval('#qTableWrap th[data-fk]', e => e.map(x => x.dataset.fk));
+  is(fks.includes('search') && fks.includes('courier') && fks.includes('date') && !fks.includes('where'),
+     'المشحون: القمعات على أعمدته — ⛔ ومفيش «موقع الشحنة»', JSON.stringify(fks));
+  await hsearch(page, 'zzzz');
+  is(await page.isVisible('.q-none-row') && await page.isVisible('#qTableWrap th[data-fk="search"] .th-flt'),
+     'المشحون: صفر نتائج والجدول والقمع ظاهرين');
+  is(await page.$$eval('#qTable colgroup col', e => e.length) === await page.$$eval('#qTable thead th', e => e.length),
+     'المشحون: `colgroup` لكل عمود');
+  is(errors.length === 0, 'المشحون: صفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
 }
 

@@ -129,6 +129,59 @@
 .flt-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
 .flt-body.collapsed { display: none; }
 .flt-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+/* ── §HDR-FLT — قمع رأس العمود + القايمة العائمة (v1.33.0 · Standards #47) ──
+   القايمة `position:fixed` على `body` (z 200) — جوّه الجدول كانت هتتقص بسكرول
+   `.tbl-scroll` الداخلي. */
+.th-flt { min-width: 22px; height: 22px; padding: 0 3px; margin-inline-start: 5px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 2px; font-size: 10px; font-weight: 800; vertical-align: middle; }
+.th-flt svg { width: 14px; height: 14px; }
+.th-flt:hover { background: var(--accent-light); color: var(--accent); }
+th.flt-on .th-flt { background: var(--accent-light); border-color: var(--accent-border); color: var(--accent); }
+.hpop { position: fixed; z-index: 200; width: 268px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+.hpop-hd { padding: 9px 12px; font-weight: 800; font-size: 12.5px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+.hpop-top { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.hpop-list { max-height: 260px; overflow: auto; }
+.hpop-item { display: flex; align-items: center; gap: 8px; padding: 7px 12px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.hpop-item:hover { background: var(--surface-2); }
+.hpop-item.on { background: var(--accent-light); }
+.hpop.wide { width: 340px; }
+.hpop-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 9px; }
+.hpop-inp { width: 100%; padding: 8px 10px; border: 1.5px solid var(--border-strong); border-radius: 8px; font-family: inherit; font-size: 13px; background: var(--surface); }
+.hpop-inp.has-value { background: var(--accent-light); border-color: var(--accent); }
+.hpop-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.hpop-presets button { padding: 6px 10px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.hpop-presets button.on { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); }
+/* ── #49 — خط الجدول + تثبيت العناوين (جدول الطابور بس · v1.33.0) ──
+   🔴 `background` على `th` إلزامي — العنوان الثابت من غيره شفاف والصفوف
+   بتعدّي تحته وتتقري فوقه (اتمسكت في التجربة). */
+#qTableWrap { max-height: 68vh; overflow: auto; }
+#qTable { table-layout: fixed; }
+#qTable thead th { position: sticky; top: 0; z-index: 20; background: var(--surface-2); font-size: 12px; font-weight: 700; border-bottom: none; box-shadow: inset 0 -2px 0 var(--border-strong); padding: 10px 6px; white-space: normal; }
+#qTable tbody td { font-size: 12.5px; font-weight: 600; overflow: hidden; }
+/* ⚠️ البنطين دول اتصغّروا مع الجدول عشان يفضلوا أصغر من بنط الخلية (v1.8/v1.9). */
+/* §COL-RZ — حالتين قياس منفصلتين (زي القالب 24 بالظبط):
+   `.col-auto`    = أول قياس: التخطيط التلقائي بمقاسات الـ CSS اللي فوق (العميل · التاريخ · العنوان…)
+   `.col-measure` = الدبل كليك: سطر واحد للقياس والتخطيط لسه ثابت */
+#qTable.col-auto { table-layout: auto; }
+#qTable.col-auto thead th { white-space: nowrap; }
+#qTable.col-measure th, #qTable.col-measure td { white-space: nowrap; }
+#qTable .cust-txt { font-size: 11.5px; }
+#qTable .date-cell .cell-date { font-size: 12px; }
+.q-none-row td { padding: 40px 16px !important; color: var(--text-secondary); font-weight: 700; text-align: center; border-bottom: none !important; }
+.q-none-row .ico { font-size: 26px; margin-bottom: 6px; }
+/* chips تحت صف النتائج (§47) — المنطقة بتختفي لو مفيش ولا سطر */
+.q-chips-zone { display: flex; flex-direction: column; gap: 6px; padding: 0 16px; }
+.q-chips-zone:has(.ms-chips-row:not(:empty)) { padding: 8px 16px; border-top: 1px solid var(--border); }
+/* ── #51 — سحب عرض الأعمدة (data-table-standard.md § 9ب · v8.3.1) ── */
+.col-rz { position: absolute; top: 0; bottom: 0; inset-inline-end: 0; width: 10px; cursor: col-resize; touch-action: none; z-index: 3; }
+.col-rz::after { content: ''; position: absolute; top: 24%; bottom: 24%; inset-inline-end: 3px; width: 2px; border-radius: 2px; background: var(--border-strong); transition: background .12s, top .12s, bottom .12s; }
+.col-rz:hover::after, .col-rz.active::after { background: var(--accent); top: 8%; bottom: 8%; }
+body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-select: none !important; }
+#qTable col.hl { background: var(--accent-light); }
+.w-badge { position: fixed; z-index: 220; bottom: 14px; left: 50%; transform: translateX(-50%); background: var(--neutral-dark); color: var(--on-accent); font-size: 12.5px; font-weight: 700; padding: 6px 14px; border-radius: 20px; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+.hpop-rng { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hpop-rng > div { min-width: 0; }
+.hpop-rng label { font-size: 11.5px; font-weight: 700; color: var(--text-mid); display: block; margin-bottom: 3px; }
+
 .flt-g { display: flex; flex-direction: column; gap: 3px; }
 .flt-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: .4px; white-space: nowrap; }
 
@@ -572,35 +625,23 @@
        ⛔ **وممنوع `overflow:hidden` عليه** — بيقص قوايم الفلاتر. -->
   <div class="unified-section">
 
-    <!-- هيدر الفلاتر — 🔴 سهم الطي **أول عنصر أقصى اليمين**، ومفيش
-         كلمة «الفلاتر»: الدلالة بلون الأيقونة وزرار المسح بس (§2). -->
-    <div class="flt-header" onclick="qToggleFilters()">
-      <div class="flt-header-right">
-        <span class="flt-toggle" id="qFltToggleIcon">▲</span>
-        <svg class="flt-icon" id="qFltIcon" viewBox="0 0 36 24" fill="none"
-             stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
-             role="img" aria-label="فلاتر">
-          <polygon points="2 3 13 3 8.3 10.2 8.3 19 6.7 19 6.7 10.2 2 3"></polygon>
-          <line x1="18" y1="5"  x2="33" y2="5"></line>
-          <line x1="18" y1="11" x2="29" y2="11"></line>
-          <line x1="18" y1="17" x2="25" y2="17"></line>
-        </svg>
-      </div>
-      <button class="clear-btn inactive" id="qClearAllBtn" type="button"
-        onclick="event.stopPropagation(); qClearAllFilters();">✕ مسح كل الفلاتر</button>
-    </div>
-
-    <!-- ⚠️ مقفول افتراضيًا — لازم يفضل متطابق مع `qFltOpen = false` في الـ JS،
-         وإلا أول ضغطة على الهيدر مابتعملش حاجة ظاهرة. والانحراف ده عن
-         «مفتوح افتراضيًا» في §2 **نفس انحراف `pack.html` و`print.html`**:
-         الطابور هو الشغل، والفلاتر كانت هتاخد نص الشاشة الأولى قبل أول صف. -->
-    <div class="flt-body collapsed" id="qFltBody">
+    <!-- 🔴 **مفيش قسم فلاتر فوق الجدول** (v1.33.0 · Standards #47) — كل فلتر
+         بقى **في رأس عموده**: قمع جنب اسم العمود بيفتح قايمة عائمة
+         (`§HDR-FLT` في الـ JS). اسم العمود = ترتيب، والقمع = فلتر.
+         ⚠️ **والكتلة دي مخفية وبقت حامل حالة بس** — مكوّن §MULTISELECT
+         بيرسم قوايمه هنا، ومدخلات البحث والتاريخ اللي هنا هي اللي دوال
+         `qOnDateInputChange`/`qApplyPreset`/`qClearAllFilters` بتقرا وتكتب
+         فيها. القايمة العائمة **بتكتب في نفس الحالة دي بالظبط** (مش نسخة
+         تانية جنبها)، فالفلترة والعدّ والـ chips كلهم من مصدر واحد زي ما هما.
+         ⛔ ممنوع تتشال قبل ما الدوال دي تتنقل للمتغيّرات بس — شيلها
+         لوحدها بيرمي `null` على أول فلتر تاريخ. -->
+    <div id="qFltState" hidden>
 
       <!-- صف ١ — كل فلاتر الاختيار المتعدد (§4: مفيش `<select>` قيمة واحدة) -->
       <div class="flt-row" id="qMsRow"></div>
 
       <!-- صف ٢ — بحث ← فترة سريعة ← من ← إلى (الترتيب إلزامي · §5) -->
-      <div class="flt-row">
+      <div class="flt-row" id="qSearchRow">
         <div class="flt-g" style="flex:1;min-width:210px">
           <span class="flt-label">بحث برقم الأوردر أو اسم العميل</span>
           <!-- ⚠️ من غير `placeholder` — النص الرمادي جوّه المربع بيتقري
@@ -653,12 +694,7 @@
         </div>
       </div>
 
-      <!-- Chips — 🔴 **سطر منفصل لكل فلتر**، واسم الفلتر مرة واحدة في
-           أول السطر (§6). والسطر بيختفي لوحده لو فاضي. -->
-      <div id="qChipsRows"></div>
     </div>
-
-    <div class="section-divider"></div>
 
     <!-- صف الجدول — 🔴 «النتائج» = **عدد المعروض بعد الفلتر**، والرقم
          الكبير فوق = **عدد الطابور كله**. الاتنين مقصودين: الأول بيقول
@@ -672,10 +708,20 @@
         </div>
       </div>
       <div class="tbl-bar-left">
-        <!-- ⚠️ `stopPropagation` إلزامية — من غيرها الضغطة بتطوي الجدول -->
+        <!-- ⚠️ `stopPropagation` إلزامية في الزرارين — من غيرها الضغطة بتطوي الجدول.
+             و«مسح كل الفلاتر» بقى هنا (§47) بعد ما هيدر الفلاتر اتشال. -->
+        <button class="clear-btn inactive" id="qClearAllBtn" type="button"
+          onclick="event.stopPropagation(); qClearAllFilters();">✕ مسح كل الفلاتر</button>
         <button class="act-btn" type="button" onclick="event.stopPropagation(); qLoad(false);">↺ تحديث</button>
       </div>
     </div>
+
+    <!-- Chips — 🔴 **سطر منفصل لكل فلتر**، واسم الفلتر مرة واحدة في أول
+         السطر (§6). بقت **تحت صف النتائج ظاهرة دايمًا** (§47) — الفلتر بقى في
+         رأس العمود، فالـ chips هي المكان الوحيد اللي بيقول الفلتر المفعّل بالنص.
+         والسطر بيختفي لوحده لو فاضي، والمنطقة كلها لو مفيش ولا سطر. -->
+    <div id="qChipsRows" class="q-chips-zone"></div>
+    <div id="qChipsSpecial" class="q-chips-zone"></div>
 
     <div class="tbl-body-wrap" id="qTblBodyWrap">
       <div id="qFail" class="q-fail" style="display:none;"></div>
@@ -947,8 +993,25 @@
                 بيتحدّث كل نص دقيقة <b>بلا أي نداء شبكة</b>.</li>
             <li>مربعات الفلترة فوق الطابور <b>بتعدّ من القايمة الكاملة</b> مش
                 المفلترة — ضغطة عليها بتفلتر، وضغطة تانية بترجّع الكل، وهي
-                <b>بتكتب في نفس فلاتر اللوحة تحت</b>: مربع مولّع وفلتر مطفي
+                <b>بتكتب في نفس فلتر رأس العمود</b>: مربع مولّع وفلتر مطفي
                 (أو العكس) كانوا هيخلّوا الضغطة تدهس فلتر الموظف من غير ما يقصد.</li>
+          </ul>
+          <h4>الفلاتر وعرض الأعمدة</h4>
+          <ul>
+            <li><b>كل فلتر في رأس عموده</b> — قمع ▽ جنب اسم العمود بيفتح قايمته
+                (اختيار متعدد)، و<b>البحث في قمع «رقم الأوردر»</b> (رقم · عميل ·
+                عنوان · ملحوظة)، و<b>التاريخ في قمع «تاريخ الأوردر»</b> (فترة سريعة
+                أو من/إلى بيوم القاهرة). <b>اسم العمود بيرتّب والقمع بيفلتر</b> —
+                والقمع بيتلوّن وعليه عدّاد لما العمود مفلتر.</li>
+            <li>الفلاتر المختارة مكتوبة بالنص <b>تحت صف «النتائج»</b>، و✕ على أي
+                واحدة بتشيلها. و«مسح كل الفلاتر» في صف «النتائج». و<code>Enter</code>
+                في البحث أو التاريخ بيقفل القايمة والفلتر بيفضل.</li>
+            <li>⚠️ <b>فلتر بيفضّي الجدول مابيخفيهوش</b> — الرؤوس بتفضل، والرسالة
+                بتتكتب جوّه الجدول، فتعدّل الفلتر من مكانه.</li>
+            <li><b>عرض العمود بالسحب</b> من الخط على حافة العنوان، و<b>دبل كليك</b>
+                عليه يضبطه على أطول محتوى. العرض <b>محفوظ على الجهاز ده</b> لكل صفحة
+                لوحدها (تفضيل شاشة بس — مايتمسحش مع الخروج)، والجدول دايمًا بيملا
+                عرض الكارت. والعناوين <b>ثابتة</b> وانت بتنزل جوّه الجدول.</li>
           </ul>
         </div>
       </details>
@@ -1038,12 +1101,26 @@
            بنسخة جديدة وبنود قديمة أسوأ من مفيش سجل. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.3.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.33.0</span>
+          <span class="cl-ver-date">11-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔴 <b>الفلاتر بقت في رؤوس الأعمدة</b> — جنب اسم كل عمود قابل للفلترة قمع ▽ بيفتح قايمته: المندوب · موقع الشحنة · تاريخ الأوردر · التغليف · نوع الأوردر · المراجعة، و<b>البحث في قمع «رقم الأوردر»</b>. لوحة الفلاتر اللي فوق الجدول <b>اتشالت</b>. اسم العمود لسه بيرتّب، والقمع بيفلتر — والقمع بيتلوّن وعليه عدّاد لما العمود مفلتر. مربعات المندوب وموقع الشحنة فوق الطابور بتكتب في <b>نفس</b> الفلتر بالظبط.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>الفلاتر المختارة (chips) بقت <b>تحت صف «النتائج» ظاهرة دايمًا</b> — ومعاها البحث والتاريخ (<code>من 📅 dd/mm/yyyy إلى 📅 dd/mm/yyyy</code> أو اسم الفترة السريعة). و«✕ مسح كل الفلاتر» بقى في صف «النتائج». و<code>Enter</code> جوّه البحث/التاريخ بيقفل القايمة والفلتر بيفضل.</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><b>الفلتر اللي فضّى الجدول مابقاش بيخفي الجدول</b> — الرؤوس والقمعات بتفضل، و«مفيش صفوف مطابقة» بقت صف جوّه الجدول، فتعدّل الفلتر من مكانه من غير «مسح الكل». ومسح كل الفلاتر وسط كتابة البحث مابقاش بيرجّع البحث بعد ثانية.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>عرض أي عمود بالسحب</b> — اسحب الخط على حافة العنوان، و<b>دبل كليك</b> عليه يضبط العمود على أطول محتوى. العرض بيتحفظ على الجهاز ده لكل صفحة لوحدها، والجدول دايمًا بيملا عرض الكارت.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><b>عناوين الجدول ثابتة</b> وانت بتنزل جوّه الجدول (سكرول داخلي)، وخط الجدول بقى أوضح: العناوين 12px عريضة والخلايا 12.5px.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.9.0</span>
           <span class="cl-ver-date">17-09-2026</span>
         </div>
         <ul class="cl-items">
-          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>الطابور بقى بيبدأ من أوردرات <code>01/04/2026</code></b> — الـ Worker <b>مابيجيبش</b> اللي أقدم من كده خالص (أوردرات الدورة القديمة العالقة كانت بتملا الطابور بمئات الصفوف بادجها «متأخر ١٧١ يوم»). ⚠️ <b>والأرضية مكتوبة جنب الرقم فوق الطابور</b> وجاية من رد الـ Worker نفسه — استبعاد صامت من رقم كان هيخلّي الفرق بينه وبين الواقع بلا تفسير. ⛔ ومحتاج <code>ready-orders-worker</code> <b>1.4.0</b>.</span></li>
-          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>عمود «العميل» بقى سطرين بالكتير</b> — بنط أصغر وحشو أضيق، والاسم الطويل بيتقص بـ<code>…</code>. الاسم الخماسي كان بيلفّ على <b>ستة سطور</b> ويخلّي الصف ضعف ارتفاع جاره. ⚠️ <b>والاسم الكامل مش ضايع</b>: قف على الخلية يبان كامل، والبحث بيدوّر فيه كامل. ⛔ <b>وبلا أي توسيع للعمود</b> — العرض الزيادة بتاع «العنوان» و«ملحوظات» ما اتلمسش.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔴 <b>الطابور بقى بيبدأ من أوردرات <code>01/04/2026</code></b> — الـ Worker <b>مابيجيبش</b> اللي أقدم من كده خالص (أوردرات الدورة القديمة العالقة كانت بتملا الطابور بمئات الصفوف بادجها «متأخر ١٧١ يوم»). ⚠️ <b>والأرضية مكتوبة جنب الرقم فوق الطابور</b> وجاية من رد الـ Worker نفسه — استبعاد صامت من رقم كان هيخلّي الفرق بينه وبين الواقع بلا تفسير. ⛔ ومحتاج <code>ready-orders-worker</code> <b>1.4.0</b>.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔴 <b>عمود «العميل» بقى سطرين بالكتير</b> — بنط أصغر وحشو أضيق، والاسم الطويل بيتقص بـ<code>…</code>. الاسم الخماسي كان بيلفّ على <b>ستة سطور</b> ويخلّي الصف ضعف ارتفاع جاره. ⚠️ <b>والاسم الكامل مش ضايع</b>: قف على الخلية يبان كامل، والبحث بيدوّر فيه كامل. ⛔ <b>وبلا أي توسيع للعمود</b> — العرض الزيادة بتاع «العنوان» و«ملحوظات» ما اتلمسش.</span></li>
         </ul>
       </div>
 
@@ -1224,6 +1301,7 @@ function msRenderList(ns, key) {
   const cnt = document.getElementById(`${ns}MsFtrCount-${key}`);
   if (cnt) cnt.textContent = `${st.selected.size} مختار`;
   msUpdateButtonLabel(ns, key);
+  if (typeof hdrRefresh === 'function') hdrRefresh(ns, key);
 }
 
 function msUpdateButtonLabel(ns, key) {
@@ -1368,28 +1446,253 @@ const qMsState = msInit('q', Q_FILTERS,
 let qSearchTerm = '';
 let qDateFrom = null, qDateTo = null, qDateFilterActive = false, qActivePreset = '';
 
-// ⚠️ مقفول افتراضيًا — لازم يفضل متطابق مع `class="flt-body collapsed"` في
-//    الـ HTML، وإلا أول ضغطة على الهيدر مابتعملش حاجة ظاهرة.
-let qFltOpen = false;
-function qToggleFilters() {
-  qFltOpen = !qFltOpen;
-  document.getElementById('qFltBody').classList.toggle('collapsed', !qFltOpen);
-  document.getElementById('qFltToggleIcon').classList.toggle('open', qFltOpen);
-}
 let qTblOpen = true;
 function qToggleTable() {
   qTblOpen = !qTblOpen;
   document.getElementById('qTblBodyWrap').classList.toggle('collapsed', !qTblOpen);
   document.getElementById('qTblToggleIcon').classList.toggle('open', qTblOpen);
+  // ⚠️ الجدول وهو مطوي عرضه صفر — الفتح بيعيد حساب العروض (§COL-RZ)
+  if (qTblOpen) colMaybeInit();
 }
 
 function qAnyFilterActive() {
   return msAnyActive('q') || qSearchTerm.trim().length > 0 || qDateFilterActive;
 }
 function qUpdateFilterIconState() {
+  // ⚠️ أيقونة لوحة الفلاتر (`qFltIcon`) اتشالت مع اللوحة (v1.33.0) — الحالة
+  //    بقت بتتقال في **رأس كل عمود** (القمع بيتلوّن + عدّاد) وفي زرار المسح.
   const active = qAnyFilterActive();
-  document.getElementById('qFltIcon').classList.toggle('active', active);
   document.getElementById('qClearAllBtn').classList.toggle('inactive', !active);
+  hdrBuild(); hdrUpdateStates();
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// §HDR-FLT — قمع في رأس العمود (v1.33.0 · Standards #47)
+// ══════════════════════════════════════════════════════════════
+//
+// 🔴 **القمع مش حالة تانية — بيقرا ويكتب في `MS.q` نفسها** (ونفس متغيّرات
+//    البحث والتاريخ). مربعات المندوب/موقع الشحنة فوق بتكتب في نفس المكان،
+//    فالمربع والقمع والـ chips مستحيل يفترقوا.
+// ⚠️ اسم العمود = ترتيب، والقمع = فلتر: القمع بيعمل `stopPropagation`
+//    عشان الضغطة عليه ما توصلش لـ `onclick` الترتيب اللي على `<th>`.
+const FUNNEL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></svg>';
+const Q_HDR_FLT = { courier: 'courier', machineLabel: 'type', whereabouts: 'where', packedAt: 'packed', flagCount: 'flag', orderName: 'search', createdAt: 'date' };
+const Q_HDR_SPECIAL = new Set(['search', 'date']);
+let hPop = null, hKey = null, hAnchor = null;
+function hdrBuild() {
+  document.querySelectorAll('#qTableWrap th[data-q-sort]').forEach(th => {
+    const fk = Q_HDR_FLT[th.dataset.qSort];
+    if (!fk || (!MS.q.state[fk] && !Q_HDR_SPECIAL.has(fk)) || th.querySelector('.th-flt')) return;
+    th.dataset.fk = fk;
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'th-flt'; b.dataset.hflt = fk;
+    b.setAttribute('aria-label', 'فلتر ' + ((MS.q.filters.find(f => f.key === fk) || {}).label || (fk === 'search' ? 'بحث' : 'تاريخ الأوردر')));
+    b.innerHTML = FUNNEL_SVG + '<b class="th-cnt"></b>';
+    b.addEventListener('click', e => { e.stopPropagation(); hdrOpen(fk, b); });
+    th.appendChild(b);
+  });
+}
+function hdrClose() { if (hPop) hPop.remove(); hPop = null; hKey = null; hAnchor = null; }
+function hdrOpen(key, anchor) {
+  if (hKey === key && hAnchor === anchor) { hdrClose(); return; }
+  hdrClose(); hKey = key; hAnchor = anchor;
+  hPop = document.createElement('div'); hPop.className = 'hpop'; document.body.appendChild(hPop);
+  hdrRender(); hdrPlace();
+}
+function hdrRender() {
+  if (!hPop) return;
+  if (hKey === 'search' || hKey === 'date') { hdrRenderSpecial(); return; }
+  const f = MS.q.filters.find(x => x.key === hKey), st = MS.q.state[hKey];
+  hPop.innerHTML = `<div class="hpop-hd">${esc(f.label)}</div>
+    <div class="hpop-top"><button type="button" class="clear-btn" data-hact="clear">✕ مسح الاختيار</button><button type="button" class="clear-btn" data-hact="all">تحديد الكل</button></div>
+    <div class="hpop-list">` + (st.items.length ? st.items.map(it =>
+      `<div class="hpop-item ${st.selected.has(it.value) ? 'on' : ''}" data-hval="${esc(it.value)}"><input type="checkbox" ${st.selected.has(it.value) ? 'checked' : ''} tabindex="-1"><span>${esc(it.label)}</span></div>`).join('')
+      : '<div style="padding:14px">لا توجد عناصر</div>') + '</div>';
+}
+function hdrRenderSpecial() {
+  hPop.classList.toggle('wide', hKey === 'date');
+  if (hKey === 'search') {
+    hPop.innerHTML = `<div class="hpop-hd">بحث برقم الأوردر أو اسم العميل</div>
+      <div class="hpop-body"><input type="text" class="hpop-inp ${qSearchTerm.trim() ? 'has-value' : ''}" id="hSearchInput" autocomplete="off" aria-label="بحث برقم الأوردر أو اسم العميل" value="${esc(qSearchTerm)}">
+      <button type="button" class="clear-btn" data-hact="sclear" style="align-self:flex-start">✕ مسح الاختيار</button></div>`;
+    const i = hPop.querySelector('#hSearchInput'); if (i) i.focus();
+  } else {
+    const P = { today: 'اليوم', yesterday: 'أمس', last7: 'آخر 7 أيام', last30: 'آخر 30 يوم', thisMonth: 'الشهر الحالي' };
+    hPop.innerHTML = `<div class="hpop-hd">تاريخ الأوردر</div>
+      <div class="hpop-body"><button type="button" class="clear-btn" data-hact="dclear" style="align-self:flex-start">✕ مسح الاختيار</button>
+      <div class="hpop-presets">${Object.keys(P).map(k => `<button type="button" data-hpreset="${k}" class="${qActivePreset === k ? 'on' : ''}">${P[k]}</button>`).join('')}</div>
+      <div class="hpop-rng"><div><label>من تاريخ</label><input type="date" class="hpop-inp" data-hdate="qDateFrom" value="${esc(qDateFrom || '')}" onclick="this.showPicker&&this.showPicker();"></div>
+      <div><label>إلى تاريخ</label><input type="date" class="hpop-inp" data-hdate="qDateTo" value="${esc(qDateTo || '')}" onclick="this.showPicker&&this.showPicker();"></div></div></div>`;
+  }
+}
+function hdrSyncDatePop() {
+  if (!hPop || hKey !== 'date') return;
+  hPop.querySelectorAll('[data-hpreset]').forEach(b => b.classList.toggle('on', b.dataset.hpreset === qActivePreset));
+  hPop.querySelectorAll('[data-hdate]').forEach(i => { i.value = (i.dataset.hdate === 'qDateFrom' ? qDateFrom : qDateTo) || ''; });
+}
+function hdrPlace() {
+  if (!hPop || !hAnchor) return;
+  if (!document.contains(hAnchor)) { hdrClose(); return; }
+  const r = hAnchor.getBoundingClientRect(), w = hPop.offsetWidth, h = hPop.offsetHeight;
+  hPop.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + 'px';
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  hPop.style.top = top + 'px';
+}
+function hdrRefresh(ns, key) { if (ns === 'q' && hPop && hKey === key) hdrRender(); }
+function hdrUpdateStates() {
+  document.querySelectorAll('#qTableWrap th[data-fk]').forEach(th => {
+    const fk = th.dataset.fk;
+    const n = fk === 'search' ? (qSearchTerm.trim() ? 1 : 0) : fk === 'date' ? (qDateFilterActive ? 1 : 0) : MS.q.state[fk].selected.size;
+    th.classList.toggle('flt-on', n > 0);
+    const c = th.querySelector('.th-cnt'); if (c) c.textContent = n > 1 ? n : (n ? '●' : '');
+  });
+}
+document.addEventListener('click', e => {
+  if (!document.contains(e.target)) return;          // حارس #32
+  if (!hPop) return;
+  if (e.target.closest && e.target.closest('.th-flt')) return;
+  if (hPop.contains(e.target)) {
+    const it = e.target.closest('[data-hval]');
+    if (it) { msToggleItem('q', hKey, it.dataset.hval); return; }
+    const pr = e.target.closest('[data-hpreset]');
+    if (pr) { qApplyPreset(pr.dataset.hpreset); hdrSyncDatePop(); return; }
+    const a = e.target.closest('[data-hact]');
+    if (a) {
+      const act = a.dataset.hact;
+      if (act === 'sclear') { qClearSearch(); const i = hPop.querySelector('#hSearchInput'); if (i) { i.value = ''; i.classList.remove('has-value'); i.focus(); } }
+      else if (act === 'dclear') { qClearRangePreset(); hdrSyncDatePop(); }
+      else if (act === 'clear') msClear('q', hKey);
+      else if (act === 'all') msToggleSelectAll('q', hKey, true);
+    }
+    return;
+  }
+  hdrClose();
+});
+document.addEventListener('input', e => {
+  if (!hPop || !hPop.contains(e.target)) return;
+  if (e.target.id === 'hSearchInput') {
+    const el = e.target;
+    el.classList.toggle('has-value', el.value.trim().length > 0);
+    clearTimeout(qSearchTimer);
+    qSearchTimer = setTimeout(() => { qSearchTerm = el.value; const o = document.getElementById('qSearch'); if (o) { o.value = el.value; o.classList.toggle('has-value', !!el.value.trim()); } qRender(); }, 300);
+  }
+});
+document.addEventListener('change', e => {
+  if (!hPop || !hPop.contains(e.target) || !e.target.dataset.hdate) return;
+  const orig = document.getElementById(e.target.dataset.hdate);
+  orig.value = e.target.value; qOnDateInputChange(orig); hdrSyncDatePop();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && hPop && hPop.contains(e.target) && e.target.matches('#hSearchInput,[data-hdate]')) { e.preventDefault(); e.target.blur(); hdrClose(); }
+});
+document.addEventListener('scroll', hdrPlace, true);
+window.addEventListener('resize', hdrPlace);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hdrClose(); });
+
+
+// ══════════════════════════════════════════════════════════════
+// §COL-RZ — سحب عرض الأعمدة (v1.33.0 · Standards #51 · data-table-standard § 9ب)
+// ══════════════════════════════════════════════════════════════
+//
+// لايف بالسحب · دبل كليك = ضبط على أطول محتوى · العرض محفوظ لكل صفحة.
+// 🔴 **آخر عمود بيمتص الفراغ وقت العرض بس** (v8.3.1) — الجدول دايمًا بيملا
+//    عرض الكارت، و`colW` المحفوظ مايتغيّرش.
+// ⚠️ **`localStorage` هنا تفضيل واجهة مش بيانات** — نفس قرار المهارة
+//    (v8.2.0). مايتمسحش مع الخروج، ومفتاحه منفصل لكل صفحة.
+// ⚠️ **أول قياس بيستنى الخطوط + الجدول يكون ظاهر** — القياس على تاب مخفي
+//    بيدّي صفر لكل عمود، وبخط احتياطي بيدّي عروض غلط.
+const COL_LS = 'dco_col_widths_v1_' + (location.pathname.split('/').pop() || 'page');
+const COL_MIN = 64, COL_MAX = 700, COL_INIT_CAP = 320;
+const colW = {}; let colDrag = null, colBadge = null, colReady = false;
+const colTbl = () => document.getElementById('qTable');
+const colKeys = () => [...colTbl().querySelectorAll('thead th')].map((th, i) => th.dataset.qSort || ('c' + i));
+function colSave() { try { localStorage.setItem(COL_LS, JSON.stringify(colW)); } catch (e) {} }
+function colLoad() {
+  try { const s = JSON.parse(localStorage.getItem(COL_LS) || 'null'); return s && colKeys().every(k => s[k] >= COL_MIN) ? s : null; } catch (e) { return null; }
+}
+function colLast() { const c = colTbl().querySelectorAll('colgroup col'); return c.length ? c[c.length - 1].dataset.c : null; }
+function colSlack() { let sum = 0; colKeys().forEach(k => sum += colW[k] || 0); return Math.max(0, document.getElementById('qTableWrap').clientWidth - sum); }
+function colApply() {
+  const slack = colSlack(), last = colLast(); let sum = 0;
+  colTbl().querySelectorAll('colgroup col').forEach(col => { const k = col.dataset.c, w = colW[k] + (k === last ? slack : 0); col.style.width = w + 'px'; sum += w; });
+  colTbl().style.width = sum + 'px';
+}
+function colFreeze() { colTbl().classList.remove('col-auto'); colApply(); }
+function colInit() {
+  const t = colTbl(); if (!t || colReady) return;
+  const keys = colKeys();
+  if (!t.querySelector('colgroup')) {
+    const cg = document.createElement('colgroup'); cg.innerHTML = keys.map(k => `<col data-c="${k}">`).join(''); t.insertBefore(cg, t.firstChild);
+    t.querySelectorAll('thead th').forEach((th, i) => { if (th.querySelector('.col-rz')) return; const h = document.createElement('span'); h.className = 'col-rz'; h.dataset.rz = keys[i]; th.appendChild(h); });
+  }
+  const saved = colLoad();
+  if (saved) { Object.assign(colW, saved); colReady = true; colFreeze(); return; }
+  t.classList.add('col-auto'); t.style.width = ''; t.querySelectorAll('colgroup col').forEach(c => c.style.width = '');
+  let sum = 0;
+  t.querySelectorAll('thead th').forEach((th, i) => { const w = Math.min(COL_INIT_CAP, Math.max(COL_MIN, Math.round(th.getBoundingClientRect().width))); colW[keys[i]] = w; sum += w; });
+  const avail = document.getElementById('qTableWrap').clientWidth;
+  if (sum < avail) { const f = avail / sum; keys.forEach(k => colW[k] = Math.floor(colW[k] * f)); }
+  colReady = true; colFreeze();
+}
+function colShowBadge(w) { if (!colBadge) { colBadge = document.createElement('div'); colBadge.className = 'w-badge'; document.body.appendChild(colBadge); } colBadge.textContent = w + ' px'; }
+document.addEventListener('pointerdown', e => {
+  const h = e.target.closest && e.target.closest('[data-rz]'); if (!h || e.button) return;
+  e.preventDefault(); e.stopPropagation(); if (typeof hdrClose === 'function') hdrClose();
+  const k = h.dataset.rz; if (k === colLast()) colW[k] += colSlack();
+  colDrag = { k, x: e.clientX, w: colW[k], sign: getComputedStyle(colTbl()).direction === 'rtl' ? -1 : 1, h };
+  try { h.setPointerCapture(e.pointerId); } catch (_) {}
+  h.classList.add('active'); document.body.classList.add('col-resizing');
+  const col = colTbl().querySelector(`colgroup col[data-c="${k}"]`); if (col) col.classList.add('hl');
+  colShowBadge(colW[k]);
+});
+document.addEventListener('pointermove', e => {
+  if (!colDrag) return;
+  colW[colDrag.k] = Math.max(COL_MIN, Math.min(COL_MAX, Math.round(colDrag.w + colDrag.sign * (e.clientX - colDrag.x))));
+  colApply(); colShowBadge(colW[colDrag.k]);
+});
+function colEnd() {
+  if (!colDrag) return;
+  colDrag.h.classList.remove('active'); document.body.classList.remove('col-resizing');
+  colTbl().querySelectorAll('col.hl').forEach(c => c.classList.remove('hl'));
+  colDrag = null; if (colBadge) { colBadge.remove(); colBadge = null; } colSave();
+}
+document.addEventListener('pointerup', colEnd); document.addEventListener('pointercancel', colEnd);
+// ⚠️ المقبض جوّه <th> اللي عليه onclick للترتيب — الضغطة بعد السحب لازم ما توصلش للترتيب
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.col-rz')) { e.stopPropagation(); e.preventDefault(); } }, true);
+// دبل كليك على المقبض = ضبط على أطول محتوى في العمود (عنوانه + خلاياه)
+// 🔴 **القياس بـ `Range` على المحتوى مش على الخلية** — عرض الخلية = عرض العمود
+//    الحالي، فالقياس بيه كان بيخلّي الضبط **يكبّر بس ومايصغّرش أبدًا**
+//    (اتمسك في الفحص). ومقبض السحب نفسه بره القياس.
+function colFit(k) {
+  const t = colTbl(), keys = colKeys(), i = keys.indexOf(k); if (i < 0) return;
+  t.classList.add('col-measure');
+  const th = t.querySelectorAll('thead th')[i], rz = th.querySelector('.col-rz');
+  const hr = document.createRange(); hr.setStart(th, 0);
+  if (rz) hr.setEndBefore(rz); else hr.setEnd(th, th.childNodes.length);
+  let w = hr.getBoundingClientRect().width + 16;
+  t.querySelectorAll('tbody tr').forEach(tr => {
+    const td = tr.children[i]; if (!td || tr.classList.contains('q-none-row')) return;
+    const rg = document.createRange(); rg.selectNodeContents(td); w = Math.max(w, rg.getBoundingClientRect().width + 16);
+  });
+  t.classList.remove('col-measure');
+  colW[k] = Math.max(COL_MIN, Math.min(COL_MAX, Math.ceil(w))); colApply(); colSave();
+}
+document.addEventListener('dblclick', e => {
+  const h = e.target.closest && e.target.closest('[data-rz]'); if (h) colFit(h.dataset.rz);
+});
+window.addEventListener('resize', () => { if (colReady) colApply(); });
+let colFontWait = false;
+function colMaybeInit() {
+  if (colReady) { colApply(); return; }
+  const wrap = document.getElementById('qTableWrap');
+  if (!wrap || !wrap.clientWidth) return;                       // مخفي — نستنى
+  if (!document.querySelectorAll('#qBody tr:not(.q-none-row)').length) return;
+  if (document.fonts && document.fonts.status !== 'loaded') {
+    if (!colFontWait) { colFontWait = true; document.fonts.ready.then(() => { colFontWait = false; colMaybeInit(); }); }
+    return;
+  }
+  colInit();
 }
 
 // ── غلاف نطاق `q` فوق المكوّن ────────────────────────────────
@@ -1476,12 +1779,45 @@ function qClearRangePreset() {
   document.getElementById('qRangePresetMenu').classList.remove('open');
   qRender();
 }
+// 🔴 `clearTimeout` إلزامي — بحث لسه في مهلة الـ debounce (٣٠٠ms) كان هيرجع
+//    **بعد** المسح ويفلتر الجدول تاني من غير ما الموظف يكتب حاجة.
+function qResetSearch() {
+  clearTimeout(qSearchTimer);
+  qSearchTerm = '';
+  const si = document.getElementById('qSearch');
+  if (si) { si.value = ''; si.classList.remove('has-value'); }
+}
+function qClearSearch() { qResetSearch(); qRender(); }
 function qClearAllFilters() {
   msClearAll('q');
-  const si = document.getElementById('qSearch');
-  si.value = ''; si.classList.remove('has-value'); qSearchTerm = '';
+  qResetSearch();
   qResetDateFilter();
+  hdrClose();
   qRender();
+}
+
+// ── chips البحث والتاريخ (v1.33.0) — 🔴 الفلترين دول مالهمش مكان ظاهر
+//    غير رأس العمود، فالـ chip هو اللي بيقول بالنص إنهم مفعّلين (§6).
+//    ⚠️ chip التاريخ: اسم الفترة السريعة لو مختارة، وإلا
+//       `من 📅 dd/mm/yyyy إلى 📅 —` (Standards #50) — والطرف الفاضي `—`.
+function qDayLabel(ymd) {
+  const d = String(ymd || '').split('-');
+  return d.length === 3 ? `${d[2]}/${d[1]}/${d[0]}` : '—';
+}
+function qRenderSpecialChips() {
+  const box = document.getElementById('qChipsSpecial');
+  if (!box) return;
+  const rows = [];
+  if (qSearchTerm.trim())
+    rows.push(`<div class="ms-chips-row"><span class="chips-label">بحث:</span><span class="ms-chip">${esc(qSearchTerm.trim())}`
+            + `<button type="button" aria-label="مسح البحث" onclick="qClearSearch()">✕</button></span></div>`);
+  if (qDateFilterActive) {
+    const txt = qActivePreset ? Q_PRESET_LABELS[qActivePreset]
+      : `من 📅 ${qDayLabel(qDateFrom)} إلى 📅 ${qDayLabel(qDateTo)}`;
+    rows.push(`<div class="ms-chips-row"><span class="chips-label">تاريخ الأوردر:</span><span class="ms-chip">${esc(txt)}`
+            + `<button type="button" aria-label="مسح فلتر التاريخ" onclick="qClearRangePreset()">✕</button></span></div>`);
+  }
+  box.innerHTML = rows.join('');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1839,7 +2175,10 @@ document.getElementById('qWaChips').addEventListener('click', (e) => {
   msRenderList('q', 'where'); msRenderChips('q'); qRender();
 });
 
-function qRender() {
+// ⚠️ غلاف عن قصد: `qRender0` فيها أكتر من `return` بدري (تحميل · فشل · صفر
+//    نتائج)، والـ chips وعروض الأعمدة لازم يتحدّثوا في **كل** الحالات.
+function qRender() { qRender0(); qRenderSpecialChips(); colMaybeInit(); }
+function qRender0() {
   const rows  = qApplySort(qVisible());
   const tbody = document.getElementById('qBody');
   const wrap  = document.getElementById('qTableWrap');
@@ -1884,6 +2223,20 @@ function qRender() {
 
   qRenderChips();
 
+  // 🔴 **صفر نتائج بعد أول جلب ناجح = الجدول بيفضل ظاهر** (v1.33.0) — الفلاتر
+  //    بقت في رؤوس الأعمدة، فإخفاء الجدول كان بيخفي القمعات معاه والموظف
+  //    مايقدرش يعدّل الفلتر اللي فضّى الجدول غير بـ«مسح كل الفلاتر».
+  //    الرسالة بقت صف جوّه الجدول بعرضه كله (`colspan`).
+  //    ⚠️ وقبل أول جلب (تحميل/فشل) لسه `#qEmpty` بره الجدول — مفيش جدول يتعرض.
+  if (!rows.length && qState.at) {
+    const n = document.querySelectorAll('#qTable thead th').length;
+    empty.style.display = 'none';
+    wrap.style.display  = '';
+    tbody.innerHTML = `<tr class="q-none-row"><td colspan="${n}">` + (qState.rows.length
+      ? '<div class="ico">🔎</div><div>مفيش صفوف مطابقة للفلتر — عدّل الفلاتر من الرؤوس فوق، أو «مسح كل الفلاتر»</div>'
+      : '<div class="ico">✅</div><div>مفيش أوردرات جاهزة للشحن دلوقتي</div>') + '</td></tr>';
+    return;
+  }
   if (!rows.length) {
     wrap.style.display  = 'none';
     empty.style.display = '';
@@ -2127,7 +2480,11 @@ function switchMainTab(tab) {
   document.getElementById('viewAudit').style.display = isAudit ? '' : 'none';
   document.getElementById('tabQueueBtn').classList.toggle('active', !isAudit);
   document.getElementById('tabAuditBtn').classList.toggle('active', isAudit);
-  if (isAudit) { audRender(); audFocus(); }
+  // ⚠️ القايمة العائمة على `body` — من غير القفل بتفضل معلّقة فوق التاب التانية.
+  //    والرجوع للطابور بيعيد حساب العروض: لو أول جلب حصل والتاب مخفية
+  //    الأعمدة ما اتقاستش أصلًا (§COL-RZ).
+  hdrClose();
+  if (isAudit) { audRender(); audFocus(); } else colMaybeInit();
 }
 function audFocus() {
   const el = document.getElementById('audScanInput');
