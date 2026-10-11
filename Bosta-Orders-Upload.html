@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>رفع بوسطة — مركز عمليات الشحن والتحصيل</title>
-<!-- skills: html-builder v7.2.0 · constants v1.10.0 · order-lifecycle v1.3.0 · bosta-api-helper v1.1.0 — 19-09-2026 (نفس بصمة الريبو الأصلي — منطق الأداة ما اتراجعش هنا) -->
+<!-- skills: html-builder v8.3.1 (الجدولين فقط: #47 · #49 · #50 · #51) · constants v1.10.0 · order-lifecycle v1.3.0 · bosta-api-helper v1.1.0 — 11-10-2026 (منطق الأداة ما اتراجعش هنا — التمريرة على الجدولين بس) -->
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
@@ -347,14 +347,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .big-btn.clear{background:var(--surface);border-color:var(--border-strong);color:var(--text-mid);font-weight:700;}
 .big-btn.clear:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
 .big-btn:disabled{opacity:.5;cursor:not-allowed;}
-/* 🔴 السقف ده لازم يفضل أكبر من أي جدول حقيقي بكتير — هو بس بوابة أنيميشن
-   الطي، مش سقف عرض. كان 4000px وبيتقص عنده بـ overflow:hidden (مش سكرول):
-   عمود «العنوان كامل» (v2.14.0) بيطلّع صفوف طويلة، وأكتر من ~60 صف كانوا
-   كافيين يعدّوا 4000px ويختفوا خالص من غير أي تنبيه — العدّاد فوق كان لسه
-   بيقول العدد الصح لأنه محسوب من `filtered.length` قبل أي قص. */
-.tbl-body-wrap{max-height:999999px;overflow:hidden;transition:max-height .3s ease;
-  border-radius:0 0 var(--radius) var(--radius);}
-.tbl-body-wrap.collapsed{max-height:0;}
+/* 🔴 v1.34.0 (Standards #46/#49): مفيش سقف رقمي على `.tbl-body-wrap` — الطي `display:none`،
+   والسكرول الداخلي على `.tbl-scroll` نفسه (`68vh`) فالصفوف مابتتقصّش أبدًا. */
+.tbl-body-wrap{border-radius:0 0 var(--radius) var(--radius);}
+.tbl-body-wrap.collapsed{display:none;}
 .tbl-scroll{overflow-x:auto;border-radius:0 0 var(--radius) var(--radius);}
 
 /* ── Table ──────────────────────────────────────────────────── */
@@ -815,6 +811,86 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .cycle-badge.ok{background:var(--green-light);border-color:var(--green-border);color:var(--green);}
 /* اسم الدورة وعدد الدورات تحت البادج — البادج بيقول «الحالة» والسطر ده بيقول «أنهي دورة» */
 .cycle-sub{color:var(--text-muted);font-size:11px;font-weight:700;margin-top:3px;white-space:nowrap;}
+
+/* ══════════════════════════════════════════════════════════════
+   v1.34.0 — جدولا الرفع والسجل على معيار `ecommoda-html-builder` v8.3.1
+   (الفلاتر في رأس العمود #47 · خط وتثبيت العناوين #49 · سحب عرض الأعمدة #51)
+   🔴 كله مربوط بـ`.hdr-tbl` — جدول نافذة «نتيجة الرفع» وباقي الجداول الصغيرة
+      ما اتلمسوش.
+   ══════════════════════════════════════════════════════════════ */
+.flt-body[hidden]{display:none !important;}
+.th-flt{min-width:22px;height:22px;padding:0 3px;margin-inline-start:5px;border:1px solid transparent;border-radius:6px;
+  background:transparent;color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  gap:2px;font-size:10px;font-weight:800;vertical-align:middle;}
+.th-flt svg{width:14px;height:14px;}
+.th-flt:hover{background:var(--accent-light);color:var(--accent);}
+th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent);}
+/* القايمة العائمة — `position:fixed` على `body` (z 200): جوّه الجدول كانت هتتقص بالسكرول الداخلي */
+.hpop{position:fixed;z-index:200;width:268px;background:var(--surface);border:1px solid var(--border-strong);
+  border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,.18);}
+.hpop.wide{width:340px;}
+.hpop-hd{padding:9px 12px;font-weight:800;font-size:12.5px;border-bottom:1px solid var(--border);background:var(--surface-2);}
+.hpop-top{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);}
+.hpop .clear-btn{height:30px;padding:4px 10px;font-size:12px;}
+.hpop-selall{height:30px;padding:4px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);
+  font-family:inherit;font-size:12px;font-weight:700;color:var(--text-primary);cursor:pointer;}
+.hpop-selall:hover{border-color:var(--accent);color:var(--accent);}
+.hpop-list{max-height:260px;overflow:auto;}
+.hpop-item{display:flex;align-items:center;gap:8px;padding:7px 12px;cursor:pointer;font-size:13px;font-weight:600;}
+.hpop-item:hover{background:var(--surface-2);}
+.hpop-item.on{background:var(--accent-light);}
+.hpop-item input{accent-color:var(--accent);}
+.hpop-empty{padding:14px;font-size:12.5px;color:var(--text-muted);text-align:center;}
+.hpop-body{padding:10px 12px;display:flex;flex-direction:column;gap:9px;}
+.hpop-inp{width:100%;padding:8px 10px;border:1.5px solid var(--border-strong);border-radius:8px;font-family:inherit;font-size:13px;background:var(--surface);}
+.hpop-inp.has-value{background:var(--accent-light);border-color:var(--accent);}
+.hpop-inp[type=date]{min-width:0;padding:0 8px;font-size:12.5px;height:34px;}
+.hpop-sw{position:relative;}
+.hpop-sw .hpop-inp{padding-left:34px;}
+.hpop-sw .si{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text-muted);pointer-events:none;}
+.hpop-presets{display:flex;flex-wrap:wrap;gap:6px;}
+.hpop-presets button{padding:6px 10px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);
+  font-family:inherit;font-size:12px;font-weight:700;color:var(--text-primary);cursor:pointer;}
+.hpop-presets button.on{background:var(--accent-light);border-color:var(--accent);color:var(--accent-dark);}
+.hpop-rng{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.hpop-rng>div{min-width:0;}
+.hpop-rng label{font-size:11.5px;font-weight:700;color:var(--text-mid);display:block;margin-bottom:3px;}
+.hpop-rng select{width:100%;height:34px;border:1.5px solid var(--border-strong);border-radius:8px;padding:0 6px;font-family:inherit;font-size:12.5px;background:var(--surface);}
+.hpop-rng select.filled{border-color:var(--accent);background:var(--accent-light);}
+.th-tip{position:fixed;z-index:210;max-width:300px;background:var(--neutral-dark);color:var(--on-accent);font-size:12px;font-weight:600;
+  line-height:1.7;padding:6px 10px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.2);pointer-events:none;word-break:break-word;}
+
+/* #49 — عناوين ثابتة جوّه سكرول داخلي + خط الجدول (th 12/700 · td 12.5/600)
+   🔴 `background` على `th` إلزامي — العنوان الثابت من غيره شفاف والصفوف بتعدّي تحته.
+   ⚠️ `:where()` على الـ td عشان وزنها (0,0,1) فمقاسات الخلايا الخاصة (`.bosta-val` 14px ·
+      `.cell-addr` 13.5px · `.addr-rest`) تفضل غالبة زي ما كانت. */
+#tblWrap,#logTblWrap{max-height:68vh;overflow:auto;}
+.data-table.hdr-tbl{table-layout:fixed;}
+.data-table.hdr-tbl.col-auto{table-layout:auto;}
+.data-table.hdr-tbl thead th{position:sticky;top:0;z-index:20;background:var(--surface-2);font-size:12px;font-weight:700;
+  color:var(--text-mid);text-transform:none;letter-spacing:0;border-bottom:none;box-shadow:inset 0 -2px 0 var(--border-strong);
+  padding:10px 6px;white-space:normal;}
+.data-table.hdr-tbl.col-auto thead th{white-space:nowrap;}
+/* أول قياس: الخلايا القصيرة (تاريخ · رقم · بادج) سطر واحد عشان القياس يلقط عرضها الطبيعي — من غيره
+   «10/10/2026» كانت بتتقاس على أقل عرض (بتتكسر لسطرين). الخلايا الطويلة (`.cell-wrap` · `.act-list`)
+   بتفضل بمقاسات الـ CSS كبذرة زي ما كانت. */
+.data-table.hdr-tbl.col-auto tbody td:not(.cell-wrap):not(.act-list){white-space:nowrap;}
+:where(.hdr-tbl) tbody td{font-weight:600;}
+/* الخلايا بتلتف — مفيش قص (رقم تتبع مقصوص = رقم غلط) */
+.data-table.hdr-tbl tbody td{white-space:normal;overflow-wrap:anywhere;}
+.data-table.hdr-tbl.col-measure th,.data-table.hdr-tbl.col-measure td{white-space:nowrap;}
+/* #51 — سحب عرض الأعمدة */
+.col-rz{position:absolute;top:0;bottom:0;inset-inline-end:0;width:10px;cursor:col-resize;touch-action:none;z-index:3;}
+.col-rz::after{content:'';position:absolute;top:24%;bottom:24%;inset-inline-end:3px;width:2px;border-radius:2px;
+  background:var(--border-strong);transition:background .12s,top .12s,bottom .12s;}
+.col-rz:hover::after,.col-rz.active::after{background:var(--accent);top:8%;bottom:8%;}
+body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:none !important;}
+.hdr-tbl col.hl{background:var(--accent-light);}
+.w-badge{position:fixed;z-index:220;bottom:14px;left:50%;transform:translateX(-50%);background:var(--neutral-dark);color:var(--on-accent);
+  font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:20px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.25);}
+/* chips تحت صف النتائج — المنطقة بتختفي لو مفيش ولا سطر */
+.chips-zone{display:flex;flex-direction:column;gap:6px;padding:0 16px;}
+.chips-zone:has(.ms-chips-row:not(:empty)){padding:8px 16px;border-top:1px solid var(--border);}
 </style>
 
 <!-- ⚠️ الـ wrapper ده لازم يلف كل المحتوى — تعريف المتغيّر لوحده من غير الـ div مالوش أي تأثير -->
@@ -849,6 +925,17 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge"></span>
+          <span class="cl-ver-date">11-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔴 <b>جدولا «الرفع» و«سجل العمليات»: الفلاتر بقت في رأس كل عمود</b> (معيار <code>ecommoda-html-builder</code> v8.3.1 · Standards #47) — قمع ▽ جنب اسم العمود بيفتح قايمة عائمة: <b>رقم الأوردر</b> (بحث) · <b>التاريخ</b> (فترات سريعة + شهر محدد + من/إلى) · <b>العنوان بالكامل</b> (المحافظة) · <b>حالة العنوان</b> · <b>حالة S1</b> — وفي السجل: التاريخ · الموظف · نوع العملية · رقم الأوردر. لوحة الفلاتر اللي فوق الجدول اتشالت، والـ chips بقت تحت صف «النتائج» و«مسح كل الفلاتر» في صف النتائج. اسم العمود = ترتيب، والقمع = فلتر، والقمع بيتلوّن وعليه عدّاد، وtooltip بالقيم المحددة. مربعات «حالة العنوان» فوق الجدول بتكتب في نفس الفلتر فمستحيل يفترقوا.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>عناوين ثابتة</b> جوّه سكرول الجدول (بنط 12/700 للعناوين و12.5/600 للخلايا) · <b>عرض الأعمدة بالسحب</b> (دبل كليك = ضبط تلقائي، آخر عمود بيمتص الفراغ) محفوظ لكل وضع رفع وللسجل · والجدول بيفضل ظاهر لما الفلتر يطلّع صفر نتائج (الرسالة صف جواه).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>فلتر «الحالة» في وضعَي الاسترجاع/الاستبدال بقى من غير قمع — مفيش عمود حالة هناك وكل الصفوف على قيمة واحدة بالتصميم. صفر تعديل في منطق الرفع ولا في الـ Worker.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.29.0</span>
           <span class="cl-ver-date">03-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -1517,6 +1604,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
             <li><code>§TOOL-JS::filters</code> — سجل الـ multi-select الموحّد للجدولين (<code>owner</code> بيوجّه التغيير للجدول الصح)</li>
             <li><code>§TOOL-JS::dateFilter</code> — مصنع فلتر التاريخ (نسخة للجدول الرئيسي وواحدة للسجل، بنفس السلوك)</li>
             <li><code>§TOOL-JS::table</code> — الفلترة والترتيب والعرض والتحديد</li>
+            <li><code>§HDR-FLT</code> — قمع رأس العمود والقايمة العائمة للجدولين (<code>HDR_SCOPES</code> · <code>hdrBuild</code> · <code>hdrOpen</code> · <code>hdrUpdateStates</code> · chips البحث والتاريخ). بيقرا ويكتب في نفس <code>msState</code> والبحث والتاريخ — مفيش حالة تانية</li>
+            <li><code>§COL-RZ</code> — سحب عرض الأعمدة (<code>makeColRz</code> → <code>colMain</code> · <code>colLog</code>): قياس تلقائي أول مرة · سحب لايف · دبل كليك للضبط · حفظ</li>
             <li><code>§TOOL-JS::district</code> — نافذة اختيار المنطقة والمدينة يدويًا · الاحتمالات المثبّتة · اقتراحات المدن والزونات · قصر القايمة على زون (<code>effCity</code> · <code>chooseCity</code> · <code>chooseCrossCity</code> · <code>chooseZone</code> · <code>zoneSuggestRow</code> · <code>dpZoneFilter</code>)</li>
             <li><code>§TOOL-JS::upload</code> — التأكيد على المكرر · الرفع على دفعات · لوحة النتائج</li>
             <li><code>§LOG-JS</code> — <code>logParams</code> · pagination · تصدير XLSX + بانر التقصّ</li>
@@ -1525,7 +1614,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
           <h4>KEY VARIABLES</h4>
           <ul>
             <li><code>currentEmployee</code> — <code>{ username, displayName }</code> في الذاكرة فقط، مش في التخزين</li>
-            <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في <code>shared/shell.js</code>) — <strong>مفتاح الـ localStorage الوحيد هنا</strong>، وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك. ⚠️ المفتاح القديم <code>bosta_orders_upload_worker_secret</code> <strong>لسه مستخدم</strong> — الرابط القديم في ريبو <code>Bosta-Orders-Upload</code> لسه شغّال بشاشة دخوله وسرّه المستقل، فمحدش يفتكر إنه اتهجر.</li>
+            <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في <code>shared/shell.js</code>) — <strong>مفتاح الـ localStorage الوحيد اللي فيه بيانات حسّاسة</strong> (جنبه عروض الأعمدة — تفضيل شاشة، شوف تحت)، وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك. ⚠️ المفتاح القديم <code>bosta_orders_upload_worker_secret</code> <strong>لسه مستخدم</strong> — الرابط القديم في ريبو <code>Bosta-Orders-Upload</code> لسه شغّال بشاشة دخوله وسرّه المستقل، فمحدش يفتكر إنه اتهجر.</li>
             <li><code>DCO_WORKERS.bostaUpload.min</code> (في <code>shared/shell.js</code>) — بدل <code>MIN_WORKER_VERSION</code>/<code>TOOL_VERSION</code> المحليين؛ نسخة الواجهة بقت نسخة الهب (#24)</li>
             <li><code>UPLOAD_CHUNK = 10</code> — حجم الدفعة من الواجهة (الـ Worker سقفه ٢٥)</li>
             <li><code>allRows</code> · <code>selected</code> · <code>districtOverride</code> — بيانات الجدول والتحديد والاختيار اليدوي</li>
@@ -1539,6 +1628,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
             <li><strong>الأوردر المرفوع قبل كده بيفضل ظاهر في القايمة</strong> ومعاه تنبيه — مش بيتشال، لأن فيه حالات حقيقية بتحتاج إعادة رفع.</li>
             <li><strong>بانر أحمر «فلتر الحالة مش متسق»</strong> معناه عدّ <code>Confirmed</code> + عدّ <code>Confirmed + Edit</code> مش بيساوي العدّ المدمج — بلّغ فورًا، والأداة بتفضل شغّالة على الاستعلام المدمج.</li>
             <li>المحافظة اللي مش في جدول <code>ecommoda-constants</code> §3.5 بتوقف رفع الصف بتاعها برسالة صريحة — <strong>مفيش تخمين</strong>.</li>
+            <li>🔴 <strong>الفلاتر في رأس العمود (v1.34.0)</strong> — <code>#fltState</code>/<code>#logFltState</code> حاملات حالة <strong>مخفية</strong> (مكوّنات الاختيار المتعدد وحقل البحث وحقلا التاريخ اللي جواها هي اللي الدوال بتقرا وتكتب فيها والقمع بيمرّر لها). ⛔ ممنوع تتشال لوحدها. وبحث السجل بيتثبّت لحظة قفل القايمة (<code>logSearchApplied</code>) من غير ما يستنى الـ debounce.</li>
+            <li>⚠️ <strong><code>localStorage</code> بقى فيه عروض الأعمدة جنب السر</strong>: <code>dco_col_widths_v1_Bosta-Orders-Upload.html_main_&lt;الوضع&gt;</code> و<code>…_log</code> — تفضيل شاشة مش بيانات، ومايتمسحش مع الخروج. لكل وضع رفع مفتاح لأن الأعمدة بتختلف بينهم.</li>
             <li>«النتائج» في الجدول الرئيسي بتتحسب على البيانات المحمّلة، وفي تاب السجل بتيجي من السيرفر (الفلترة كلها server-side).</li>
             <li><strong>الترتيب في تاب السجل server-side زي الفلترة والترقيم</strong> — الضغط على عمود بيرتّب <strong>كل</strong> النتايج وبيرجّع لصفحة ١. (كان بيرتّب الصفحة المعروضة فقط — ١٠٠ صف — والسهم شكله ترتيب عام؛ اتصلح في v1.6.0.)</li>
             <li><strong>ترجيح المطابقة مش «الأطول يكسب».</strong> الترتيب: المنطقة اللي اسمها اسم المحافظة بتتأخّر (العميل بيكتب محافظته كعادة) ← خانة <code>city</code> تغلب <code>address1</code> ← التطابق الكامل يغلب الجزئي ← الطول بيفصل <strong>فقط</strong> عند الاحتواء (مدينة نصر / نصر). مطابقتين منفصلتين = <strong>غموض معلَن</strong>، مش اختيار بالطول.</li>
@@ -1839,22 +1930,13 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 
   <div class="unified-section">
 
-    <div class="flt-header" onclick="toggleFilters()">
-      <div class="flt-header-right">
-        <span class="flt-toggle open" id="fltToggleIcon">▲</span>
-        <svg class="flt-icon" id="fltIcon" viewBox="0 0 36 24" fill="none" stroke="currentColor"
-             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="2 3 13 3 8.3 10.2 8.3 19 6.7 19 6.7 10.2 2 3"></polygon>
-          <line x1="18" y1="5" x2="33" y2="5"></line>
-          <line x1="18" y1="11" x2="29" y2="11"></line>
-          <line x1="18" y1="17" x2="25" y2="17"></line>
-        </svg>
-      </div>
-      <button class="clear-btn inactive" id="clearAllBtn"
-              onclick="event.stopPropagation(); clearAllFilters();">✕ مسح كل الفلاتر</button>
-    </div>
-
-    <div class="flt-body" id="fltBody">
+    <!-- 🔴 مفيش قسم فلاتر فوق الجدول (v1.34.0 · Standards #47) — كل فلتر في رأس عموده
+         (`§HDR-FLT` في الـ JS). اسم العمود = ترتيب، والقمع = فلتر.
+         ⚠️ `#fltState` حامل حالة مخفي: مكوّنات الاختيار المتعدد وحقل البحث وحقلا التاريخ
+         اللي جواه هي اللي `msToggleItem`/`onSearchInput`/`applyRangePreset`… بتقرا وتكتب فيها،
+         والقمع بيمرّر لنفس الدوال — فالقمع والـ chips ومربعات «حالة العنوان» **مستحيل يفترقوا**.
+         ⛔ ممنوع يتشال لوحده — شيله بيرمي `null` على أول فلتر تاريخ. -->
+    <div class="flt-body" id="fltState" hidden>
 
       <div class="flt-row">
         <div class="flt-g">
@@ -1987,13 +2069,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
         </div>
       </div>
 
-      <div class="ms-chips-row" id="chipsRow-s1"></div>
-      <div class="ms-chips-row" id="chipsRow-province"></div>
-      <div class="ms-chips-row" id="chipsRow-addrMode"></div>
-
     </div>
-
-    <div class="section-divider"></div>
 
     <div class="tbl-bar" onclick="toggleTable()">
       <div class="tbl-bar-right">
@@ -2005,6 +2081,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
         <span class="badge badge-info" id="selectedBadge" style="display:none;"></span>
       </div>
       <div class="tbl-bar-left">
+        <!-- ⚠️ `stopPropagation` إلزامية — من غيرها الضغطة بتطوي الجدول. «مسح كل الفلاتر» بقى هنا
+             (v1.34.0 · #47) بعد ما هيدر الفلاتر اتشال. -->
+        <button class="clear-btn inactive" id="clearAllBtn" type="button"
+                onclick="event.stopPropagation(); clearAllFilters();">✕ مسح كل الفلاتر</button>
         <button class="act-btn refresh" onclick="event.stopPropagation(); loadOrders(true);">↺ تحديث</button>
         <button class="act-btn export"  onclick="event.stopPropagation(); exportOrdersXLSX();">⬇ تصدير XLSX</button>
         <!-- ⚠️ الخطة البديلة. الملف ده هو ملف بوسطة نفسه (٢٠ عمود) اللي بيترفع
@@ -2025,9 +2105,18 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
       </div>
     </div>
 
+    <!-- Chips — سطر لكل فلتر، واسم الفلتر مرة واحدة في أول السطر (§6). بقت تحت صف النتائج ظاهرة
+         دايمًا: الفلتر في رأس العمود، فالـ chips هي المكان اللي بيقول بالنص إيه المفعّل. -->
+    <div class="chips-zone">
+      <div class="ms-chips-row" id="chipsRow-s1"></div>
+      <div class="ms-chips-row" id="chipsRow-province"></div>
+      <div class="ms-chips-row" id="chipsRow-addrMode"></div>
+      <div id="chipsSpecial" class="chips-zone" style="padding:0;border:0;"></div>
+    </div>
+
     <div class="tbl-body-wrap" id="tblBodyWrap">
-      <div class="tbl-scroll">
-        <table class="data-table">
+      <div class="tbl-scroll" id="tblWrap">
+        <table class="data-table hdr-tbl col-auto" id="tblMain">
           <!-- 🔴 الترويسة بتتبني من `tableColumns()` مش مكتوبة هنا — الأعمدة
                بتختلف بالوضع (الدورة والمبلغ في R/E، حالة S1 في الشحن)، وترويسة
                ثابتة مع جسم متغيّر معناها أعمدة بتزحف على بعضها في صمت. -->
@@ -2048,22 +2137,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 
   <div class="unified-section">
 
-    <div class="flt-header" onclick="toggleLogFilters()">
-      <div class="flt-header-right">
-        <span class="flt-toggle open" id="logFltToggleIcon">▲</span>
-        <svg class="flt-icon" id="logFltIcon" viewBox="0 0 36 24" fill="none" stroke="currentColor"
-             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="2 3 13 3 8.3 10.2 8.3 19 6.7 19 6.7 10.2 2 3"></polygon>
-          <line x1="18" y1="5" x2="33" y2="5"></line>
-          <line x1="18" y1="11" x2="29" y2="11"></line>
-          <line x1="18" y1="17" x2="25" y2="17"></line>
-        </svg>
-      </div>
-      <button class="clear-btn inactive" id="logClearAllBtn"
-              onclick="event.stopPropagation(); clearAllLogFilters();">✕ مسح كل الفلاتر</button>
-    </div>
-
-    <div class="flt-body" id="logFltBody">
+    <!-- 🔴 نفس قرار تاب الرفع (v1.34.0 · #47): الفلاتر في رأس العمود، و`#logFltState` حامل حالة مخفي.
+         ⚠️ فلترة السجل **server-side** (`logParams()`) — القمع بيكتب في نفس الحالة وبيستدعي نفس
+         `onLogFilterChange`، فمصدر الباراميترات فضل واحد. -->
+    <div class="flt-body" id="logFltState" hidden>
 
       <div class="flt-row">
         <div class="flt-g">
@@ -2176,12 +2253,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
         </div>
       </div>
 
-      <div class="ms-chips-row" id="chipsRow-logType"></div>
-      <div class="ms-chips-row" id="chipsRow-logEmp"></div>
-
     </div>
-
-    <div class="section-divider"></div>
 
     <div class="tbl-bar" onclick="toggleLogTable()">
       <div class="tbl-bar-right">
@@ -2192,25 +2264,33 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
         </div>
       </div>
       <div class="tbl-bar-left">
+        <button class="clear-btn inactive" id="logClearAllBtn" type="button"
+                onclick="event.stopPropagation(); clearAllLogFilters();">✕ مسح كل الفلاتر</button>
         <button class="act-btn refresh" onclick="event.stopPropagation(); fetchLog();">↺ تحديث</button>
         <button class="act-btn export"  onclick="event.stopPropagation(); exportLogXLSX();">⬇ تصدير XLSX</button>
       </div>
     </div>
 
+    <div class="chips-zone">
+      <div class="ms-chips-row" id="chipsRow-logType"></div>
+      <div class="ms-chips-row" id="chipsRow-logEmp"></div>
+      <div id="logChipsSpecial" class="chips-zone" style="padding:0;border:0;"></div>
+    </div>
+
     <div class="tbl-body-wrap" id="logTblBodyWrap">
-      <div class="tbl-scroll">
-        <table class="data-table">
+      <div class="tbl-scroll" id="logTblWrap">
+        <table class="data-table hdr-tbl col-auto" id="tblLog">
           <thead><tr>
-            <th class="sortable-th" data-sort-key="date"     onclick="toggleLogSort('date')">التاريخ<span class="sort-icon" data-sort-key="date"></span></th>
-            <th class="sortable-th" data-sort-key="time"     onclick="toggleLogSort('time')">الوقت<span class="sort-icon" data-sort-key="time"></span></th>
-            <th class="sortable-th" data-sort-key="employee" onclick="toggleLogSort('employee')">الموظف<span class="sort-icon" data-sort-key="employee"></span></th>
-            <th class="sortable-th" data-sort-key="type"     onclick="toggleLogSort('type')">نوع العملية<span class="sort-icon" data-sort-key="type"></span></th>
-            <th class="sortable-th" data-sort-key="orderName" onclick="toggleLogSort('orderName')">رقم الأوردر<span class="sort-icon" data-sort-key="orderName"></span></th>
-            <th>النتيجة</th>
-            <th>رقم التتبع</th>
-            <th>العقد</th>
-            <th>المنطقة</th>
-            <th>ملاحظات</th>
+            <th class="sortable-th" data-col="date"      data-sort-key="date"     onclick="toggleLogSort('date')">التاريخ<span class="sort-icon" data-sort-key="date"></span></th>
+            <th class="sortable-th" data-col="time"      data-sort-key="time"     onclick="toggleLogSort('time')">الوقت<span class="sort-icon" data-sort-key="time"></span></th>
+            <th class="sortable-th" data-col="employee"  data-sort-key="employee" onclick="toggleLogSort('employee')">الموظف<span class="sort-icon" data-sort-key="employee"></span></th>
+            <th class="sortable-th" data-col="type"      data-sort-key="type"     onclick="toggleLogSort('type')">نوع العملية<span class="sort-icon" data-sort-key="type"></span></th>
+            <th class="sortable-th" data-col="orderName" data-sort-key="orderName" onclick="toggleLogSort('orderName')">رقم الأوردر<span class="sort-icon" data-sort-key="orderName"></span></th>
+            <th data-col="result">النتيجة</th>
+            <th data-col="tracking">رقم التتبع</th>
+            <th data-col="contract">العقد</th>
+            <th data-col="zone">المنطقة</th>
+            <th data-col="notes">ملاحظات</th>
           </tr></thead>
           <tbody id="logTblBody"></tbody>
         </table>
@@ -2578,8 +2658,11 @@ function switchMainTab(tab) {
   TAB_IDS.forEach(id => document.getElementById(TAB_BTN_IDS[id]).classList.toggle('active', id === tab));
   document.getElementById('panelMain').classList.toggle('active', tab !== 'log');
   document.getElementById('panelLog') .classList.toggle('active', tab === 'log');
+  hdrClose();   // قايمة فلتر مفتوحة ما تفضلش معلّقة فوق التاب التاني
   if (tab === 'log' && !logLoaded) { logLoaded = true; fetchLog(); }
   if (currentUploadTab !== prevUploadTab) onUploadTabChanged();
+  // الجدول وهو مخفي عرضه صفر — الرجوع للتاب بيعيد حساب العروض (§COL-RZ)
+  (tab === 'log' ? colLog : colMain).maybeInit();
   updateTabChip();
   closeTabChipMenu();
 }
@@ -2821,6 +2904,7 @@ function msToggle(key) {
 }
 function onMsChanged(key) {
   renderChips();
+  hdrRefreshList(key);
   if (msState[key].owner === 'log') onLogFilterChange();
   else applyFilters();
 }
@@ -3055,6 +3139,407 @@ function applySpecificMonth(scope, year, month) {
   onDateApplied(scope);
 }
 
+// ─── §HDR-FLT + §COL-RZ — فلاتر رأس العمود وسحب عرض الأعمدة (v1.34.0) ───
+// المعيار: `ecommoda-html-builder` v8.3.1 → data-table-standard § 2 · § 5 · § 6 · § 7 · § 9ب
+// (نفس تمريرة v1.33.0 على جدولي الطابور — Ready-Orders/Shipped-Orders — بس هنا على جدولين:
+//  `main` = جدول الرفع (الأعمدة بتتبدّل بالوضع) · `log` = جدول السجل (server-side)).
+//
+// 🔴 **القمع مش حالة تانية — بيقرا ويكتب في نفس `msState` ونفس البحث والتاريخ.** مربعات «حالة
+//    العنوان» فوق وحقول `#fltState`/`#logFltState` المخفية بتكتب في نفس المكان، فالقمع والـ chips
+//    والمربعات **مستحيل يفترقوا**. ⚠️ اسم العمود = ترتيب، والقمع = فلتر (`stopPropagation`).
+// ⚠️ فلتر «الحالة» في وضعَي الاسترجاع/الاستبدال **من غير عمود** (كل الصفوف على قيمة واحدة بالتصميم:
+//    `Confirmed + RETURN`/`Confirmed + EXCHANGE`) فمفيش قمع ليه هناك — والاختيار بيتمسح في `switchJob`.
+const FUNNEL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></svg>';
+const HDR_SCOPES = {
+  main: {
+    tableId: 'tblMain', wrapId: 'tblWrap', chipsId: 'chipsSpecial', dateScope: 'main',
+    cols: {
+      orderNumber: { fk: 'search', title: 'بحث برقم الأوردر أو العميل أو العنوان', aria: 'بحث' },
+      date:        { fk: 'date',   title: 'تاريخ الأوردر', aria: 'تاريخ الأوردر' },
+      shopifyAddr: { fk: 'province' }, addrMode: { fk: 'addrMode' }, s1: { fk: 's1' },
+    },
+    searchCtl: 'searchInput', searchLabel: 'بحث',
+  },
+  log: {
+    tableId: 'tblLog', wrapId: 'logTblWrap', chipsId: 'logChipsSpecial', dateScope: 'log',
+    cols: {
+      date:      { fk: 'date',   title: 'التاريخ', aria: 'تاريخ العملية' },
+      employee:  { fk: 'logEmp' }, type: { fk: 'logType' },
+      orderName: { fk: 'search', title: 'بحث برقم الأوردر أو الملاحظات', aria: 'بحث' },
+    },
+    searchCtl: 'logSearch', searchLabel: 'بحث',
+  },
+};
+const HDR_PRESETS = ['today', 'yesterday', 'last3', 'last7', 'last30', 'last90', 'thisMonth', 'lastMonth', 'thisQuarter', 'thisYear', 'lastYear'];
+let hPop = null, hScope = null, hKey = null, hAnchor = null, hTip = null;
+
+function hdrSearchEl(scope) { return document.getElementById(HDR_SCOPES[scope].searchCtl); }
+function hdrSearchTerm(scope) { return scope === 'main' ? searchTerm : (hdrSearchEl('log').value || '').trim(); }
+function hdrMsLabel(key) { return filterLabels[key] || key; }
+function hdrDayLabel(ymd) { const d = String(ymd || '').split('-'); return d.length === 3 ? `${d[2]}/${d[1]}/${d[0]}` : '—'; }
+function hdrDateText(scope) {
+  const st = dateState[scope];
+  if (st.preset === 'specificMonth' && st.from) { const [y, m] = st.from.split('-'); return `${RANGE_MONTH_NAMES[Number(m)]} ${y}`; }
+  if (st.preset && RANGE_PRESET_LABELS[st.preset]) return RANGE_PRESET_LABELS[st.preset];
+  return `من 📅 ${hdrDayLabel(st.from)} إلى 📅 ${hdrDayLabel(st.to)}`;
+}
+function hdrColCount(scope, fk) {
+  if (fk === 'search') return hdrSearchTerm(scope).trim() ? 1 : 0;
+  if (fk === 'date') return dateState[scope].active ? 1 : 0;
+  return msState[fk] ? msState[fk].selected.size : 0;
+}
+
+// القمع بيتحط جنب كل عمود قابل للفلترة — idempotent (الترويسة بتتعاد رسمها في `switchJob`)
+function hdrBuild(scope) {
+  const cfg = HDR_SCOPES[scope], t = document.getElementById(cfg.tableId); if (!t) return;
+  t.querySelectorAll('thead th[data-col]').forEach(th => {
+    const c = cfg.cols[th.dataset.col];
+    if (!c || (c.fk !== 'search' && c.fk !== 'date' && !msState[c.fk]) || th.querySelector('.th-flt')) return;
+    th.dataset.fk = c.fk;
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'th-flt'; b.dataset.hflt = c.fk; b.dataset.hscope = scope;
+    b.setAttribute('aria-label', 'فلتر ' + (c.aria || hdrMsLabel(c.fk)));
+    b.innerHTML = FUNNEL_SVG + '<b class="th-cnt"></b>';
+    b.addEventListener('click', e => { e.stopPropagation(); hdrOpen(scope, c.fk, b); });
+    b.addEventListener('mouseenter', () => hdrTipShow(b));
+    b.addEventListener('mouseleave', hdrTipHide);
+    th.appendChild(b);
+  });
+}
+function hdrUpdateStates(scope) {
+  const cfg = HDR_SCOPES[scope], t = document.getElementById(cfg.tableId);
+  if (t) t.querySelectorAll('thead th[data-fk]').forEach(th => {
+    const n = hdrColCount(scope, th.dataset.fk);
+    th.classList.toggle('flt-on', n > 0);
+    const c = th.querySelector('.th-cnt'); if (c) c.textContent = n > 1 ? n : (n ? '●' : '');
+  });
+  hdrRenderSpecialChips(scope);
+  hdrTipHide();
+}
+// chips البحث والتاريخ — مالهمش مكان ظاهر غير رأس العمود، فالـ chip هو اللي بيقول بالنص إنهم مفعّلين (§6)
+function hdrRenderSpecialChips(scope) {
+  const box = document.getElementById(HDR_SCOPES[scope].chipsId); if (!box) return;
+  const rows = [], term = hdrSearchTerm(scope).trim();
+  if (term)
+    rows.push(`<div class="ms-chips-row"><span class="chips-label">بحث:</span><span class="ms-chip">${esc(term)}`
+            + `<button type="button" aria-label="مسح البحث" onclick="hdrClearSearch('${scope}')">✕</button></span></div>`);
+  if (dateState[scope].active)
+    rows.push(`<div class="ms-chips-row"><span class="chips-label">${scope === 'main' ? 'تاريخ الأوردر' : 'التاريخ'}:</span><span class="ms-chip">${esc(hdrDateText(scope))}`
+            + `<button type="button" aria-label="مسح فلتر التاريخ" onclick="clearRangePreset('${scope}')">✕</button></span></div>`);
+  box.innerHTML = rows.join('');
+}
+
+// ── tooltip القيم المحددة (§2.5) — مفيش اختيار = مفيش tooltip ──
+function hdrTipText(scope, fk) {
+  if (fk === 'search') return hdrSearchTerm(scope).trim();
+  if (fk === 'date') return dateState[scope].active ? hdrDateText(scope) : '';
+  const st = msState[fk]; if (!st || !st.selected.size) return '';
+  return [...st.selected].map(v => { const it = st.items.find(x => x.value === v); return it ? it.label : v; }).join('، ');
+}
+function hdrTipShow(btn) {
+  hdrTipHide();
+  if (hPop && hAnchor === btn) return;
+  const txt = hdrTipText(btn.dataset.hscope, btn.dataset.hflt); if (!txt) return;
+  hTip = document.createElement('div'); hTip.className = 'th-tip'; hTip.textContent = txt; document.body.appendChild(hTip);
+  const r = btn.getBoundingClientRect(), w = hTip.offsetWidth;
+  hTip.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + 'px';
+  hTip.style.top = (r.bottom + 6) + 'px';
+}
+function hdrTipHide() { if (hTip) { hTip.remove(); hTip = null; } }
+
+// ── القايمة العائمة ──
+// 🔴 قفل قايمة البحث **بيثبّت** المكتوب فورًا — كتابة وقفل أسرع من مهلة الـ debounce كانت بتسيب الفلتر
+//    يتطبّق بعدها والمربع يتفتح فاضي على فلتر شغّال.
+function hdrClose() {
+  const scope = hScope, key = hKey, wasSearch = hPop && key === 'search';
+  if (hPop) hPop.remove();
+  if (hPop && key && msState[key]) msState[key].search = '';
+  hPop = null; hScope = null; hKey = null; hAnchor = null; hdrTipHide();
+  if (wasSearch) hdrFlushSearch(scope);
+}
+function hdrFlushSearch(scope) {
+  const el = hdrSearchEl(scope), v = el ? el.value : '';
+  if (scope === 'main') {
+    if (v !== searchTerm) { clearTimeout(searchTimer); searchTimer = null; searchTerm = v; applyFilters(); }
+  } else if (v.trim() !== logSearchApplied) {
+    clearTimeout(logSearchTimer); logSearchTimer = null; logCurrentPage = 1; clearExportWarn(); fetchLog();
+  }
+}
+function hdrClearSearch(scope, keepOpen) {
+  if (!keepOpen) hdrClose();
+  const el = hdrSearchEl(scope); el.value = ''; toggleSearchActiveState(el);
+  const pi = hPop && hPop.querySelector('#hSearchInput'); if (pi) { pi.value = ''; pi.classList.remove('has-value'); pi.focus(); }
+  if (scope === 'main') { clearTimeout(searchTimer); searchTimer = null; searchTerm = ''; applyFilters(); }
+  else { clearTimeout(logSearchTimer); logSearchTimer = null; logCurrentPage = 1; clearExportWarn(); fetchLog(); }
+}
+function hdrOpen(scope, key, anchor) {
+  if (hKey === key && hAnchor === anchor) { hdrClose(); return; }
+  hdrClose(); hScope = scope; hKey = key; hAnchor = anchor;
+  hPop = document.createElement('div'); hPop.className = 'hpop'; document.body.appendChild(hPop);
+  if (key !== 'search' && key !== 'date') msState[key].search = '';
+  hdrRender(); hdrPlace();
+}
+function hdrRender() {
+  if (!hPop) return;
+  if (hKey === 'search' || hKey === 'date') { hdrRenderSpecial(); return; }
+  const st = msState[hKey], many = st.items.length > 8;
+  hPop.innerHTML = `<div class="hpop-hd">${esc(hdrMsLabel(hKey))}</div>
+    <div class="hpop-top"><button type="button" class="clear-btn" data-hact="clear">✕ مسح الاختيار</button><button type="button" class="hpop-selall" data-hact="all">تحديد الكل</button></div>`
+    + (many ? `<div class="hpop-body" style="padding-bottom:0"><div class="hpop-sw"><input type="text" class="hpop-inp" data-msq autocomplete="off" aria-label="بحث في ${esc(hdrMsLabel(hKey))}"><span class="si">🔍</span></div></div>` : '')
+    + '<div class="hpop-list" id="hpopList"></div>';
+  hdrRenderList();
+}
+function hdrRenderList() {
+  const box = hPop && hPop.querySelector('#hpopList'); if (!box || !msState[hKey]) return;
+  const st = msState[hKey], q = (st.search || '').trim().toLowerCase();
+  const vis = q ? st.items.filter(it => it.label.toLowerCase().includes(q)) : st.items;
+  box.innerHTML = vis.length ? vis.map(it => {
+    const on = st.selected.has(it.value);
+    return `<div class="hpop-item ${on ? 'on' : ''}" data-hval="${esc(it.value)}"><input type="checkbox" ${on ? 'checked' : ''} tabindex="-1"><span>${esc(it.label)}</span></div>`;
+  }).join('') : '<div class="hpop-empty">لا توجد نتائج</div>';
+}
+function hdrRenderSpecial() {
+  const scope = hScope;
+  hPop.classList.toggle('wide', hKey === 'date');
+  if (hKey === 'search') {
+    const cfg = Object.values(HDR_SCOPES[scope].cols).find(c => c.fk === 'search'), term = hdrSearchEl(scope).value;
+    hPop.innerHTML = `<div class="hpop-hd">${esc(cfg.title)}</div>
+      <div class="hpop-body"><div class="hpop-sw"><input type="text" class="hpop-inp ${term.trim() ? 'has-value' : ''}" id="hSearchInput" autocomplete="off" aria-label="${esc(cfg.title)}" value="${esc(term)}"><span class="si">🔍</span></div>
+      <button type="button" class="clear-btn" data-hact="sclear" style="align-self:flex-start">✕ مسح الاختيار</button></div>`;
+    const i = hPop.querySelector('#hSearchInput'); if (i) i.focus();
+  } else {
+    const cfg = Object.values(HDR_SCOPES[scope].cols).find(c => c.fk === 'date');
+    const y = cairoNow().getUTCFullYear();
+    hPop.innerHTML = `<div class="hpop-hd">${esc(cfg.title)}</div>
+      <div class="hpop-body"><button type="button" class="clear-btn" data-hact="dclear" style="align-self:flex-start">✕ مسح الاختيار</button>
+      <div class="hpop-presets">${HDR_PRESETS.map(k => `<button type="button" data-hpreset="${k}">${RANGE_PRESET_LABELS[k]}</button>`).join('')}</div>
+      <div class="hpop-rng"><div><label>من تاريخ</label><input type="date" class="hpop-inp" data-hdate="from" onclick="this.showPicker&&this.showPicker();"></div>
+      <div><label>إلى تاريخ</label><input type="date" class="hpop-inp" data-hdate="to" onclick="this.showPicker&&this.showPicker();"></div></div>
+      <div class="hpop-rng"><div><label>📅 شهر محدد</label><select data-hmonth><option value="">الشهر</option>${RANGE_MONTH_NAMES.slice(1).map((m, i) => `<option value="${i + 1}">${m}</option>`).join('')}</select></div>
+      <div><label>السنة</label><select data-hyear><option value="">السنة</option>${[y, y - 1, y - 2].map(v => `<option value="${v}">${v}</option>`).join('')}</select></div></div></div>`;
+    hdrSyncDatePop();
+  }
+}
+function hdrSyncDatePop() {
+  if (!hPop || hKey !== 'date') return;
+  const st = dateState[hScope];
+  hPop.querySelectorAll('[data-hpreset]').forEach(b => b.classList.toggle('on', b.dataset.hpreset === st.preset));
+  hPop.querySelectorAll('[data-hdate]').forEach(i => { i.value = (i.dataset.hdate === 'from' ? st.from : st.to) || ''; });
+  const m = hPop.querySelector('[data-hmonth]'), y = hPop.querySelector('[data-hyear]');
+  const sm = st.preset === 'specificMonth' && st.from ? st.from.split('-') : null;
+  if (m) { m.value = sm ? String(Number(sm[1])) : ''; m.classList.toggle('filled', !!m.value); }
+  if (y) { y.value = sm ? sm[0] : ''; y.classList.toggle('filled', !!y.value); }
+}
+function hdrPlace() {
+  if (!hPop || !hAnchor) return;
+  if (!document.contains(hAnchor)) { hdrClose(); return; }
+  const r = hAnchor.getBoundingClientRect(), w = hPop.offsetWidth, h = hPop.offsetHeight;
+  hPop.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + 'px';
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  hPop.style.top = top + 'px';
+}
+function hdrRefreshList(key) { if (hPop && hKey === key) hdrRenderList(); }
+
+// ⚠️ listener واحد delegated — والحارس الأول إلزامي (Standards #32): اختيار عنصر بيعيد رسم القايمة
+//    فالعنصر المضغوط بيتشال من الـ DOM قبل ما الحدث يوصل هنا، وبدونه القايمة بتتقفل بعد أول اختيار.
+document.addEventListener('click', e => {
+  if (!document.contains(e.target)) return;
+  if (!hPop) return;
+  if (e.target.closest && e.target.closest('.th-flt')) return;
+  if (hPop.contains(e.target)) {
+    const it = e.target.closest('[data-hval]');
+    if (it) { msToggleItem(hKey, it.dataset.hval); return; }
+    const pr = e.target.closest('[data-hpreset]');
+    if (pr) { applyRangePreset(hScope, pr.dataset.hpreset); hdrSyncDatePop(); return; }
+    const a = e.target.closest('[data-hact]');
+    if (a) {
+      const act = a.dataset.hact;
+      if (act === 'sclear') hdrClearSearch(hScope, true);
+      else if (act === 'dclear') { clearRangePreset(hScope); hdrSyncDatePop(); }
+      else if (act === 'clear') msClear(hKey);
+      else if (act === 'all') msToggleSelectAll(hKey, true);
+    }
+    return;
+  }
+  hdrClose();
+});
+document.addEventListener('input', e => {
+  if (!hPop || !hPop.contains(e.target)) return;
+  if (e.target.id === 'hSearchInput') {
+    const el = e.target, ctl = hdrSearchEl(hScope);
+    el.classList.toggle('has-value', el.value.trim().length > 0);
+    ctl.value = el.value;
+    (hScope === 'main' ? onSearchInput : onLogSearchInput)(ctl);   // نفس دوال البحث القديمة (debounce جوّاها)
+  } else if (e.target.matches('[data-msq]')) {
+    msState[hKey].search = e.target.value; hdrRenderList();
+  }
+});
+document.addEventListener('change', e => {
+  if (!hPop || !hPop.contains(e.target)) return;
+  const scope = hScope;
+  if (e.target.dataset.hdate) {
+    dEl(scope, e.target.dataset.hdate === 'from' ? 'rangeDateFrom' : 'rangeDateTo').value = e.target.value;
+    onRangeDateChange(scope); hdrSyncDatePop();
+  } else if (e.target.matches('[data-hmonth],[data-hyear]')) {
+    const m = hPop.querySelector('[data-hmonth]').value, y = hPop.querySelector('[data-hyear]').value;
+    e.target.classList.toggle('filled', !!e.target.value);
+    if (m && y) { applySpecificMonth(scope, Number(y), Number(m)); hdrSyncDatePop(); }
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { hdrClose(); return; }
+  // Enter جوّه حقل بحث/تاريخ = يقفل القايمة والفلتر يفضل (§2.4) — مربع البحث الداخلي في قوايم الاختيار
+  // (`data-msq`) مستثنى: هو بيصفّي القايمة والمستخدم لسه هيختار منها.
+  if (e.key === 'Enter' && hPop && hPop.contains(e.target) && e.target.matches('#hSearchInput,[data-hdate]')) {
+    e.preventDefault(); e.target.blur(); hdrClose();
+  }
+});
+document.addEventListener('scroll', () => { hdrPlace(); hdrTipHide(); }, true);
+window.addEventListener('resize', hdrPlace);
+
+// ══════════════════════════════════════════════════════════════
+// §COL-RZ — سحب عرض الأعمدة (Standards #51 · data-table-standard § 9ب)
+// ══════════════════════════════════════════════════════════════
+// لايف بالسحب · دبل كليك = ضبط على أطول محتوى · العرض محفوظ. مصنع واحد بنسختين (`colMain` · `colLog`).
+// 🔴 آخر عمود بيمتص الفراغ وقت العرض بس — الجدول دايمًا بيملا عرض الكارت و`w` المحفوظ مايتغيّرش.
+// ⚠️ `localStorage` هنا تفضيل واجهة مش بيانات — مفتاح لكل جدول، **ولكل وضع رفع** في جدول الرفع
+//    (الأعمدة بتختلف بين الشحن والاسترجاع/الاستبدال، فعرض محفوظ لأعمدة غيرها كان هيظبّط غلط).
+// 🔴 `colCustom` = الموظف ظبط عرض بإيده أو فيه عرض محفوظ. من غيره العروض قياس تلقائي وبيتعاد مع تغيّر عرض الشاشة.
+const COL_LS_BASE = 'dco_col_widths_v1_' + (location.pathname.split('/').pop() || 'page');
+const COL_MIN = 64, COL_MAX = 700, COL_INIT_CAP = 320;
+const colMinOf = k => k === 'cb' ? 36 : COL_MIN;     // عمود الـ checkbox ضيّق بطبيعته وملهوش مقبض
+const COL_INSTANCES = [];
+function makeColRz(cfg) {
+  const S = { w: {}, drag: null, badge: null, ready: false, custom: false, fontWait: false, rt: null };
+  const tbl = () => document.getElementById(cfg.tableId);
+  const wrap = () => document.getElementById(cfg.wrapId);
+  const keys = () => [...tbl().querySelectorAll('thead th')].map((th, i) => th.dataset.col || ('c' + i));
+  const lsKey = () => COL_LS_BASE + '_' + cfg.lsName();
+  const save = () => { try { localStorage.setItem(lsKey(), JSON.stringify(S.w)); } catch (e) {} };
+  const load = () => { try { const s = JSON.parse(localStorage.getItem(lsKey()) || 'null'); return s && keys().every(k => s[k] >= colMinOf(k)) ? s : null; } catch (e) { return null; } };
+  const last = () => { const c = tbl().querySelectorAll('colgroup col'); return c.length ? c[c.length - 1].dataset.c : null; };
+  const slack = () => { let sum = 0; keys().forEach(k => sum += S.w[k] || 0); return Math.max(0, wrap().clientWidth - sum); };
+  function apply() {
+    const sl = slack(), l = last(); let sum = 0;
+    tbl().querySelectorAll('colgroup col').forEach(col => { const k = col.dataset.c, w = S.w[k] + (k === l ? sl : 0); col.style.width = w + 'px'; sum += w; });
+    tbl().style.width = sum + 'px';
+  }
+  function freeze() { tbl().classList.remove('col-auto'); apply(); }
+  function attach() {
+    const t = tbl(); if (!t) return; const ks = keys();
+    if (!t.querySelector('colgroup')) { const cg = document.createElement('colgroup'); cg.innerHTML = ks.map(k => `<col data-c="${k}">`).join(''); t.insertBefore(cg, t.firstChild); }
+    t.querySelectorAll('thead th').forEach((th, i) => {
+      if (ks[i] === 'cb' || th.querySelector('.col-rz')) return;
+      const h = document.createElement('span'); h.className = 'col-rz'; h.dataset.rz = ks[i]; th.appendChild(h);
+    });
+  }
+  // 🔴 `Math.floor` مش `round` — التقريب لفوق كان بيعدّي عرض الكارت بـ١-٢px فيظهر سكرول أفقي من غير سبب
+  function measure() {
+    const t = tbl(), ks = keys();
+    t.classList.add('col-auto'); t.style.width = ''; t.querySelectorAll('colgroup col').forEach(c => c.style.width = '');
+    let sum = 0;
+    t.querySelectorAll('thead th').forEach((th, i) => { const w = Math.min(COL_INIT_CAP, Math.max(colMinOf(ks[i]), Math.floor(th.getBoundingClientRect().width))); S.w[ks[i]] = w; sum += w; });
+    const fixed = S.w.cb || 0, avail = wrap().clientWidth;
+    if (sum < avail && sum > fixed) { const f = (avail - fixed) / (sum - fixed); ks.forEach(k => { if (k !== 'cb') S.w[k] = Math.floor(S.w[k] * f); }); }
+    freeze();
+  }
+  function init() {
+    if (S.ready) return; attach();
+    const saved = load();
+    if (saved) { Object.assign(S.w, saved); S.custom = true; S.ready = true; freeze(); return; }
+    measure(); S.ready = true;
+  }
+  // أول قياس بيستنى الخطوط + الجدول يكون ظاهر وفيه صفوف — القياس على تاب مخفي أو بخط احتياطي بيدّي عروض غلط
+  function maybeInit() {
+    const w = wrap(); if (!w || !w.clientWidth) return;
+    if (S.ready) {
+      attach(); let sum = 0; keys().forEach(k => sum += S.w[k] || 0);
+      if (!S.custom && sum > w.clientWidth) measure(); else apply();
+      return;
+    }
+    if (!tbl().querySelector('tbody tr:not(.empty-row)')) return;
+    if (document.fonts && document.fonts.status !== 'loaded') {
+      if (!S.fontWait) { S.fontWait = true; document.fonts.ready.then(() => { S.fontWait = false; maybeInit(); }); }
+      return;
+    }
+    init();
+  }
+  // الترويسة اتعاد رسمها بأعمدة مختلفة (تبديل وضع الرفع) — العروض القديمة تتنسى
+  function reset() {
+    const t = tbl(); if (!t) return;
+    t.querySelectorAll('colgroup').forEach(c => c.remove());
+    t.querySelectorAll('.col-rz').forEach(h => h.remove());
+    S.w = {}; S.ready = false; S.custom = false;
+    t.classList.add('col-auto'); t.style.width = '';
+  }
+  function showBadge(w) { if (!S.badge) { S.badge = document.createElement('div'); S.badge.className = 'w-badge'; document.body.appendChild(S.badge); } S.badge.textContent = w + ' px'; }
+  function down(e, h) {
+    const k = h.dataset.rz; if (k === last()) S.w[k] += slack();
+    S.drag = { k, x: e.clientX, w: S.w[k], sign: getComputedStyle(tbl()).direction === 'rtl' ? -1 : 1, h };
+    try { h.setPointerCapture(e.pointerId); } catch (_) {}
+    h.classList.add('active'); document.body.classList.add('col-resizing');
+    const col = tbl().querySelector(`colgroup col[data-c="${k}"]`); if (col) col.classList.add('hl');
+    showBadge(S.w[k]);
+  }
+  function move(e) {
+    if (!S.drag) return;
+    S.w[S.drag.k] = Math.max(colMinOf(S.drag.k), Math.min(COL_MAX, Math.round(S.drag.w + S.drag.sign * (e.clientX - S.drag.x))));
+    apply(); showBadge(S.w[S.drag.k]);
+  }
+  function end() {
+    if (!S.drag) return;
+    S.drag.h.classList.remove('active'); document.body.classList.remove('col-resizing');
+    tbl().querySelectorAll('col.hl').forEach(c => c.classList.remove('hl'));
+    S.drag = null; if (S.badge) { S.badge.remove(); S.badge = null; } S.custom = true; save();
+  }
+  // دبل كليك على المقبض = ضبط على أطول محتوى (عنوانه + خلاياه).
+  // 🔴 القياس بـ`Range` على المحتوى مش على الخلية — عرض الخلية = عرض العمود الحالي، فالقياس بيه كان بيخلّي
+  //    الضبط يكبّر بس ومايصغّرش أبدًا. ومقبض السحب نفسه بره القياس.
+  function fit(k) {
+    const t = tbl(), ks = keys(), i = ks.indexOf(k); if (i < 0) return;
+    t.classList.add('col-measure');
+    const th = t.querySelectorAll('thead th')[i], rz = th.querySelector('.col-rz');
+    const hr = document.createRange(); hr.setStart(th, 0);
+    if (rz) hr.setEndBefore(rz); else hr.setEnd(th, th.childNodes.length);
+    let w = hr.getBoundingClientRect().width + 16;
+    t.querySelectorAll('tbody tr').forEach(tr => {
+      const td = tr.children[i]; if (!td || tr.classList.contains('empty-row')) return;
+      const rg = document.createRange(); rg.selectNodeContents(td); w = Math.max(w, rg.getBoundingClientRect().width + 16);
+    });
+    t.classList.remove('col-measure');
+    S.w[k] = Math.max(colMinOf(k), Math.min(COL_MAX, Math.ceil(w))); S.custom = true; apply(); save();
+  }
+  // ⚠️ عرض متظبط بإيد الموظف بيفضل زي ما هو (أكبر من الشاشة = سكرول أفقي)، والقياس التلقائي بيتعاد على الشاشة الجديدة
+  function onResize() {
+    if (!S.ready) return;
+    if (S.custom) { apply(); return; }
+    clearTimeout(S.rt);
+    S.rt = setTimeout(() => { if (!S.custom && wrap().clientWidth) measure(); }, 150);
+  }
+  const inst = { tableId: cfg.tableId, down, move, end, fit, onResize, maybeInit, reset, attach, ready: () => S.ready, apply, owns: el => !!tbl() && tbl().contains(el) };
+  COL_INSTANCES.push(inst); return inst;
+}
+const colMain = makeColRz({ tableId: 'tblMain', wrapId: 'tblWrap', lsName: () => 'main_' + currentJobKey });
+const colLog  = makeColRz({ tableId: 'tblLog',  wrapId: 'logTblWrap', lsName: () => 'log' });
+const colOf = el => COL_INSTANCES.find(i => i.owns(el));
+document.addEventListener('pointerdown', e => {
+  const h = e.target.closest && e.target.closest('[data-rz]'); if (!h || e.button) return;
+  const inst = colOf(h); if (!inst) return;
+  e.preventDefault(); e.stopPropagation(); hdrClose();
+  inst.down(e, h);
+});
+document.addEventListener('pointermove', e => COL_INSTANCES.forEach(i => i.move(e)));
+document.addEventListener('pointerup', () => COL_INSTANCES.forEach(i => i.end()));
+document.addEventListener('pointercancel', () => COL_INSTANCES.forEach(i => i.end()));
+// ⚠️ المقبض جوّه <th> اللي عليه onclick للترتيب — الضغطة بعد السحب لازم ما توصلش للترتيب
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.col-rz')) { e.stopPropagation(); e.preventDefault(); } }, true);
+document.addEventListener('dblclick', e => {
+  const h = e.target.closest && e.target.closest('[data-rz]'); if (!h) return;
+  const inst = colOf(h); if (inst) inst.fit(h.dataset.rz);
+});
+window.addEventListener('resize', () => COL_INSTANCES.forEach(i => i.onResize()));
+
+
 // ─── §TOOL-JS::table ───
 let allRows = [];
 let visibleRows = [];   // الصفوف المعروضة حسب الفلتر الحالي — مصدر «رفع الكل»
@@ -3063,17 +3548,14 @@ let selected = new Set();
 // أو { forceProvince:true } — والتلاتة ممكن يبقى معاهم { cityId, cityName }
 let districtOverride = {};
 let searchTerm = '';
-let fltOpen = true, tblOpen = true;
+let tblOpen = true;
 
-function toggleFilters() {
-  fltOpen = !fltOpen;
-  document.getElementById('fltBody').classList.toggle('collapsed', !fltOpen);
-  document.getElementById('fltToggleIcon').classList.toggle('open', fltOpen);
-}
 function toggleTable() {
   tblOpen = !tblOpen;
   document.getElementById('tblBodyWrap').classList.toggle('collapsed', !tblOpen);
   document.getElementById('tblToggleIcon').classList.toggle('open', tblOpen);
+  // ⚠️ الجدول وهو مطوي عرضه صفر — الفتح بيعيد حساب العروض (§COL-RZ)
+  if (tblOpen) colMain.maybeInit();
 }
 
 // ⚠️ !!value مش !== null — الفلاتر اللي مالهاش نطاق قيمتها undefined،
@@ -3084,9 +3566,10 @@ function anyFilterActive() {
   return msActive || searchTerm.trim().length > 0 || dateState.main.active;
 }
 function updateFilterIconState() {
-  const active = anyFilterActive();
-  document.getElementById('fltIcon').classList.toggle('active', active);
-  document.getElementById('clearAllBtn').classList.toggle('inactive', !active);
+  // ⚠️ أيقونة لوحة الفلاتر (`fltIcon`) اتشالت مع اللوحة (v1.34.0) — الحالة بقت بتتقال في رأس كل
+  //    عمود (القمع بيتلوّن + عدّاد) وفي زرار «مسح كل الفلاتر» وفي chips البحث والتاريخ.
+  document.getElementById('clearAllBtn').classList.toggle('inactive', !anyFilterActive());
+  hdrUpdateStates('main');
 }
 
 function toggleSearchActiveState(el) { el.classList.toggle('has-value', el.value.trim().length > 0); }
@@ -3094,10 +3577,11 @@ let searchTimer;
 function onSearchInput(el) {
   toggleSearchActiveState(el);
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => { searchTerm = el.value; applyFilters(); }, 300);
+  searchTimer = setTimeout(() => { searchTimer = null; searchTerm = el.value; applyFilters(); }, 300);
 }
 
 function clearAllFilters() {
+  hdrClose();          // ⚠️ الأول — قفلها بيثبّت المكتوب، والمسح بعده يشيله
   Object.keys(msState).forEach(k => {
     if (msState[k].owner !== 'main') return;
     msState[k].selected.clear();
@@ -3106,7 +3590,7 @@ function clearAllFilters() {
     msRenderList(k);
   });
   const si = document.getElementById('searchInput');
-  si.value = ''; searchTerm = ''; toggleSearchActiveState(si);
+  si.value = ''; clearTimeout(searchTimer); searchTimer = null; searchTerm = ''; toggleSearchActiveState(si);
   renderChips();
   resetDateFilter('main');
   applyFilters();
@@ -3316,6 +3800,7 @@ function applyFilters() {
   visibleRows = filtered;   // 🔴 «رفع الكل» بيشتغل على دي — الفلتر الحالي بالظبط، مش allRows
   renderTable(applySort(filtered));
   document.getElementById('filteredCount').textContent = fmtNum(filtered.length);
+  colMain.maybeInit();
   // التحديد بيتقصر على المعروض فقط — عشان مايترفعش صف اتفلتر برّه الشاشة
   const visibleIds = new Set(filtered.map(r => r.orderId));
   [...selected].forEach(id => { if (!visibleIds.has(id)) selected.delete(id); });
@@ -3602,14 +4087,21 @@ function tableColumns() {
 function renderTableHead() {
   const tr = document.getElementById('tblHead');
   if (!tr) return;
-  tr.innerHTML = tableColumns().map(c => {
-    if (c.head) return `<th>${c.head}</th>`;
-    if (!c.sort) return `<th>${esc(c.label)}</th>`;
-    return `<th class="sortable-th" data-sort-key="${esc(c.sort)}" onclick="toggleSort('${jsq(c.sort)}')">`
+  const cols = tableColumns();
+  tr.innerHTML = cols.map(c => {
+    if (c.head) return `<th data-col="${esc(c.key)}">${c.head}</th>`;
+    if (!c.sort) return `<th data-col="${esc(c.key)}">${esc(c.label)}</th>`;
+    return `<th class="sortable-th" data-col="${esc(c.key)}" data-sort-key="${esc(c.sort)}" onclick="toggleSort('${jsq(c.sort)}')">`
          + `${esc(c.label)}<span class="sort-icon" data-sort-key="${esc(c.sort)}"></span></th>`;
   }).join('');
   updateSortHeaderUI();
+  // الأعمدة بتتبدّل بوضع الرفع — عروض الوضع اللي فات تتنسى، والقمع والمقابض يتعادوا (v1.34.0)
+  const sig = cols.map(c => c.key).join('|');
+  if (sig !== headSig) { headSig = sig; colMain.reset(); }
+  hdrClose(); hdrBuild('main'); hdrUpdateStates('main');
+  colMain.attach(); colMain.maybeInit();
 }
+let headSig = '';
 
 // ─── خلايا خاصة بالاسترجاع/الاستبدال ───
 // 🔴 أكواد الدورات بتتعرض **بالعربي**. الكود الخام (`CYCLE_OVERLAP_OPEN`) كان
@@ -5853,34 +6345,31 @@ async function exportResultsXLSX() {
 const LOG_PAGE_SIZE = 100;
 let logCurrentPage = 1, logTotalCount = 0, logLoaded = false, logRows = [];
 let logSearchTimer = null;
-let logFltOpen = true, logTblOpen = true;
+let logTblOpen = true;
+let logSearchApplied = '';   // آخر بحث اتبعت للـ Worker — قفل قايمة البحث بيقارن بيه (§HDR-FLT)
 
-function toggleLogFilters() {
-  logFltOpen = !logFltOpen;
-  document.getElementById('logFltBody').classList.toggle('collapsed', !logFltOpen);
-  document.getElementById('logFltToggleIcon').classList.toggle('open', logFltOpen);
-}
 function toggleLogTable() {
   logTblOpen = !logTblOpen;
   document.getElementById('logTblBodyWrap').classList.toggle('collapsed', !logTblOpen);
   document.getElementById('logTblToggleIcon').classList.toggle('open', logTblOpen);
+  if (logTblOpen) colLog.maybeInit();
 }
 function anyLogFilterActive() {
   const msActive = Object.keys(msState).some(k => msState[k].owner === 'log' && msState[k].selected.size > 0);
   return msActive || (document.getElementById('logSearch').value || '').trim().length > 0 || dateState.log.active;
 }
 function updateLogFilterIconState() {
-  const active = anyLogFilterActive();
-  document.getElementById('logFltIcon').classList.toggle('active', active);
-  document.getElementById('logClearAllBtn').classList.toggle('inactive', !active);
+  document.getElementById('logClearAllBtn').classList.toggle('inactive', !anyLogFilterActive());
+  hdrUpdateStates('log');
 }
 function onLogSearchInput(el) {
   toggleSearchActiveState(el);
   clearTimeout(logSearchTimer);
-  logSearchTimer = setTimeout(() => { logCurrentPage = 1; clearExportWarn(); fetchLog(); }, 400);
+  logSearchTimer = setTimeout(() => { logSearchTimer = null; logCurrentPage = 1; clearExportWarn(); fetchLog(); }, 400);
 }
 function onLogFilterChange() { logCurrentPage = 1; clearExportWarn(); fetchLog(); }
 function clearAllLogFilters() {
+  hdrClose();          // ⚠️ الأول — قفلها بيثبّت المكتوب، والمسح بعده يشيله
   Object.keys(msState).forEach(k => {
     if (msState[k].owner !== 'log') return;
     msState[k].selected.clear();
@@ -5889,7 +6378,7 @@ function clearAllLogFilters() {
     msRenderList(k);
   });
   const si = document.getElementById('logSearch');
-  si.value = ''; toggleSearchActiveState(si);
+  si.value = ''; clearTimeout(logSearchTimer); logSearchTimer = null; toggleSearchActiveState(si);
   renderChips();
   resetDateFilter('log');
   onLogFilterChange();
@@ -5921,6 +6410,7 @@ function logSortParams() {
 
 async function fetchLog() {
   updateLogFilterIconState();
+  logSearchApplied = (document.getElementById('logSearch').value || '').trim();
   const body = document.getElementById('logTblBody');
   body.innerHTML = `<tr class="empty-row"><td colspan="10"><span class="loading-spinner"></span></td></tr>`;
   const offset = (logCurrentPage - 1) * LOG_PAGE_SIZE;
@@ -6009,6 +6499,7 @@ function renderLogTable() {
       <td>${esc(r.district || '—')}</td>
       <td class="act-list">${esc(r.notes) || '—'}</td>
     </tr>`).join('');
+  colLog.maybeInit();
 }
 
 function renderPagination() {
@@ -6110,6 +6601,7 @@ renderJobBar();
 setMainFresh();
 renderAddrChips();
 renderTableHead();
+hdrBuild('log'); hdrUpdateStates('log'); colLog.attach();   // ترويسة السجل ثابتة في الـ HTML (v1.34.0)
 renderTable([]);
 buildTabChipMenu();
 updateTabChip();
