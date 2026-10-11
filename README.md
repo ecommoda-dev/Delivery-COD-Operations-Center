@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center
 
-![version](https://img.shields.io/badge/version-v1.9.0-blue)
+![version](https://img.shields.io/badge/version-v1.33.0-blue)
 
 **هب واحد لمحطة الشحن والتحصيل.** الموظف بيدخل مرة واحدة وبيشوف طوابير الشحن —
 **وبيشتغل على أدوات المحطة من نفس المكان** (دخول واحد وسر واحد).
@@ -43,12 +43,12 @@ shared/shell.js       الإعدادات + الجلسة + §QUEUE-RULES + §AUDI
 docs/build-pages.py   مولّد الصفحتين — 🔴 الـ HTML **متولّد**، عدّل هنا
 docs/css-check.js     فحص CSS بـ parser حقيقي
 docs/rules-check.mjs  فحص منطق §QUEUE-RULES و§AUDIT-RULES — ٩٠ بند (بلا تنصيب)
-docs/queues-check.mjs فحص متصفح فعلي — ١٩٦ بند
+docs/queues-check.mjs فحص متصفح فعلي — ٣٥٢ بند (فلاتر رأس العمود وعرض الأعمدة في §⑩)
 Order-Status-Updater.html 🔗 محدّث حالة الأوردر — 🔴 **متولّدة**، عدّل في ريبوها
 COD-Payment-Center.html   🔗 مركز التحصيل — 🔴 **متولّدة**، عدّل في ريبوها
 Partial-Delivery.html     🔗 التسليم الجزئي — عدّل هنا مباشرة (بلا مولّد)
 docs/port-standalone.py  مولّد صفحتَي الأداتين من ريبوهاتهم
-docs/tools-check.mjs  فحص عقد الدمج — ١٠٦ بند
+docs/tools-check.mjs  فحص عقد الدمج — ١٣٣ بند
 docs/idle-check.mjs   فحص الخروج التلقائي لعدم النشاط — ٢١ بند
 ```
 
