@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center (`Delivery-COD-Operations-Center`)
 
-![version](https://img.shields.io/badge/version-v1.34.0-blue)
+![version](https://img.shields.io/badge/version-v1.35.0-blue)
 
 **بتعمل إيه:** هب واحد لمحطة الشحن والتحصيل. الموظف بيدخل **مرة واحدة**،
 وبيشوف طوابير الشحن: اللي **جاهز يخرج**، واللي **خرج ولسه بلا نتيجة** —
@@ -11,7 +11,7 @@
 و**تحصيل الأوردرات COD** (v1.5.0)، و**التسليم الجزئي** (v1.10.0)، و**رفع
 بوسطة** (v1.13.0).
 **مين بيستخدمها:** الشحن والتحصيل
-**الإصدار:** `v1.34.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/shell.js`)
+**الإصدار:** `v1.35.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/shell.js`)
 
 > 🔴 **الريبو ده فيه النُصّين: الواجهة + Worker الدخول** (`index.js` ·
 > `wrangler.toml`). وده **الشكل القياسي** مش استثناء — قرار ٨ في
@@ -132,6 +132,7 @@ tool في D1 : delivery_cod_ops_center   ← login · logout بس (ولسه مط
 | `Partial-Delivery.html` | 🔗 **التسليم الجزئي** (مدموجة من v1.10.0 · بلا نسخة قديمة · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` | **`1.0.1`** | **M (1200)** |
 | `Bosta-Orders-Upload.html` | 🔗 **رفع بوسطة** (مدموجة من v1.13.0 · من v1.18.0 هي النسخة الوحيدة — الرابط القديم اتشال بلا تحويل) | `bosta-orders-upload-worker` | **`2.16.0`** | **M (1200)** |
 | `Courier-Names.html` | 🛵 **أسماء المناديب** (v1.30.0 · قسم «أدوات أخرى» · Worker وبس في ريبو `Courier-Names`) | `courier-names-worker` | **`1.0.0`** | **M (1200)** |
+| `Bosta-Webhook-Status-Receiver.html` | 📮 **مستقبل حالة شحنات بوسطة** (v1.35.0 · قسم «أدوات أخرى» · Worker وبس في ريبو `Bosta-Webhook-Status-Receiver` · **عرض بحت**) | `bosta-webhook-status-receiver-worker` | **`1.7.0`** | **L (1400)** |
 
 > ⚠️ **تلات `min` مستقلة تمامًا** — مالهمش أي علاقة ببعض ولا بـ`TOOL_VERSION`.
 > `min` مايترفعش إلا لما الهب **يعتمد فعلاً** على حاجة جديدة في الـ Worker ده
@@ -605,6 +606,40 @@ const DCO_CACHE_TTL_MS  = 15 * 60 * 1000;
   واحد متوسّط. `max-width` عليها هي اللي بتمنعها تاكل عرض الجدول وتزقّ باقي
   الأعمدة برّه الشاشة، و`text-align:right` عشان العين تمسك أول كل سطر في مكان
   واحد بدل ما تدوّر عليه.
+
+## 📮 تمريرة v1.35.0 — دمج «مستقبل حالة شحنات بوسطة» تحت «أدوات أخرى» (طلب أحمد 12-10-2026)
+
+**الطلب:** «ادمج أداة مستقبل حالات بوسطة لتكون أداة داخلية في مركز عمليات الشحن والتحصيل».
+**قرار أحمد (12-10-2026):** ريبو `Bosta-Webhook-Status-Receiver` بقى **Worker وبس** — `index.html` اتشال منه
+**بلا تحويل من الرابط القديم** (نفس نمط `Partial-Delivery`/`Courier-Names`/رفع بوسطة).
+
+| الجزء | فين |
+|---|---|
+| الواجهة `Bosta-Webhook-Status-Receiver.html` | **هنا** — النسخة الوحيدة (مش متولّدة · بلا مصدر تاني يفترق عنها) |
+| الـ Worker `bosta-webhook-status-receiver-worker` | ريبو `Bosta-Webhook-Status-Receiver` (`index.js` · `wrangler.toml`) — **صفر تعديل فيه** |
+| `DCO_WORKERS.bostaWebhook` (`min: 1.7.0`) | `shared/shell.js` §CONFIG — نفس `MIN_WORKER_VERSION` بتاعة الواجهة المستقلة |
+| الكارت | `index.html` → قسم «أدوات أخرى» (بلا عدّاد) |
+| الفحص | `docs/bosta-webhook-check.mjs` (٢٨ بند) + `docs/tools-check.mjs` اتوسّع للأداة (١٦٠) |
+
+- 🔴 **اللي اتشال من الواجهة (والـ shell بيعمله):** شاشة الدخول وكيباد الـ PIN · مودال الإعدادات · `esc` · `cairoParts`/`formatDateTime` · `showToast` ·
+  `cmpVersion` · حارس نسخة الـ Worker · الخروج التلقائي (§IDLE-JS) · `doLogout`/`performLogout` · نداء `log_logout` · `playBeep`.
+  والـ `apiGet`/`apiPost` بقوا من `dcoApi(DCO_WORKERS.bostaWebhook)` (مهلة ٩٠ ث ورسايل بتسمّي الأداة).
+- ✅ **ومنطق الشاشة ما اتغيّرش** — الأربع تابات (تحت التوصيل · Returned · Delivered · Terminated) · صف واحد لكل رقم تتبع · الحالات النهائية 45/46/48 ·
+  أسباب الفشل التاريخية · فلاتر رأس العمود · عرض الأعمدة بالسحب (`bosta_webhook_status_col_widths_v1`) · التحديث التراكمي بلا وميض ·
+  السجل (drawer) · بانرات الصحة والسكوت وفشل المطابقة. وفضلت `toValidDate` (حارس `Invalid Date` لتواريخ بوسطة) في الصفحة.
+- 🔴 **الأداة عرض بحت** — الكتابة على شوبيفاي (أربع ميتافيلدات + استثناء `manual_status`/`package_whereabouts_s1` عند Delivered) كلها من الـ Worker لحظة
+  استقبال الويبهوك. الهب مابيضيفش أي فعل. التفاصيل (فخاخ الويبهوك · المطابقة · `write_status`) في `CLAUDE.md` بتاع ريبو الأداة.
+- ⚠️ **توكن جديد في `shared/shell.css`:** `--th-size` · `--th-weight` · `--th-color` · `--td-size` · `--td-weight` (معيار الجدول 12/700 و12.5/600) — الصفحة كانت
+  بتعرّفهم في `:root` بتاعها، والقاعدة «التوكنز في الـ shell بس». الصفحة نفسها بلا `:root` (Tier L = الافتراضي).
+- ⚠️ **`dcoIdleBusy`** ما اتلمسش — الأداة مفيهاش دفعات فعل، فمفيش `shellIsBusy`.
+- 🔴 **السر:** `WORKER_SECRET` على الـ Worker كان **سر فريد** (قبل الدمج). الصفحة هنا بتبعت **سر الهب** (`delivery_cod_ops`) → قبل تدوير السر لقيمة المجموعة كل نداء `401`
+  (الرسالة بتسمّي «مستقبل حالة بوسطة» و🩺 الفحص بيقول السبب). **مجموعة `delivery_cod_ops` بقت تسعة Workers** (الدخول · الطابورين · الأدوات الأربعة · أسماء المناديب · المستقبل).
+- ⚠️ **أثر D1:** الدخول/الخروج بيتسجّلوا باسم الهب (`delivery_cod_ops_center`) مش `bosta_webhook_status` — عدّادات `login`/`logout` للأداة بتقف عند 12-10-2026. صفوف `status_event` وباقيها **ما اتغيّرتش**.
+- ⛔ **الرابط القديم `.../Bosta-Webhook-Status-Receiver/` بقى 404** بقرار — موظف حافظه هيروح للرئيسية.
+- ⚠️ **وفحص المتصفح الفعلي ما اتجرّبش على Worker حقيقي** — اتقاس على Worker وهمي بأحداث معروفة. أول فتح حقيقي بعد تدوير السر هو الاختبار الفعلي.
+
+**قبل ما الأداة تشتغل (خطوات يدوية — خارج الكود):** ① تدوير `WORKER_SECRET` على `bosta-webhook-status-receiver-worker` لقيمة `delivery_cod_ops` + **Promote** ·
+② تسجيل العضوية في `ecommoda-constants` → `secret-groups.md` (والمفتاح القديم `bosta_webhook_status_worker_secret` بقى مهجور) · ③ (متأجّل من قبل) تسجيل `tool=bosta_webhook_status` في §7.
 
 ## 🔴 تمريرة v1.34.0 — «رفع بوسطة»: جدولا الرفع والسجل على معيار v8.3.1 (طلب أحمد 11-10-2026)
 
@@ -1581,7 +1616,7 @@ node docs/tools-check.mjs
 ① إنشاء Worker `courier-names-worker` من ريبو `Courier-Names` (Workers Builds · `main`) ·
 ② أسرار: `WORKER_SECRET` = **قيمة مجموعة `delivery_cod_ops`** + `CLIENT_ID`/`CLIENT_SECRET` → **Promote** ·
 ③ الـ Custom App محتاج `write_orders` (`?action=diag` بيقول) ·
-④ تسجيل `courier_names` في `ecommoda-constants` §7.1 + العضوية في `secret-groups.md` (مجموعة `delivery_cod_ops` بقت **ثمانية Workers**).
+④ تسجيل `courier_names` في `ecommoda-constants` §7.1 + العضوية في `secret-groups.md` (مجموعة `delivery_cod_ops` بقت **ثمانية Workers** — **وتسعة من v1.35.0** بالمستقبل).
 قبل ①②: النداء بيرجّع `401`/تعذّر، والرسالة بتسمّي «أسماء المناديب» و🩺 الفحص بيقول السبب.
 
 ## D1
@@ -2283,7 +2318,9 @@ Workers من v1.13.0)** · **تسجيل `delivery_cod_ops_center` في `ecommoda
 
 ---
 
-آخر تحديث: 11-10-2026 — v1.34.0 (**«رفع بوسطة»: جدولا الرفع والسجل على معيار v8.3.1 — الفلاتر في رأس العمود + عناوين ثابتة + سحب عرض الأعمدة** · `Bosta-Orders-Upload.html` بس (صفر تعديل في الـ Worker ولا منطق الرفع) — الشرح في قسم «تمريرة v1.34.0». `docs/bosta-table-check.mjs` جديد (٦٢ بند).)
+آخر تحديث: 12-10-2026 — v1.35.0 (**دمج «مستقبل حالة شحنات بوسطة» تحت «أدوات أخرى»** · طلب أحمد — الواجهة جوّه الهب والريبو المستقل Worker وبس بلا تحويل. صفر تعديل في الـ Worker ولا في منطق الشاشة — الشرح في قسم «تمريرة v1.35.0». `docs/bosta-webhook-check.mjs` جديد (٢٨ بند) · `tools-check.mjs` (١٦٠) · rules 90 · queues 352 · idle 21 — صفر فشل.)
+
+آخر تحديث سابق: 11-10-2026 — v1.34.0 (**«رفع بوسطة»: جدولا الرفع والسجل على معيار v8.3.1 — الفلاتر في رأس العمود + عناوين ثابتة + سحب عرض الأعمدة** · `Bosta-Orders-Upload.html` بس (صفر تعديل في الـ Worker ولا منطق الرفع) — الشرح في قسم «تمريرة v1.34.0». `docs/bosta-table-check.mjs` جديد (٦٢ بند).)
 
 آخر تحديث سابق: 11-10-2026 — v1.33.0 (**الفلاتر في رؤوس أعمدة جدول الطابور + الجدول مابيختفيش على صفر نتائج + عناوين ثابتة وخط 12/12.5 + عرض الأعمدة بالسحب** · المهارة `ecommoda-html-builder` v8.3.1 — الشرح في قسم «تمريرة v1.33.0». `docs/build-pages.py` (والصفحتين متولّدتين) · `docs/queues-check.mjs` §⑩. فحوصات: queues 352 · rules 90 · tools 133 · idle 21 — صفر فشل.)
 

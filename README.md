@@ -20,6 +20,7 @@
 | `COD-Payment-Center.html` 🔗 | **تحصيل الأوردرات COD** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `cod-payment-center-worker` (في ريبوه) |
 | `Partial-Delivery.html` 🔗 | **التسليم الجزئي** — أداة مدموجة (v1.10.0 · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` (في ريبوه) |
 | `Courier-Names.html` 🛵 | **أسماء المناديب** — قسم «أدوات أخرى» (v1.30.0): إضافة / حذف / ترتيب قايمة `custom.courier` | `courier-names-worker` (في ريبو `Courier-Names` — Worker وبس) |
+| `Bosta-Webhook-Status-Receiver.html` 📮 | **مستقبل حالة شحنات بوسطة** — قسم «أدوات أخرى» (v1.35.0): أحداث الويبهوك (٤ تابات) · **عرض بحت** | `bosta-webhook-status-receiver-worker` (في ريبو `Bosta-Webhook-Status-Receiver` — Worker وبس) |
 
 > 🔴 **الريبو ده فيه النُصّين** — الواجهة على GitHub Pages، و**Worker الدخول**
 > (`index.js`) على Cloudflare. ده الشكل القياسي (قرار ٨ في الـ playbook).
@@ -48,7 +49,8 @@ Order-Status-Updater.html 🔗 محدّث حالة الأوردر — 🔴 **م�
 COD-Payment-Center.html   🔗 مركز التحصيل — 🔴 **متولّدة**، عدّل في ريبوها
 Partial-Delivery.html     🔗 التسليم الجزئي — عدّل هنا مباشرة (بلا مولّد)
 docs/port-standalone.py  مولّد صفحتَي الأداتين من ريبوهاتهم
-docs/tools-check.mjs  فحص عقد الدمج — ١٣٣ بند
+docs/tools-check.mjs  فحص عقد الدمج — ١٦٠ بند
+docs/bosta-webhook-check.mjs  فحص صفحة مستقبل حالة بوسطة — ٢٨ بند (v1.35.0)
 docs/idle-check.mjs   فحص الخروج التلقائي لعدم النشاط — ٢١ بند
 ```
 
@@ -57,10 +59,12 @@ docs/idle-check.mjs   فحص الخروج التلقائي لعدم النشاط
 ```bash
 npm i playwright postcss --no-save
 node docs/css-check.js shared/shell.css index.html Ready-Orders.html Shipped-Orders.html \
-                       Order-Status-Updater.html COD-Payment-Center.html Partial-Delivery.html
+                       Order-Status-Updater.html COD-Payment-Center.html Partial-Delivery.html \
+                       Bosta-Webhook-Status-Receiver.html
 node docs/rules-check.mjs
 node docs/queues-check.mjs
 node docs/tools-check.mjs
+node docs/bosta-webhook-check.mjs   # مستقبل حالة بوسطة (v1.35.0 · ٢٨ بند)
 node docs/idle-check.mjs        # الخروج التلقائي لعدم النشاط (v1.32.0 · ٢١ بند)
 ```
 

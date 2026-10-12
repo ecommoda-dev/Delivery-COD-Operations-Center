@@ -171,9 +171,24 @@ const DCO_WORKERS = {
   //    Promote ناقص» بس. 🔴 **والسر سر الهب** (`delivery_cod_ops`) — الـ Worker
   //    لازم يتضم للمجموعة (قبلها كل نداء `401`).
   couriers: { url: 'https://courier-names-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'أسماء المناديب' },
+
+  // 🔴 **مستقبل حالة شحنات بوسطة (v1.35.0) — تاني أداة في قسم «أدوات أخرى».**
+  //    الريبو (`Bosta-Webhook-Status-Receiver`) **Worker وبس** — الواجهة
+  //    `Bosta-Webhook-Status-Receiver.html` جوّه الهب هي النسخة الوحيدة (نفس
+  //    نمط `Partial-Delivery`/`Courier-Names`). الصفحة **عرض بحت**؛ الكتابة على
+  //    شوبيفاي بتحصل من الـ Worker وحده عند استقبال ويبهوك بوسطة.
+  //    🎯 min = `1.7.0` (نفس `MIN_WORKER_VERSION` اللي كانت في الواجهة المستقلة):
+  //       1.2.0 `shopify_order_id` (هايبرلينك الأوردر) · 1.3.1 شيل سقف الـ200
+  //       من `list_events` · 1.5.0/1.6.0 قيمتا `*_duplicate_skipped` ·
+  //       1.7.0 `afterId`/`ids`/`maxId` (التحديث التراكمي بلا وميض). على Worker
+  //       أقدم الشاشة بتقصّ أو بتفضل تمسح الجدول — فالحد الأدنى مش تجميلي.
+  //    🔴 **والسر سر الهب** (`delivery_cod_ops`) — الـ Worker لازم يتضم للمجموعة
+  //       (`WORKER_SECRET` يتدوّر من الداشبورد). قبلها كل نداء `401`. وكان
+  //       بسر فريد مستقل قبل الدمج.
+  bostaWebhook: { url: 'https://bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev', min: '1.7.0', label: 'مستقبل حالة بوسطة' },
 };
 
-const TOOL_VERSION = 'v1.34.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.35.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -1475,7 +1490,7 @@ function dcoSharedModals() {
           </div>
           <div class="settings-field">
             <label class="settings-label">الـ Workers</label>
-            <div class="settings-static">delivery-cod-operations-center-worker (الدخول) · ready-orders-worker · shipped-orders-worker · order-status-updater-worker · cod-payment-center-worker · partial-delivery-worker · bosta-orders-upload-worker · courier-names-worker</div>
+            <div class="settings-static">delivery-cod-operations-center-worker (الدخول) · ready-orders-worker · shipped-orders-worker · order-status-updater-worker · cod-payment-center-worker · partial-delivery-worker · bosta-orders-upload-worker · courier-names-worker · bosta-webhook-status-receiver-worker</div>
           </div>
           <div class="settings-field">
             <label class="settings-label">فحص النظام</label>

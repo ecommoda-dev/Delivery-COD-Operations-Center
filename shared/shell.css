@@ -147,6 +147,8 @@
   /* Tier L — الافتراضي للهب (جداول كثيفة في الطباعة والتغليف).
      `remove.html` و`journey.html` بينزّلوا Tier M (1200px) في ستايلهم. */
   --container-max:  1400px;
+  /* الجدول (معتمد 08-10-2026 · v1.35.0): عناوين 12px/700 بلون text-mid — خلايا 12.5px/600. أول مستهلك: Bosta-Webhook-Status-Receiver.html */
+  --th-size: 12px; --th-weight: 700; --th-color: var(--text-mid); --td-size: 12.5px; --td-weight: 600;
   --font-body:      'Noto Sans Arabic', -apple-system, sans-serif;
   --font-mono:      'Noto Sans Arabic', -apple-system, sans-serif;
   /* خط **الليبل المطبوع** في `sku-barcode.html` بس — استثناء موثّق من
