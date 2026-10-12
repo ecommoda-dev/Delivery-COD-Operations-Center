@@ -335,6 +335,11 @@
         <div class="dco-card-name">أسماء المناديب</div>
       </a>
 
+      <a class="dco-tool" href="Bosta-Webhook-Status-Receiver.html">
+        <span class="dco-card-ico ico-red">📮</span>
+        <div class="dco-card-name">مستقبل حالة شحنات بوسطة</div>
+      </a>
+
     </div>
   </div>
 </div>
@@ -439,7 +444,18 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.34.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.35.0</span>
+          <span class="cl-ver-date">12-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>📮 <b>«مستقبل حالة شحنات بوسطة» بقت أداة جوّه المركز</b> (قسم «أدوات أخرى» · طلب أحمد): أحداث الويبهوك من بوسطة في أربع تابات (تحت التوصيل · Returned · Delivered · Terminated) بفلاتر رأس العمود وسجل كل شحنة. <b>عرض بحت</b> — الكتابة على شوبيفاي كلها من الـ Worker. نفس الدخول والسر والخروج التلقائي لباقي المركز.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⛔ <b>الريبو <code>Bosta-Webhook-Status-Receiver</code> Worker وبس</b> (<code>bosta-webhook-status-receiver-worker</code>) — الواجهة هنا هي النسخة الوحيدة، والرابط القديم اتشال بلا تحويل. 🔴 <code>WORKER_SECRET</code> على الـ Worker لازم يتدوّر لقيمة مجموعة <code>delivery_cod_ops</code> (قبلها <code>401</code>).</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.34.0</span>
           <span class="cl-ver-date">11-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -729,7 +745,7 @@ const { apiGet, apiPost } = dcoApi(DCO_WORKERS.auth);
 // ✅ **والفشل هنا مابيولّعش تحذير نسخة كاذب** — `checkWorkerVersion`
 //    بتبلع الاستثناء عن قصد: الـ Worker اللي لسه ما انضمّش لمجموعة السر
 //    بيرجّع `401`، ودي **مش** «نسخة قديمة». اللي بيقولها بالنص هو 🩺.
-const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery', 'bostaUpload', 'couriers'];
+const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery', 'bostaUpload', 'couriers', 'bostaWebhook'];
 
 // §AUTH-JS — Unified Login UI (منقولة من أداة التغليف)
 // ══════════════════════════════════════════════════════════════
