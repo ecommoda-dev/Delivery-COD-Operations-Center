@@ -280,7 +280,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
         </div>
         <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔁 <b>تاب «In-Return»</b> — أي شحنة اتحوّل نوعها لـ <code>RTO</code> بتتنقل من «🚚 الأوردرات تحت التوصيل» للتاب ده (صف واحد لكل رقم تتبع بآخر حالة). الشحنة اللي وصلت حالة نهائية (Returned · Delivered · Terminated) بتروح لتابها زي الأول.</span></li>
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span>✍️ <b>الـ Worker (v1.8.0) بيحدّث حالة الأوردر لـ <code>In-Return</code></b> أول ما يوصله حدث RTO: الجنب S1 ← <code>custom.manual_status</code> · الجنب S2 ← <code>custom.status_2_r_e</code>. مابيكتبش على حدث نهائي (45 · 46 · 48)، ولا لو القيمة الحالية In-Return أو Returned أو Delivered أو Cancelled.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>✍️ <b>الـ Worker (v1.8.1) بيحدّث حالة الأوردر لـ <code>In-Return</code> مرة واحدة فقط</b> عند أول ظهور لـ RTO (أي تحديث RTO بعدها مايكتبش تاني): الجنب S1 ← <code>custom.manual_status</code> · الجنب S2 ← <code>custom.status_2_r_e</code>. مابيكتبش على حدث نهائي (45 · 46 · 48)، ولا لو القيمة الحالية In-Return أو Returned أو Delivered أو Cancelled.</span></li>
         </ul>
       </div>
       <div class="cl-version-block">

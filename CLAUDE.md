@@ -610,7 +610,7 @@ const DCO_CACHE_TTL_MS  = 15 * 60 * 1000;
 ## 🔁 تمريرة v1.36.0 — تاب «In-Return» في مستقبل حالة بوسطة + أكشن الميتافيلد (طلب أحمد 13-10-2026)
 
 - **الواجهة (`Bosta-Webhook-Status-Receiver.html`):** تاب خامس «🔁 In-Return» — أي `tracking_number` وصله حدث `bosta_type = RTO` (`computeRtoTrackingNumbers`) ولسه ماوصلش حالة نهائية (45 · 46 · 48). صف واحد لكل رقم تتبع بآخر حالة، وبيتشال من «🚚 الأوردرات تحت التوصيل». RTO ووصلت 46 بتروح «Returned to business» زي الأول.
-- **الـ Worker (ريبو `Bosta-Webhook-Status-Receiver` v1.8.0):** حدث RTO بيكتب `In-Return` على S1 ← `custom.manual_status` · S2 ← `custom.status_2_r_e` (نفس نداء `metafieldsSet` بتاع الحقلين المعتادين). ⛔ مابيكتبش على 45/46/48، ولا لو القيمة الحالية `In-Return`/`Returned`/`Delivered`/`Cancelled`.
+- **الـ Worker (ريبو `Bosta-Webhook-Status-Receiver` v1.8.1):** **مرة واحدة فقط عند أول ظهور لـ RTO** على الأوردر/الـ slot — حدث RTO بيكتب `In-Return` على S1 ← `custom.manual_status` · S2 ← `custom.status_2_r_e` (نفس نداء `metafieldsSet` بتاع الحقلين المعتادين). ⛔ مابيكتبش على 45/46/48، ولا لو القيمة الحالية `In-Return`/`Returned`/`Delivered`/`Cancelled`.
 - 🔴 **استثناء واعٍ تاني من قاعدة «ممنوع كتابة status_1/status_2»** (بيشغّلوا مخزون في `Order-Status-Updater`) — بطلب أحمد صراحةً. `In-Return` مصدر انتقال شرعي هناك (`In-Return → Returned`)، فالقفل بعدها سليم.
 - `DCO_WORKERS.bostaWebhook.min` فضلت `1.7.0` — الواجهة مش معتمدة على سلوك الـ Worker الجديد (التاب من بيانات موجودة أصلًا).
 - ⚠️ **ما اتجرّبش على شوبيفاي حقيقية** — أول حدث RTO حي بعد النشر هو الاختبار الفعلي. أوردرات RTO القديمة **مش هتتحدّث بأثر رجعي** (الكتابة بتحصل عند وصول حدث جديد بس).
