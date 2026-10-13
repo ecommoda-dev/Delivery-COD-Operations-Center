@@ -140,6 +140,48 @@ await page.click('#clearAllBtn'); await page.waitForTimeout(200);
 await page.evaluate(()=>msToggleItem('addrMode','district')); await page.waitForTimeout(100);
 is(await page.$eval('#tblMain th[data-fk="addrMode"]',e=>e.classList.contains('flt-on')),'اختيار من مربعات حالة العنوان بيولّع القمع');
 await page.click('#clearAllBtn');
+// ── تأكيد «المحافظة فقط» من الجدول + autofocus نافذة المنطقة (v1.37.0) ──
+console.log('\n── تأكيد المحافظة فقط · autofocus ──');
+{
+  const tr=n=>`#tblBody tr:has-text("#${n}")`;
+  const btn=n=>page.$(`${tr(n)} .prov-confirm-btn`);
+  const modeCell=n=>page.$eval(tr(n),e=>e.querySelector('.badge')?.className||'');
+  is(!!await btn(59602),'صف «المحافظة فقط» عليه زرار تأكيد');
+  is(await (await btn(59602)).evaluate(e=>e.textContent.includes('تأكيد')),'نص الزرار «تأكيد»');
+  is(await (await btn(59602)).evaluate(e=>!e.hasAttribute('title')),'الزرار من غير tooltip');
+  const others=await page.$$eval('#tblBody .prov-confirm-btn',b=>b.length);
+  is(others===1,'الزرار على الصف المقصود بس ('+others+')');
+  is(await page.$(`${tr(59603)} .prov-confirm-btn`)===null,'صف «أكتر من مطابقة» ما فيهوش زرار');
+  is((await modeCell(59602)).includes('badge-warn'),'البادج أصفر قبل التأكيد');
+  const uploadableBefore=await page.evaluate(()=>rowUploadable(allRows.find(r=>r.orderId==='1002')));
+  is(uploadableBefore===false,'الصف موقوف عن الرفع قبل التأكيد');
+  await (await btn(59602)).click(); await page.waitForTimeout(150);
+  is(await page.$eval('#districtOverlay',e=>!e.classList.contains('open')),'ضغط التأكيد ما فتحش نافذة المنطقة');
+  is(await page.evaluate(()=>JSON.stringify(districtOverride['1002']))==='{"forceProvince":true}','كتب {forceProvince:true} بالظبط (نفس زرار النافذة)');
+  is(await page.evaluate(()=>rowUploadable(allRows.find(r=>r.orderId==='1002'))),'الصف بقى قابل للرفع');
+  is((await modeCell(59602)).includes('badge-success'),'البادج بقى أخضر');
+  is(await page.$(`${tr(59602)} .prov-confirm-btn`).then(b=>b.evaluate(e=>e.textContent.includes('تراجع'))),'ظهر زرار «تراجع»');
+  is(await rowsN()===10,'الصف فضل في الجدول');
+  // تراجع
+  await (await btn(59602)).click(); await page.waitForTimeout(150);
+  is(await page.evaluate(()=>districtOverride['1002']===undefined),'التراجع مسح التثبيت');
+  is((await modeCell(59602)).includes('badge-warn')&&(await (await btn(59602)).evaluate(e=>e.textContent.includes('تأكيد'))),'رجع أصفر وزرار «تأكيد»');
+  // لو التثبيت معاه مدينة معدّلة — مفيش تراجع
+  await page.evaluate(()=>{ districtOverride['1002']={forceProvince:true,cityId:'cX',cityName:'X'}; applyFilters(); });
+  await page.waitForTimeout(100);
+  is(await page.$(`${tr(59602)} .prov-confirm-btn`)===null,'تثبيت معاه مدينة معدّلة: مفيش زرار تراجع');
+  await page.evaluate(()=>{ delete districtOverride['1002']; applyFilters(); }); await page.waitForTimeout(100);
+  // autofocus
+  await page.evaluate(()=>openDistrictPicker('1002')); await page.waitForTimeout(250);
+  is(await page.evaluate(()=>document.activeElement&&document.activeElement.id)==='dpSearch','أول ما النافذة تفتح الفوكس على مربع البحث');
+  await page.keyboard.type('abc'); await page.waitForTimeout(50);
+  is(await page.$eval('#dpSearch',e=>e.value)==='abc','الكتابة على الكيبورد دخلت مربع البحث على طول');
+  await page.evaluate(()=>closeDistrictPicker());
+  // فتح من الزرار في الجدول (مش من الـ API) بيفوكس برضه
+  await page.click(`${tr(59602)} .zone-empty`); await page.waitForTimeout(250);
+  is(await page.evaluate(()=>document.activeElement&&document.activeElement.id)==='dpSearch','الفتح من زرار الجدول بيفوكس على البحث');
+  await page.evaluate(()=>closeDistrictPicker()); await page.waitForTimeout(100);
+}
 // resize drag
 const before=await page.$$eval('#tblMain colgroup col',c=>c.map(x=>parseInt(x.style.width)));
 const h=await page.$('#tblMain .col-rz[data-rz="customer"]'); const bb=await h.boundingBox();
