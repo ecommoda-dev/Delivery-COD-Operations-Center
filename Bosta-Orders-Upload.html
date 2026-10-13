@@ -601,6 +601,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
   line-height:1.7;max-width:100%;white-space:normal;word-break:break-word;}
 /* 🔴 «بلا زون» تتكتب صراحةً — الفراغ بيخلط بين «المنطقة دي بلا زون» و«الكتالوج
    مابيرجّعش الحقل أصلًا»، وده بالظبط نوع الغموض اللي بيوقف التشخيص. */
+.dp-zone.click{cursor:pointer;border-color:var(--accent-border);color:var(--accent);}
+.dp-zone.click:hover,.dp-zone.click:focus-visible{background:var(--accent);color:#fff;outline:none;}
 .dp-zone.none{color:var(--text-muted);background:transparent;border-style:dashed;font-weight:600;}
 .dp-state{font-size:11.5px;font-weight:600;line-height:1.6;padding:6px 10px;margin-bottom:8px;
           border:1px solid var(--border);border-radius:var(--radius-sm);
@@ -928,6 +930,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
           <span class="cl-ver-date">11-10-2026</span>
         </div>
         <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🗺️ <b>نافذة اختيار المنطقة — اختيار المدينة فقط من البحث:</b> اسم المدينة جوّه كل صف منطقة بقى قابل للضغط (بيقصّر القايمة على المدينة دي من غير ما يختار منطقة)، وزرار «ارفع على المدينة فقط» بقى بيتفعّل لما نتايج البحث كلها جوّه مدينة واحدة وبيكتب اسمها.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔴 <b>جدولا «الرفع» و«سجل العمليات»: الفلاتر بقت في رأس كل عمود</b> (معيار <code>ecommoda-html-builder</code> v8.3.1 · Standards #47) — قمع ▽ جنب اسم العمود بيفتح قايمة عائمة: <b>رقم الأوردر</b> (بحث) · <b>التاريخ</b> (فترات سريعة + شهر محدد + من/إلى) · <b>العنوان بالكامل</b> (المحافظة) · <b>حالة العنوان</b> · <b>حالة S1</b> — وفي السجل: التاريخ · الموظف · نوع العملية · رقم الأوردر. لوحة الفلاتر اللي فوق الجدول اتشالت، والـ chips بقت تحت صف «النتائج» و«مسح كل الفلاتر» في صف النتائج. اسم العمود = ترتيب، والقمع = فلتر، والقمع بيتلوّن وعليه عدّاد، وtooltip بالقيم المحددة. مربعات «حالة العنوان» فوق الجدول بتكتب في نفس الفلتر فمستحيل يفترقوا.</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>عناوين ثابتة</b> جوّه سكرول الجدول (بنط 12/700 للعناوين و12.5/600 للخلايا) · <b>عرض الأعمدة بالسحب</b> (دبل كليك = ضبط تلقائي، آخر عمود بيمتص الفراغ) محفوظ لكل وضع رفع وللسجل · والجدول بيفضل ظاهر لما الفلتر يطلّع صفر نتائج (الرسالة صف جواه).</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>فلتر «الحالة» في وضعَي الاسترجاع/الاستبدال بقى من غير قمع — مفيش عمود حالة هناك وكل الصفوف على قيمة واحدة بالتصميم. صفر تعديل في منطق الرفع ولا في الـ Worker.</span></li>
@@ -5055,6 +5058,9 @@ function renderDpControls() {
     // ⚠️ الزرار المقفول بيقول السبب **بحالته** (رمادي ومش قابل للضغط) —
     //    الشرح على الـ hover اتشال مع باقي تلميحات النافذة (v2.8.0).
     pinZ.disabled = !z?.zoneId;
+    // 🗺️ الزرار بيسمّي المدينة اللي هيثبّت عليها — الموظف شايف الاسم قبل الضغط
+    pinZ.textContent = z?.zoneId
+      ? `🗺️ ارفع على «${displayName(z.id, z.labelAr)}»` : '🗺️ ارفع على المدينة فقط';
   }
   // 🔴 «تأكيد العنوان مظبوط» — الشرط **مطابقة منطقة سارية** (v2.15.0):
   //    `dpChosenDistrictId` بترجّع قيمة بس لما فيه `districtId` هيتبعت فعلًا
@@ -5136,12 +5142,27 @@ function zoneLabel(d) {
 //    عارف إن عنوان العميل أصلًا برّه التغطية — فيضغط «ارفع على المحافظة فقط»
 //    ظنًّا منه إنه مسار احتياطي سليم، والشحنة بتتشحن بفلوس وترجع بعد أيام.
 //    والضغط متشال مش متسيب مع رسالة، لأن اختيارها مالوش أي نتيجة صالحة.
+// 🗺️ (v1.37.0 · طلب أحمد) اسم المدينة داخل صف المنطقة قابل للضغط — بيقصّر القايمة على
+//    المدينة دي (ترشيح عرض بس، زي `chooseZone`) ومابيختارش المنطقة. `stopPropagation`
+//    إلزامي: الصف كله `onclick` بيختار المنطقة. «بلا زون» مش قابلة للضغط.
+function dpZoneChip(d, z) {
+  const key = (d.zone || d.zoneAr || '').trim();
+  if (z.none || !key) return `<span class="dp-zone none">🗺️ ${esc(z.text)}</span>`;
+  return `<span class="dp-zone click" role="button" tabindex="0"
+      onclick="event.stopPropagation();dpFilterZone('${jsq(key)}')"
+      onkeydown="if(event.key==='Enter'){event.stopPropagation();dpFilterZone('${jsq(key)}')}">🗺️ ${esc(z.text)}</span>`;
+}
+function dpFilterZone(zone) {
+  if (!zone || dpZoneFilter === zone) return;
+  dpZoneFilter = zone;
+  renderDistrictList();
+}
 function dpRow(d, cls, chosen, why, badge) {
   const z = zoneLabel(d);
   const blocked = !!d.blocked;
   const click = blocked ? '' : ` onclick="chooseDistrict('${jsq(d.id)}','${jsq(d.name)}')"`;
   return `<div class="dp-item ${cls}${chosen ? ' chosen' : ''}${blocked ? ' dp-blocked' : ''}"${click}>
-      <span class="dp-cell"><span class="dp-zone${z.none ? ' none' : ''}">🗺️ ${esc(z.text)}</span></span>
+      <span class="dp-cell">${dpZoneChip(d, z)}</span>
       <span class="dp-main"><span class="dp-name">${esc(bilingualName(d.name, d.nameAr) || '—')}${
         blocked ? '<span class="dp-blocked-badge">🚫 مقفولة للتسليم</span>' : ''}${
         badge ? `<span class="dp-match-badge">${esc(badge)}</span>` : ''}</span>${
@@ -5403,7 +5424,24 @@ async function chooseCrossCity(cityId, cityName, districtId, districtName) {
 // 🔴 الترتيب هو **نفس ترتيب خانة الزون** بالظبط: زون المنطقة المختارة ← القصر
 //    ← درجة الزون التلقائية. لو اختلفوا، الموظف هيضغط الزرار وياخد زون غير
 //    اللي قدامه في الخانة.
+// 🗺️ (v1.37.0 · طلب أحمد) لو نتايج البحث كلها جوّه مدينة واحدة، هي المدينة اللي
+//    زرار «ارفع على المدينة فقط» بيشتغل عليها. أي نتيجة بلا زون أو من زون تاني =
+//    مفيش مدينة واحدة (null). والزون كله مقفول للتسليم مابيطلعش من `dpPickOptions`.
+function dpSearchZone() {
+  const q = normSearch(document.getElementById('dpSearch')?.value || '');
+  if (!q) return null;
+  const hits = dpDistricts.filter(d => dpZoneIs(d.zone, d.zoneAr) &&
+    normSearch(`${d.name} ${d.nameAr} ${d.zone || ''} ${d.zoneAr || ''}`).includes(q));
+  if (!hits.length) return null;
+  const keys = new Set(hits.map(d => (d.zone || d.zoneAr || '').trim().toLowerCase()));
+  if (keys.size !== 1 || keys.has('')) return null;
+  const key = [...keys][0];
+  const opt = dpPickOptions('zone').find(o => o.id.toLowerCase() === key);
+  return opt ? { id: opt.id, zoneId: opt.zoneId, label: opt.label, labelAr: opt.nameAr || '' } : null;
+}
 function dpEffectiveZone(r) {
+  const sz = dpSearchZone();
+  if (sz) return sz;
   const ov = districtOverride[dpOrderId];
   // 🔴 (v1.26.0) الترشيح المختلف عن التثبيت/المنطقة المختارة هو **اختيار الموظف
   //    الأخير** — زرار «ارفع على المدينة فقط» لازم يثبّته هو، مش المدينة القديمة
