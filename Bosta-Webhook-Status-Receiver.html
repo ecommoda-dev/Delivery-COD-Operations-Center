@@ -545,6 +545,9 @@ const REASON_AR_BY_EN = {
   'Waiting for data modification - wrong phone number.': 'رقم التليفون خطأ',
   'Bad Weather.': 'ظروف جوية',
   'Suspicious consignee.': 'اشتباه في المُرسل إليه',
+  'Cancellation - The customer refuses to give the shipment to the star': '(إلغاء) العميل رفض الاستلام',
+  'Cancellation - product issue': '(إلغاء) مشكلة منتج',
+  'Description / Number of items does not match the order': 'وصف / عدد المنتجات مختلف عن المسجّل في الشحنة',
 };
 const normReason = r => String(r).trim().replace(/\.+$/, '').toLowerCase();
 const REASON_AR = new Map(Object.entries(REASON_AR_BY_EN).map(([en, ar]) => [normReason(en), ar]));
