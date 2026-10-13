@@ -161,7 +161,7 @@ const DCO_WORKERS = {
   //    احتمالين واحد منهم بس اسمه == اسم الزون بيترفع تلقائيًا على التاني).
   //    على Worker أقدم الحقلين مش موجودين، فالصف بيفضل ❓ `ambiguous` موقوف
   //    زي قبل الميزة دي — مش خطر (بيفشل مقفول)، بس الميزة مابتشتغلش.
-  bostaUpload: { url: 'https://bosta-orders-upload-worker.ecommoda-dev.workers.dev', min: '2.16.0', label: 'رفع بوسطة' },
+  bostaUpload: { url: 'https://bosta-orders-upload-worker.ecommoda-dev.workers.dev', min: '2.20.0', label: 'رفع بوسطة' },
 
   // 🔴 **أسماء المناديب (v1.30.0) — أول أداة في قسم «أدوات أخرى».** الريبو
   //    (`Courier-Names`) **Worker وبس** — الواجهة `Courier-Names.html` جوّه

@@ -533,6 +533,11 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
    والضغط عليه مابيعملش حاجة في صمت (v2.14.0 · طلب أحمد). */
 .eco-modal.dp .eco-modal-ftr button:disabled{opacity:.4;cursor:not-allowed;filter:none;}
 .eco-modal.dp .eco-modal-ftr button:disabled:hover{filter:none;}
+/* 🟢 «ارفع على المدينة فقط» لما يبقى قابل للضغط بياخد إطار وثيم أخضر للتنبيه
+   (طلب أحمد 13-10-2026) — المقفول بيفضل رمادي زي ما هو. */
+.eco-modal.dp .eco-modal-ftr #dpPinZone:not(:disabled){border:2px solid var(--green);
+  background:var(--green-light);color:var(--green-dark);font-weight:800;}
+.eco-modal.dp .eco-modal-ftr #dpPinZone:not(:disabled):hover{background:#dcfce7;}
 /* القايمة عمودين: المنطقة · الزون — الترويسة ملزوقة فوق.
    🔴 «سبب المطابقة» كان عمود تالت بيعرض «—» في كل الصفوف ماعدا واحد، فالعمود
    كله كان ضوضاء بتاكل عرض الاسم. بقى سطر تحت اسم المنطقة، بيبان فقط لما يبقى
@@ -2811,11 +2816,13 @@ const ADDR_MODE_ITEMS = [
   // 🔴 دي **مش** نقص مطابقة — دي عنوان بوسطة مش بتسلّم فيه أصلًا. لازم تبقى
   //    حالة مستقلة في الفلتر عشان الأوبريشن يقدر يطلّعهم كلهم ويحوّلهم.
   { value: 'coverageBlocked', label: '🚫 خارج التغطية', up: false },
-  { value: 'blocked',  label: '⛔ محافظة خارج الجدول', up: false },
+  // ⛔ «محافظة خارج الجدول» اتشالت من الفلتر والمربعات والعمود (طلب أحمد
+  //    13-10-2026) — الصف نفسه لسه موقوف (`rowUploadable`) وبيتعرض `—`.
 ];
 // مصدر واحد لتسمية «حالة العنوان»: الفلتر والعمود وعنوان نافذة اختيار
 // المنطقة بيقروا منه التلاتة — اسم واحد للمفهوم في كل الشاشات
 const ADDR_MODE_LABEL = Object.fromEntries(ADDR_MODE_ITEMS.map(it => [it.value, it.label]));
+ADDR_MODE_LABEL.blocked = '—';   // مش في الفلتر ولا المربعات — بس عشان العرض مايطلعش الكلمة الخام
 // 🔴 القيم دي لازم تطابق اللي الـ Worker بيكتبه **حرفيًا** — قيمة مكتوبة غلط
 //    هنا بتدّي فلتر بيرجّع صفر صف من غير أي خطأ. الأربعة الأولانية بتاعة الشحن
 //    العادي، والباقي بتاع الاسترجاع/الاستبدال (بيتكتبوا تحت `tool` تانية،
@@ -3939,6 +3946,7 @@ function districtCell(r) {
 // (ADDR_MODE_LABEL) عشان الفلتر والعمود مايفترقوش لما تتضاف حالة جديدة.
 function addrModeCell(r) {
   const mode = rowAddrModeGroup(r);
+  if (mode === 'blocked') return '<span style="color:var(--text-muted)" title="'+esc(addrModeInfo(r).hint)+'">—</span>';
   // 🔴 «محتاج تأكيد يدوي» (`rowNeedsManualAddressConfirm`) بياخد أصفر دايمًا —
   //    بيشمل الأكتر من مطابقة والمحافظة مشكوك فيها ودلوقتي المحافظة فقط لسه
   //    من غير تثبيت. المحافظة **بعد** التثبيت بتاخد أخضر زي أي مطابقة كاملة.
