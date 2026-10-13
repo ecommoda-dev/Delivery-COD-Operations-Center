@@ -130,7 +130,7 @@ tool في D1 : delivery_cod_ops_center   ← login · logout بس (ولسه مط
 | `Order-Status-Updater.html` | 🔗 **تحديث حالة الأوردرات** (مدموجة · اسم الملف اتغيّر v1.11.0) | `order-status-updater-worker` | **`4.7.0`** | **M (1200)** |
 | `COD-Payment-Center.html` | 🔗 **تحصيل الأوردرات COD** (مدموجة · اسم الملف اتغيّر v1.11.0) | `cod-payment-center-worker` | **`3.6.0`** | **M (1200)** |
 | `Partial-Delivery.html` | 🔗 **التسليم الجزئي** (مدموجة من v1.10.0 · بلا نسخة قديمة · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` | **`1.0.1`** | **M (1200)** |
-| `Bosta-Orders-Upload.html` | 🔗 **رفع بوسطة** (مدموجة من v1.13.0 · من v1.18.0 هي النسخة الوحيدة — الرابط القديم اتشال بلا تحويل) | `bosta-orders-upload-worker` | **`2.16.0`** | **M (1200)** |
+| `Bosta-Orders-Upload.html` | 🔗 **رفع بوسطة** (مدموجة من v1.13.0 · من v1.18.0 هي النسخة الوحيدة — الرابط القديم اتشال بلا تحويل) | `bosta-orders-upload-worker` | **`2.20.0`** | **M (1200)** |
 | `Courier-Names.html` | 🛵 **أسماء المناديب** (v1.30.0 · قسم «أدوات أخرى» · Worker وبس في ريبو `Courier-Names`) | `courier-names-worker` | **`1.0.0`** | **M (1200)** |
 | `Bosta-Webhook-Status-Receiver.html` | 📮 **مستقبل حالة شحنات بوسطة** (v1.35.0 · قسم «أدوات أخرى» · Worker وبس في ريبو `Bosta-Webhook-Status-Receiver` · **عرض بحت**) | `bosta-webhook-status-receiver-worker` | **`1.7.0`** | **L (1400)** |
 
