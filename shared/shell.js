@@ -188,7 +188,7 @@ const DCO_WORKERS = {
   bostaWebhook: { url: 'https://bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev', min: '1.7.0', label: 'مستقبل حالة بوسطة' },
 };
 
-const TOOL_VERSION = 'v1.36.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.37.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
