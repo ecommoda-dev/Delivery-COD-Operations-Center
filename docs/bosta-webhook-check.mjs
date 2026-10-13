@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════════════
-// docs/bosta-webhook-check.mjs — فحص صفحة «مستقبل حالة شحنات بوسطة» (v1.35.0)
+// docs/bosta-webhook-check.mjs — فحص صفحة «مستقبل حالة شحنات بوسطة» (v1.35.0 · وتاب In-Return v1.36.0)
 //
 // بيشغّل الصفحة الفعلية على Worker وهمي بأحداث معروفة، ويقيس **الشاشة**:
 //   · الدمج: الجلسة والسر من الهب · صفر شاشة دخول · النداءات بسر الهب على
@@ -55,6 +55,12 @@ const EVENTS = [
   ev({ tracking_number: 'T3', business_reference: '#1003', state: 46, description: 'Returned to business', bosta_timestamp: ts(8), received_at: new Date(ts(8)).toISOString() }),
   // T4: Terminated + بلا shopify_order_id
   ev({ tracking_number: 'T4', business_reference: '#1004', state: 48, description: 'Terminated', shopify_order_id: null, write_status: 'match_failed', bosta_timestamp: ts(7), received_at: new Date(ts(7)).toISOString() }),
+  // T6: اتحوّلت RTO ولسه في الطريق — لازم تتنقل لتاب In-Return وتتشال من تحت التوصيل (v1.36.0)
+  ev({ tracking_number: 'T6', business_reference: '#1006', state: 21, bosta_timestamp: ts(50), received_at: new Date(ts(50)).toISOString() }),
+  ev({ tracking_number: 'T6', business_reference: '#1006', state: 30, description: 'In transit between Hubs', bosta_type: 'RTO', bosta_timestamp: ts(2), received_at: new Date(ts(2)).toISOString() }),
+  // T7: RTO ووصلت Returned to business (46) — لازم تروح Returned مش In-Return
+  ev({ tracking_number: 'T7', business_reference: '#1007', state: 30, bosta_type: 'RTO', bosta_timestamp: ts(60), received_at: new Date(ts(60)).toISOString() }),
+  ev({ tracking_number: 'T7', business_reference: '#1007', state: 46, description: 'Returned to business', bosta_type: 'RTO', bosta_timestamp: ts(9), received_at: new Date(ts(9)).toISOString() }),
   // تاريخ باظ (الحارس): لازم ما يوقّفش رسم الجدول
   ev({ tracking_number: 'T5', business_reference: '#1005', state: 21, delivery_promise_date: '25-09-2026', bosta_timestamp: ts(3), received_at: new Date(ts(3)).toISOString() }),
 ];
@@ -126,15 +132,23 @@ sec('② المنطق — صف لكل رقم تتبع والحالات النه�
   const txt = main.join('\n');
   is(main.length === 2, 'تحت التوصيل: رقمان بس (T1 · T5) — صف واحد لكل رقم', main.join(' || '));
   is(txt.includes('T1') && txt.includes('T5'), 'T1 وT5 ظاهرين');
+  is(!txt.includes('T6') && !txt.includes('T7'), '⛔ T6 (RTO) اتنقلت من «تحت التوصيل» لتاب In-Return')
   is(!txt.includes('T2') && !txt.includes('T3') && !txt.includes('T4'), '⛔ T2 (Delivered) وT3 (Returned) وT4 (Terminated) اتشالوا من «تحت التوصيل»');
   is(txt.includes('Customer not answering'), '🔴 سبب فشل الاستثناء القديم لسه معروض على T1 رغم إن آخر حالتها Out for delivery');
   is(await page.$('#eventsBody-main a.order-link[href*="9000"]') !== null, 'رقم الأوردر هايبرلينك لشوبيفاي');
   is(await page.$('#eventsBody-main a.tracking-link[href*="business.bosta.co/orders/T1"]') !== null, 'ورقم التتبع هايبرلينك لبوسطة');
   is(txt.includes('—'), 'التاريخ الباظ بيعرض — والجدول اتحمّل (الحارس شغّال)');
+  {
+    await page.click('#tab-inreturn');
+    const r = await rowsOf(page, 'inreturn');
+    is(r.length === 1 && r[0].includes('T6'), '🔁 تاب In-Return: صف واحد T6 (RTO) — وT7 (RTO ووصلت 46) مش هنا', r.join(' || '));
+  }
   for (const [tab, tn] of [['returned', 'T3'], ['delivered', 'T2'], ['terminated', 'T4']]) {
     await page.click(`#tab-${tab}`);
     const r = await rowsOf(page, tab);
-    is(r.length === 1 && r[0].includes(tn), `تاب ${tab}: صف واحد ${tn}`, r.join(' || '));
+    // T7 (RTO ووصلت 46) بتروح Returned مش In-Return
+    const want = tab === 'returned' ? 2 : 1;
+    is(r.length === want && r.some(x => x.includes(tn)) && (tab !== 'returned' || r.some(x => x.includes('T7'))), `تاب ${tab}: ${want === 2 ? 'T3 وT7' : 'صف واحد ' + tn}`, r.join(' || '));
   }
   const t4 = (await rowsOf(page, 'terminated'))[0] || '';
   is(await page.$('#eventsBody-terminated a.order-link') === null && t4.includes('1004'), 'T4 بلا shopify_order_id → رقم الأوردر نص عادي بلا لينك');

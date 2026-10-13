@@ -237,6 +237,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
   <!-- ─── §TOOL::mainTabs (tabs-and-modals.md §1) — 4 تابات، كل واحدة بفلاتر وجدول مستقلين تمامًا ─── -->
 <div class="main-tabs-bar">
   <button class="main-tab-btn active" id="tab-main"      onclick="switchMainTab('main')">🚚 الأوردرات تحت التوصيل</button>
+  <button class="main-tab-btn"        id="tab-inreturn"  onclick="switchMainTab('inreturn')">🔁 In-Return</button>
   <button class="main-tab-btn"        id="tab-returned"  onclick="switchMainTab('returned')">↩️ Returned to business</button>
   <button class="main-tab-btn"        id="tab-delivered" onclick="switchMainTab('delivered')">✅ Delivered</button>
   <button class="main-tab-btn"        id="tab-terminated" onclick="switchMainTab('terminated')">🛑 Terminated</button>
@@ -248,6 +249,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
   <div class="banner banner-amber" id="matchFailBanner"></div>
   <div id="tabRoot-main"></div>
 </div>
+<div class="tab-panel" id="panel-inreturn"><div id="tabRoot-inreturn"></div></div>
 <div class="tab-panel" id="panel-returned"><div id="tabRoot-returned"></div></div>
 <div class="tab-panel" id="panel-delivered"><div id="tabRoot-delivered"></div></div>
 <div class="tab-panel" id="panel-terminated"><div id="tabRoot-terminated"></div></div>
@@ -273,7 +275,17 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
     <div class="eco-modal-body">
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.35.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.36.0</span>
+          <span class="cl-ver-date">13-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔁 <b>تاب «In-Return»</b> — أي شحنة اتحوّل نوعها لـ <code>RTO</code> بتتنقل من «🚚 الأوردرات تحت التوصيل» للتاب ده (صف واحد لكل رقم تتبع بآخر حالة). الشحنة اللي وصلت حالة نهائية (Returned · Delivered · Terminated) بتروح لتابها زي الأول.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>✍️ <b>الـ Worker (v1.8.0) بيحدّث حالة الأوردر لـ <code>In-Return</code></b> أول ما يوصله حدث RTO: الجنب S1 ← <code>custom.manual_status</code> · الجنب S2 ← <code>custom.status_2_r_e</code>. مابيكتبش على حدث نهائي (45 · 46 · 48)، ولا لو القيمة الحالية In-Return أو Returned أو Delivered أو Cancelled.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.35.0</span>
           <span class="cl-ver-date">12-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -330,10 +342,10 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
           <h4>FEATURE MAP</h4>
           <ul>
             <li><code>§SHELL</code> — الجلسة والسر والهيدر والتوست والإعدادات والخروج التلقائي كلها من <code>shared/shell.js</code> (مفيش شاشة دخول هنا — الدخول من الرئيسية)</li>
-            <li><code>§TOOL::tabs</code> — 4 تابات، كل واحدة بفلاتر/بحث/فترة/ترتيب مستقل بالكامل: 🚚 الأوردرات تحت التوصيل (آخر حالة لكل رقم تتبع — Exception (47) حالة عادية هنا — وبيستبعد أي رقم وصل لحالة نهائية)، ↩️ Returned to business (كود 46)، ✅ Delivered (كود 45)، 🛑 Terminated (كود 48) — التلاتة الأخيرين صف واحد لكل رقم تتبع (آخر حدث بنفس الحالة)</li>
+            <li><code>§TOOL::tabs</code> — 5 تابات، كل واحدة بفلاتر/بحث/فترة/ترتيب مستقل بالكامل: 🚚 الأوردرات تحت التوصيل (آخر حالة لكل رقم تتبع — Exception (47) حالة عادية هنا — وبيستبعد أي رقم وصل لحالة نهائية <b>أو بقى RTO</b>)، 🔁 In-Return (أي رقم تتبع نوعه RTO ولسه ماوصلش لحالة نهائية — نفس منطق آخر حالة لكل رقم)، ↩️ Returned to business (كود 46)، ✅ Delivered (كود 45)، 🛑 Terminated (كود 48) — التلاتة الأخيرين صف واحد لكل رقم تتبع (آخر حدث بنفس الحالة)</li>
             <li><code>buildTabPanelHtml()</code> / <code>buildThead()</code> — بيولّدوا HTML الجدول لكل تاب في وقت التحميل (بدل تكرار 4 نسخ يدويًا)، بـ id namespaced بـ <code>tabKey</code>. الفلاتر في رأس العمود: زرار القمع <code>[data-flt]</code> بيفتح قايمة عائمة <code>openPop()</code> على <code>body</code></li>
             <li><code>tabState[tabKey]</code> — فلاتر اختيار متعدد + بحث أوردر/تتبع + فترة تاريخ + ترتيب، لكل تاب نسخة مستقلة بالكامل (مفيش state متشارك بين التابات)</li>
-            <li><code>computeFinalTrackingNumbers()</code> / <code>FINAL_STATES</code> (45 · 46 · 48) — Set بكل <code>tracking_number</code> وصلها حدث بحالة نهائية مرة على الأقل؛ بتستبعدها «الأوردرات تحت التوصيل» بس. <code>latestPerTracking()</code> بتدمج أحداث تابات Delivered/Returned/Terminated لصف واحد لكل رقم تتبع. نتيجة الحساب بتتخزّن في <code>tabRows[tabKey]</code> مرة بعد كل تحميل</li>
+            <li><code>computeFinalTrackingNumbers()</code> / <code>FINAL_STATES</code> (45 · 46 · 48) — Set بكل <code>tracking_number</code> وصلها حدث بحالة نهائية مرة على الأقل؛ بتستبعدها «الأوردرات تحت التوصيل» بس. <code>latestPerTracking()</code> بتدمج أحداث تابات Delivered/Returned/Terminated لصف واحد لكل رقم تتبع. <code>computeRtoTrackingNumbers()</code> — أرقام التتبع اللي وصلها حدث نوعه RTO: بتتشال من «تحت التوصيل» وبتظهر في تاب 🔁 In-Return. نتيجة الحساب بتتخزّن في <code>tabRows[tabKey]</code> مرة بعد كل تحميل</li>
             <li><code>slotLabel()</code> — بيحوّل <code>matched_slot</code> (S1/S2 الخام) لليبل عمود "نوع الأوردر" المعروض: S1 ← "عادي (S1)"، S2 ← "استبدال/استرجاع (S2)"، أي قيمة تانية بترجع كابيتال زي ما هي. عمود "النوع" (<code>bosta_type</code> — SEND/RTO/EXCHANGE...) اتسمى "نوع الشحنة" في كل التابات — البيانات في D1 ما اتغيّرتش، التسمية في الواجهة بس.</li>
             <li><code>computeReasonsByTracking()</code> / <code>reasonsOf(ev)</code> — كل أسباب فشل التوصيل لرقم التتبع (الأحدث فوق، من غير تكرار) — بتحكم عمود «أسباب فشل التوصيل» وفلتره وترتيبه · <code>valsOf(k, ev)</code> — فلتر «أي قيمة من المصفوفة»</li>
             <li><code>ensureWidths()</code> / <code>applyW()</code> / <code>fitCol()</code> — التحكم اللايف في عرض الأعمدة (<code>LS_COLS</code> = <code>bosta_webhook_status_col_widths_v1</code>، عرض واحد مشترك للتابات الأربعة)</li>
@@ -450,13 +462,22 @@ function resultBadge(status) {
   return `<span class="badge ${cls}">${esc(label)}</span>`;
 }
 
-// ─── §TOOL::tabs — 4 تابات، كل واحدة بيانات + فلاتر (في رأس العمود) + ترتيب مستقلين تمامًا ───
+// ─── §TOOL::tabs — 5 تابات، كل واحدة بيانات + فلاتر (في رأس العمود) + ترتيب مستقلين تمامًا ───
 // 🔴 08-10-2026 — تاب الأرشيف اتحذف. الحالات النهائية (FINAL_STATES = 45 Delivered · 46 Returned ·
 // 48 Terminated) بتشيل رقم التتبع من «الأوردرات تحت التوصيل» لو وصل لواحدة منهم ولو مرة. وتابات
 // Delivered/Returned/Terminated بقت صف واحد لكل tracking_number (آخر حدث بنفس الحالة) — التكرار
 // بيظهر في «سجل التحديثات» بس.
 const FINAL_STATES = new Set([45, 46, 48]);
 let finalTrackingNumbers = new Set();
+// 🔴 13-10-2026 — تاب «In-Return»: أي رقم تتبع وصله حدث نوعه RTO (النوع بيتحوّل ومابيرجعش) ولسه
+// ماوصلش لحالة نهائية. بيتشال من «تحت التوصيل» وبيتنقل هنا. نفس الـ Worker ≥ 1.8.0 بيكتب
+// In-Return على ميتافيلد الأوردر (S1 ← manual_status · S2 ← status_2_r_e).
+let rtoTrackingNumbers = new Set();
+function computeRtoTrackingNumbers(events) {
+  const s = new Set();
+  events.forEach(ev => { if (String(ev.bosta_type || '').toUpperCase() === 'RTO' && ev.tracking_number) s.add(String(ev.tracking_number)); });
+  return s;
+}
 function computeFinalTrackingNumbers(events) {
   const s = new Set();
   events.forEach(ev => { if (FINAL_STATES.has(Number(ev.state)) && ev.tracking_number) s.add(String(ev.tracking_number)); });
@@ -558,7 +579,9 @@ function computeLatestEventByTracking(events) {
 }
 const TABS = [
   // «الأوردرات تحت التوصيل»: صف واحد لكل tracking_number بآخر حالة فقط، وبيستبعد أي رقم وصل لحالة نهائية.
-  { key: 'main',       match: ev => latestEventByTracking.get(String(ev.tracking_number)) === ev && !finalTrackingNumbers.has(String(ev.tracking_number)) },
+  { key: 'main',       match: ev => latestEventByTracking.get(String(ev.tracking_number)) === ev && !finalTrackingNumbers.has(String(ev.tracking_number)) && !rtoTrackingNumbers.has(String(ev.tracking_number)) },
+  // «In-Return»: نفس منطق «تحت التوصيل» بس للأرقام اللي بقت RTO (آخر حالة لكل رقم تتبع).
+  { key: 'inreturn',   match: ev => latestEventByTracking.get(String(ev.tracking_number)) === ev && !finalTrackingNumbers.has(String(ev.tracking_number)) && rtoTrackingNumbers.has(String(ev.tracking_number)) },
   // الباقي: كل أحداث الحالة دي، مدموجة لصف واحد لكل tracking_number (الأحدث).
   { key: 'returned',   state: 46 },
   { key: 'delivered',  state: 45 },
@@ -1217,6 +1240,7 @@ async function fetchIncremental() {
 }
 function renderAllTabs() {
   finalTrackingNumbers = computeFinalTrackingNumbers(rawEvents);
+  rtoTrackingNumbers = computeRtoTrackingNumbers(rawEvents);
   computeLatestEventByTracking(rawEvents);
   originalTypeByTracking = computeOriginalTypeByTracking(rawEvents);
   reasonsByTracking = computeReasonsByTracking(rawEvents);

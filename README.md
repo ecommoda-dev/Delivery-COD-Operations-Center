@@ -20,7 +20,7 @@
 | `COD-Payment-Center.html` 🔗 | **تحصيل الأوردرات COD** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `cod-payment-center-worker` (في ريبوه) |
 | `Partial-Delivery.html` 🔗 | **التسليم الجزئي** — أداة مدموجة (v1.10.0 · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` (في ريبوه) |
 | `Courier-Names.html` 🛵 | **أسماء المناديب** — قسم «أدوات أخرى» (v1.30.0): إضافة / حذف / ترتيب قايمة `custom.courier` | `courier-names-worker` (في ريبو `Courier-Names` — Worker وبس) |
-| `Bosta-Webhook-Status-Receiver.html` 📮 | **مستقبل حالة شحنات بوسطة** — قسم «أدوات أخرى» (v1.35.0): أحداث الويبهوك (٤ تابات) · **عرض بحت** | `bosta-webhook-status-receiver-worker` (في ريبو `Bosta-Webhook-Status-Receiver` — Worker وبس) |
+| `Bosta-Webhook-Status-Receiver.html` 📮 | **مستقبل حالة شحنات بوسطة** — قسم «أدوات أخرى» (v1.35.0): أحداث الويبهوك (٥ تابات · v1.36.0: In-Return) · **عرض بحت** | `bosta-webhook-status-receiver-worker` (في ريبو `Bosta-Webhook-Status-Receiver` — Worker وبس) |
 
 > 🔴 **الريبو ده فيه النُصّين** — الواجهة على GitHub Pages، و**Worker الدخول**
 > (`index.js`) على Cloudflare. ده الشكل القياسي (قرار ٨ في الـ playbook).

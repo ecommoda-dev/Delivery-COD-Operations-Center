@@ -95,7 +95,7 @@ const TOOLS = [
     workerKey: 'bostaWebhook',
     host:      'bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev',
     oldSecret: 'bosta_webhook_status_worker_secret',
-    tabs:      4,
+    tabs:      5,
   },
 ];
 
