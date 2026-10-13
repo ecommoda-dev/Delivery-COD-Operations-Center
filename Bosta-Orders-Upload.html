@@ -932,6 +932,16 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge"></span>
+          <span class="cl-ver-date">13-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>✓ <b>تأكيد «المحافظة فقط» من الجدول نفسه:</b> زرار «✓ تأكيد» جنب بادج «حالة العنوان» على صفوف «المحافظة فقط» — نفس أثر «ارفع على المحافظة فقط» في نافذة اختيار المنطقة. بعد التأكيد البادج بيتحوّل لأخضر وبيظهر «↩ تراجع». الصف بيفضل في فلتر «المحافظة فقط».</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>⌨️ <b>نافذة اختيار المنطقة بتفتح والمؤشر في مربع البحث</b> — أي حروف تكتبها أول ما تفتح بتدخل في البحث على طول.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.34.0</span>
           <span class="cl-ver-date">11-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -3953,7 +3963,36 @@ function addrModeCell(r) {
   const cls  = rowNeedsManualAddressConfirm(r) ? 'badge-warn'
              : (mode === 'district' || mode === 'zone' || mode === 'province') ? 'badge-success'
              : (mode === 'blocked' || mode === 'coverageBlocked') ? 'badge-danger' : 'badge-muted';
-  return `<span class="badge ${cls}" title="${esc(addrModeInfo(r).hint)}">${esc(ADDR_MODE_LABEL[mode] || mode)}</span>`;
+  const badge = `<span class="badge ${cls}" title="${esc(addrModeInfo(r).hint)}">${esc(ADDR_MODE_LABEL[mode] || mode)}</span>`;
+  // 🔴 تأكيد «المحافظة فقط» من الجدول نفسه (طلب أحمد 13-10-2026): نفس تأثير زرار
+  //    «ارفع على المحافظة فقط» في النافذة بالظبط (`forceProvince`) — من غير tooltip.
+  //    صفوف «خارج التغطية» مالهاش الزرار ده (mode بتاعها coverageBlocked مش province)،
+  //    ومسارها بتأكيد الخطر لسه جوّه النافذة.
+  if (mode === 'province') {
+    const oid = jsq(r.orderId);
+    if (rowNeedsManualAddressConfirm(r)) {
+      return `${badge} <button class="mini-btn doubt prov-confirm-btn" onclick="event.stopPropagation();confirmProvinceFromTable('${oid}')">✓ تأكيد</button>`;
+    }
+    // تراجع بس لو التثبيت جه من الجدول (مفيش مدينة معدّلة يدويًا اتكتبت معاه)
+    if (!districtOverride[r.orderId]?.cityId) {
+      return `${badge} <button class="mini-btn prov-confirm-btn" onclick="event.stopPropagation();undoProvinceFromTable('${oid}')">↩ تراجع</button>`;
+    }
+  }
+  return badge;
+}
+// مصدر واحد لتثبيت المحافظة بدون تغيير مدينة — النافذة (`pinDistrictToProvince`)
+// بتكتب نفس الشكل `{ forceProvince:true }` لما المدينة ما اتغيّرتش.
+function confirmProvinceFromTable(orderId) {
+  const r = allRows.find(x => x.orderId === orderId);
+  if (!r || rowAddrMode(r) !== 'province') return;
+  districtOverride[orderId] = { forceProvince: true };
+  applyFilters();
+}
+function undoProvinceFromTable(orderId) {
+  const ov = districtOverride[orderId];
+  if (!ov?.forceProvince || ov.cityId) return;
+  delete districtOverride[orderId];
+  applyFilters();
 }
 
 // ── مربعات «حالة العنوان» فوق الجدول (طلب أحمد 26-09-2026) ──────
@@ -4642,6 +4681,13 @@ function renderDpTitle(r) {
     `<span class="dp-hdr-state${cls}">${esc(ADDR_MODE_LABEL[mode] || mode)}</span>`;
 }
 
+function focusDpSearch() {
+  const el = document.getElementById('dpSearch');
+  if (!el) return;
+  el.focus();
+  // النافذة بتتعرض بكلاس `open` — لو الفوكس اتسبق برسم العرض نعيده في الفريم الجاي
+  requestAnimationFrame(() => { if (document.activeElement !== el) el.focus(); });
+}
 async function openDistrictPicker(orderId) {
   const r = allRows.find(x => x.orderId === orderId);
   if (!r) return;
@@ -4656,6 +4702,9 @@ async function openDistrictPicker(orderId) {
   document.getElementById('dpSearch').value = '';
   toggleSearchActiveState(document.getElementById('dpSearch'));
   document.getElementById('districtOverlay').classList.add('open');
+  // ⌨️ Autofocus على مربع البحث (طلب أحمد 13-10-2026) — أي حروف تتكتب أول ما
+  //    النافذة تفتح تدخل في البحث على طول
+  focusDpSearch();
 
   // قايمة المدن — لازمة عشان حالة «المدينة مشكوك فيها» يبقى ليها حل يدوي أصلًا
   if (!dpCities.length) {
