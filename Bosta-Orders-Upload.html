@@ -3953,8 +3953,16 @@ function districtCell(r) {
   //    باسم المدينة/المحافظة (كان بيتقري إن المنطقة اتحدّدت). الزرار لسه
   //    بيفتح النافذة، والدرجة الحقيقية في عمود «حالة العنوان» وفي الـ hint.
   if (mode === 'zone' || mode === 'zoneName' || mode === 'province') {
+    const oid = jsq(r.orderId);
+    // 🔴 «المدينة فقط» (zone/zoneName) = المدينة معروفة والمنطقة ناقصة، فالموظف
+    //    محتاج قايمة مناطقها. زرار «▾» بيفتح النافذة وقايمة المناطق مفتوحة
+    //    على طول (طلب أحمد 14-10-2026) بدل نافذة ثم ضغطة على خانة المنطقة.
+    //    ⚠️ مش في «المحافظة فقط»: هناك المدينة نفسها لسه مش محسومة.
+    const listBtn = (mode === 'zone' || mode === 'zoneName')
+      ? ` <button class="mini-btn zone-empty zone-list-btn" title="افتح قايمة المناطق مباشرة"
+                  onclick="openDistrictPicker('${oid}','district')">▾</button>` : '';
     return `<button class="mini-btn zone-empty" title="${esc(info.label + ' — ' + info.hint)}"
-                    onclick="openDistrictPicker('${jsq(r.orderId)}')">—</button>`;
+                    onclick="openDistrictPicker('${oid}')">—</button>${listBtn}`;
   }
   const cls = mode === 'coverageBlocked' ? ' doubt'
             : (info.set || info.pinned) ? ' set'
@@ -4703,7 +4711,7 @@ function focusDpSearch() {
   // النافذة بتتعرض بكلاس `open` — لو الفوكس اتسبق برسم العرض نعيده في الفريم الجاي
   requestAnimationFrame(() => { if (document.activeElement !== el) el.focus(); });
 }
-async function openDistrictPicker(orderId) {
+async function openDistrictPicker(orderId, openList) {
   const r = allRows.find(x => x.orderId === orderId);
   if (!r) return;
   if (!r.addressOk) { showToast(r.addressError || 'المحافظة مش معروفة', 'error', 6000); return; }
@@ -4727,6 +4735,8 @@ async function openDistrictPicker(orderId) {
     catch (e) { showToast(`تعذّر تحميل قايمة المدن: ${e.message}`, 'error', 6000); }
   }
   await loadDpCity(effCity(r).cityId);
+  // قايمة المناطق مفتوحة من أول لحظة لو الطلب جاي من زرار «▾» في الجدول
+  if (openList === 'district' && dpOrderId === orderId && dpPickOpen !== 'district') dpPickToggle('district');
 }
 
 // تحميل مناطق مدينة معيّنة جوّه النافذة
