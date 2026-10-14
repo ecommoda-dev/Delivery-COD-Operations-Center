@@ -136,7 +136,7 @@
 
   <!-- ⚠️ **سطر الشرح اتشال** (طلب أحمد 17-09-2026) — نص بيتقرا **مرة
        واحدة** وبياخد مساحة فوق أهم رقمين في الشاشة كل يوم.
-       ✅ **والمعلومة ما ضاعتش**: التحديث التلقائي كل ١٥ دقيقة وقاعدة
+       ✅ **والمعلومة ما ضاعتش**: قاعدة التحديث (يدوي من v1.38.0) وقاعدة
           «الأدوات بلا عدّاد» مكتوبين بالنص في «عن الأداة»، والعدّاد
           الملوّن جوّه كل صف بيقول عمر الرقم لوحده. -->
 
@@ -156,9 +156,9 @@
          ⚠️ **وصفر فلترة**: الأوردر الشاذ (ملغي · حالة بره القايمة · بلا
             قناة) **بيتعدّ وبياخد علامة** — مربع «محتاجة مراجعة» بيقول
             عددهم. إخفاؤه كان هيخلّي سؤال «الأوردر ده فين؟» بلا إجابة. -->
-      <a class="dco-row" href="Ready-Orders.html">
+      <a class="dco-row dco-qrow age-none" id="rowReady" href="Ready-Orders.html">
         <div class="dco-row-id">
-          <span class="dco-card-ico ico-blue">📋</span>
+          <span class="dco-card-ico ico-blue">📦</span>
           <div>
             <div class="dco-card-name">أوردرات جاهزة للشحن</div>
             <!-- 🔴 **كود الحالة بالحرف تحت الاسم** (طلب أحمد 17-09-2026) —
@@ -171,8 +171,8 @@
             <div class="dco-card-code" dir="ltr">Ready</div>
           </div>
         </div>
-        <div class="dco-row-num dco-num">
-          <span class="dco-count pending" id="cntReady">—</span><span class="dco-unit">أوردر</span>
+        <div class="dco-row-num">
+          <span class="dco-count pending" id="cntReady">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
         </div>
         <div class="dco-row-mid">
           <div class="dco-chips" id="chipsReady"></div>
@@ -180,16 +180,15 @@
           <div class="dco-fail" id="failReady" style="display:none"></div>
         </div>
         <div class="dco-row-act">
-          <div class="dco-fresh">
-            <div class="dco-fresh-row">
-              <span class="dco-fresh-lbl">آخر تحديث</span>
-              <span class="dco-ago" id="agoReady">لسه ما اتحدّثش</span>
-            </div>
-            <div class="dco-fresh-row" id="stampReady"><span class="dco-stamp-chip">—</span></div>
+          <div class="dco-agebox">
+            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
+            <div class="dco-agebox-val" id="agoReady">—</div>
+            <div class="dco-agebar" aria-hidden="true"><i></i></div>
+            <div class="dco-agebox-dt" id="stampReady"><span class="dco-stamp-chip">—</span></div>
           </div>
-          <button class="dco-rbtn" id="btnReady"
+          <button class="dco-qref" id="btnReady" type="button"
                   onclick="event.preventDefault();event.stopPropagation();loadQueue('ready', false)">
-            <span class="dco-rbtn-ico">↺</span><span>تحديث</span><span class="dco-rbtn-badge" id="badgeReady">—</span>
+            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
           </button>
         </div>
       </a>
@@ -203,7 +202,7 @@
             بتعتبرها `Shipped` في العدّ، بس المواصفات المتفق عليها بتقول
             `Shipped` بالحرف. البند مفتوح في `CLAUDE.md` ومستني قرار —
             والعنوان بيقول اللي بيتعرض بالظبط، فالغياب **معلوم مش خفي**. -->
-      <a class="dco-row" href="Shipped-Orders.html">
+      <a class="dco-row dco-qrow age-none" id="rowShipped" href="Shipped-Orders.html">
         <div class="dco-row-id">
           <span class="dco-card-ico ico-amber">🚚</span>
           <div>
@@ -211,8 +210,8 @@
             <div class="dco-card-code" dir="ltr">Shipped</div>
           </div>
         </div>
-        <div class="dco-row-num dco-num">
-          <span class="dco-count pending" id="cntShipped">—</span><span class="dco-unit">أوردر</span>
+        <div class="dco-row-num">
+          <span class="dco-count pending" id="cntShipped">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
         </div>
         <div class="dco-row-mid">
           <div class="dco-chips" id="chipsShipped"></div>
@@ -220,16 +219,15 @@
           <div class="dco-fail" id="failShipped" style="display:none"></div>
         </div>
         <div class="dco-row-act">
-          <div class="dco-fresh">
-            <div class="dco-fresh-row">
-              <span class="dco-fresh-lbl">آخر تحديث</span>
-              <span class="dco-ago" id="agoShipped">لسه ما اتحدّثش</span>
-            </div>
-            <div class="dco-fresh-row" id="stampShipped"><span class="dco-stamp-chip">—</span></div>
+          <div class="dco-agebox">
+            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
+            <div class="dco-agebox-val" id="agoShipped">—</div>
+            <div class="dco-agebar" aria-hidden="true"><i></i></div>
+            <div class="dco-agebox-dt" id="stampShipped"><span class="dco-stamp-chip">—</span></div>
           </div>
-          <button class="dco-rbtn" id="btnShipped"
+          <button class="dco-qref" id="btnShipped" type="button"
                   onclick="event.preventDefault();event.stopPropagation();loadQueue('shipped', false)">
-            <span class="dco-rbtn-ico">↺</span><span>تحديث</span><span class="dco-rbtn-badge" id="badgeShipped">—</span>
+            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
           </button>
         </div>
       </a>
@@ -246,9 +244,9 @@
          ⚠️ **ومالوش «مستحق تحصيل»** — الأداة دي بتنشئ شحنات مش بتحصّل،
             والسطر ده في الصفّين فوق خاص بالطابورين.
          ⚠️ **والنداءات قراءة بحتة** — `fetch_candidates` بطّل يكتب صف
-            `scan` من Worker v2.4.0، فالتحديث التلقائي كل ١٥ دقيقة مابيملاش
+            `scan` من Worker v2.4.0، فالتحديث (يدوي من v1.38.0) مابيملاش
             السجل. -->
-      <a class="dco-row" href="Bosta-Orders-Upload.html">
+      <a class="dco-row dco-qrow age-none" id="rowBosta" href="Bosta-Orders-Upload.html">
         <div class="dco-row-id">
           <span class="dco-card-ico ico-red"><img src="assets/bosta-logo.png" alt="Bosta"></span>
           <div>
@@ -256,8 +254,8 @@
             <div class="dco-card-code">لم يتم الرفع</div>
           </div>
         </div>
-        <div class="dco-row-num dco-num">
-          <span class="dco-count pending" id="cntBosta">—</span><span class="dco-unit">أوردر</span>
+        <div class="dco-row-num">
+          <span class="dco-count pending" id="cntBosta">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
         </div>
         <div class="dco-row-mid">
           <div class="dco-chips" id="chipsBosta"></div>
@@ -265,16 +263,15 @@
           <div class="dco-fail" id="failBosta" style="display:none"></div>
         </div>
         <div class="dco-row-act">
-          <div class="dco-fresh">
-            <div class="dco-fresh-row">
-              <span class="dco-fresh-lbl">آخر تحديث</span>
-              <span class="dco-ago" id="agoBosta">لسه ما اتحدّثش</span>
-            </div>
-            <div class="dco-fresh-row" id="stampBosta"><span class="dco-stamp-chip">—</span></div>
+          <div class="dco-agebox">
+            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
+            <div class="dco-agebox-val" id="agoBosta">—</div>
+            <div class="dco-agebar" aria-hidden="true"><i></i></div>
+            <div class="dco-agebox-dt" id="stampBosta"><span class="dco-stamp-chip">—</span></div>
           </div>
-          <button class="dco-rbtn" id="btnBosta"
+          <button class="dco-qref" id="btnBosta" type="button"
                   onclick="event.preventDefault();event.stopPropagation();loadQueue('bosta', false)">
-            <span class="dco-rbtn-ico">↺</span><span>تحديث</span><span class="dco-rbtn-badge" id="badgeBosta">—</span>
+            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
           </button>
         </div>
       </a>
@@ -283,7 +280,7 @@
   <!-- ══ قسم «أدوات» ══════════════════════════════════════════
        🔴 **بلا عدّاد عن قصد** — والكلام ده مكتوب في `shared/shell.css`
           §DCO-HOME من قبل ما الأدوات تدخل: عدّاد حيّ معناه **جلب تقيل
-          عند كل دخول وكل تحديث تلقائي**، وماياخدهوش إلا اللي عنده طابور
+          عند كل دخول**، وماياخدهوش إلا اللي عنده طابور
           حقيقي وجلبه رخيص. التلاتة دول **أدوات فعل** مش طوابير: مفيش
           «رقم» يوصفهم أصلاً.
        🔴 **والكروت بتفتح صفحة في نفس التاب** (مش رابط خارجي بـ`target`)
@@ -376,13 +373,20 @@
           <div id="aboutWorkers"></div>
           <h4>الأعداد في الشاشة الرئيسية</h4>
           <ul>
-            <li>بتتجاب بعد الدخول <b>بالتوازي</b> (<code>allSettled</code> مش <code>all</code> —
-                طابور بيقع <b>مايخفيش</b> التاني)، وبعد كده <b>بتتحدّث تلقائيًا كل ١٥ دقيقة</b>.</li>
-            <li>التحديث التلقائي <b>بيقف والتاب مقفول</b> ويكمّل أول ما ترجع — استعلام
-                على شاشة محدش شايفها تكلفته حقيقية على شوبيفاي.</li>
-            <li>عدّاد «آخر تحديث» في كل صف <b>بيلوّن نفسه</b>: أخضر أقل من ٥ دقايق ·
-                أزرق أقل من ١٥ · كهرماني بعدها (والزرار كمان) · أحمر بعد ساعة.
-                وبيتحدّث كل نص دقيقة <b>بلا أي نداء شبكة</b>.</li>
+            <li>🔴 <b>مفيش تحديث تلقائي</b> (من v1.38.0) — الرقم بيتجدّد لما تدوس
+                <b>«تحديث»</b> على الصف، أو لما تفتح الشاشة دي والرقم <b>أقدم من ١٠ دقايق</b>.
+                الأحدث من كده بيترسم من آخر رقم اتجاب <b>بلا أي نداء</b>.</li>
+            <li>فتح «قسم الجاهز للشحن» أو «طابور المشحون» أو «رفع بوسطة» <b>بيحدّث رقم
+                الشاشة دي كمان</b> — نفس الجلب، من غير نداء زيادة.</li>
+            <li>لما بتتجاب، بتتجاب <b>بالتوازي</b> (<code>allSettled</code> مش <code>all</code> —
+                طابور بيقع <b>مايخفيش</b> التاني).</li>
+            <li>🎨 <b>الصف بيقول عمر الرقم</b>: الحافة اللي على الجنب ومربع «آخر تحديث منذ:»
+                وزرار التحديث بلون واحد — أخضر أقل من ٥ دقايق · أزرق أقل من ١٥ ·
+                كهرماني لحد ساعة · أحمر بعدها. وخلفية الصف والشريط اللي تحت المدة
+                <b>بيتملوا شوية بشوية</b> لحد الساعة. وكله بيتحدّث كل نص دقيقة
+                <b>بلا أي نداء شبكة</b>.</li>
+            <li>وقت التحديث الرقم الكبير بيتبدّل بـ ↻ بتلف، وزرار التحديث بيقول
+                «جاري التحديث».</li>
             <li>قبل أول جلب ناجح العدد <b>«—» مش «0»</b> — «ما اتحدّثش» ≠ «مفيش شغل».</li>
             <li>الفشل بيعرض <b>حالة فشل</b> مش صفر، والدخول للصفحة <b>لسه شغّال</b>.</li>
             <li>ختم الوقت بيتسجّل <b>حتى لو الطابور رجع فاضي</b>، وفي الفشل <b>مايتغيّرش</b>.</li>
@@ -444,7 +448,19 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.37.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.38.0</span>
+          <span class="cl-ver-date">14-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⏸️ <b>التحديث التلقائي كل ١٥ دقيقة اتلغى</b> في الرئيسية وفي «قسم الجاهز للشحن» و«طابور المشحون» (طلب أحمد — تخفيف الضغط على الـ Workers). الرقم بيتجدّد لما تدوس «تحديث»، أو لما تفتح الرئيسية والرقم أقدم من ١٠ دقايق.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>⚡ <b>الرئيسية بتترسم من آخر رقم اتجاب لو عمره أقل من ١٠ دقايق</b> — الرجوع بـ 🏠 من أي أداة مابقاش بيعمل نداءات جديدة. وفتح «قسم الجاهز للشحن» أو «طابور المشحون» أو «رفع بوسطة» بيحدّث رقم الرئيسية كمان.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🎨 <b>صف الطابور بيقول عمر الرقم من بعيد</b>: حافة ملوّنة على الجنب، وخلفية بتغمق شوية بشوية، ومربع «آخر تحديث منذ:» بالمدة بخط كبير وشريط بيتملا، وزرار التحديث بنفس اللون (أخضر ← أزرق ← كهرماني ← أحمر بعد ساعة).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>زرار التحديث بقى أيقونة ↻ كبيرة وتحتها «تحديث» من غير الرقم، ووقت التحديث الرقم الكبير بيتبدّل بأيقونة بتلف. وكلمة «أوردر» اتشالت من جنب العدد، وأيقونة «أوردرات جاهزة للشحن» بقت 📦.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.37.0</span>
           <span class="cl-ver-date">13-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -961,87 +977,128 @@ async function finishLogin(username, displayName, logged) {
 // §HOME-JS — الشاشة الرئيسية
 // ══════════════════════════════════════════════════════════════
 //
-// 🔴 التحديث التلقائي — كل ١٥ دقيقة، **بتلات حراس**. من غيرهم ده بيبقى
-//    polling أعمى على أتقل endpoint في الستاك × عدد الأجهزة × طول اليوم:
+// 🔴 **مفيش تحديث تلقائي** (v1.38.0 · قرار أحمد 14-10-2026 — كان كل ١٥
+//    دقيقة). الهدف تخفيف الضغط على الـ Workers (وحد استعلامات شوبيفاي اللي
+//    وراهم). الرقم بيتجدّد في تلات حالات بس:
+//    ① **الموظف داس «تحديث»** على الصف.
+//    ② **فتح الرئيسية والكاش أقدم من `DCO_CACHE_TTL_MS` (١٠ دقايق)** أو
+//       مش موجود — والأحدث من كده بيترسم من الكاش **بصفر نداء**. من غير ده
+//       الرجوع بـ 🏠 من أي أداة كان بيعمل ٥ نداءات كل مرة (الهب reload كامل).
+//    ③ **صفحة الطابور جابت** — بتكتب نفس الكاش، فالرئيسية بتاخد رقمها ببلاش.
+//    ⛔ **وممنوع يرجع تايمر ولا جلب عند الرجوع للتاب** (`visibilitychange`) —
+//       اتعرض واترفض بقرار (الشكل نفسه بيقول إن الرقم قديم).
 //
-//    ① التسليح بعد **كل جلب ناجح** (`armAuto` جوّه `loadQueue`) — فالعدّاد
-//       معناه «١٥ دقيقة من آخر تحديث فعلي» مش من الدخول.
-//    ② `document.hidden` = التاب مقفول = **مفيش استعلام**. بيتعلّم `dirty`
-//       بس، والجلب بيحصل أول ما الموظف يرجع للتاب.
-//    ③ النبضة (٣٠ ثانية) بتحدّث «منذ كام» **بلا أي نداء شبكة**.
+// 🔴 **وعشان مفيش تحديث تلقائي، الصف لازم يقول عمره من بعيد** — النبضة (٣٠
+//    ثانية، **بلا أي نداء شبكة**) بتحدّث لون الصف والحافة والشريط ومدة «آخر
+//    تحديث منذ:» ولون زرار التحديث. السلّم من `agoInfo` في الـ shell.
 //
-// ⚠️ تايمر **لكل طابور لوحده** مش تايمر واحد للاتنين: Workers مستقلين،
-//    وواحد ممكن يقع والتاني ينجح. تايمر موحّد كان هيربط تسليح الناجح
-//    بفشل التاني.
-const DCO_AUTO_REFRESH_MS = 15 * 60 * 1000;
-const DCO_TICK_MS         = 30 * 1000;
+// ⚠️ حالة **لكل طابور لوحده** — Workers مستقلين، وواحد ممكن يقع والتاني ينجح.
+const DCO_TICK_MS = 30 * 1000;
 
-// تعريف كل طابور: الـ IDs بتاعته + إزاي بيتجاب.
+// تعريف كل طابور: الـ IDs بتاعته + إزاي بيتجاب + إزاي بيتقري من الكاش.
 // 🔴 **الاشتقاق كله من `shared/shell.js` §QUEUE-RULES** — `dcoQueueRows`
 //    و`dcoChips` و`dcoCod`. الصفحة بتنادي **نفس** الدوال على **نفس** الرد،
 //    فمستحيل الرقم هنا يخالف القايمة هناك (درس R1).
 //    ⛔ ممنوع أي `filter` أو `map` بقاعدة أهلية في الملف ده.
+// ⚠️ `derive` واحدة للجلب وللكاش — نسختين كانوا هيخلّوا الرقم من الكاش
+//    يخالف الرقم من الشبكة لنفس الرد.
+function deriveQueue(data, status, kind) {
+  const rows = dcoQueueRows(data.orders || [], status, kind);
+  return { total: rows.length, chips: dcoChips(rows), cod: dcoCod(rows), truncated: !!data.truncated };
+}
+// 🔴 الكاش بيتقري **بس لو عمره أقل من `DCO_CACHE_TTL_MS`** — أقدم من كده =
+//    جلب جديد. ⚠️ وعمر سالب (ساعة الجهاز اترجعت) = مش موثوق = جلب.
+const cacheFresh = c => !!c && c.ageMs >= 0 && c.ageMs < DCO_CACHE_TTL_MS;
+
+const BOSTA_MODES = [
+  { key: 's1',       label: '🚚 شحن عادي', cls: 'qc-job-s1' },
+  { key: 'return',   label: '↩️ استرجاع',  cls: 'qc-job-return' },
+  { key: 'exchange', label: '🔄 استبدال',  cls: 'qc-job-exchange' },
+];
+function deriveBosta(counts) {
+  const chips = BOSTA_MODES.map(m => ({ cls: m.cls, label: m.label, n: counts[m.key] }));
+  return { total: chips.reduce((a, c) => a + c.n, 0), chips, cod: null };
+}
+
 const HOME_QUEUES = {
   ready: {
     err: 'تعذّر جلب قسم الجاهز للشحن',
-    ids: { count:'cntReady', chips:'chipsReady', money:'moneyReady', fail:'failReady',
-           ago:'agoReady', stamp:'stampReady', btn:'btnReady', badge:'badgeReady' },
+    ids: { row:'rowReady', count:'cntReady', chips:'chipsReady', money:'moneyReady', fail:'failReady',
+           ago:'agoReady', stamp:'stampReady', btn:'btnReady' },
     async fetch() {
       const data = await dcoApi(DCO_WORKERS.ready).apiGet('get_ready_queue');
       // ⚠️ الكاش بيتكتب بالرد **الخام** زي ما جه — الصفحة بتشتق منه
       //    بنفسها بنفس الدوال. كاش مشتق كان هيخلّي أي تعديل في القاعدة
       //    يسيب بيانات قديمة بشكل قديم في الجلسة.
       cacheSet(DCO_CACHE_READY, data);
-      const rows = dcoQueueRows(data.orders || [], 'Ready', 'ready');
-      return { total: rows.length, chips: dcoChips(rows), cod: dcoCod(rows), truncated: !!data.truncated };
+      return deriveQueue(data, 'Ready', 'ready');
+    },
+    fromCache() {
+      const c = cacheGet(DCO_CACHE_READY);
+      if (!cacheFresh(c) || !Array.isArray(c.data.orders)) return null;
+      return { at: new Date(c.at), r: deriveQueue(c.data, 'Ready', 'ready') };
     },
   },
   shipped: {
     err: 'تعذّر جلب طابور المشحون',
-    ids: { count:'cntShipped', chips:'chipsShipped', money:'moneyShipped', fail:'failShipped',
-           ago:'agoShipped', stamp:'stampShipped', btn:'btnShipped', badge:'badgeShipped' },
+    ids: { row:'rowShipped', count:'cntShipped', chips:'chipsShipped', money:'moneyShipped', fail:'failShipped',
+           ago:'agoShipped', stamp:'stampShipped', btn:'btnShipped' },
     async fetch() {
       const data = await dcoApi(DCO_WORKERS.shipped).apiGet('get_shipped_queue');
       cacheSet(DCO_CACHE_SHIPPED, data);
-      const rows = dcoQueueRows(data.orders || [], 'Shipped', 'shipped');
-      return { total: rows.length, chips: dcoChips(rows), cod: dcoCod(rows), truncated: !!data.truncated };
+      return deriveQueue(data, 'Shipped', 'shipped');
+    },
+    fromCache() {
+      const c = cacheGet(DCO_CACHE_SHIPPED);
+      if (!cacheFresh(c) || !Array.isArray(c.data.orders)) return null;
+      return { at: new Date(c.at), r: deriveQueue(c.data, 'Shipped', 'shipped') };
     },
   },
   // 🔴 «رفع بوسطة» — التلات أوضاع بالتوازي على نفس الـ Worker، والعدّ بنفس
   //    شرط تاب «الرفع» جوّه الأداة (`!alreadyUploaded`). ⚠️ لو أي وضع فشل
   //    الصف كله بيقول فشل (بيسمّي الوضع) — رقم إجمالي ناقص وضع شكله سليم
   //    وهو أقل من الحقيقة (قاعدة ٤: الفشل مش صفر).
+  // 🔴 **والكاش عدّادات بس** (`bostaCacheSet` في الـ shell) — وصفحة الأداة
+  //    بتكتب فيه هي كمان مع كل جلب لأي وضع.
   bosta: {
     err: 'تعذّر جلب أوردرات رفع بوسطة',
-    ids: { count:'cntBosta', chips:'chipsBosta', money:'moneyBosta', fail:'failBosta',
-           ago:'agoBosta', stamp:'stampBosta', btn:'btnBosta', badge:'badgeBosta' },
+    ids: { row:'rowBosta', count:'cntBosta', chips:'chipsBosta', money:'moneyBosta', fail:'failBosta',
+           ago:'agoBosta', stamp:'stampBosta', btn:'btnBosta' },
     async fetch() {
       const api = dcoApi(DCO_WORKERS.bostaUpload);
       const s = getSession();
-      const modes = [
-        { key: 's1',       label: '🚚 شحن عادي', cls: 'qc-job-s1',       get: () => api.apiGet('get_orders') },
-        { key: 'return',   label: '↩️ استرجاع',  cls: 'qc-job-return',   get: () => api.apiPost('fetch_candidates', { jobType: 'return',   employee: s?.username || null }) },
-        { key: 'exchange', label: '🔄 استبدال',  cls: 'qc-job-exchange', get: () => api.apiPost('fetch_candidates', { jobType: 'exchange', employee: s?.username || null }) },
-      ];
-      const res = await Promise.allSettled(modes.map(m => m.get()));
-      const failed = modes.filter((m, i) => res[i].status === 'rejected');
+      const get = {
+        s1:       () => api.apiGet('get_orders'),
+        return:   () => api.apiPost('fetch_candidates', { jobType: 'return',   employee: s?.username || null }),
+        exchange: () => api.apiPost('fetch_candidates', { jobType: 'exchange', employee: s?.username || null }),
+      };
+      const res = await Promise.allSettled(BOSTA_MODES.map(m => get[m.key]()));
+      const failed = BOSTA_MODES.filter((m, i) => res[i].status === 'rejected');
+      // ⚠️ الوضع اللي نجح بيتكتب في الكاش حتى لو غيره فشل — رقمه صح.
+      const counts = {};
+      BOSTA_MODES.forEach((m, i) => {
+        if (res[i].status !== 'fulfilled') return;
+        counts[m.key] = (res[i].value.rows || []).filter(r => !r.alreadyUploaded).length;
+        bostaCacheSet(m.key, counts[m.key]);
+      });
       if (failed.length) {
         const first = res.find(r => r.status === 'rejected').reason;
         throw new Error(`تعذّر جلب ${failed.map(m => m.label).join(' · ')} — ${first?.message || 'خطأ غير معروف'}`);
       }
-      const chips = modes.map((m, i) => ({
-        cls: m.cls, label: m.label,
-        n: (res[i].value.rows || []).filter(r => !r.alreadyUploaded).length,
-      }));
-      return { total: chips.reduce((a, c) => a + c.n, 0), chips, cod: null };
+      return deriveBosta(counts);
+    },
+    fromCache() {
+      const c = bostaCacheGet();
+      if (!cacheFresh(c)) return null;
+      return { at: new Date(c.at), r: deriveBosta(c.counts) };
     },
   },
 };
 
 const homeQ = {
-  ready:   { at: null, dirty: false, timer: null, loading: false },
-  shipped: { at: null, dirty: false, timer: null, loading: false },
-  bosta:   { at: null, dirty: false, timer: null, loading: false },
+  ready:   { at: null, loading: false },
+  shipped: { at: null, loading: false },
+  bosta:   { at: null, loading: false },
 };
 let homeTickTimer = null;
 
@@ -1062,27 +1119,34 @@ function showHome() {
 }
 
 function loadCounts() {
-  renderFreshness();
   startHomeTicker();
-  // ⚠️ التسليح **من الدخول** كمان مش من أول نجاح بس: لو أول جلب فشل،
-  //    تفضل فيه محاولة تلقائية بدل ما الصف يقف على ⚠️ للأبد.
-  Object.keys(homeQ).forEach(armAuto);
   // 🔴 **القايمة بتتبني من `homeQ` نفسه — مش مكتوبة بالإيد.** القايمة
   //    اليدوية هي اللي بتنسى طابور جديد **في صمت**: الصف بيترسم والعدّاد
   //    بيفضل `—` للأبد ومفيش أي خطأ في الكونسول. ده حصل فعلاً في هب
   //    المخزن وقت إضافة الطابور الرابع، واتمسك في **فحص المتصفح** مش في
   //    مراجعة كود.
+  // 🔴 **الكاش الأول** — طابور كاشه أحدث من ١٠ دقايق بيترسم منه بصفر نداء،
+  //    والباقي بس هو اللي بيتجاب. ⚠️ والختم بيبقى **وقت الكاش** مش وقت
+  //    الفتح — «منذ ٨ دقايق» هي الحقيقة.
   // ⚠️ و`allSettled` مش `all` — فشل طابور **مايخفيش** التاني.
-  Promise.allSettled(Object.keys(homeQ).map(k => loadQueue(k)));
+  const toFetch = Object.keys(homeQ).filter(k => {
+    const c = HOME_QUEUES[k].fromCache();
+    if (!c) return true;
+    setCount(k, c.r);
+    homeQ[k].at = c.at;
+    return false;
+  });
+  renderFreshness();
+  Promise.allSettled(toFetch.map(k => loadQueue(k)));
 }
 
-// المسار الوحيد للجلب — الضغطة اليدوية والنبضة التلقائية الاتنين بيعدّوا
-// منه. نسخة تانية للتلقائي هتفترق مع أول تعديل (درس R1).
+// المسار الوحيد للجلب من الشبكة — الفتح والضغطة اليدوية الاتنين بيعدّوا منه.
 async function loadQueue(key, silent = true) {
   const q = homeQ[key], def = HOME_QUEUES[key];
-  if (q.loading) return;              // ضغطة + نبضة في نفس اللحظة
+  if (q.loading) return;              // ضغطتين ورا بعض
   q.loading = true;
   setRefreshing(key, true);
+  renderFreshness();
   try {
     const r = await def.fetch();
     clearFail(def.ids.fail);
@@ -1090,11 +1154,10 @@ async function loadQueue(key, silent = true) {
     // ⚠️ الختم بيتسجّل **حتى لو الطابور رجع فاضي** — «اتحدّث ورجع صفر»
     //    معلومة، و«ما اتحدّثش» معلومة تانية خالص.
     q.at = new Date();
-    q.dirty = false;
-    armAuto(key);                     // العدّاد بيبدأ من آخر تحديث ناجح
   } catch (err) {
     // ⚠️ الختم **مايتغيّرش** في الفشل — ما نقولش للموظف إن القايمة دي
-    //    جديدة وهي مش جديدة. والدخول للصفحة **لسه شغّال**.
+    //    جديدة وهي مش جديدة، والصف بيفضل بلون عمره الحقيقي. والدخول
+    //    للصفحة **لسه شغّال**.
     setFail(key, err.message || def.err);
     if (!silent) showToast(err.message || def.err, 'error', 5000);
   } finally {
@@ -1108,10 +1171,10 @@ function setCount(key, r) {
   const ids = HOME_QUEUES[key].ids;
   const c = document.getElementById(ids.count);
   c.textContent = String(r.total);
+  c.setAttribute('aria-label', `${r.total} أوردر`);
   c.classList.remove('pending', 'failed');
   document.getElementById(ids.chips).innerHTML = (r.chips || []).map(ch =>
     `<span class="dco-chip ${esc(ch.cls)}">${esc(ch.label)} <b>${ch.n}</b></span>`).join('');
-  document.getElementById(ids.badge).textContent = String(r.total);
 
   // 🔴 **الفلوس شكلها مختلف عن مربعات العدّ عن قصد** — المربعات بتعدّ
   //    أوردرات وده بيقول جنيه. نفس الشكل كان هيخلّي «٤٥٬٠٠٠» تتقري
@@ -1138,8 +1201,8 @@ function setFail(key, msg) {
   f.style.display = '';
   f.textContent = `⚠️ ${msg}`;
   // ⚠️ «تعذّر الاستعلام» ≠ «مفيش شغل» — فالعدد **عمره ما يبقى صفر** هنا.
-  //    ولو فيه جلب ناجح قبل كده، الرقم القديم **بيفضل** والعدّاد الأحمر
-  //    فوقه هو اللي بيقول إنه قديم — ده أصدق من مسحه.
+  //    ولو فيه جلب ناجح قبل كده، الرقم القديم **بيفضل** والصف بلونه
+  //    بيقول عمره — ده أصدق من مسحه.
   if (!homeQ[key].at) {
     const c = document.getElementById(ids.count);
     c.textContent = 'تعذّر';
@@ -1153,31 +1216,48 @@ function clearFail(failId) {
   f.textContent = '';
 }
 
+// وقت التحديث: الزرار أبيض بإطار متقطّع والأيقونة بتلف، والرقم الكبير
+// بيتبدّل بـ ↻ بتلف (CSS على `.is-loading`)، والشريط بيتحرك رايح جاي.
 function setRefreshing(key, on) {
-  const btn = document.getElementById(HOME_QUEUES[key].ids.btn);
+  const ids = HOME_QUEUES[key].ids;
+  const btn = document.getElementById(ids.btn);
+  document.getElementById(ids.row)?.classList.toggle('is-loading', on);
   if (!btn) return;
   btn.disabled = on;
-  btn.classList.toggle('loading', on);
+  btn.querySelector('.dco-qref-tx').textContent = on ? 'جاري التحديث' : 'تحديث';
 }
 
-// ─── لوحة «آخر تحديث» ───
-// ⚠️ ثقة الموظف في الرقم بتتبني على السطر ده. طابور اتحدّث من ٤٠ دقيقة
-//    شكله بالظبط زي واحد اتحدّث من دقيقة لو مافيش عدّاد.
-// ⚠️ `agoInfo` في `shared/shell.js` §HELPERS — **ممنوع نسخة هنا**.
+// ─── عمر الرقم على الصف ───
+// ⚠️ ثقة الموظف في الرقم بتتبني على المربع ده — ومن غير تحديث تلقائي هو
+//    **الحاجة الوحيدة** اللي بتقول إن الرقم قدم.
+// ⚠️ المرحلة (اللون) من `agoInfo` في `shared/shell.js` §HELPERS — **ممنوع
+//    سلّم تاني هنا**. اللي بيتحسب هنا هو **الدقايق** (للنص الكبير والشريط).
+function ageValueHtml(mins) {
+  if (mins < 1)  return '<b>لحظات</b>';
+  if (mins < 60) return `<b>${mins}</b>${mins >= 3 && mins <= 10 ? 'دقايق' : 'دقيقة'}`;
+  const h = Math.floor(mins / 60);
+  return h <= 2 ? `<b>${esc(arHour(h))}</b>` : `<b>${h}</b>${h <= 10 ? 'ساعات' : 'ساعة'}`;
+}
 function renderFreshness(now = Date.now()) {
   Object.keys(homeQ).forEach(key => {
     const q = homeQ[key], ids = HOME_QUEUES[key].ids;
+    const row = document.getElementById(ids.row);
+    if (!row) return;
     const info = agoInfo(q.at, now);
-    const ago = document.getElementById(ids.ago);
-    if (!ago) return;
-    ago.className   = `dco-ago ${info.cls}`;
-    ago.textContent = info.text;
+    const lvl  = q.at ? info.cls.replace('ago-', '') : 'none';
+    const mins = q.at ? Math.max(0, Math.floor((now - q.at.getTime()) / 60000)) : 0;
+    row.classList.remove('age-none', 'age-fresh', 'age-ok', 'age-warn', 'age-stale');
+    row.classList.add('age-' + lvl);
+    // `--fill` = الدقايق ÷ ٦٠ (بيقف عند ساعة) — خلفية الصف والشريط بيتملوا تدريجيًا
+    row.style.setProperty('--fill', String(q.at ? Math.min(mins / 60, 1) : 0));
+    document.getElementById(ids.ago).innerHTML = q.loading
+      ? '<span>جاري التحديث…</span>'
+      : q.at ? ageValueHtml(mins) : '<span>لسه ما اتحدّثش</span>';
     const iso = q.at ? q.at.toISOString() : null;
     document.getElementById(ids.stamp).innerHTML = iso
       ? `<span class="dco-stamp-chip">${esc(formatDate(iso))}</span>`
         + `<span class="dco-stamp-chip">${esc(formatTimeOnly(iso))}</span>`
       : '<span class="dco-stamp-chip">—</span>';
-    document.getElementById(ids.btn).classList.toggle('is-stale', info.stale);
   });
 }
 
@@ -1186,29 +1266,6 @@ function startHomeTicker() {
   if (homeTickTimer) return;
   homeTickTimer = setInterval(() => renderFreshness(), DCO_TICK_MS);
 }
-
-// ─── التحديث التلقائي ───
-function armAuto(key) {
-  stopAuto(key);
-  homeQ[key].timer = setInterval(() => autoTick(key), DCO_AUTO_REFRESH_MS);
-}
-function stopAuto(key) {
-  const q = homeQ[key];
-  if (q.timer) { clearInterval(q.timer); q.timer = null; }
-}
-function autoTick(key) {
-  if (!getSession()) { stopAuto(key); return; }
-  // ② التاب مخفي = القايمة دي محدش شايفها. علّم بس، والجلب عند الرجوع.
-  if (document.hidden) { homeQ[key].dirty = true; return; }
-  loadQueue(key);
-}
-
-// الرجوع للتاب — بيجيب اللي اتأجّل بس. `dirty` **مابيتصفّرش غير بعد جلب
-// ناجح**، فلو الجلب فشل أول رجوع تاني بيحاول.
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden || !getSession()) return;
-  Object.keys(homeQ).forEach(k => { if (homeQ[k].dirty) loadQueue(k); });
-});
 
 // ⚠️ الحلقة دي مكرّرة في التلات صفحات **عن قصد**: `DCO_WORKERS` و`cmpVersion`
 //    في الـ shell، بس فحص Step 9 بيطلب وجود الاسمين في كل صفحة، والقايمة

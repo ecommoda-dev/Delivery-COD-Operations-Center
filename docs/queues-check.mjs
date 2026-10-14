@@ -1143,7 +1143,12 @@ console.log('\n══ ⑥ index.html — مصدر واحد للرقم ══');
   const cs = num(await page.textContent('#cntShipped'));
   is(cr === READY_TOTAL,   `🔴 «جاهز للشحن» في الرئيسية == صفوف الصفحة (${READY_TOTAL})`, `شفت ${cr}`);
   is(cs === SHIPPED_TOTAL, `🔴 «مشحون» في الرئيسية == صفوف الصفحة (${SHIPPED_TOTAL})`, `شفت ${cs}`);
-  is(num(await page.textContent('#badgeReady')) === READY_TOTAL, 'بادج زرار التحديث == العدّاد');
+  // v1.38.0 — زرار التحديث من غير بادج الرقم، والعدد من غير كلمة «أوردر»
+  is(!(await page.$('#badgeReady')) && (await page.textContent('#btnReady')).replace(/\s+/g,'') === '↻تحديث',
+     'زرار التحديث = ↻ + «تحديث» وبس — مفيش بادج يكرر الرقم', (await page.textContent('#btnReady')).trim());
+  is(!(await page.textContent('#rowReady .dco-row-num')).includes('أوردر')
+     && (await page.getAttribute('#cntReady', 'aria-label')) === `${READY_TOTAL} أوردر`,
+     'كلمة «أوردر» اتشالت من جنب العدد — ولسه في `aria-label` لقارئ الشاشة');
 
   // الطابور التاني اتجاب كمان — القايمة بتتبني من `homeQ` مش بالإيد
   is(!(await page.textContent('#cntShipped')).includes('—'),
@@ -1170,6 +1175,138 @@ console.log('\n══ ⑥ index.html — مصدر واحد للرقم ══');
   is(await page.isVisible('#failShipped'), 'وبيطلّع سطر الفشل جوّه صفه');
   await ctx.close();
   state.shippedFail = false;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ⑪ 🔴 الرئيسية بلا تحديث تلقائي — الكاش الأول والصف بيقول عمره (v1.38.0)
+// ══════════════════════════════════════════════════════════════
+console.log('\n══ ⑪ الرئيسية: الكاش الأول · بلا تايمر · عمر الرقم ══');
+{
+  const { page, ctx, errors } = await newPage();
+  // ① صفحة الطابور جابت ← الرئيسية بتاخد رقمها من الكاش بصفر نداء
+  await page.goto(`${BASE}/Ready-Orders.html`);
+  await page.waitForTimeout(1200);
+  await page.goto(`${BASE}/Shipped-Orders.html`);
+  await page.waitForTimeout(1000);
+  state.calls.length = 0;
+  await page.goto(`${BASE}/index.html`);
+  await page.waitForTimeout(1400);
+  is(!state.calls.includes('get_ready_queue') && !state.calls.includes('get_shipped_queue'),
+     '🔴 فتح الصفحتين كتب الكاش ← الرئيسية رسمت الطابورين **بصفر نداء**', state.calls.join(','));
+  is(num(await page.textContent('#cntReady')) === READY_TOTAL && num(await page.textContent('#cntShipped')) === SHIPPED_TOTAL,
+     'والأرقام من الكاش == الأرقام من الشبكة');
+  is(state.calls.includes('get_orders') && state.calls.filter(a => a === 'fetch_candidates').length === 2,
+     '«رفع بوسطة» مالوش كاش لسه ← اتجاب (التلات أوضاع)', state.calls.join(','));
+  const bc = await page.evaluate(() => JSON.parse(sessionStorage.getItem('dco_queue_bosta') || 'null'));
+  is(bc && ['s1','return','exchange'].every(m => typeof bc[m]?.n === 'number' && bc[m].at),
+     'جلب «رفع بوسطة» كتب عدّاد كل وضع في الكاش', JSON.stringify(bc));
+
+  // ② رجوع للرئيسية (زي 🏠) ← صفر نداء خالص
+  state.calls.length = 0;
+  await page.reload();
+  await page.waitForTimeout(1200);
+  const dataCalls = state.calls.filter(a => ['get_ready_queue','get_shipped_queue','get_orders','fetch_candidates'].includes(a));
+  is(dataCalls.length === 0, '🔴 الرجوع للرئيسية والكاش أحدث من ١٠ دقايق = **صفر نداء بيانات**', state.calls.join(','));
+  is(num(await page.textContent('#cntBosta')) === 0 && !(await page.textContent('#cntBosta')).includes('—'),
+     '«رفع بوسطة» اترسم من الكاش برقمه');
+
+  // ③ كاش أقدم من ١٠ دقايق ← جلب جديد
+  await page.evaluate(() => {
+    for (const k of ['dco_queue_ready']) {
+      const c = JSON.parse(sessionStorage.getItem(k));
+      c.at = new Date(Date.now() - 11 * 60000).toISOString();
+      sessionStorage.setItem(k, JSON.stringify(c));
+    }
+  });
+  state.calls.length = 0;
+  await page.reload();
+  await page.waitForTimeout(1200);
+  is(state.calls.includes('get_ready_queue') && !state.calls.includes('get_shipped_queue'),
+     'كاش «الجاهز» عمره ١١ دقيقة ← اتجاب لوحده، و«المشحون» لسه من الكاش', state.calls.join(','));
+
+  // ④ مفيش تايمر ولا جلب عند الرجوع للتاب
+  is(await page.evaluate(() => typeof armAuto === 'undefined' && typeof DCO_AUTO_REFRESH_MS === 'undefined'),
+     '🔴 مفيش تحديث تلقائي في الرئيسية (`armAuto`/`DCO_AUTO_REFRESH_MS` اتشالوا)');
+  state.calls.length = 0;
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await page.waitForTimeout(500);
+  is(state.calls.length === 0, '⛔ الرجوع للتاب (`visibilitychange`) مابيعملش أي نداء', state.calls.join(','));
+
+  // ⑤ الصف بيقول عمره — نفس سلّم `agoInfo`
+  // ⚠️ الألوان عليها `transition` — القراءة الفورية بتجيب لون البداية، فبنقفل
+  //    الحركة في الاختبار بس.
+  await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important}' });
+  const look = async (mins) => page.evaluate((m) => {
+    homeQ.ready.at = new Date(Date.now() - m * 60000);
+    renderFreshness();
+    const row = document.getElementById('rowReady'), btn = document.getElementById('btnReady');
+    return { cls: [...row.classList].find(c => c.startsWith('age-')),
+             fill: row.style.getPropertyValue('--fill'),
+             val: document.getElementById('agoReady').innerText.replace(/\s+/g, ' ').trim(),
+             btnBg: getComputedStyle(btn).backgroundColor,
+             edge: getComputedStyle(row, '::before').backgroundColor,
+             box: getComputedStyle(row.querySelector('.dco-agebox')).backgroundColor };
+  }, mins);
+  const css = await page.evaluate(() => {
+    const v = n => { const d = document.createElement('i'); d.style.color = `var(${n})`; document.body.append(d);
+                     const c = getComputedStyle(d).color; d.remove(); return c; };
+    return { green: v('--green'), accent: v('--accent'), amber: v('--amber'), red: v('--red') };
+  });
+  const a2 = await look(2), a10 = await look(10), a35 = await look(35), a130 = await look(130);
+  is(a2.cls === 'age-fresh' && a10.cls === 'age-ok' && a35.cls === 'age-warn' && a130.cls === 'age-stale',
+     'مرحلة الصف بتمشي مع `agoInfo`: ٢ د أخضر · ١٠ د أزرق · ٣٥ د كهرماني · ساعتين أحمر',
+     [a2.cls, a10.cls, a35.cls, a130.cls].join(' · '));
+  is(a2.btnBg === css.green && a10.btnBg === css.accent && a35.btnBg === css.amber && a130.btnBg === css.red,
+     '🔴 لون زرار التحديث == لون المرحلة (بعد ساعة أحمر)', [a2.btnBg, a10.btnBg, a35.btnBg, a130.btnBg].join(' · '));
+  is(a130.edge === css.red && a35.edge === css.amber, 'الحافة الجانبية بلون المرحلة', a130.edge);
+  is(Number(a10.fill) < Number(a35.fill) && Number(a130.fill) === 1,
+     'الخلفية والشريط بيتملوا تدريجيًا (`--fill`) وبيقفوا عند ساعة', [a10.fill, a35.fill, a130.fill].join(' · '));
+  is(a35.box !== a130.box, 'مربع «آخر تحديث منذ:» بيتلوّن مع المرحلة');
+  is(/^35\s*دقيقة$/.test(a35.val) && /^10\s*دقايق$/.test(a10.val),
+     'المدة بالدقايق بس — من غير «يفضّل تحدّث»', [a10.val, a35.val].join(' · '));
+  is(a130.val === 'ساعتين' && !a130.val.includes('قديم'), 'بعد الساعة: «ساعتين» من غير «الرقم قديم»', a130.val);
+  is((await page.textContent('#rowReady .dco-agebox-lbl')).trim() === 'آخر تحديث منذ:', 'العنوان «آخر تحديث منذ:»');
+  const stamp = (await page.textContent('#stampReady')).replace(/\s+/g, ' ');
+  is(/📅 \d{2}\/\d{2}\/\d{4}/.test(stamp) && /🕐 \d{2}:\d{2} (صباحاً|مساءً)/.test(stamp),
+     'التاريخ والوقت بالشكل المعتمد 📅 dd/mm/yyyy 🕐 hh:mm مساءً', stamp);
+
+  // ⑥ وقت التحديث: الرقم بيتبدّل بـ ↻ بتلف، والزرار «جاري التحديث»
+  await page.route('**/ready-orders-worker*/**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('action') === 'get_ready_queue')
+      await new Promise(r => setTimeout(r, 1500));
+    return route.fallback();
+  });
+  await page.click('#btnReady');
+  await page.waitForTimeout(300);
+  const ld = await page.evaluate(() => {
+    const row = document.getElementById('rowReady'), btn = document.getElementById('btnReady');
+    return { loading: row.classList.contains('is-loading'),
+             countHidden: getComputedStyle(document.getElementById('cntReady')).display === 'none',
+             spinShown: getComputedStyle(row.querySelector('.dco-count-spin')).display !== 'none',
+             btnDisabled: btn.disabled, btnTx: btn.innerText.replace(/\s+/g, ''),
+             val: document.getElementById('agoReady').innerText.trim() };
+  });
+  is(ld.loading && ld.countHidden && ld.spinShown, '🔴 وقت التحديث الرقم الكبير بيتبدّل بأيقونة ↻ بتلف', JSON.stringify(ld));
+  is(ld.btnDisabled && ld.btnTx === '↻جاريالتحديث' && ld.val === 'جاري التحديث…',
+     'والزرار مقفول ومكتوب «جاري التحديث»، والمربع كمان', JSON.stringify(ld));
+  await page.waitForTimeout(1800);
+  const done = await page.evaluate(() => ({
+    loading: document.getElementById('rowReady').classList.contains('is-loading'),
+    cls: [...document.getElementById('rowReady').classList].find(c => c.startsWith('age-')),
+    txt: document.getElementById('btnReady').innerText.replace(/\s+/g, '') }));
+  is(!done.loading && done.cls === 'age-fresh' && done.txt === '↻تحديث',
+     'بعد التحديث الصف رجع أخضر والزرار «تحديث»', JSON.stringify(done));
+
+  // ⑦ صفحة «رفع بوسطة» بتكتب كاش الرئيسية
+  await page.evaluate(() => sessionStorage.removeItem('dco_queue_bosta'));
+  await page.goto(`${BASE}/Bosta-Orders-Upload.html`);
+  await page.waitForTimeout(2500);
+  const bc2 = await page.evaluate(() => JSON.parse(sessionStorage.getItem('dco_queue_bosta') || 'null'));
+  is(bc2 && ['s1','return','exchange'].every(m => typeof bc2[m]?.n === 'number'),
+     '🔴 فتح «رفع بوسطة» كتب عدّاد التلات أوضاع في كاش الرئيسية', JSON.stringify(bc2));
+
+  is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
 }
 
 // ══════════════════════════════════════════════════════════════

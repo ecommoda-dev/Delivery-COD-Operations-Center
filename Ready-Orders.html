@@ -577,7 +577,7 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
          «عن الأداة» — ⛔ ومش مسموح تتشال من هناك كمان.
          ⚠️ والأيقونة فضلت: هي اللي بتفرّق الصندوق ده عن أي كارت تاني
             في الشاشة من غير ما تاخد سطر. -->
-    <span class="cb-ico">📋</span>
+    <span class="cb-ico">📦</span>
     <div style="display:flex;align-items:baseline;gap:8px">
       <span class="cb-num pending" id="qCount">—</span><span class="cb-unit">أوردر</span>
       <!-- 🔴 **أرضية تاريخ الطابور — مكتوبة جنب الرقم نفسه** (v1.9.0 ·
@@ -989,8 +989,11 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
           <ul>
             <li>الترتيب <b>الأقدم فوق</b> — الأوردر اللي قاعد من أطول مدة هو اللي محتاج
                 تحرّك دلوقتي.</li>
-            <li>التحديث التلقائي كل ١٥ دقيقة، <b>بيقف والتاب مقفول</b>، وعدّاد «منذ كام»
-                بيتحدّث كل نص دقيقة <b>بلا أي نداء شبكة</b>.</li>
+            <li>🔴 <b>مفيش تحديث تلقائي</b> (من v1.38.0) — الطابور بيتجاب لما تفتح الصفحة
+                ولما تدوس «تحديث» وبس. وعدّاد «منذ كام» بيتحدّث كل نص دقيقة
+                <b>بلا أي نداء شبكة</b> فبيقول عمر الطابور.</li>
+            <li>كل جلب هنا <b>بيحدّث رقم الشاشة الرئيسية كمان</b> — الرجوع لها بعدها
+                مابيعملش نداء جديد (لحد ١٠ دقايق).</li>
             <li>مربعات الفلترة فوق الطابور <b>بتعدّ من القايمة الكاملة</b> مش
                 المفلترة — ضغطة عليها بتفلتر، وضغطة تانية بترجّع الكل، وهي
                 <b>بتكتب في نفس فلتر رأس العمود</b>: مربع مولّع وفلتر مطفي
@@ -1101,7 +1104,17 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
            بنسخة جديدة وبنود قديمة أسوأ من مفيش سجل. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.33.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.38.0</span>
+          <span class="cl-ver-date">14-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>⏸️ <b>التحديث التلقائي كل ١٥ دقيقة اتلغى</b> (طلب أحمد — تخفيف الضغط على الـ Workers). الطابور بيتجاب لما تفتح الصفحة ولما تدوس «تحديث» وبس، ورقم «آخر تحديث» بيفضل يقول عمره. ✅ <b>وكل جلب هنا بيحدّث رقم الشاشة الرئيسية كمان</b> — الرجوع لها بعدها مابيعملش نداء جديد.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.33.0</span>
           <span class="cl-ver-date">11-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -1164,15 +1177,15 @@ const PAGE_WORKERS = ['ready'];
 //    الشاشة الرئيسية بتعدّ بيها. ⛔ أي شرط أهلية يتكتب هنا بيخلّي الرقم في
 //    الصفحة يخالف الرقم في الرئيسية **في صمت** (درس R1 · v1.11.0).
 //
-// ⚠️ **التحديث التلقائي بنفس حراس الشاشة الرئيسية التلاتة** — التسليح بعد
-//    كل جلب ناجح، و`document.hidden` = صفر استعلام، والنبضة بتحدّث «منذ
-//    كام» بلا أي نداء شبكة.
+// 🔴 **مفيش تحديث تلقائي** (v1.38.0 · قرار أحمد 14-10-2026 — كان كل ١٥
+//    دقيقة). الجلب عند فتح الصفحة وعند «تحديث» وبس، والنبضة بتحدّث «منذ
+//    كام» بلا أي نداء شبكة. ⛔ وممنوع يرجع تايمر ولا جلب عند الرجوع للتاب.
+// ✅ وكل جلب بيكتب الكاش (`cacheSet`) — فالرئيسية بتاخد رقمها منه بصفر نداء.
 const Q_STATUS          = 'Ready';
 const Q_KIND            = 'ready';
-const Q_AUTO_REFRESH_MS = 15 * 60 * 1000;
 const Q_TICK_MS         = 30 * 1000;
 
-const qState = { rows: [], at: null, loading: false, dirty: false, timer: null,
+const qState = { rows: [], at: null, loading: false,
                  failed: false, truncated: false,
                  // 🔴 أرضية تاريخ الطابور **زي ما الـ Worker قالها** — `null`
                  //    معناها «الـ Worker ما قالش»، وساعتها الشاشة مابتدّعيش
@@ -2357,8 +2370,7 @@ function showFlags(o) {
 function closeFlags() { document.getElementById('flagsOverlay').classList.remove('open'); }
 
 // ─── الجلب ───
-// ⚠️ `loading` بيمنع نداءين متوازيين (ضغطة + نبضة)، و`dirty` مابيتصفّرش
-//    غير بعد جلب ناجح — لو الجلب فشل، أول رجوع تاني للتاب بيحاول.
+// ⚠️ `loading` بيمنع نداءين متوازيين (ضغطتين ورا بعض).
 async function qLoad(silent) {
   if (qState.loading) return;
   qState.loading = true;
@@ -2370,7 +2382,6 @@ async function qLoad(silent) {
     // 🔴 **المصدر الوحيد للاشتقاق** — الـ shell، مش الصفحة.
     qState.rows      = dcoQueueRows(data.orders || [], Q_STATUS, Q_KIND);
     qState.at        = new Date();
-    qState.dirty     = false;
     qState.failed    = false;
     qState.truncated = !!data.truncated;
     // ⚠️ **من الرد مباشرةً** — والكاش بيتخزّن خام فالقيمة بترجع معاه.
@@ -2405,22 +2416,8 @@ async function qLoad(silent) {
     if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
     qRender();
     qSetFresh();
-    qArmAuto();
   }
 }
-
-// التسليح **بعد كل جلب** — «١٥ دقيقة من آخر تحديث فعلي» مش من فتح الصفحة
-function qArmAuto() {
-  if (qState.timer) clearTimeout(qState.timer);
-  qState.timer = setTimeout(() => {
-    if (document.hidden) { qState.dirty = true; return; }   // مخفي = صفر استعلام
-    qLoad(true);
-  }, Q_AUTO_REFRESH_MS);
-}
-
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && qState.dirty) qLoad(true);
-});
 
 // ─── الفلتر والبحث ───
 // ⚠️ الفلتر **أحادي**: ضغطة على مربع تانية بتبدّل، وضغطة على نفس المربع
@@ -3153,7 +3150,7 @@ async function audExport() {
 // §INIT — التحميل (الجلسة اتأكدت فوق)
 // ══════════════════════════════════════════════════════════════
 document.getElementById('headerMount').innerHTML = dcoHeader({
-  icon: '📋', title: 'قسم الجاهز للشحن', subtitle: 'مركز عمليات الشحن والتحصيل', session,
+  icon: '📦', title: 'قسم الجاهز للشحن', subtitle: 'مركز عمليات الشحن والتحصيل', session,
 });
 renderVersionUI();                 // بعد ما الهيدر يتحقن — زرار النسخة جوّاه
 checkWorkerVersion(PAGE_WORKERS);  // حارس نسخة الـ Worker (حد أدنى، مش تطابق)

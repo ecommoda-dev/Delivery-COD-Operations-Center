@@ -188,7 +188,7 @@ const DCO_WORKERS = {
   bostaWebhook: { url: 'https://bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev', min: '1.7.0', label: 'مستقبل حالة بوسطة' },
 };
 
-const TOOL_VERSION = 'v1.37.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.38.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -252,7 +252,12 @@ function isConfigured()   { return getSecret().trim().length > 0; }
 const DCO_SESSION_KEY   = 'dco_session';
 const DCO_CACHE_READY   = 'dco_queue_ready';
 const DCO_CACHE_SHIPPED = 'dco_queue_shipped';
-const DCO_CACHE_TTL_MS  = 15 * 60 * 1000;      // ١٥ دقيقة
+const DCO_CACHE_BOSTA   = 'dco_queue_bosta';    // عدّادات «رفع بوسطة» التلاتة (v1.38.0)
+// 🔴 **الرئيسية بتترسم من الكاش لو عمره أقل من ده — من غير أي نداء** (v1.38.0
+//    · قرار أحمد 14-10-2026). التحديث التلقائي اتلغى، فالرجوع للرئيسية بـ 🏠
+//    كان هيبقى أتقل نداء في الهب (٥ نداءات كل رجوع) لو ماكانش فيه الحد ده.
+//    ⚠️ أقدم من كده = جلب جديد عادي، والموظف مايشوفش رقم قديم أول ما يفتح.
+const DCO_CACHE_TTL_MS  = 10 * 60 * 1000;      // ١٠ دقايق
 const DCO_IDLE_KEY      = 'dco_last_activity';  // §IDLE — آخر نشاط (sessionStorage، لكل تاب لوحده)
 
 function getSession() {
@@ -280,6 +285,7 @@ function clearSession() {
     sessionStorage.removeItem(DCO_SESSION_KEY);
     sessionStorage.removeItem(DCO_CACHE_READY);
     sessionStorage.removeItem(DCO_CACHE_SHIPPED);
+    sessionStorage.removeItem(DCO_CACHE_BOSTA);
     sessionStorage.removeItem(DCO_IDLE_KEY);
     // ⚠️ `dco_audit_ready` (حالة جرد المكتب) **مش** بيتمسح هنا عن قصد —
     //    مش بيانات حساسة، وبتتحمّل ساعات شغل (Standards #52 · multi-page-hub § ٩).
@@ -321,6 +327,36 @@ function cacheSet(key, data) {
   //    بيتبلع بصمت والصفحة بتشتغل عادي بجلب جديد.
   try { sessionStorage.setItem(key, JSON.stringify({ at: new Date().toISOString(), data })); }
   catch {}
+}
+
+// ── كاش «رفع بوسطة» — عدّاد لكل وضع لوحده (v1.38.0) ─────────────
+// 🔴 **بيتخزّن العدد بس مش الصفوف** — صفوف التلات أوضاع تقيلة (عنوان ومطابقة
+//    لكل أوردر)، والرئيسية محتاجة رقم «لم يتم الرفع» لكل وضع وبس.
+// 🔴 **ولكل وضع وقته** — صفحة الأداة بتجيب وضع واحد في المرة (`loadOrders`)
+//    والتانيين في الخلفية (`fetchJobCount`)، فكل واحد بيكتب خانته لوحده.
+//    والرئيسية بتاخد **أقدم** وقت فيهم: رقم إجمالي عمره «دقيقتين» وواحد من
+//    التلاتة عمره ساعة كان هيبقى ادعاء كاذب.
+// ⚠️ الرقم = `!alreadyUploaded` — **نفس** شرط تاب «الرفع» (`UPLOAD_TABS.main`).
+const DCO_BOSTA_MODES = ['s1', 'return', 'exchange'];
+function bostaCacheSet(mode, n) {
+  if (!DCO_BOSTA_MODES.includes(mode) || typeof n !== 'number') return;
+  try {
+    const raw = sessionStorage.getItem(DCO_CACHE_BOSTA);
+    const c = raw ? JSON.parse(raw) : {};
+    c[mode] = { at: new Date().toISOString(), n };
+    sessionStorage.setItem(DCO_CACHE_BOSTA, JSON.stringify(c));
+  } catch {}
+}
+// بترجّع `null` لو أي وضع ناقص — رقم إجمالي ناقص وضع شكله سليم وهو أقل من الحقيقة.
+function bostaCacheGet() {
+  try {
+    const c = JSON.parse(sessionStorage.getItem(DCO_CACHE_BOSTA) || 'null');
+    if (!c || !DCO_BOSTA_MODES.every(m => c[m] && typeof c[m].n === 'number' && c[m].at)) return null;
+    const oldest = Math.min(...DCO_BOSTA_MODES.map(m => new Date(c[m].at).getTime()));
+    if (isNaN(oldest)) return null;
+    return { at: new Date(oldest).toISOString(), ageMs: Date.now() - oldest,
+             counts: Object.fromEntries(DCO_BOSTA_MODES.map(m => [m, c[m].n])) };
+  } catch { return null; }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -895,7 +931,7 @@ function dcoChips(rows) {
 
 // 🔴 **حالة الجرد في `sessionStorage`** — refresh وسط جرد ١٢٦ طرد كان
 //    بيمسح ساعة شغل **بلا أي تحذير**. المفتاح مستقل عن كاش الطابور:
-//    الطابور بيتجدّد كل ١٥ دقيقة والجرد **لازم يفضل مثبّت**.
+//    الطابور بيتجدّد مع كل جلب والجرد **لازم يفضل مثبّت**.
 // ⚠️ ومقصود إنه `sessionStorage` مش `localStorage`: السر هو **الحاجة
 //    الوحيدة** في التخزين الدائم في الريبو كله (#28 · #39). والثمن مُعلَن:
 //    قفل التاب = الجرد ضاع، وده مكتوب في «عن الأداة».
