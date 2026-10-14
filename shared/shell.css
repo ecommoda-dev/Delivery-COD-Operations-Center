@@ -418,6 +418,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 
 /* التقسيمة — شيبس بنفس لغة `.count-badge` في صفحة التغليف */
 .dco-chips{display:flex;gap:6px;flex-wrap:wrap;min-height:22px}
+.dco-chips-line{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.dco-chips:has(.dco-chips-line){flex-direction:column}
 .dco-chip{display:inline-flex;align-items:center;gap:5px;padding:2.5px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface-2);font-size:11.5px;font-weight:800;color:var(--text-secondary)}
 .dco-chip b{font-family:var(--font-mono);font-variant-numeric:tabular-nums;direction:ltr}
 /* مربعات المندوب على صف «جاهز للتغليف» (v1.13.0 · بقوا تلاتة في v1.14.0) —

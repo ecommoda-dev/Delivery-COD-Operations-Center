@@ -1159,8 +1159,10 @@ console.log('\n══ ⑥ index.html — مصدر واحد للرقم ══');
   is(!(await page.textContent('#cntShipped')).includes('—'),
      '🔴 كل صف في الرئيسية اتجاب فعلاً — مفيش صف عدّاده فضل «—» للأبد');
 
-  const mr = await page.textContent('#moneyReady');
-  is(mr.includes(READY_COD_DUE.toLocaleString('en-US')), 'المستحق في الرئيسية == المستحق في الصفحة', mr.replace(/\s+/g,' ').trim());
+  // 🔴 v1.40.0 — «مستحق التحصيل» اتشال من الرئيسية (طلب أحمد) — في الصفّين
+  is((await page.textContent('#moneyReady')).trim() === '' && (await page.textContent('#moneyShipped')).trim() === ''
+     && (await page.locator('.dco-money').count()) === 0,
+     '⛔ مفيش «مستحق التحصيل» ولا «مدفوع مقدمًا» في صفّي الجاهز والمشحون');
 
   const chipsR = await page.textContent('#chipsReady');
   is(chipsR.includes('محتاجة مراجعة'), 'مربع «محتاجة مراجعة» بيظهر في الرئيسية لما يكون فيه فعلاً');
@@ -1325,12 +1327,22 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
   await page.waitForTimeout(1400);
   is(state.calls.includes('queue_summary'), 'الصف بينادي `queue_summary` (مش `list_events`)', state.calls.join(','));
   is(!state.calls.includes('list_events'), '⛔ والرئيسية ما سحبتش الأحداث', state.calls.join(','));
-  is(await page.evaluate(() => document.querySelectorAll('.dco-home-sec')[0].contains(document.getElementById('rowWebhook'))),
-     'الصف جوّه «قسم الحالات الانتقالية»');
+  const secs = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec')].map(sec => ({
+    title: sec.querySelector('.dco-home-sec-title')?.textContent.trim(),
+    rows: [...sec.querySelectorAll('.dco-qrow')].map(r => r.id) })));
+  is(secs[0].title === 'قسم أوردرات بوسطة' && JSON.stringify(secs[0].rows) === '["rowBosta","rowWebhook"]',
+     '🔴 «قسم أوردرات بوسطة» أول قسم وفيه «رفع بوسطة» و«متابعة شحنات بوسطة»', JSON.stringify(secs));
+  is(secs[1].title === 'قسم الحالات الانتقالية' && JSON.stringify(secs[1].rows) === '["rowReady","rowShipped"]',
+     'و«قسم الحالات الانتقالية» فيه الجاهز والمشحون بس');
+  is((await page.textContent('#rowWebhook .dco-card-name')).trim() === 'متابعة شحنات بوسطة', 'الاسم «متابعة شحنات بوسطة»');
   is(num(await page.textContent('#cntWebhook')) === 7, 'الرقم الكبير == عدد أرقام التتبع تحت التوصيل', await page.textContent('#cntWebhook'));
   const chips = (await page.textContent('#chipsWebhook')).replace(/\s+/g, ' ');
   is(chips.includes('محاولتين فأكتر 2') && chips.includes('محاولة واحدة 2') && chips.includes('0 محاولات 3') && chips.includes('In-Return 4'),
      'المربعات: المحاولات + In-Return بأعدادها', chips);
+  const lines = await page.$$eval('#chipsWebhook .dco-chips-line', ls => ls.map(l => ({ t: l.textContent.replace(/\s+/g, ' '), y: l.getBoundingClientRect().top })));
+  is(lines.length === 2 && lines[0].t.includes('محاولات') && !lines[0].t.includes('In-Return')
+     && lines[1].t.includes('In-Return') && !lines[1].t.includes('محاولة') && lines[1].y > lines[0].y,
+     '🔴 «In-Return» في سطر لوحده **تحت** مربعات المحاولات', JSON.stringify(lines));
   is((await page.textContent('#moneyWebhook')).trim() === '', 'بلا سطر «مستحق التحصيل»');
   is(!(await page.textContent('#agoWebhook')).includes('ما اتحدّثش'), 'مربع «آخر تحديث منذ:» اتملّى');
   const wc = await page.evaluate(() => JSON.parse(sessionStorage.getItem('dco_queue_webhook') || 'null'));

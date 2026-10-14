@@ -91,7 +91,7 @@ const TOOLS = [
     //    مفيش نسخة مستقلة ولا `source`. أربع تابات أحداث (مش تاب سجل)، والسر
     //    القديم `bosta_webhook_status_worker_secret` (الواجهة المستقلة).
     page:      'Bosta-Webhook-Status-Receiver.html',
-    title:     'مستقبل حالة شحنات بوسطة',
+    title:     'متابعة شحنات بوسطة',
     workerKey: 'bostaWebhook',
     host:      'bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev',
     oldSecret: 'bosta_webhook_status_worker_secret',
@@ -520,7 +520,7 @@ for (const t of TOOLS) {
     try { await apiGet('get_config'); return '(ما رماش)'; } catch (e) { return e.message; }
   });
   const label = JSON.parse(JSON.stringify(
-    { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD', partialDelivery: 'التسليم الجزئي', couriers: 'أسماء المناديب', bostaWebhook: 'مستقبل حالة بوسطة' }))[t.workerKey];
+    { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD', partialDelivery: 'التسليم الجزئي', couriers: 'أسماء المناديب', bostaWebhook: 'متابعة شحنات بوسطة' }))[t.workerKey];
   is(msg.includes(label), `${t.page}: رسالة الفشل بتسمّي الأداة («${label}»)`, msg);
   await ctx.close();
 }
