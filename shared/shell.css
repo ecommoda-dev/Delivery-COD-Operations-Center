@@ -149,6 +149,10 @@
   --container-max:  1400px;
   /* الجدول (معتمد 08-10-2026 · v1.35.0): عناوين 12px/700 بلون text-mid — خلايا 12.5px/600. أول مستهلك: Bosta-Webhook-Status-Receiver.html */
   --th-size: 12px; --th-weight: 700; --th-color: var(--text-mid); --td-size: 12.5px; --td-weight: 600;
+  /* عمر رقم الطابور في الرئيسية (v1.38.0) — قيم محايدة هنا، وكل صف بيبدّلها
+     بلون مرحلته (`.dco-qrow.age-*`) و`--fill` بيتكتب على الصف من الـ JS. */
+  --age: var(--border-strong); --age-light: var(--surface-2); --age-border: var(--border); --age-dark: var(--text-muted);
+  --fill: 0; --edge: 14px;
   --font-body:      'Noto Sans Arabic', -apple-system, sans-serif;
   --font-mono:      'Noto Sans Arabic', -apple-system, sans-serif;
   /* خط **الليبل المطبوع** في `sku-barcode.html` بس — استثناء موثّق من
@@ -338,7 +342,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
    قسم «الطوابير» = صفوف بعدّاد حيّ (`.dco-row`) ·
    قسم «أدوات» = مربعات مضغوطة بلا عدّاد (`.dco-tool`).
    ⚠️ أداة جديدة بتدخل قسم «أدوات» افتراضيًا — عدّاد حيّ = جلب تقيل
-      عند كل دخول وكل تحديث تلقائي، وماياخدهوش إلا اللي عنده طابور
+      عند كل دخول، وماياخدهوش إلا اللي عنده طابور
       حقيقي وجلبه رخيص.
    ══════════════════════════════════════════════════════════════ */
 .dco-home-sec{margin-bottom:18px}
@@ -471,6 +475,67 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 /* حالة الفشل — ⚠️ + «حاول تاني»، والدخول للأداة **لسه شغّال**:
    الطابور مش شرط للشغل، الموظف يقدر يسكن باركود عادي. */
 .dco-fail{display:flex;align-items:center;gap:7px;background:var(--red-light);border:1px solid var(--red-border);color:var(--red);border-radius:var(--radius-sm);padding:7px 10px;font-size:11.5px;font-weight:700;line-height:1.55}
+
+/* ══ صفوف الطوابير في الرئيسية بتقول عمرها (v1.38.0 · طلب أحمد 14-10-2026) ══
+   🔴 التحديث التلقائي كل ١٥ دقيقة **اتلغى** (تخفيف الضغط على الـ Workers)،
+      فالرقم بيقدم لحد ما الموظف يدوس «تحديث» — والصف كله لازم يقول كده
+      **من بعيد**، مش شيب صغير على الجنب.
+   ⚠️ **السلّم نفسه ما اتغيّرش** — `agoInfo` في `shared/shell.js` (٥ · ١٥ ·
+      ٦٠ دقيقة): أخضر · أزرق · كهرماني · أحمر. اللي اتغيّر **مساحة** اللون:
+      · حافة ١٤px على الجنب بلون المرحلة.
+      · خلفية الصف بتغمق **تدريجيًا** مع الوقت (`--fill` = الدقايق ÷ ٦٠،
+        وبتقف عند ساعة) — مش أربع قفزات.
+      · مربع «آخر تحديث منذ:» بلون المرحلة، وجوّاه المدة بخط كبير وشريط
+        بيتملا.
+      · زرار التحديث بلون المرحلة نفسها — بعد ساعة أحمر.
+   ⚠️ `age-none` = ما اتجابش ولا مرة (`homeQ[k].at === null`) — رمادي محايد،
+      مش أخضر: «ما اتحدّثش» ≠ «لسه متحدّث». */
+.dco-qrow{position:relative;overflow:hidden;padding-inline-start:calc(18px + var(--edge));
+  background:color-mix(in srgb,var(--age) calc(var(--fill) * 18%),var(--surface));transition:background-color .4s,border-color .4s,box-shadow .15s}
+.dco-qrow::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:var(--edge);background:var(--age);transition:background-color .4s}
+.dco-qrow.age-fresh{--age:var(--green);--age-light:var(--green-light);--age-border:var(--green-border);--age-dark:var(--green-dark)}
+.dco-qrow.age-ok{--age:var(--accent);--age-light:var(--accent-light);--age-border:var(--accent-border);--age-dark:var(--accent-dark)}
+.dco-qrow.age-warn{--age:var(--amber);--age-light:var(--amber-light);--age-border:var(--amber-border);--age-dark:var(--amber-dark);border-color:var(--age-border)}
+.dco-qrow.age-stale{--age:var(--red);--age-light:var(--red-light);--age-border:var(--red-border);--age-dark:var(--red-dark);border-color:var(--age-border)}
+.dco-qrow:hover{border-color:var(--accent)}
+
+/* العدد — من غير كلمة «أوردر»، وبخط تحته (قرار أحمد). ⚠️ `aria-label` على
+   العنصر بيقول «N أوردر» لقارئ الشاشة. */
+.dco-qrow .dco-row-num{min-width:110px;display:flex;justify-content:center;align-items:center}
+.dco-qrow .dco-count{border-bottom:4px solid var(--accent);padding-bottom:6px}
+.dco-qrow .dco-count.pending{border-bottom-color:var(--border-strong)}
+.dco-qrow .dco-count.failed{border-bottom-color:var(--red)}
+/* وقت التحديث: الرقم بيتشال ومكانه ↻ بتلف — الرقم القديم وهو بيتبدّل
+   كان بيتقري «ده الرقم»، والأيقونة بتقول «استنى». */
+.dco-count-spin{display:none;font-size:40px;font-weight:700;line-height:1;color:var(--accent)}
+.dco-qrow.is-loading .dco-count{display:none}
+.dco-qrow.is-loading .dco-count-spin{display:inline-block;animation:spin .9s linear infinite}
+
+/* مربع «آخر تحديث منذ:» */
+.dco-agebox{display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:220px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--age-border);background:var(--age-light);box-shadow:var(--shadow);transition:background-color .4s,border-color .4s}
+.dco-agebox-lbl{font-size:10.5px;font-weight:700;color:var(--text-muted)}
+.dco-agebox-val{display:flex;align-items:baseline;gap:6px;min-height:27px;color:var(--age-dark);font-size:14px;font-weight:900;line-height:1.1}
+.dco-agebox-val b{font-family:var(--font-mono);font-size:24px;font-weight:900;font-variant-numeric:tabular-nums}
+.dco-agebar{height:6px;border-radius:4px;background:var(--border);overflow:hidden}
+.dco-agebar i{display:block;height:100%;width:calc(var(--fill) * 100%);background:var(--age);border-radius:4px;transition:width .4s linear,background-color .4s}
+.dco-agebox-dt{display:flex;gap:6px;flex-wrap:wrap}
+.dco-agebox .dco-stamp-chip{background:var(--surface)}
+/* وقت التحديث: الشريط بيتحرك رايح جاي بالأزرق، والمربع بيكمّل بلونه */
+.dco-qrow.is-loading .dco-agebar i{width:35%;background:var(--accent);animation:dcoIndet 1.1s ease-in-out infinite}
+@keyframes dcoIndet{from{margin-inline-start:-35%}to{margin-inline-start:100%}}
+
+/* زرار التحديث — أيقونة كبيرة وتحتها الكلمة، **بلون مرحلة العمر**، ومن
+   غير بادج الرقم (كان تكرار للرقم الكبير جنبه). */
+.dco-qref{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:104px;padding:8px 6px;border-radius:var(--radius-sm);border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-family:var(--font-body);cursor:pointer;box-shadow:var(--shadow);transition:background-color .4s,border-color .4s,filter .15s}
+.dco-qrow.age-fresh .dco-qref,.dco-qrow.age-ok .dco-qref,.dco-qrow.age-warn .dco-qref,.dco-qrow.age-stale .dco-qref{background:var(--age);border-color:var(--age)}
+.dco-qref:hover:not(:disabled){filter:brightness(.92)}
+.dco-qref:focus-visible{outline:none;box-shadow:0 0 0 3px var(--focus-ring)}
+.dco-qref-ico{font-size:30px;font-weight:700;line-height:1;display:inline-block}
+.dco-qref-tx{font-size:12.5px;font-weight:800;white-space:nowrap}
+.dco-qrow .dco-qref:disabled{cursor:wait;background:var(--surface);color:var(--accent-dark);border:1.5px dashed var(--accent)}
+.dco-qref:disabled .dco-qref-ico{animation:spin .9s linear infinite}
+.dco-qref:disabled .dco-qref-tx{font-size:11.5px}
+@media (prefers-reduced-motion: reduce){.dco-qrow,.dco-qrow *{transition:none!important;animation:none!important}}
 
 /* شريط الرجوع للطابور — بيظهر لما الصفحة اتفتحت من جدول التغليف */
 .dco-back-bar{display:none;align-items:center;justify-content:space-between;gap:10px;background:var(--accent-light);border:1px solid var(--accent-border);color:var(--accent-dark);border-radius:var(--radius-sm);padding:9px 14px;margin-bottom:12px;font-size:13px;font-weight:700}

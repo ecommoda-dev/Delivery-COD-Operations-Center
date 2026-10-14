@@ -932,6 +932,15 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge"></span>
+          <span class="cl-ver-date">14-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>⚡ <b>جلب الأوردرات هنا بيحدّث رقم «رفع بوسطة» في الشاشة الرئيسية</b> — الرجوع للرئيسية بعدها مابيعملش نداء جديد (لحد ١٠ دقايق). والتحديث التلقائي في الرئيسية اتلغى.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.37.0</span>
           <span class="cl-ver-date">13-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -2620,7 +2629,9 @@ async function fetchJobCount(key) {
     const d = key === 's1'
       ? await apiGet(j.listAction)
       : await apiPost(j.listAction, { jobType: j.key, employee: currentEmployee?.username || null });
-    return jobCountOf(d.rows || []);
+    const c = jobCountOf(d.rows || []);
+    bostaCacheSet(key, c.main);       // رقم الرئيسية بيتحدّث من نفس الجلب (v1.38.0)
+    return c;
   } catch { return null; }
 }
 // `includeCurrent=false` (الافتراضي): الوضع النشط عدده معروف أصلًا من
@@ -4485,6 +4496,10 @@ async function loadOrders(force) {
     //    داعي نداء تاني.
     mainLoadedAt = new Date();
     jobCounts[currentJobKey] = jobCountOf(allRows);
+    // 🔴 **كاش الرئيسية** (v1.38.0) — رقم «لم يتم الرفع» للوضع ده بيتكتب من
+    //    نفس الجلب، فصف «رفع بوسطة» في الرئيسية بياخده بصفر نداء. نفس شرط
+    //    `UPLOAD_TABS.main` اللي الرئيسية بتعدّ بيه (`bostaCacheSet` في الـ shell).
+    bostaCacheSet(currentJobKey, jobCounts[currentJobKey].main);
     setMainFresh();
     renderJobBar();
     renderAddrChips();

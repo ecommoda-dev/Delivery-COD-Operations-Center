@@ -1244,6 +1244,10 @@ CL_SHIPPED_PREV = r'''          <li class="cl-item"><span class="cl-tag change">
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔴 <b>عمود «العميل» بقى سطرين بالكتير</b> — بنط أصغر وحشو أضيق، والاسم الطويل بيتقص بـ<code>…</code>، والاسم الكامل بيبان بالوقوف على الخلية والبحث بيدوّر فيه كامل. ⛔ <b>وبلا أي توسيع للعمود</b>.</span></li>
 '''
 
+# v1.38.0 — نفس البند في الصفحتين (التحديث التلقائي اتلغى في الاتنين).
+CL_V138 = r'''          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>⏸️ <b>التحديث التلقائي كل ١٥ دقيقة اتلغى</b> (طلب أحمد — تخفيف الضغط على الـ Workers). الطابور بيتجاب لما تفتح الصفحة ولما تدوس «تحديث» وبس، ورقم «آخر تحديث» بيفضل يقول عمره. ✅ <b>وكل جلب هنا بيحدّث رقم الشاشة الرئيسية كمان</b> — الرجوع لها بعدها مابيعملش نداء جديد.</span></li>
+'''
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # بنود «الأعمدة» في نافذة «عن الأداة» — **لكل صفحة بتاعها بس**.
@@ -1289,7 +1293,7 @@ PAGES = [
     #    ⚠️ والاسم ده **في تلات أماكن لازم يفضلوا متطابقين**: هنا ·
     #       `DCO_WORKERS.ready.label` في `shared/shell.js` (حارس النسخة
     #       بيسمّي الأداة بيه) · وصف الشاشة الرئيسية في `index.html`.
-    icon='📋', title='قسم الجاهز للشحن', subtitle='مركز عمليات الشحن والتحصيل',
+    icon='📦', title='قسم الجاهز للشحن', subtitle='مركز عمليات الشحن والتحصيل',
     emptyOk='مفيش أوردرات جاهزة للشحن دلوقتي',
     packCol='تاريخ التغليف',
     # 🔴 «موقع الشحنة» بدل «عهدة الطرد» (طلب أحمد 16-09-2026) — نفس الحقل
@@ -1342,7 +1346,7 @@ PAGES = [
     # ⚠️ `apiPost` **بس للصفحة اللي بتناديه** — دالة بلا مستهلك = كود ميت،
     #    وصفحة المشحون مالهاش أي endpoint بـ POST.
     apiFns='apiGet, apiPost',
-    clItems=CL_READY, clPrev=CL_READY_PREV,
+    clItems=CL_V138, clV133=CL_READY, clPrev=CL_READY_PREV,
     aboutWhat='''الأوردرات اللي حالتها <code>Ready</code> — يعني اتأكدت وجاهزة تخرج،
              ولسه ما اتسجّلش عليها شحن.''',
   ),
@@ -1370,7 +1374,7 @@ PAGES = [
     #    مالوش معنى (الشرح كامل فوق عند الكتل).
     auditCss='', auditTabs='', auditLib='', auditView='', auditJs='', auditAbout='',
     apiFns='apiGet',
-    clItems=CL_SHIPPED, clPrev=CL_SHIPPED_PREV,
+    clItems=CL_V138, clV133=CL_SHIPPED, clPrev=CL_SHIPPED_PREV,
     aboutWhat='''الأوردرات اللي حالتها <code>Shipped</code> — خرجت من المخزن
              و<b>محدش سجّل لها نتيجة نهائية</b> لسه. ⚠️ <code>In-Return</code>
              <b>مش داخلة</b> في الطابور ده (بند مفتوح).''',
@@ -2079,8 +2083,11 @@ __ABOUT_COLS__
           <ul>
             <li>الترتيب <b>الأقدم فوق</b> — الأوردر اللي قاعد من أطول مدة هو اللي محتاج
                 تحرّك دلوقتي.</li>
-            <li>التحديث التلقائي كل ١٥ دقيقة، <b>بيقف والتاب مقفول</b>، وعدّاد «منذ كام»
-                بيتحدّث كل نص دقيقة <b>بلا أي نداء شبكة</b>.</li>
+            <li>🔴 <b>مفيش تحديث تلقائي</b> (من v1.38.0) — الطابور بيتجاب لما تفتح الصفحة
+                ولما تدوس «تحديث» وبس. وعدّاد «منذ كام» بيتحدّث كل نص دقيقة
+                <b>بلا أي نداء شبكة</b> فبيقول عمر الطابور.</li>
+            <li>كل جلب هنا <b>بيحدّث رقم الشاشة الرئيسية كمان</b> — الرجوع لها بعدها
+                مابيعملش نداء جديد (لحد ١٠ دقايق).</li>
             <li>مربعات الفلترة فوق الطابور <b>بتعدّ من القايمة الكاملة</b> مش
                 المفلترة — ضغطة عليها بتفلتر، وضغطة تانية بترجّع الكل، وهي
                 <b>بتكتب في نفس فلتر رأس العمود</b>: مربع مولّع وفلتر مطفي
@@ -2120,11 +2127,20 @@ __AUDIT_ABOUT__
            بنسخة جديدة وبنود قديمة أسوأ من مفيش سجل. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.33.0</span>
-          <span class="cl-ver-date">11-10-2026</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.38.0</span>
+          <span class="cl-ver-date">14-10-2026</span>
         </div>
         <ul class="cl-items">
 __CL_ITEMS__        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.33.0</span>
+          <span class="cl-ver-date">11-10-2026</span>
+        </div>
+        <ul class="cl-items">
+__CL_V133__        </ul>
       </div>
 
       <div class="cl-version-block">
@@ -2176,15 +2192,15 @@ const PAGE_WORKERS = ['__WORKER__'];
 //    الشاشة الرئيسية بتعدّ بيها. ⛔ أي شرط أهلية يتكتب هنا بيخلّي الرقم في
 //    الصفحة يخالف الرقم في الرئيسية **في صمت** (درس R1 · v1.11.0).
 //
-// ⚠️ **التحديث التلقائي بنفس حراس الشاشة الرئيسية التلاتة** — التسليح بعد
-//    كل جلب ناجح، و`document.hidden` = صفر استعلام، والنبضة بتحدّث «منذ
-//    كام» بلا أي نداء شبكة.
+// 🔴 **مفيش تحديث تلقائي** (v1.38.0 · قرار أحمد 14-10-2026 — كان كل ١٥
+//    دقيقة). الجلب عند فتح الصفحة وعند «تحديث» وبس، والنبضة بتحدّث «منذ
+//    كام» بلا أي نداء شبكة. ⛔ وممنوع يرجع تايمر ولا جلب عند الرجوع للتاب.
+// ✅ وكل جلب بيكتب الكاش (`cacheSet`) — فالرئيسية بتاخد رقمها منه بصفر نداء.
 const Q_STATUS          = '__STATUS__';
 const Q_KIND            = '__KEY__';
-const Q_AUTO_REFRESH_MS = 15 * 60 * 1000;
 const Q_TICK_MS         = 30 * 1000;
 
-const qState = { rows: [], at: null, loading: false, dirty: false, timer: null,
+const qState = { rows: [], at: null, loading: false,
                  failed: false, truncated: false,
                  // 🔴 أرضية تاريخ الطابور **زي ما الـ Worker قالها** — `null`
                  //    معناها «الـ Worker ما قالش»، وساعتها الشاشة مابتدّعيش
@@ -3214,8 +3230,7 @@ function showFlags(o) {
 function closeFlags() { document.getElementById('flagsOverlay').classList.remove('open'); }
 
 // ─── الجلب ───
-// ⚠️ `loading` بيمنع نداءين متوازيين (ضغطة + نبضة)، و`dirty` مابيتصفّرش
-//    غير بعد جلب ناجح — لو الجلب فشل، أول رجوع تاني للتاب بيحاول.
+// ⚠️ `loading` بيمنع نداءين متوازيين (ضغطتين ورا بعض).
 async function qLoad(silent) {
   if (qState.loading) return;
   qState.loading = true;
@@ -3227,7 +3242,6 @@ async function qLoad(silent) {
     // 🔴 **المصدر الوحيد للاشتقاق** — الـ shell، مش الصفحة.
     qState.rows      = dcoQueueRows(data.orders || [], Q_STATUS, Q_KIND);
     qState.at        = new Date();
-    qState.dirty     = false;
     qState.failed    = false;
     qState.truncated = !!data.truncated;
     // ⚠️ **من الرد مباشرةً** — والكاش بيتخزّن خام فالقيمة بترجع معاه.
@@ -3262,22 +3276,8 @@ async function qLoad(silent) {
     if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
     qRender();
     qSetFresh();
-    qArmAuto();
   }
 }
-
-// التسليح **بعد كل جلب** — «١٥ دقيقة من آخر تحديث فعلي» مش من فتح الصفحة
-function qArmAuto() {
-  if (qState.timer) clearTimeout(qState.timer);
-  qState.timer = setTimeout(() => {
-    if (document.hidden) { qState.dirty = true; return; }   // مخفي = صفر استعلام
-    qLoad(true);
-  }, Q_AUTO_REFRESH_MS);
-}
-
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && qState.dirty) qLoad(true);
-});
 
 // ─── الفلتر والبحث ───
 // ⚠️ الفلتر **أحادي**: ضغطة على مربع تانية بتبدّل، وضغطة على نفس المربع
@@ -3403,6 +3403,7 @@ for p in PAGES:
     out = out.replace('__AUDIT_ABOUT__', p['auditAbout'])
     out = out.replace('__API_FNS__',     p['apiFns'])
     out = out.replace('__CL_ITEMS__',    p['clItems'])
+    out = out.replace('__CL_V133__',     p['clV133'])
     out = out.replace('__CL_PREV__',     p['clPrev'])
     assert '__' not in out.replace('__', '', 0) or True
     # 🔴 الحارس ده بيمسك **معامل اتضاف في المولّد وما اتسبدلش** — القالب
@@ -3414,7 +3415,7 @@ for p in PAGES:
                         '__ABOUT_COLS__','__EXTRA_FILTER__','__AUDIT_CSS__','__AUDIT_TABS__',
                         '__WA_CHIPS__','__WA_CHIPS_CALL__','__WA_CHIPS_JS__',
                         '__AUDIT_LIB__','__AUDIT_VIEW__','__AUDIT_JS__','__AUDIT_ABOUT__',
-                        '__API_FNS__','__CL_ITEMS__','__CL_PREV__'] if t in out]
+                        '__API_FNS__','__CL_ITEMS__','__CL_V133__','__CL_PREV__'] if t in out]
     assert not left, f"unreplaced {left}"
     out_path = os.path.join(REPO, p['file'])
     open(out_path, 'w').write(out)
