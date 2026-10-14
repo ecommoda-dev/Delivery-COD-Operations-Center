@@ -185,10 +185,13 @@ const DCO_WORKERS = {
   //    🔴 **والسر سر الهب** (`delivery_cod_ops`) — الـ Worker لازم يتضم للمجموعة
   //       (`WORKER_SECRET` يتدوّر من الداشبورد). قبلها كل نداء `401`. وكان
   //       بسر فريد مستقل قبل الدمج.
-  bostaWebhook: { url: 'https://bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev', min: '1.7.0', label: 'مستقبل حالة بوسطة' },
+  //    🎯 **min اترفع لـ `1.9.0` (v1.39.0)** — صف «مستقبل حالة بوسطة» في الرئيسية بينادي
+  //       `queue_summary` (عدّ مجمّع بـ SQL). على Worker أقدم الصف بيقول فشل بالـ 404
+  //       والصفحة نفسها شغّالة — فالحارس بيسمّي الأداة والنسخة.
+  bostaWebhook: { url: 'https://bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev', min: '1.9.0', label: 'متابعة شحنات بوسطة' },
 };
 
-const TOOL_VERSION = 'v1.38.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.40.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -253,6 +256,7 @@ const DCO_SESSION_KEY   = 'dco_session';
 const DCO_CACHE_READY   = 'dco_queue_ready';
 const DCO_CACHE_SHIPPED = 'dco_queue_shipped';
 const DCO_CACHE_BOSTA   = 'dco_queue_bosta';    // عدّادات «رفع بوسطة» التلاتة (v1.38.0)
+const DCO_CACHE_WEBHOOK = 'dco_queue_webhook';  // ملخّص «مستقبل حالة بوسطة» — رد `queue_summary` خام (v1.39.0)
 // 🔴 **الرئيسية بتترسم من الكاش لو عمره أقل من ده — من غير أي نداء** (v1.38.0
 //    · قرار أحمد 14-10-2026). التحديث التلقائي اتلغى، فالرجوع للرئيسية بـ 🏠
 //    كان هيبقى أتقل نداء في الهب (٥ نداءات كل رجوع) لو ماكانش فيه الحد ده.
@@ -286,6 +290,7 @@ function clearSession() {
     sessionStorage.removeItem(DCO_CACHE_READY);
     sessionStorage.removeItem(DCO_CACHE_SHIPPED);
     sessionStorage.removeItem(DCO_CACHE_BOSTA);
+    sessionStorage.removeItem(DCO_CACHE_WEBHOOK);
     sessionStorage.removeItem(DCO_IDLE_KEY);
     // ⚠️ `dco_audit_ready` (حالة جرد المكتب) **مش** بيتمسح هنا عن قصد —
     //    مش بيانات حساسة، وبتتحمّل ساعات شغل (Standards #52 · multi-page-hub § ٩).
@@ -357,6 +362,35 @@ function bostaCacheGet() {
     return { at: new Date(oldest).toISOString(), ageMs: Date.now() - oldest,
              counts: Object.fromEntries(DCO_BOSTA_MODES.map(m => [m, c[m].n])) };
   } catch { return null; }
+}
+
+// ── ملخّص «مستقبل حالة بوسطة» (v1.39.0) ────────────────────────
+// 🔴 **الرقم = أرقام التتبع «تحت التوصيل»** — نفس تعريف تاب «🚚 الأوردرات تحت التوصيل» في
+//    `Bosta-Webhook-Status-Receiver.html`: آخر حدث لكل رقم تتبع، وأي رقم وصله 45/46/48 ولو مرة
+//    أو حدث RTO مش بيتعدّ (RTO بيروح لـ In-Return). الرئيسية بتاخده من `queue_summary` (SQL
+//    مجمّع في الـ Worker)، والصفحة بتحسبه من أحداثها وتكتب **نفس الشكل** في الكاش.
+// 🔴 **الشكل الخام `{ main:{ total, attempts:{'0','1','2','null'} }, inReturn }`** — `2` = «٢ فأكتر».
+//    و`derive` واحدة هنا للشبكة وللكاش وللصفحة — نسختين كانوا هيخلّوا الرقم يخالف نفسه (درس R1).
+const DCO_WEBHOOK_ATT = [
+  { k: '2',    label: 'محاولتين فأكتر', cls: 'qc-att-2' },
+  { k: '1',    label: 'محاولة واحدة',   cls: 'qc-att-1' },
+  { k: '0',    label: '0 محاولات',      cls: 'qc-att-0' },
+  { k: 'null', label: 'بدون محاولات',   cls: '' },
+];
+function dcoWebhookDerive(d) {
+  const a = d?.main?.attempts || {};
+  const chips = DCO_WEBHOOK_ATT.filter(x => a[x.k]).map(x => ({ cls: x.cls, label: x.label, n: a[x.k] }));
+  if (d?.inReturn) chips.push({ cls: 'qc-job-return', label: '🔁 In-Return', n: d.inReturn, row: 1 });   // سطر لوحده تحت المحاولات
+  return { total: d?.main?.total || 0, chips };
+}
+// الصفحة بتبني نفس الشكل من صفوف تابَيها (صف لكل رقم تتبع)
+function dcoWebhookSummaryFromRows(mainRows, inReturnRows) {
+  const attempts = {};
+  mainRows.forEach(ev => {
+    const k = ev.number_of_attempts == null ? 'null' : String(Math.min(Number(ev.number_of_attempts) || 0, 2));
+    attempts[k] = (attempts[k] || 0) + 1;
+  });
+  return { main: { total: mainRows.length, attempts }, inReturn: inReturnRows.length };
 }
 
 // ══════════════════════════════════════════════════════════════

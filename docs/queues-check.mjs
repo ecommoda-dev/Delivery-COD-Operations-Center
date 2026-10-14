@@ -247,6 +247,11 @@ function makeStub() {
       body = { ok:true, results, truncated:false };
     }
     else if (action === 'check_employee') body = { ok:true, exists:true, isActive:true, hasPin:true };
+    // v1.39.0 — ملخّص «مستقبل حالة بوسطة» (Worker ≥ 1.9.0)
+    else if (action === 'queue_summary') {
+      if (state.webhookFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
+      else body = { ok:true, main:{ total:7, attempts:{ '0':3, '1':2, '2':2 } }, inReturn:4 };
+    }
     else if (action === 'get_ready_queue') {
       if (state.readyFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
       else body = { ok:true, queue:'ready', orders:state.readyRows || READY_RAW,
@@ -1154,8 +1159,10 @@ console.log('\n══ ⑥ index.html — مصدر واحد للرقم ══');
   is(!(await page.textContent('#cntShipped')).includes('—'),
      '🔴 كل صف في الرئيسية اتجاب فعلاً — مفيش صف عدّاده فضل «—» للأبد');
 
-  const mr = await page.textContent('#moneyReady');
-  is(mr.includes(READY_COD_DUE.toLocaleString('en-US')), 'المستحق في الرئيسية == المستحق في الصفحة', mr.replace(/\s+/g,' ').trim());
+  // 🔴 v1.40.0 — «مستحق التحصيل» اتشال من الرئيسية (طلب أحمد) — في الصفّين
+  is((await page.textContent('#moneyReady')).trim() === '' && (await page.textContent('#moneyShipped')).trim() === ''
+     && (await page.locator('.dco-money').count()) === 0,
+     '⛔ مفيش «مستحق التحصيل» ولا «مدفوع مقدمًا» في صفّي الجاهز والمشحون');
 
   const chipsR = await page.textContent('#chipsReady');
   is(chipsR.includes('محتاجة مراجعة'), 'مربع «محتاجة مراجعة» بيظهر في الرئيسية لما يكون فيه فعلاً');
@@ -1306,6 +1313,76 @@ console.log('\n══ ⑪ الرئيسية: الكاش الأول · بلا تا
      '🔴 فتح «رفع بوسطة» كتب عدّاد التلات أوضاع في كاش الرئيسية', JSON.stringify(bc2));
 
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ⑪-ب «مستقبل حالة بوسطة» — الصف الرابع في الحالات الانتقالية (v1.39.0)
+// ══════════════════════════════════════════════════════════════
+console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
+{
+  const { page, ctx, errors } = await newPage();
+  state.calls.length = 0;
+  await page.goto(`${BASE}/index.html`);
+  await page.waitForTimeout(1400);
+  is(state.calls.includes('queue_summary'), 'الصف بينادي `queue_summary` (مش `list_events`)', state.calls.join(','));
+  is(!state.calls.includes('list_events'), '⛔ والرئيسية ما سحبتش الأحداث', state.calls.join(','));
+  const secs = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec')].map(sec => ({
+    title: sec.querySelector('.dco-home-sec-title')?.textContent.trim(),
+    rows: [...sec.querySelectorAll('.dco-qrow')].map(r => r.id) })));
+  is(secs[0].title === 'قسم أوردرات بوسطة' && JSON.stringify(secs[0].rows) === '["rowBosta","rowWebhook"]',
+     '🔴 «قسم أوردرات بوسطة» أول قسم وفيه «رفع بوسطة» و«متابعة شحنات بوسطة»', JSON.stringify(secs));
+  is(secs[1].title === 'قسم الحالات الانتقالية' && JSON.stringify(secs[1].rows) === '["rowReady","rowShipped"]',
+     'و«قسم الحالات الانتقالية» فيه الجاهز والمشحون بس');
+  is((await page.textContent('#rowWebhook .dco-card-name')).trim() === 'متابعة شحنات بوسطة', 'الاسم «متابعة شحنات بوسطة»');
+  is(num(await page.textContent('#cntWebhook')) === 7, 'الرقم الكبير == عدد أرقام التتبع تحت التوصيل', await page.textContent('#cntWebhook'));
+  const chips = (await page.textContent('#chipsWebhook')).replace(/\s+/g, ' ');
+  is(chips.includes('محاولتين فأكتر 2') && chips.includes('محاولة واحدة 2') && chips.includes('0 محاولات 3') && chips.includes('In-Return 4'),
+     'المربعات: المحاولات + In-Return بأعدادها', chips);
+  const lines = await page.$$eval('#chipsWebhook .dco-chips-line', ls => ls.map(l => ({ t: l.textContent.replace(/\s+/g, ' '), y: l.getBoundingClientRect().top })));
+  is(lines.length === 2 && lines[0].t.includes('محاولات') && !lines[0].t.includes('In-Return')
+     && lines[1].t.includes('In-Return') && !lines[1].t.includes('محاولة') && lines[1].y > lines[0].y,
+     '🔴 «In-Return» في سطر لوحده **تحت** مربعات المحاولات', JSON.stringify(lines));
+  is((await page.textContent('#moneyWebhook')).trim() === '', 'بلا سطر «مستحق التحصيل»');
+  is(!(await page.textContent('#agoWebhook')).includes('ما اتحدّثش'), 'مربع «آخر تحديث منذ:» اتملّى');
+  const wc = await page.evaluate(() => JSON.parse(sessionStorage.getItem('dco_queue_webhook') || 'null'));
+  is(wc && wc.data.main.total === 7, 'الكاش اتكتب بالرد الخام', JSON.stringify(wc));
+  is(await page.evaluate(() => document.querySelectorAll('.dco-tools-grid a[href="Bosta-Webhook-Status-Receiver.html"]').length === 0),
+     '⛔ ومفيش كارت مكرّر في «أدوات أخرى»');
+
+  // الرجوع بالكاش = صفر نداء
+  state.calls.length = 0;
+  await page.reload();
+  await page.waitForTimeout(1200);
+  is(!state.calls.includes('queue_summary') && num(await page.textContent('#cntWebhook')) === 7,
+     '🔴 الرجوع للرئيسية والكاش جديد = صفر نداء والرقم من الكاش', state.calls.join(','));
+
+  // زرار التحديث اليدوي
+  state.calls.length = 0;
+  await page.click('#btnWebhook');
+  await page.waitForTimeout(700);
+  is(state.calls.filter(a => a === 'queue_summary').length === 1, 'زرار «تحديث» الصف بيجيب من الشبكة');
+
+  // صفحة الأداة بتكتب نفس الكاش
+  await page.evaluate(() => sessionStorage.removeItem('dco_queue_webhook'));
+  await page.goto(`${BASE}/Bosta-Webhook-Status-Receiver.html`);
+  await page.waitForTimeout(1500);
+  const pc = await page.evaluate(() => JSON.parse(sessionStorage.getItem('dco_queue_webhook') || 'null'));
+  is(pc && typeof pc.data.main?.total === 'number' && typeof pc.data.inReturn === 'number',
+     '🔴 فتح صفحة الأداة كتب كاش الرئيسية بنفس الشكل الخام', JSON.stringify(pc));
+  is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+{
+  // فشل الـ Worker: «تعذّر» مش صفر، وباقي الصفوف مش متأثرة
+  state.webhookFail = true;
+  const { page, ctx } = await newPage();
+  await page.goto(`${BASE}/index.html`);
+  await page.waitForTimeout(1400);
+  is((await page.textContent('#cntWebhook')).trim() === 'تعذّر', '🔴 فشل الـ Worker = «تعذّر» مش `0`');
+  is(await page.isVisible('#failWebhook'), 'ورسالة الفشل ظاهرة');
+  is(num(await page.textContent('#cntReady')) === READY_TOTAL, 'وفشله ما خبّاش باقي الطوابير (`allSettled`)');
+  state.webhookFail = false;
   await ctx.close();
 }
 

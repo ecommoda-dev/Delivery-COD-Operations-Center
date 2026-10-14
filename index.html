@@ -140,6 +140,97 @@
           «الأدوات بلا عدّاد» مكتوبين بالنص في «عن الأداة»، والعدّاد
           الملوّن جوّه كل صف بيقول عمر الرقم لوحده. -->
 
+  <!-- ══ قسم «أوردرات بوسطة» (طلب أحمد 14-10-2026) — أول قسم فوق ═════
+       🔴 **فيه أداتين بوسطة بعدّاد حيّ**: «رفع بوسطة» (اللي مستنية رفع) و«متابعة شحنات بوسطة»
+          (اللي تحت التوصيل). نفس شكل الصفوف في «قسم الحالات الانتقالية» وسلوكها بالحرف. -->
+  <div class="dco-home-sec">
+    <div class="dco-home-sec-title">قسم أوردرات بوسطة</div>
+
+    <!-- ══ صف ③ — «رفع بوسطة» (طلب أحمد 27-09-2026) ══════════════
+         🔴 **بقى صف بعدّاد حيّ بنفس شكل «Ready»/«Shipped» بالحرف** — كان
+            كارت أداة بلا عدّاد (v1.14.0). الرقم الكبير = الأوردرات اللي
+            **مستنية رفع** على بوسطة في التلات أوضاع مع بعض، والمربعات =
+            عدد كل وضع (🚚 شحن عادي · ↩️ استرجاع · 🔄 استبدال).
+         🔴 **«مستنية رفع» = `!alreadyUploaded`** — **نفس** شرط تاب «الرفع»
+            جوّه الأداة (`UPLOAD_TABS.main` في `Bosta-Orders-Upload.html`)،
+            على **نفس** الـ endpoints (`get_orders` · `fetch_candidates`).
+            ⛔ شرط تاني هنا = الرقم في الرئيسية يخالف التاب (درس R1).
+         ⚠️ **ومالوش «مستحق تحصيل»** — الأداة دي بتنشئ شحنات مش بتحصّل،
+            والسطر ده في الصفّين فوق خاص بالطابورين.
+         ⚠️ **والنداءات قراءة بحتة** — `fetch_candidates` بطّل يكتب صف
+            `scan` من Worker v2.4.0، فالتحديث (يدوي من v1.38.0) مابيملاش
+            السجل. -->
+      <a class="dco-row dco-qrow age-none" id="rowBosta" href="Bosta-Orders-Upload.html">
+        <div class="dco-row-id">
+          <span class="dco-card-ico ico-red"><img src="assets/bosta-logo.png" alt="Bosta"></span>
+          <div>
+            <div class="dco-card-name">رفع بوسطة</div>
+            <div class="dco-card-code">لم يتم الرفع</div>
+          </div>
+        </div>
+        <div class="dco-row-num">
+          <span class="dco-count pending" id="cntBosta">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
+        </div>
+        <div class="dco-row-mid">
+          <div class="dco-chips" id="chipsBosta"></div>
+          <div class="home-money-row" id="moneyBosta"></div>
+          <div class="dco-fail" id="failBosta" style="display:none"></div>
+        </div>
+        <div class="dco-row-act">
+          <div class="dco-agebox">
+            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
+            <div class="dco-agebox-val" id="agoBosta">—</div>
+            <div class="dco-agebar" aria-hidden="true"><i></i></div>
+            <div class="dco-agebox-dt" id="stampBosta"><span class="dco-stamp-chip">—</span></div>
+          </div>
+          <button class="dco-qref" id="btnBosta" type="button"
+                  onclick="event.preventDefault();event.stopPropagation();loadQueue('bosta', false)">
+            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
+          </button>
+        </div>
+      </a>
+
+    <!-- ══ صف ④ — «مستقبل حالة بوسطة» (طلب أحمد 14-10-2026) ═══════
+         🔴 **نفس شكل وسلوك الصفوف التلاتة فوق بالحرف** (كاش ١٠ دقايق · تحديث يدوي ·
+            «آخر تحديث منذ:» · فشل بيسمّي الأداة). الرقم الكبير = **أرقام التتبع تحت
+            التوصيل** — نفس تعريف تاب «🚚 الأوردرات تحت التوصيل» في الأداة، والمربعات =
+            عدد المحاولات (نفس ألوان مربعات التاب) + 🔁 In-Return.
+         🔴 **الرقم من `queue_summary`** (Worker ≥ 1.9.0، SQL مجمّع) — مش من `list_events`:
+            سحب آلاف الأحداث عشان رقم واحد كان هيبقى أتقل نداء في الهب.
+            ⛔ والتعريف مكرّر في الـ Worker وفي `computeTabRows` في الأداة — أي تعديل ينزل على الاتنين.
+         ⚠️ **وحدة العد «شحنة» مش «أوردر»** — الأوردر ممكن يبقى له رقم تتبع S1 وS2.
+         ⚠️ بلا «مستحق تحصيل» (`cod: null`) — الأداة عرض بحت. -->
+      <a class="dco-row dco-qrow age-none" id="rowWebhook" href="Bosta-Webhook-Status-Receiver.html">
+        <div class="dco-row-id">
+          <span class="dco-card-ico ico-red">📮</span>
+          <div>
+            <div class="dco-card-name">متابعة شحنات بوسطة</div>
+            <div class="dco-card-code">تحت التوصيل</div>
+          </div>
+        </div>
+        <div class="dco-row-num">
+          <span class="dco-count pending" id="cntWebhook">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
+        </div>
+        <div class="dco-row-mid">
+          <div class="dco-chips" id="chipsWebhook"></div>
+          <div class="home-money-row" id="moneyWebhook"></div>
+          <div class="dco-fail" id="failWebhook" style="display:none"></div>
+        </div>
+        <div class="dco-row-act">
+          <div class="dco-agebox">
+            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
+            <div class="dco-agebox-val" id="agoWebhook">—</div>
+            <div class="dco-agebar" aria-hidden="true"><i></i></div>
+            <div class="dco-agebox-dt" id="stampWebhook"><span class="dco-stamp-chip">—</span></div>
+          </div>
+          <button class="dco-qref" id="btnWebhook" type="button"
+                  onclick="event.preventDefault();event.stopPropagation();loadQueue('webhook', false)">
+            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
+          </button>
+        </div>
+      </a>
+  </div>
+
   <div class="dco-home-sec">
     <div class="dco-home-sec-title">قسم الحالات الانتقالية</div>
 
@@ -232,49 +323,6 @@
         </div>
       </a>
 
-    <!-- ══ صف ③ — «رفع بوسطة» (طلب أحمد 27-09-2026) ══════════════
-         🔴 **بقى صف بعدّاد حيّ بنفس شكل «Ready»/«Shipped» بالحرف** — كان
-            كارت أداة بلا عدّاد (v1.14.0). الرقم الكبير = الأوردرات اللي
-            **مستنية رفع** على بوسطة في التلات أوضاع مع بعض، والمربعات =
-            عدد كل وضع (🚚 شحن عادي · ↩️ استرجاع · 🔄 استبدال).
-         🔴 **«مستنية رفع» = `!alreadyUploaded`** — **نفس** شرط تاب «الرفع»
-            جوّه الأداة (`UPLOAD_TABS.main` في `Bosta-Orders-Upload.html`)،
-            على **نفس** الـ endpoints (`get_orders` · `fetch_candidates`).
-            ⛔ شرط تاني هنا = الرقم في الرئيسية يخالف التاب (درس R1).
-         ⚠️ **ومالوش «مستحق تحصيل»** — الأداة دي بتنشئ شحنات مش بتحصّل،
-            والسطر ده في الصفّين فوق خاص بالطابورين.
-         ⚠️ **والنداءات قراءة بحتة** — `fetch_candidates` بطّل يكتب صف
-            `scan` من Worker v2.4.0، فالتحديث (يدوي من v1.38.0) مابيملاش
-            السجل. -->
-      <a class="dco-row dco-qrow age-none" id="rowBosta" href="Bosta-Orders-Upload.html">
-        <div class="dco-row-id">
-          <span class="dco-card-ico ico-red"><img src="assets/bosta-logo.png" alt="Bosta"></span>
-          <div>
-            <div class="dco-card-name">رفع بوسطة</div>
-            <div class="dco-card-code">لم يتم الرفع</div>
-          </div>
-        </div>
-        <div class="dco-row-num">
-          <span class="dco-count pending" id="cntBosta">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
-        </div>
-        <div class="dco-row-mid">
-          <div class="dco-chips" id="chipsBosta"></div>
-          <div class="home-money-row" id="moneyBosta"></div>
-          <div class="dco-fail" id="failBosta" style="display:none"></div>
-        </div>
-        <div class="dco-row-act">
-          <div class="dco-agebox">
-            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
-            <div class="dco-agebox-val" id="agoBosta">—</div>
-            <div class="dco-agebar" aria-hidden="true"><i></i></div>
-            <div class="dco-agebox-dt" id="stampBosta"><span class="dco-stamp-chip">—</span></div>
-          </div>
-          <button class="dco-qref" id="btnBosta" type="button"
-                  onclick="event.preventDefault();event.stopPropagation();loadQueue('bosta', false)">
-            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
-          </button>
-        </div>
-      </a>
   </div>
 
   <!-- ══ قسم «أدوات» ══════════════════════════════════════════
@@ -330,11 +378,6 @@
       <a class="dco-tool" href="Courier-Names.html">
         <span class="dco-card-ico ico-blue">🛵</span>
         <div class="dco-card-name">أسماء المناديب</div>
-      </a>
-
-      <a class="dco-tool" href="Bosta-Webhook-Status-Receiver.html">
-        <span class="dco-card-ico ico-red">📮</span>
-        <div class="dco-card-name">مستقبل حالة شحنات بوسطة</div>
       </a>
 
     </div>
@@ -448,7 +491,28 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.38.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.40.0</span>
+          <span class="cl-ver-date">14-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🟥 <b>قسم جديد «قسم أوردرات بوسطة» أول قسم فوق</b> (طلب أحمد) وفيه صفّين: «رفع بوسطة» و«متابعة شحنات بوسطة». «قسم الحالات الانتقالية» فضل فيه الجاهز والمشحون.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>📮 <b>«مستقبل حالة شحنات بوسطة» اتسمّى «متابعة شحنات بوسطة»</b> في الرئيسية وفي الصفحة. ومربع «🔁 In-Return» بقى في سطر لوحده تحت مربعات المحاولات.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>💰 <b>مربع «مستحق التحصيل» اتشال من صفّي «الجاهز» و«المشحون» في الرئيسية</b> (ومعاه «مدفوع مقدمًا» و«حالة مالية مش معروفة»). الرقم لسه موجود جوّه صفحة كل طابور.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.39.0</span>
+          <span class="cl-ver-date">14-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>📮 <b>«مستقبل حالة شحنات بوسطة» بقى صف رابع في «قسم الحالات الانتقالية»</b> (طلب أحمد) بنفس تصميم وسلوك الصفوف التلاتة: رقم كبير = <b>أرقام التتبع تحت التوصيل</b> · مربعات المحاولات + 🔁 In-Return · «آخر تحديث منذ:» · زرار تحديث يدوي · كاش ١٠ دقايق. والكارت اتشال من «أدوات أخرى».</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 الرقم من <code>queue_summary</code> الجديد في الـ Worker (عدّ مجمّع بـ SQL — مش سحب آلاف الأحداث)، فـ<b>Worker «مستقبل حالة بوسطة» لازم يكون <code>1.9.0</code> فأعلى</b> (<code>DCO_WORKERS.bostaWebhook.min</code>). وصفحة الأداة بتكتب نفس الكاش عند كل تحميل.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.38.0</span>
           <span class="cl-ver-date">14-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -1004,7 +1068,7 @@ const DCO_TICK_MS = 30 * 1000;
 //    يخالف الرقم من الشبكة لنفس الرد.
 function deriveQueue(data, status, kind) {
   const rows = dcoQueueRows(data.orders || [], status, kind);
-  return { total: rows.length, chips: dcoChips(rows), cod: dcoCod(rows), truncated: !!data.truncated };
+  return { total: rows.length, chips: dcoChips(rows), truncated: !!data.truncated };
 }
 // 🔴 الكاش بيتقري **بس لو عمره أقل من `DCO_CACHE_TTL_MS`** — أقدم من كده =
 //    جلب جديد. ⚠️ وعمر سالب (ساعة الجهاز اترجعت) = مش موثوق = جلب.
@@ -1017,7 +1081,7 @@ const BOSTA_MODES = [
 ];
 function deriveBosta(counts) {
   const chips = BOSTA_MODES.map(m => ({ cls: m.cls, label: m.label, n: counts[m.key] }));
-  return { total: chips.reduce((a, c) => a + c.n, 0), chips, cod: null };
+  return { total: chips.reduce((a, c) => a + c.n, 0), chips };
 }
 
 const HOME_QUEUES = {
@@ -1093,12 +1157,32 @@ const HOME_QUEUES = {
       return { at: new Date(c.at), r: deriveBosta(c.counts) };
     },
   },
+  // 🔴 «مستقبل حالة بوسطة» — `queue_summary` (عدّ مجمّع في الـ Worker v1.9.0). الكاش بيتخزّن بالرد
+  //    **الخام** و`dcoWebhookDerive` (الـ shell) بتشتق منه — وصفحة الأداة بتكتب **نفس الشكل**
+  //    في نفس المفتاح بعد كل تحميل، فالرئيسية بتاخد رقمها ببلاش.
+  webhook: {
+    err: 'تعذّر جلب ملخّص متابعة شحنات بوسطة',
+    unit: 'شحنة',
+    ids: { row:'rowWebhook', count:'cntWebhook', chips:'chipsWebhook', money:'moneyWebhook', fail:'failWebhook',
+           ago:'agoWebhook', stamp:'stampWebhook', btn:'btnWebhook' },
+    async fetch() {
+      const data = await dcoApi(DCO_WORKERS.bostaWebhook).apiGet('queue_summary');
+      cacheSet(DCO_CACHE_WEBHOOK, data);
+      return dcoWebhookDerive(data);
+    },
+    fromCache() {
+      const c = cacheGet(DCO_CACHE_WEBHOOK);
+      if (!cacheFresh(c) || !c.data.main) return null;
+      return { at: new Date(c.at), r: dcoWebhookDerive(c.data) };
+    },
+  },
 };
 
 const homeQ = {
   ready:   { at: null, loading: false },
   shipped: { at: null, loading: false },
   bosta:   { at: null, loading: false },
+  webhook: { at: null, loading: false },
 };
 let homeTickTimer = null;
 
@@ -1171,28 +1255,23 @@ function setCount(key, r) {
   const ids = HOME_QUEUES[key].ids;
   const c = document.getElementById(ids.count);
   c.textContent = String(r.total);
-  c.setAttribute('aria-label', `${r.total} أوردر`);
+  c.setAttribute('aria-label', `${r.total} ${HOME_QUEUES[key].unit || 'أوردر'}`);
   c.classList.remove('pending', 'failed');
-  document.getElementById(ids.chips).innerHTML = (r.chips || []).map(ch =>
-    `<span class="dco-chip ${esc(ch.cls)}">${esc(ch.label)} <b>${ch.n}</b></span>`).join('');
+  // 🔴 `ch.row` (اختياري) بيحط المربع في سطر لوحده — «In-Return» تحت مربعات المحاولات. من غيره
+  //    كل المربعات في سطر واحد بيلفّ لوحده (زي الصفوف التانية).
+  const chipHtml = ch => `<span class="dco-chip ${esc(ch.cls)}">${esc(ch.label)} <b>${ch.n}</b></span>`;
+  const chipRows = {};
+  (r.chips || []).forEach(ch => (chipRows[ch.row || 0] = chipRows[ch.row || 0] || []).push(ch));
+  const rowKeys = Object.keys(chipRows).sort((a, b) => a - b);
+  document.getElementById(ids.chips).innerHTML = rowKeys.length > 1
+    ? rowKeys.map(k => `<div class="dco-chips-line">${chipRows[k].map(chipHtml).join('')}</div>`).join('')
+    : (r.chips || []).map(chipHtml).join('');
 
-  // 🔴 **الفلوس شكلها مختلف عن مربعات العدّ عن قصد** — المربعات بتعدّ
-  //    أوردرات وده بيقول جنيه. نفس الشكل كان هيخلّي «٤٥٬٠٠٠» تتقري
-  //    عدد أوردرات: رقم غلط شكله سليم.
-  // ⚠️ والمدفوع مقدمًا **بيتقال بعدده** — استبعاد صامت من رقم فلوس
-  //    بيخلّي الفرق بين المجموع والواقع بلا تفسير.
-  // ⚠️ `cod: null` = الصف مالوش سطر فلوس أصلًا (رفع بوسطة) — مش «صفر مستحق».
-  if (r.cod === null) { document.getElementById(ids.money).innerHTML = ''; return; }
-  const cod = r.cod || { due: 0, dueCount: 0, prepaidCount: 0, unknownCount: 0, currency: 'EGP' };
-  const parts = [`<span class="dco-money${cod.due ? '' : ' is-zero'}">💰 مستحق التحصيل <b>${esc(dcoMoney(cod.due, cod.currency))}</b>`
-               + ` <span style="opacity:.7">(${cod.dueCount} أوردر)</span></span>`];
-  if (cod.prepaidCount)
-    parts.push(`<span class="dco-chip">مدفوع مقدمًا <b>${cod.prepaidCount}</b></span>`);
-  if (cod.unknownCount)
-    parts.push(`<span class="dco-chip qc-flag">حالة مالية مش معروفة <b>${cod.unknownCount}</b></span>`);
-  if (r.truncated)
-    parts.push(`<span class="dco-chip qc-flag">⚠️ القايمة مقطوعة — فيه أكتر من المعروض</span>`);
-  document.getElementById(ids.money).innerHTML = parts.join('');
+  // 🔴 **مفيش «مستحق التحصيل» في الرئيسية** (طلب أحمد 14-10-2026) — اتشال من الصفوف كلها؛ الرقم لسه
+  //    موجود في صفحة كل طابور. وبالتالي «مدفوع مقدمًا» و«حالة مالية مش معروفة» اتشالوا معاه (كانوا بيشرحوا
+  //    استبعاد من رقم الفلوس ده). ⚠️ وتحذير «القايمة مقطوعة» فضل — ده عن الطابور مش عن الفلوس.
+  document.getElementById(ids.money).innerHTML = r.truncated
+    ? `<span class="dco-chip qc-flag">⚠️ القايمة مقطوعة — فيه أكتر من المعروض</span>` : '';
 }
 
 function setFail(key, msg) {
