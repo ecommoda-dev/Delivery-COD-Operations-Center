@@ -96,6 +96,8 @@ const TOOLS = [
     host:      'bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev',
     oldSecret: 'bosta_webhook_status_worker_secret',
     tabs:      5,
+    // 🔴 v1.39.0 — اتنقل من «أدوات أخرى» لصف في «قسم الحالات الانتقالية» (بعدّاد حيّ).
+    homeRow:   true,
   },
 ];
 
@@ -374,8 +376,17 @@ sec('④ الشاشة الرئيسية — قسم «أدوات»');
                            name: e.querySelector('.dco-card-name')?.textContent.trim(),
                            hasCount: !!e.querySelector('.dco-count, .dco-num'),
                            target: e.getAttribute('target') })));
-  is(cards.length === TOOLS.length, `قسم «أدوات» فيه ${TOOLS.length} كارت`, JSON.stringify(cards));
-  for (const t of TOOLS) {
+  const gridTools = TOOLS.filter(t => !t.homeRow);
+  is(cards.length === gridTools.length, `قسم «أدوات» فيه ${gridTools.length} كارت`, JSON.stringify(cards));
+  // 🔴 v1.39.0 — «مستقبل حالة بوسطة» صف في «قسم الحالات الانتقالية» مش كارت: بيفتح نفس الصفحة
+  //    وبنفس الاسم، ومالوش كارت مكرّر في قسم الأدوات.
+  for (const t of TOOLS.filter(t => t.homeRow)) {
+    const r = await page.$$eval('.dco-qrow', (els, href) => els.filter(e => e.getAttribute('href') === href)
+      .map(e => ({ name: e.querySelector('.dco-card-name')?.textContent.trim(), hasCount: !!e.querySelector('.dco-count') })), t.page);
+    is(r.length === 1 && r[0].name === t.title && r[0].hasCount, `صف «${t.title}» في الحالات الانتقالية بيفتح \`${t.page}\` وفيه عدّاد`, JSON.stringify(r));
+    is(!cards.some(x => x.href === t.page), `⛔ ومالوش كارت مكرّر في «قسم الأدوات»`);
+  }
+  for (const t of gridTools) {
     const c = cards.find(x => x.href === t.page);
     is(!!c, `كارت «${t.title}» بيفتح \`${t.page}\``, JSON.stringify(cards));
     is(c && c.name === t.title, `واسمه مطابق لعنوان الصفحة — اسمين لنفس الأداة بيتعلّموا مرتين`, c && c.name);

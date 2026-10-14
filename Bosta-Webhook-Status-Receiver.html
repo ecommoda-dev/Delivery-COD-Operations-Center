@@ -1286,6 +1286,11 @@ async function loadEvents({ full = false } = {}) {
     }
     lastMaxId = rawEvents.reduce((m, e) => Math.max(m, Number(e.id) || 0), 0);
     if (changed || first) renderAllTabs();
+    // 🔴 v1.39.0 — الرئيسية بتعرض ملخّص «تحت التوصيل» من نفس الكاش (`dco_queue_webhook`) — بنكتبه
+    //    بعد كل تحميل ناجح (حتى لو مفيش تغيير: الختم = وقت آخر مزامنة فعلية). نفس الشكل الخام بتاع
+    //    `queue_summary`، والاشتقاق من `dcoWebhookDerive` في الـ shell. ⚠️ بعد `renderAllTabs` عشان
+    //    `tabRows` تكون متحسبة.
+    cacheSet(DCO_CACHE_WEBHOOK, dcoWebhookSummaryFromRows(tabPartition('main'), tabPartition('inreturn')));
     hasLoadedEvents = true;
     lastLoadAt = Date.now();
     refreshFailStreak = 0;

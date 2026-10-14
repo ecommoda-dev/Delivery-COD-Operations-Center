@@ -438,6 +438,9 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .dco-chip.qc-job-s1{background:var(--accent-light);color:var(--accent-dark);border-color:var(--accent-border)}
 .dco-chip.qc-job-return{background:var(--amber-light);color:var(--amber-dark);border-color:var(--amber-border)}
 .dco-chip.qc-job-exchange{background:var(--teal-light);color:var(--teal-dark);border-color:var(--teal-border)}
+.dco-chip.qc-att-0{background:var(--green-light);color:var(--green-dark);border-color:var(--green-border)}
+.dco-chip.qc-att-1{background:var(--amber-light);color:var(--amber-dark);border-color:var(--amber-border)}
+.dco-chip.qc-att-2{background:var(--red-light);color:var(--red-dark);border-color:var(--red-border)}
 /* لوحة «آخر تحديث» — **نفس شكل `.rdy-fresh` في `pack.html`** بالحرف:
    صندوق محدّد بسطرين، الأول اللافتة + عدّاد القِدَم والتاني ختم
    التاريخ والوقت، وملزوق بزرار التحديث في منطقة واحدة.
