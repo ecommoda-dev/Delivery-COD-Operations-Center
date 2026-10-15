@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center (`Delivery-COD-Operations-Center`)
 
-![version](https://img.shields.io/badge/version-v1.40.0-blue)
+![version](https://img.shields.io/badge/version-v1.41.0-blue)
 
 **بتعمل إيه:** هب واحد لمحطة الشحن والتحصيل. الموظف بيدخل **مرة واحدة**،
 وبيشوف طوابير الشحن: اللي **جاهز يخرج**، واللي **خرج ولسه بلا نتيجة** —
@@ -11,7 +11,7 @@
 و**تحصيل الأوردرات COD** (v1.5.0)، و**التسليم الجزئي** (v1.10.0)، و**رفع
 بوسطة** (v1.13.0).
 **مين بيستخدمها:** الشحن والتحصيل
-**الإصدار:** `v1.40.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/shell.js`)
+**الإصدار:** `v1.41.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/shell.js`)
 
 > 🔴 **الريبو ده فيه النُصّين: الواجهة + Worker الدخول** (`index.js` ·
 > `wrangler.toml`). وده **الشكل القياسي** مش استثناء — قرار ٨ في
@@ -132,7 +132,7 @@ tool في D1 : delivery_cod_ops_center   ← login · logout بس (ولسه مط
 | `Partial-Delivery.html` | 🔗 **التسليم الجزئي** (مدموجة من v1.10.0 · بلا نسخة قديمة · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` | **`1.0.1`** | **M (1200)** |
 | `Bosta-Orders-Upload.html` | 🔗 **رفع بوسطة** (مدموجة من v1.13.0 · من v1.18.0 هي النسخة الوحيدة — الرابط القديم اتشال بلا تحويل) | `bosta-orders-upload-worker` | **`2.20.0`** | **M (1200)** |
 | `Courier-Names.html` | 🛵 **أسماء المناديب** (v1.30.0 · قسم «أدوات أخرى» · Worker وبس في ريبو `Courier-Names`) | `courier-names-worker` | **`1.0.0`** | **M (1200)** |
-| `Bosta-Webhook-Status-Receiver.html` | 📮 **مستقبل حالة شحنات بوسطة** (v1.35.0 · **صف في «قسم أوردرات بوسطة» (اتسمّى «متابعة شحنات بوسطة» في v1.40.0)** · Worker وبس في ريبو `Bosta-Webhook-Status-Receiver` · **عرض بحت**) | `bosta-webhook-status-receiver-worker` | **`1.9.0`** | **L (1400)** |
+| `Bosta-Webhook-Status-Receiver.html` | 📮 **مستقبل حالة شحنات بوسطة** (v1.35.0 · **صف في «قسم أوردرات بوسطة» (اتسمّى «متابعة شحنات بوسطة» في v1.40.0)** · Worker وبس في ريبو `Bosta-Webhook-Status-Receiver` · **عرض بحت**) | `bosta-webhook-status-receiver-worker` | **`1.10.0`** | **L (1400)** |
 
 > ⚠️ **تلات `min` مستقلة تمامًا** — مالهمش أي علاقة ببعض ولا بـ`TOOL_VERSION`.
 > `min` مايترفعش إلا لما الهب **يعتمد فعلاً** على حاجة جديدة في الـ Worker ده
@@ -610,6 +610,15 @@ const DCO_CACHE_TTL_MS  = 15 * 60 * 1000;
   واحد متوسّط. `max-width` عليها هي اللي بتمنعها تاكل عرض الجدول وتزقّ باقي
   الأعمدة برّه الشاشة، و`text-align:right` عشان العين تمسك أول كل سطر في مكان
   واحد بدل ما تدوّر عليه.
+
+## ⚡ تمريرة v1.41.0 — «متابعة شحنات بوسطة»: أول تحميل أسرع (طلب أحمد 15-10-2026)
+
+- **السبب:** أول فتح كان بيسحب كل الأحداث على صفحات 500 بالتتابع، و`list_events` كان بيرجّع `raw_payload` (JSON خام كبير) مع كل صف — والشاشة مابتستخدمه غير في زرار «Raw Payload» جوّه لوحة السجل.
+- **الـ Worker v1.10.0** (ريبو `Bosta-Webhook-Status-Receiver`): `list_events` بلا `raw_payload` + `get_event_payload?id=`.
+- **الصفحة:** `toggleRaw(el, id)` بتجيب الـ payload عند أول ضغطة وبتخزّنه في `rawEvents` (مفيش نداء تاني)، ومقارنة التغيير في `mergeEvents`/المزامنة الكاملة بتتجاهله (`stripRaw`).
+- 🔴 **`DCO_WORKERS.bostaWebhook.min` بقى `1.10.0`** — الصفحة معتمدة على الـ endpoint الجديد؛ **انشر الـ Worker (merge → Deploy) قبل ما الصفحة تتفتح**، وإلا الصف في الرئيسية بيقول «نسخة قديمة» و«Raw Payload» بيرجّع 404.
+- ⚠️ **ما اتقاسش حجم الرد الفعلي قبل/بعد** — التوفير تقدير. مش مغطّي كمان: الصفحات الأعمق بتفضل أبطأ بسبب `OFFSET` (لسه مفتوح).
+- ✅ الفحص: `bosta-webhook-check.mjs` (٣٥ بند — +٤ على الـ payload عند الطلب) · `tools-check` 158 · `queues-check` 395 · `rules-check` 90 · `idle` 21 — صفر فشل.
 
 ## 🟥 تمريرة v1.40.0 — «قسم أوردرات بوسطة» + تعديلات الرئيسية (طلب أحمد 14-10-2026)
 

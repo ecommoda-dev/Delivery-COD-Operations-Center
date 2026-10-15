@@ -41,7 +41,7 @@ const ts = (h) => Date.now() - h * 3600e3;
 const ev = (o) => ({
   id: ++id, bosta_id: 'b' + id, state: 21, bosta_timestamp: ts(10), tracking_number: 'T000', business_reference: '#1000',
   order_number: '1000', bosta_type: 'SEND', description: 'Out for delivery', number_of_attempts: 0, matched_slot: 'S1',
-  match_method: 'tracking_number', write_status: 'written', shopify_order_id: '9000', raw_payload: '{"a":1}',
+  match_method: 'tracking_number', write_status: 'written', shopify_order_id: '9000',
   received_at: new Date(ts(10)).toISOString(), delivery_promise_date: null, exception_reason: null, ...o,
 });
 const EVENTS = [
@@ -72,8 +72,9 @@ function mockWorker(page, calls) {
     const action = u.searchParams.get('action') || '';
     calls.push({ from: (() => { try { return req.frame().url(); } catch { return ''; } })(), host: u.host, action, auth: req.headers()['authorization'] || '', method: req.method() });
     let body = { ok: true };
-    if (action === 'get_config') body = { version: '1.7.0' };
-    else if (action === 'list_events') body = { events: EVENTS, maxId: id, updated: [] };
+    if (action === 'get_config') body = { version: '1.10.0' };
+    else if (action === 'list_events') body = { events: EVENTS, maxId: id, updated: [] };   // v1.10.0: بلا raw_payload
+    else if (action === 'get_event_payload') body = { id: Number(u.searchParams.get('id')), raw_payload: '{"a":1,"id":' + u.searchParams.get('id') + '}' };
     else if (action === 'diag') body = { checks: [], lastEvent: { business_reference: '#1005', received_at: new Date().toISOString() }, count24h: 7, dup24h: 0, matchFailed24h: 1, eventsTableOk: true, silenceThresholdHours: 3 };
     await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(body) });
   });
@@ -159,7 +160,7 @@ sec('② المنطق — صف لكل رقم تتبع والحالات النه�
 // ══════════════════════════════════════════════════════════════
 sec('③ الفلاتر والسجل');
 {
-  const { ctx, page, errs } = await open();
+  const { ctx, page, errs, calls } = await open();
   await page.goto(`${BASE}/${PAGE}`);
   await page.waitForSelector('#eventsBody-main tr');
   const fltBtns = await page.$$('#tabRoot-main [data-flt]');
@@ -176,6 +177,17 @@ sec('③ الفلاتر والسجل');
     is(await page.$eval('#histDrawer', e => e.classList.contains('open')), 'الدرج بيفتح');
     const items = await page.$$('#histBody .tl-item');
     is(items.length === 2, 'وفيه حدثا T1 (الأحدث فوق)', String(items.length));
+    // 🔴 v1.41.0 — list_events بلا raw_payload، والـ payload بيتجاب لحدث واحد وقت الضغط
+    is(!calls.some(c => c.action === 'get_event_payload'), '⛔ مفيش get_event_payload قبل الضغط على Raw Payload');
+    is((await page.$eval('#histBody .raw-body pre', e => e.textContent)) === '', 'الـ payload فاضي قبل الضغط');
+    await page.click('#histBody .tl-item.latest .raw-toggle');
+    await page.waitForFunction(() => document.querySelector('#histBody .tl-item .raw-body pre').textContent.includes('"a": 1'), null, { timeout: 3000 }).catch(() => {});
+    const pl = calls.filter(c => c.action === 'get_event_payload');
+    is(pl.length === 1, 'الضغط نادى get_event_payload مرة واحدة', String(pl.length));
+    is((await page.$eval('#histBody .tl-item.latest .raw-body pre', e => e.textContent)).includes('"a": 1'), 'الـ payload اتعرض منسّق');
+    await page.click('#histBody .tl-item.latest .raw-toggle');
+    await page.click('#histBody .tl-item.latest .raw-toggle');
+    is(calls.filter(c => c.action === 'get_event_payload').length === 1, 'فتحه تاني من الكاش بلا نداء جديد');
   }
   is(errs.length === 0, 'صفر خطأ في الكونسول', errs.join(' | '));
   await ctx.close();
