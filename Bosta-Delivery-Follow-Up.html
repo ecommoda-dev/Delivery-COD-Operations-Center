@@ -255,7 +255,18 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
     <div class="eco-modal-body">
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.45.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.46.0</span>
+          <span class="cl-ver-date">15-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>💰 <b>اتشالت البيانات المالية</b> — عمود «التحصيل» وبادج «مدفوع» اتشالوا، وكمان عمود المحافظة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>➖ عمود «مرات الإرسال»: اللي ما اتبعتلهوش رسالة بيظهر <b>—</b> بدل «لم يُرسل».</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🕘 <b>عمود «سجل التحديثات» + زرار «عرض السجل»</b> — نفس لوحة «متابعة شحنات بوسطة»: كل أحداث الشحنة (الحالة · الوقت · المحاولات · سبب الفشل). 🔴 محتاج Worker <b>v2.1.0</b> (<code>get_events</code>).</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.45.0</span>
           <span class="cl-ver-date">15-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -511,8 +522,8 @@ let fuLastOkAt = 0;
 let fuMeta = { shopifyError: null, loadError: null, truncated: false, cap: 0, windowDays: 60, minAttempts: 1 };
 let fuGroupMap = new Map();      // trackingNumber → كل شحنات نفس التليفون (من القايمة الكاملة)
 
-const FU_MS_KEYS = ['province', 'state', 'reason', 'attempts', 'sends'];
-const FU_FL = { order: 'رقم الأوردر', customer: 'العميل', tracking: 'رقم التتبع', province: 'المحافظة', state: 'الحالة عند بوسطة',
+const FU_MS_KEYS = ['state', 'reason', 'attempts', 'sends'];
+const FU_FL = { order: 'رقم الأوردر', customer: 'العميل', tracking: 'رقم التتبع', state: 'الحالة عند بوسطة',
   reason: 'آخر سبب', attempts: 'عدد المحاولات', date: 'وقت آخر تحديث', sends: 'مرات الإرسال' };
 const FU_PRESETS = { today: 'اليوم', yesterday: 'أمس', last7: 'آخر 7 أيام', last30: 'آخر 30 يوم', thisMonth: 'الشهر الحالي', lastMonth: 'الشهر السابق' };
 
@@ -525,7 +536,6 @@ const fuFilter = fuNewState();
 const fuSendsOf = (r) => r.sends?.count || 0;
 const fuSendsBucket = (r) => { const n = fuSendsOf(r); return n === 0 ? '0' : n === 1 ? '1' : '2+'; };
 const FU_VAL = {
-  province: r => r.customer?.province || '—',
   state:    r => `${r.state} · ${r.stateDesc || '—'}`,
   reason:   r => fuReasonOf(r),
   attempts: r => r.attempts == null ? 'null' : String(r.attempts),
@@ -535,7 +545,6 @@ function fuLabelOf(k, v) {
   if (k === 'attempts') return v === 'null' ? '— (بدون)' : fuAttemptLabel(v);
   if (k === 'sends') return v === '0' ? 'لم يُرسل' : v === '1' ? 'مرة واحدة' : 'مرتين فأكتر';
   if (k === 'reason' && v === '—') return '— (بدون سبب)';
-  if (k === 'province' && v === '—') return '— (بلا محافظة)';
   return v;
 }
 
@@ -691,19 +700,18 @@ function fuRenderChipsBar() {
 // §TABLE — أعمدة + رأس + صف
 // ══════════════════════════════════════════════════════
 const FU_FUNNEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></svg>';
-// 🔴 `k` هو مفتاح الترتيب (`FU_SORTV`) ومفتاح عرض العمود المحفوظ — ارفع `_v1` في `FU_LS_COLS` لو الأعمدة اتغيّرت.
+// 🔴 `k` هو مفتاح الترتيب (`FU_SORTV`) ومفتاح عرض العمود المحفوظ — ارفع `_v2` في `FU_LS_COLS` لو الأعمدة اتغيّرت.
 const FU_COLS = [
   { k: 'order',    l: 'الأوردر',               flt: 'order' },
   { k: 'customer', l: 'العميل',                flt: 'customer' },
   { k: 'tracking', l: 'رقم التتبع',            flt: 'tracking' },
-  { k: 'province', l: 'المحافظة',              flt: 'province' },
   { k: 'state',    l: 'الحالة عند بوسطة',      flt: 'state' },
   { k: 'reason',   l: 'آخر سبب',               flt: 'reason' },
   { k: 'promise',  l: 'موعد التسليم المتوقع' },
   { k: 'attempts', l: 'عدد المحاولات',         flt: 'attempts' },
   { k: 'time',     l: 'وقت آخر تحديث',         flt: 'date' },
-  { k: 'total',    l: 'التحصيل' },
   { k: 'sends',    l: 'مرات الإرسال',          flt: 'sends' },
+  { k: 'evlog',    l: 'سجل التحديثات',         nosort: true },
   { k: 'act',      l: 'إجراء',                 nosort: true },
 ];
 function fuBuildThead() {
@@ -751,7 +759,6 @@ function fuRowHtml(r) {
   if (fuIsS2(r)) ob.push('<span class="fu-badge">استبدال/استرجاع (S2)</span>');
   if (r.cancelled) ob.push('<span class="fu-badge red">ملغي على شوبيفاي</span>');
   if (!r.hasOrder) ob.push('<span class="fu-badge red">مالوش أوردر على شوبيفاي</span>');
-  if (r.financial === 'PAID') ob.push('<span class="fu-badge green">مدفوع</span>');
   // العميل
   let cust;
   if (!c) cust = '<span class="fu-sub">— بيانات العميل غايبة —</span>';
@@ -760,17 +767,13 @@ function fuRowHtml(r) {
       (phone ? `<span class="fu-phone">${esc(fuLocalPhone(phone))}</span>` : '<span class="fu-badge red">🚫 بلا موبايل صالح</span>');
     if (grp.length > 1) cust += `<span class="fu-badge amber">${grp.length} شحنات لنفس العميل</span>`;
   }
-  const place = c ? [c.province, c.city].filter(Boolean) : [];
   // الميعاد
   const prom = fuParsePromise(r.promiseDate), today = fuTodayStr();
   const promTxt = prom ? (today && prom.iso < today ? `<span class="fu-late">${esc(prom.text)}</span><span class="fu-sub">فات</span>` : esc(prom.text)) : '—';
-  // التحصيل
-  const money = r.total != null ? r.total : r.codBosta;
-  const moneyTxt = money != null ? `${Number(money).toLocaleString('en-US')} ج` : '—';
   // الإرسال
   const n = fuSendsOf(r);
   const sendsCell = n === 0
-    ? '<span class="fu-badge">لم يُرسل</span>'
+    ? '—'
     : `<span class="fu-badge green">${n === 1 ? 'مرة واحدة' : n === 2 ? 'مرتين' : n + ' مرات'}</span>` +
       `<span class="fu-sub">آخر: ${esc(r.sends.lastBy || '—')}</span><span class="fu-sub">${esc(formatDateTime(r.sends.lastAt))}</span>`;
   const canSend = !!c && !!phone;
@@ -783,14 +786,13 @@ function fuRowHtml(r) {
       <td>${orderTxt}${ob.length ? '<br>' + ob.join(' ') : ''}</td>
       <td>${cust}</td>
       <td class="col-num"><a href="${esc(fuBostaUrl(r.trackingNumber))}" target="_blank" rel="noopener" class="tracking-link">${esc(r.trackingNumber)}</a></td>
-      <td>${esc(place[0] || '—')}${place[1] ? `<span class="fu-sub">${esc(place[1])}</span>` : ''}</td>
       <td><span class="state-code">${esc(r.state ?? '—')}</span> ${esc(r.stateDesc || '—')}</td>
       <td>${esc(fuReasonOf(r))}</td>
       <td>${promTxt}</td>
       <td>${r.attempts == null ? '—' : `<span class="att-chip static ${fuAttemptClass(r.attempts)}">${esc(r.attempts)}</span>`}</td>
       <td>${esc(formatDateTime(r.lastEventAt))}</td>
-      <td>${esc(moneyTxt)}</td>
       <td>${sendsCell}</td>
+      <td><button type="button" class="hist-btn" data-act="evlog" data-tn="${esc(r.trackingNumber)}">🕘 عرض السجل</button></td>
       <td><div class="fu-row-btns">${sendBtn}${histBtn}</div></td>
     </tr>`;
 }
@@ -826,10 +828,10 @@ function fuUpdateStates() {
 // ─── §TABLE::sort — 3 حالات، مستقل عن الفلاتر (data-table-standard.md §8) ───
 const FU_SORTV = {
   order: r => r.order, customer: r => r.customer?.fullName || null, tracking: r => r.trackingNumber,
-  province: r => r.customer?.province || null, state: r => Number(r.state), reason: r => { const x = fuReasonOf(r); return x === '—' ? '' : x; },
+  state: r => Number(r.state), reason: r => { const x = fuReasonOf(r); return x === '—' ? '' : x; },
   promise: r => fuParsePromise(r.promiseDate)?.iso || null, attempts: r => r.attempts,
   time: r => { const d = fuValidDate(r.lastEventAt); return d ? d.getTime() : null; },
-  total: r => r.total != null ? r.total : r.codBosta, sends: r => fuSendsOf(r),
+  sends: r => fuSendsOf(r),
 };
 function fuToggleSort(k) {
   const s = fuFilter;
@@ -888,7 +890,7 @@ function fuRender() {
 // §TABLE::colWidths — التحكم اللايف في عرض الأعمدة (v8.2.0 · Standards #51)
 // ══════════════════════════════════════════════════════
 // بيتحفظ في localStorage (تفضيل شاشة مش هوية، مايتمسحش مع الخروج). مفيش زرار إعادة ضبط.
-const FU_LS_COLS = 'dco_col_widths_v1_Bosta-Delivery-Follow-Up.html';   // ارفع _v1 → _v2 لو الأعمدة اتغيّرت
+const FU_LS_COLS = 'dco_col_widths_v2_Bosta-Delivery-Follow-Up.html';   // ارفع _v2 → _v3 لو الأعمدة اتغيّرت
 const FU_MIN_W = 64, FU_MAX_W = 700, FU_INIT_CAP = 260;
 const fuW = {}; let fuWReady = false, fuDrag = null, fuWBadge = null;
 const fuTbl = () => fuEl('fuTbl');
@@ -1198,6 +1200,32 @@ function fuCloseHistory() {
 }
 
 // ══════════════════════════════════════════════════════
+// §EVENTS-LOG — سجل تحديثات بوسطة لرقم تتبع (نفس لوحة «عرض السجل» في متابعة شحنات بوسطة) — `get_events`
+// ══════════════════════════════════════════════════════
+async function fuOpenEvents(tn) {
+  const r = fuRows.find(x => x.trackingNumber === tn); if (!r) return;
+  fuHistTn = tn;
+  fuEl('histTitle').innerHTML = `سجل التحديثات · <bdi>${esc(fuOrderTag(r.order))}</bdi> · <bdi>${esc(tn)}</bdi>`;
+  fuEl('histBody').innerHTML = '<div class="q-empty">⏳ جاري التحميل...</div>';
+  fuEl('histOverlay').classList.add('open');
+  const d = fuEl('histDrawer'); d.classList.add('open'); d.setAttribute('aria-hidden', 'false');
+  try {
+    const data = await apiGet('get_events', { trackingNumber: tn });
+    if (fuHistTn !== tn) return;
+    const evs = data.events || [];
+    fuEl('histTitle').innerHTML += ` <span style="color:var(--text-secondary);font-weight:400">(${evs.length} حدث)</span>`;
+    fuEl('histBody').innerHTML = evs.map((e, i) => `
+      <div class="tl-item ${i === 0 ? 'latest' : ''}">
+        <div class="tl-desc">${esc(e.description || '—')} <span style="color:var(--text-secondary);font-weight:400">(${esc(e.state)})</span></div>
+        <div class="tl-meta"><span>${esc(formatDateTime(e.received_at))}</span><span>محاولات: ${esc(e.number_of_attempts ?? '—')}</span></div>
+        ${e.exception_reason ? `<div class="tl-meta"><span>سبب فشل التوصيل: <b>${esc(fuReasonAr(e.exception_reason))}</b></span></div>` : ''}
+      </div>`).join('') || '<div class="q-empty">مفيش أحداث للشحنة دي.</div>';
+  } catch (e) {
+    if (fuHistTn === tn) fuEl('histBody').innerHTML = `<div class="fu-warn bad">تعذّر تحميل السجل: ${esc(e.message)}${/404|غير معروف|unknown/i.test(e.message) ? ' — الـ Worker لازم يكون v2.1.0 أو أحدث.' : ''}</div>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════
 // §EVENTS — تفويض أحداث (مفيش onclick بنص فيه بيانات عميل) + حارس Standards #32
 // ══════════════════════════════════════════════════════
 document.addEventListener('click', e => {
@@ -1208,7 +1236,7 @@ document.addEventListener('click', e => {
   if (fuPop && fuPop.contains(t)) { fuPopAction(t); return; }
   if (fuPop) fuClosePop();
   const act = t.closest('[data-act][data-tn]');
-  if (act && !act.disabled) { if (act.dataset.act === 'send') fuOpenCompose(act.dataset.tn); else if (act.dataset.act === 'hist') fuOpenHistory(act.dataset.tn); return; }
+  if (act && !act.disabled) { if (act.dataset.act === 'send') fuOpenCompose(act.dataset.tn); else if (act.dataset.act === 'hist') fuOpenHistory(act.dataset.tn); else if (act.dataset.act === 'evlog') fuOpenEvents(act.dataset.tn); return; }
   const rm = t.closest('[data-rm]');
   if (rm) {
     const [type, key, ...rest] = rm.dataset.rm.split(':'), v = rest.join(':'), s = fuFilter;
