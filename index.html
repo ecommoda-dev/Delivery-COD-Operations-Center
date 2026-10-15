@@ -143,8 +143,13 @@
   <!-- ══ قسم «أوردرات بوسطة» (طلب أحمد 14-10-2026) — أول قسم فوق ═════
        🔴 **فيه أداتين بوسطة بعدّاد حيّ**: «رفع بوسطة» (اللي مستنية رفع) و«متابعة شحنات بوسطة»
           (اللي تحت التوصيل). نفس شكل الصفوف في «قسم الحالات الانتقالية» وسلوكها بالحرف. -->
-  <div class="dco-home-sec">
-    <div class="dco-home-sec-title">قسم أوردرات بوسطة</div>
+  <div class="dco-home-sec sec-bosta">
+    <div class="dco-home-sec-hd">
+      <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/></svg></span>
+      <div class="dco-home-sec-title">أوردرات بوسطة</div>
+      <div class="dco-home-sec-sub">رفع الشحنات ومتابعتها</div>
+      <span class="dco-worst" id="worstBosta" hidden></span>
+    </div>
 
     <!-- ══ صف ③ — «رفع بوسطة» (طلب أحمد 27-09-2026) ══════════════
          🔴 **بقى صف بعدّاد حيّ بنفس شكل «Ready»/«Shipped» بالحرف** — كان
@@ -160,9 +165,9 @@
          ⚠️ **والنداءات قراءة بحتة** — `fetch_candidates` بطّل يكتب صف
             `scan` من Worker v2.4.0، فالتحديث (يدوي من v1.38.0) مابيملاش
             السجل. -->
-      <a class="dco-row dco-qrow age-none" id="rowBosta" href="Bosta-Orders-Upload.html">
+      <a class="dco-row dco-qrow id-upload age-none" id="rowBosta" href="Bosta-Orders-Upload.html">
         <div class="dco-row-id">
-          <span class="dco-card-ico ico-red"><img src="assets/bosta-logo.png" alt="Bosta"></span>
+          <span class="dco-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg></span>
           <div>
             <div class="dco-card-name">رفع بوسطة</div>
             <div class="dco-card-code">لم يتم الرفع</div>
@@ -200,9 +205,9 @@
             ⛔ والتعريف مكرّر في الـ Worker وفي `computeTabRows` في الأداة — أي تعديل ينزل على الاتنين.
          ⚠️ **وحدة العد «شحنة» مش «أوردر»** — الأوردر ممكن يبقى له رقم تتبع S1 وS2.
          ⚠️ بلا «مستحق تحصيل» (`cod: null`) — الأداة عرض بحت. -->
-      <a class="dco-row dco-qrow age-none" id="rowWebhook" href="Bosta-Webhook-Status-Receiver.html">
+      <a class="dco-row dco-qrow id-track age-none" id="rowWebhook" href="Bosta-Webhook-Status-Receiver.html">
         <div class="dco-row-id">
-          <span class="dco-card-ico ico-red">📮</span>
+          <span class="dco-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
           <div>
             <div class="dco-card-name">متابعة شحنات بوسطة</div>
             <div class="dco-card-code">تحت التوصيل</div>
@@ -231,8 +236,13 @@
       </a>
   </div>
 
-  <div class="dco-home-sec">
-    <div class="dco-home-sec-title">قسم الحالات الانتقالية</div>
+  <div class="dco-home-sec sec-flow">
+    <div class="dco-home-sec-hd">
+      <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12M12 6l6 6-6 6"/></svg></span>
+      <div class="dco-home-sec-title">الحالات الانتقالية</div>
+      <div class="dco-home-sec-sub">Ready ثم Shipped</div>
+      <span class="dco-worst" id="worstFlow" hidden></span>
+    </div>
 
     <!-- ══ صف ① — «أوردرات جاهزة للشحن» (Ready) ═══════════════════
          🔴 **الرقم بيعدّ الأوردرات اللي حالتها `Ready`** في أي من
@@ -247,9 +257,9 @@
          ⚠️ **وصفر فلترة**: الأوردر الشاذ (ملغي · حالة بره القايمة · بلا
             قناة) **بيتعدّ وبياخد علامة** — مربع «محتاجة مراجعة» بيقول
             عددهم. إخفاؤه كان هيخلّي سؤال «الأوردر ده فين؟» بلا إجابة. -->
-      <a class="dco-row dco-qrow age-none" id="rowReady" href="Ready-Orders.html">
+      <a class="dco-row dco-qrow id-ready age-none" id="rowReady" href="Ready-Orders.html">
         <div class="dco-row-id">
-          <span class="dco-card-ico ico-blue">📦</span>
+          <span class="dco-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg></span>
           <div>
             <div class="dco-card-name">أوردرات جاهزة للشحن</div>
             <!-- 🔴 **كود الحالة بالحرف تحت الاسم** (طلب أحمد 17-09-2026) —
@@ -293,9 +303,9 @@
             بتعتبرها `Shipped` في العدّ، بس المواصفات المتفق عليها بتقول
             `Shipped` بالحرف. البند مفتوح في `CLAUDE.md` ومستني قرار —
             والعنوان بيقول اللي بيتعرض بالظبط، فالغياب **معلوم مش خفي**. -->
-      <a class="dco-row dco-qrow age-none" id="rowShipped" href="Shipped-Orders.html">
+      <a class="dco-row dco-qrow id-shipped age-none" id="rowShipped" href="Shipped-Orders.html">
         <div class="dco-row-id">
-          <span class="dco-card-ico ico-amber">🚚</span>
+          <span class="dco-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h11v10H2zM13 10h5l3 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg></span>
           <div>
             <div class="dco-card-name">أوردرات تحت التوصيل</div>
             <div class="dco-card-code" dir="ltr">Shipped</div>
@@ -343,22 +353,26 @@
           `update_status` بتكتب حالة على شوبيفاي، و`pay`/`refund` بيسجّلوا
           فلوس، و`remove_items` بتشيل منتج من أوردر. الوصف تحت كل واحدة
           بيقول كده بالنص عشان الموظف يعرف إنه داخل على فعل. -->
-  <div class="dco-home-sec">
-    <div class="dco-home-sec-title">قسم أدوات العمليات</div>
+  <div class="dco-home-sec sec-tools">
+    <div class="dco-home-sec-hd">
+      <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></span>
+      <div class="dco-home-sec-title">أدوات العمليات</div>
+      <div class="dco-home-sec-sub">أدوات بتكتب على الأوردرات</div>
+    </div>
     <div class="dco-tools-grid">
 
       <a class="dco-tool" href="Order-Status-Updater.html">
-        <span class="dco-card-ico ico-purple">📦</span>
+        <span class="dco-card-ico ico-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.5M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.5 4.5M20 20v-4h-4"/><path d="M12 7.5l4 2v5l-4 2-4-2v-5z"/><path d="M8 9.5l4 2 4-2M12 11.5v5"/></svg></span>
         <div class="dco-card-name">تحديث حالة الأوردرات</div>
       </a>
 
       <a class="dco-tool" href="COD-Payment-Center.html">
-        <span class="dco-card-ico ico-green">💳</span>
+        <span class="dco-card-ico ico-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14M7 2h10"/><rect x="2" y="8" width="20" height="12" rx="2"/><circle cx="12" cy="14" r="2.5"/></svg></span>
         <div class="dco-card-name">تحصيل الأوردرات COD</div>
       </a>
 
       <a class="dco-tool" href="Partial-Delivery.html">
-        <span class="dco-card-ico ico-amber">🧩</span>
+        <span class="dco-card-ico ico-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5L4 5v6.5l6 2.5z"/><path d="M14 2.5l6 2.5v6.5l-6 2.5z"/><path d="M12 15.5V17M12 17l-4.5 4.5M12 17l4.5 4.5M7.5 18v3.5H11M16.5 18v3.5H13"/></svg></span>
         <div class="dco-card-name">التسليم الجزئي</div>
       </a>
 
@@ -371,12 +385,16 @@
           «أسماء المناديب» بتعدّل **قايمة الاختيار نفسها** (`custom.courier`)
           اللي كل الأوردرات بتختار منها — نوع تاني من الفعل، فقسم تاني.
        ⚠️ **وبلا عدّاد** زي قسم الأدوات (فعل مش طابور). -->
-  <div class="dco-home-sec">
-    <div class="dco-home-sec-title">أدوات أخرى</div>
+  <div class="dco-home-sec sec-tools">
+    <div class="dco-home-sec-hd">
+      <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg></span>
+      <div class="dco-home-sec-title">أدوات أخرى</div>
+      <div class="dco-home-sec-sub">قوائم مساعدة</div>
+    </div>
     <div class="dco-tools-grid">
 
       <a class="dco-tool" href="Courier-Names.html">
-        <span class="dco-card-ico ico-blue">🛵</span>
+        <span class="dco-card-ico ico-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M9 17h6M15 17l-2-8h-3M13 9h3l2 4"/></svg></span>
         <div class="dco-card-name">أسماء المناديب</div>
       </a>
 
@@ -428,6 +446,10 @@
                 كهرماني لحد ساعة · أحمر بعدها. وخلفية الصف والشريط اللي تحت المدة
                 <b>بيتملوا شوية بشوية</b> لحد الساعة. وكله بيتحدّث كل نص دقيقة
                 <b>بلا أي نداء شبكة</b>.</li>
+            <li>🎨 <b>الألوان بتقول حاجتين مختلفتين</b>: <b>لون الصف</b> (فوشيا · بنفسجي · تركواز ·
+                أردوازي) بيقول «ده أنهي صف»، و<b>لون العمر</b> (أخضر · أزرق · كهرماني · أحمر) بيقول
+                «الرقم قديم قد إيه». وفي عنوان كل حاوية شارة <b>«أقدم رقم»</b> بلون أقدم صف فيها —
+                الصف اللي ما اتجابش لسه مابيدخلش الحساب.</li>
             <li>وقت التحديث الرقم الكبير بيتبدّل بـ ↻ بتلف، وزرار التحديث بيقول
                 «جاري التحديث».</li>
             <li>قبل أول جلب ناجح العدد <b>«—» مش «0»</b> — «ما اتحدّثش» ≠ «مفيش شغل».</li>
@@ -491,7 +513,18 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.42.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.43.0</span>
+          <span class="cl-ver-date">15-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🎨 <b>الشاشة الرئيسية: كل قسم في حاوية بلونه</b> — «أوردرات بوسطة» (بنفسجي) و«الحالات الانتقالية» (تركواز) و«أدوات العمليات» و«أدوات أخرى» (رمادي)، وعنوان أكبر بأيقونة. وفي حاويتَي الطوابير شارة <b>«أقدم رقم»</b> بلون عمرها — بتقول لو فيه صف قديم من غير ما تفتح الصفوف.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🎨 <b>لون هوية لكل صف</b> — أيقونة SVG بمربع مصمت واسم وكود حالة ورقم بلون الصف: رفع بوسطة فوشيا · متابعة الشحنات بنفسجي · الجاهز تركواز · تحت التوصيل أردوازي. ألوان بعيدة عن سلّم العمر عن قصد. <b>ومربع «آخر تحديث» وزرار التحديث والحافة والخلفية ما اتغيّروا.</b></span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🧰 <b>أيقونات الأدوات SVG جديدة</b> — تحديث حالة الأوردرات (صندوق جوّه سهمين دائريين) · تحصيل COD (رزمة أوراق نقدية) · التسليم الجزئي (صندوق متقسّم نصّين + سهم بيتفرّع) · أسماء المناديب (سكوتر). والأدوات في ٣ أعمدة، وكارت «أسماء المناديب» بقى بعرض كارت واحد.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.42.0</span>
           <span class="cl-ver-date">15-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -1335,7 +1368,30 @@ function ageValueHtml(mins) {
   const h = Math.floor(mins / 60);
   return h <= 2 ? `<b>${esc(arHour(h))}</b>` : `<b>${h}</b>${h <= 10 ? 'ساعات' : 'ساعة'}`;
 }
+// 🎨 شارة «أقدم رقم» في عنوان حاوية القسم (v1.43.0) — بتقول لو فيه صف قديم من
+//    غير ما الموظف يفتح الصفوف. ⚠️ **نفس `q.at` ونفس `agoInfo`** — مفيش سلّم تاني،
+//    ومفيش نداء شبكة. ⛔ والصف اللي ما اتجابش (`at === null`) **مابيدخلش الحساب**:
+//    «ما اتحدّثش» مش «لسه متحدّث»، ولو كلهم null الشارة بتختفي.
+const HOME_WORST = { worstBosta: ['bosta', 'webhook'], worstFlow: ['ready', 'shipped'] };
+function worstAgeText(mins) {
+  if (mins < 1) return 'لحظات';
+  return mins < 60 ? mins + ' د' : Math.floor(mins / 60) + ' س';
+}
+function renderWorst(now) {
+  Object.keys(HOME_WORST).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const ats = HOME_WORST[id].map(k => homeQ[k] && homeQ[k].at).filter(Boolean);
+    if (!ats.length) { el.hidden = true; return; }
+    const oldest = ats.reduce((a, b) => (a.getTime() <= b.getTime() ? a : b));
+    const mins = Math.max(0, Math.floor((now - oldest.getTime()) / 60000));
+    el.className = 'dco-worst ' + agoInfo(oldest, now).cls.replace('ago-', 'age-');
+    el.innerHTML = '<i aria-hidden="true"></i>أقدم رقم: ' + esc(worstAgeText(mins));
+    el.hidden = false;
+  });
+}
 function renderFreshness(now = Date.now()) {
+  renderWorst(now);
   Object.keys(homeQ).forEach(key => {
     const q = homeQ[key], ids = HOME_QUEUES[key].ids;
     const row = document.getElementById(ids.row);
