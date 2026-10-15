@@ -193,10 +193,10 @@ const DCO_WORKERS = {
   //    فالحارس هنا بيمسك الحالة الوحيدة: الـ Worker ما اتنشرش أو الـ Promote ناقص.
   //    ⛔ بيقرا جدول `bosta_webhook_events` بتاع المستقبل (قراءة بس) — وسره **سر الهب**
   //       (`delivery_cod_ops`)، فلازم يتضم للمجموعة قبل أول استخدام وإلا `401`.
-  deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.0.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
+  deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.45.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.46.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +

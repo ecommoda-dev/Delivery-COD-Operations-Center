@@ -112,6 +112,10 @@ async function newPage() {
       }
     } else if (action === 'get_sends') {
       out = { ok: true, trackingNumber: url.searchParams.get('trackingNumber'), sends: SENDS[url.searchParams.get('trackingNumber')] || [] };
+    } else if (action === 'get_events') {
+      out = { ok: true, trackingNumber: url.searchParams.get('trackingNumber'), events: [
+        { id: 3, state: 47, description: 'Exception', exception_reason: 'Customer is not answering.', number_of_attempts: 2, received_at: iso(2) },
+        { id: 2, state: 41, description: 'Out for delivery', exception_reason: null, number_of_attempts: 1, received_at: iso(30) } ] };
     }
     await route.fulfill({ status, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(out) });
   });
@@ -137,9 +141,9 @@ sec('① التحميل والجدول والعدّ');
   is(!gf[0].qs.includes('days'), 'بلا باراميتر `days` (مفيش نافذة بيختارها الموظف)', gf[0].qs);
   is((await rowTn(page)).length === 8 && (await page.textContent('#fuCount')).trim() === '8', 'الجدول فيه 8 صفوف و«النتائج: 8»');
   const heads = await page.$$eval('#fuTbl thead th', els => els.map(e => e.querySelector('.th-in').textContent.replace(/\s+/g, ' ').trim()));
-  is(JSON.stringify(heads) === JSON.stringify(['الأوردر', 'العميل', 'رقم التتبع', 'المحافظة', 'الحالة عند بوسطة', 'آخر سبب', 'موعد التسليم المتوقع', 'عدد المحاولات', 'وقت آخر تحديث', 'التحصيل', 'مرات الإرسال', 'إجراء']),
+  is(JSON.stringify(heads) === JSON.stringify(['الأوردر', 'العميل', 'رقم التتبع', 'الحالة عند بوسطة', 'آخر سبب', 'موعد التسليم المتوقع', 'عدد المحاولات', 'وقت آخر تحديث', 'مرات الإرسال', 'سجل التحديثات', 'إجراء']),
      'أعمدة الجدول بترتيبها', JSON.stringify(heads));
-  is((await page.$$('#fuTbl thead .th-flt')).length === 9, 'قمع في رأس 9 أعمدة (فلتر) — والباقي (الميعاد · التحصيل · الإجراء) بلا فلتر');
+  is((await page.$$('#fuTbl thead .th-flt')).length === 8, 'قمع في رأس 8 أعمدة (فلتر) — والباقي (الميعاد · السجل · الإجراء) بلا فلتر');
   is((await page.$$('.fu-tab, .fu-card, .main-tab-btn, [data-tab]')).length === 0, '⛔ مفيش تابات ولا كروت');
   is((await page.$$('[data-res], [data-note], [data-act="reopen"], [data-act="result"]')).length === 0, '⛔ مفيش «نتيجة رد» ولا ملاحظة ولا «إعادة فتح»');
   const cache = await page.evaluate(() => JSON.parse(sessionStorage.getItem('dco_queue_followup') || 'null'));
@@ -153,9 +157,9 @@ sec('① التحميل والجدول والعدّ');
   const pos = await page.$eval('#fuTbl thead th', e => getComputedStyle(e).position);
   const ovf = await page.$eval('.tbl-scroll', e => getComputedStyle(e).overflowY);
   is(pos === 'sticky' && ovf === 'auto', 'عناوين الجدول sticky والسكرول داخلي (#49)', `${pos}/${ovf}`);
-  is((await page.$$eval('#fuBody tr[data-tn] td', tds => tds.length)) === 8 * 12, 'خلايا كل صف == عدد الأعمدة (12)');
+  is((await page.$$eval('#fuBody tr[data-tn] td', tds => tds.length)) === 8 * 11, 'خلايا كل صف == عدد الأعمدة (11)');
   const ov = await page.$eval('.tbl-scroll', e => ({ sw: e.scrollWidth, cw: e.clientWidth }));
-  is(ov.sw <= ov.cw + 12, '🔴 أول قياس بيحط الـ 12 عمود في عرض الكارت — مفيش سكرول أفقي بيخبّي أعمدة الإرسال', JSON.stringify(ov));
+  is(ov.sw <= ov.cw + 12, '🔴 أول قياس بيحط الـ 11 عمود في عرض الكارت — مفيش سكرول أفقي بيخبّي أعمدة الإرسال', JSON.stringify(ov));
   is(errs.length === 0, 'صفر خطأ في الكونسول', errs.join(' | '));
   await ctx.close();
 }
@@ -198,17 +202,18 @@ sec('③ فلاتر رأس العمود · chips · ترتيب');
   const { page, ctx } = await newPage();
   await load(page);
   // اختيار متعدد: القايمة تفضل مفتوحة بعد أول اختيار (Standards #32)
-  await openPop(page, 'province');
+  await openPop(page, 'state');
   const items = await page.$$eval('.pop .ms-item .ms-lbl', els => els.map(e => e.textContent));
-  is(items.length === 3 && items.includes('Cairo') && items.includes('Giza') && items.includes('Alexandria') || items.includes('— (بلا محافظة)'), 'قايمة المحافظات من القايمة الكاملة', JSON.stringify(items));
-  await page.click('.pop .ms-item:has-text("Giza")');
+  is(items.length === 2 && items.some(x => x.includes('Received at warehouse')) && items.some(x => x.includes('Out for delivery')), 'قايمة الحالات من القايمة الكاملة', JSON.stringify(items));
+  await page.click('.pop .ms-item:has-text("Received at warehouse")');
   is(await page.isVisible('.pop'), '🔴 القايمة بتفضل مفتوحة بعد الاختيار (حارس document.contains)');
-  is((await rowTn(page)).join() === 'T7', 'فلتر المحافظة = Giza → T7 بس');
-  await page.click('.pop .ms-item:has-text("Alexandria")');
-  is((await rowTn(page)).sort().join() === 'T7,T8', 'اختيار تاني في نفس القايمة → T7 + T8 (متعدد)');
-  is((await page.textContent('#fuChips')).includes('المحافظة') && (await page.textContent('#fuChips')).includes('Giza'), 'chips سطر للفلتر باسمه');
-  is((await page.textContent('#fuCount')).trim() === '2', '«النتائج» = المعروض');
-  is(await page.$eval('th[data-fk="province"]', e => e.classList.contains('flt-on')), 'القمع مولّع (!!value مش !== null)');
+  is((await rowTn(page)).join() === 'T2', 'فلتر الحالة = Received at warehouse → T2 بس');
+  await page.click('.pop .ms-item:has-text("Out for delivery")');
+  is((await rowTn(page)).length === 8, 'اختيار تاني في نفس القايمة → الاتنين (متعدد)');
+  await page.click('.pop .ms-item:has-text("Out for delivery")');
+  is((await page.textContent('#fuChips')).includes('الحالة عند بوسطة') && (await page.textContent('#fuChips')).includes('Received at warehouse'), 'chips سطر للفلتر باسمه');
+  is((await page.textContent('#fuCount')).trim() === '1', '«النتائج» = المعروض');
+  is(await page.$eval('th[data-fk="state"]', e => e.classList.contains('flt-on')), 'القمع مولّع (!!value مش !== null)');
   is(!(await page.$eval('[data-clearall]', e => e.classList.contains('inactive'))), 'زرار «مسح كل الفلاتر» اتفعّل');
   await page.keyboard.press('Escape');
   is(!(await page.isVisible('.pop').catch(() => false)), 'Escape بيقفل القايمة');
@@ -218,7 +223,7 @@ sec('③ فلاتر رأس العمود · chips · ترتيب');
   const n1 = chipsBefore.find(x => x.startsWith('محاولة واحدة'));
   is(n1 && n1.endsWith('5'), '🔴 عدد «محاولة واحدة» من القايمة الكاملة (5) مش المفلترة', n1);
   await page.click('[data-att="2"]');
-  is((await rowTn(page)).join() === 'T8', 'مربع «محاولتين» + فلتر المحافظة = T8 (بيكتبوا في نفس الحالة)');
+  is((await rowTn(page)).join() === 'T2', 'مربع «محاولتين» + فلتر الحالة = T2 (بيكتبوا في نفس الحالة)');
   is(await page.$eval('th[data-fk="attempts"]', e => e.classList.contains('flt-on')), 'والقمع بتاع «عدد المحاولات» اتولّع من المربع (الاتجاه العكسي)');
   // مسح كل الفلاتر
   await page.click('[data-clearall]');
@@ -267,8 +272,8 @@ sec('③ فلاتر رأس العمود · chips · ترتيب');
   await page.click('th[data-col="attempts"] .th-label');
   is((await rowTn(page))[0] === 'T1' && (await page.textContent('th[data-col="attempts"] .sort-icon')).trim() === '', 'الضغطة التالتة = رجوع للافتراضي وبلا سهم');
   await page.click('th[data-col="attempts"] .th-label');
-  await openPop(page, 'province');
-  await page.click('.pop .ms-item:has-text("Giza")');
+  await openPop(page, 'state');
+  await page.click('.pop .ms-item:has-text("Received at warehouse")');
   await page.keyboard.press('Escape');
   await page.click('[data-clearall]');
   is((await page.textContent('th[data-col="attempts"] .sort-icon')).trim() === '▲', '🔴 الترتيب بيفضل بعد «مسح كل الفلاتر» (مستقل عن الفلاتر)');
@@ -291,8 +296,8 @@ sec('④ عرض الأعمدة بالسحب (#51)');
   const hb = await page.$eval('#fuTbl th[data-col="reason"] .col-rz', e => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
   await page.mouse.move(hb.x, hb.y); await page.mouse.down(); await page.mouse.move(hb.x - 80, hb.y, { steps: 6 }); await page.mouse.up();
   is((await w('reason')) - before === 80, 'السحب لليسار (RTL) +80px بالظبط', `${before} → ${await w('reason')}`);
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('dco_col_widths_v1_Bosta-Delivery-Follow-Up.html') || 'null'));
-  is(saved && saved.reason === before + 80 && Object.keys(saved).length === 12, 'العرض محفوظ في `dco_col_widths_v1_Bosta-Delivery-Follow-Up.html` (كل الأعمدة)');
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('dco_col_widths_v2_Bosta-Delivery-Follow-Up.html') || 'null'));
+  is(saved && saved.reason === before + 80 && Object.keys(saved).length === 11, 'العرض محفوظ في `dco_col_widths_v2_Bosta-Delivery-Follow-Up.html` (كل الأعمدة)');
   await page.reload(); await page.waitForSelector('#fuBody tr[data-tn]');
   is((await w('reason')) === before + 80, 'العرض بيفضل بعد refresh');
   const keys = await page.evaluate(() => Object.keys(localStorage).sort());
@@ -389,7 +394,7 @@ sec('⑥ الإرسال والتسجيل');
   await page.waitForTimeout(600);
   const toast = await page.evaluate(() => document.querySelector('.toast-container')?.textContent || '');
   is((await page.evaluate(() => window.__opens.length)) === 1 && toast.includes('التسجيل فشل'), '🔴 فشل `record`: الواتساب اتفتح والرسالة بتقول إن التسجيل فشل (مش صمت)', toast);
-  is((await tr(page, '#6003').textContent()).includes('لم يُرسل'), 'والعدّاد ماتحرّكش');
+  is((await tr(page, '#6003').locator('td').nth(8).textContent()).trim() === '—', 'والعدّاد ماتحرّكش');
   is(await page.isVisible('#fuSendOverlay') && !(await page.locator('#fuWaBtn').isDisabled()), 'والنافذة فاضلة مفتوحة وزرارها رجع يشتغل (إعادة محاولة)');
   await ctx.close();
 }
@@ -403,7 +408,7 @@ sec('⑥ الإرسال والتسجيل');
   await page.waitForTimeout(600);
   const toast = await page.evaluate(() => document.querySelector('.toast-container')?.textContent || '');
   is(toast.includes('مش موجود') || toast.includes('التسجيل فشل'), 'عنصر فشل (404) في الدفعة = رسالة خطأ', toast);
-  is((await tr(page, '#6001').textContent()).includes('مرة واحدة') && (await tr(page, '#6002').textContent()).includes('لم يُرسل'),
+  is((await tr(page, '#6001').textContent()).includes('مرة واحدة') && (await tr(page, '#6002').locator('td').nth(8).textContent()).trim() === '—',
      '🔴 اللي نجح اتحسب (T1) واللي فشل (T2) لأ — مفيش دفعة كلها بتضيع');
   await ctx.close();
 }
@@ -441,6 +446,21 @@ sec('⑦ لوحة سجل الإرسال');
   is(await page.$eval('#histDrawer', e => e.classList.contains('open')), 'اللوحة مفتوحة');
   await page.keyboard.press('Escape');
   is(!(await page.$eval('#histDrawer', e => e.classList.contains('open'))), 'Escape بيقفل اللوحة');
+  // 🕘 عمود «سجل التحديثات» — أحداث بوسطة
+  await tr(page, '#6003').locator('[data-act="evlog"]').click();
+  await page.waitForSelector('#histBody .tl-item');
+  const ge = state.calls.filter(c => c.action === 'get_events');
+  is(ge.length === 1 && ge[0].qs.includes('trackingNumber=T3'), '`get_events` اتنادى برقم التتبع (حتى لشحنة ما اتبعتلهاش)', JSON.stringify(ge));
+  const evt = await page.$eval('#histBody', e => e.textContent);
+  is((await page.$$('#histBody .tl-item')).length === 2 && evt.includes('Exception') && evt.includes('Out for delivery') && evt.includes('محاولات: 2'), 'الأحداث الاتنين بالحالة والمحاولات');
+  is(/لم يرد|مش بيرد|Customer/i.test(evt) || evt.includes('سبب فشل التوصيل'), 'سبب فشل التوصيل ظاهر');
+  is((await page.textContent('#histTitle')).includes('سجل التحديثات') && (await page.textContent('#histTitle')).includes('2 حدث'), 'عنوان اللوحة فيه «سجل التحديثات» وعدد الأحداث');
+  await page.keyboard.press('Escape');
+  // 💰 مفيش بيانات مالية
+  const tbl = await page.$eval('#fuTbl', e => e.textContent);
+  is(!tbl.includes('مدفوع') && !tbl.includes('التحصيل') && !/\d[\d,]*\s*ج(?![\u0600-\u06FF])/.test(tbl) && !tbl.includes('المحافظة'), '⛔ مفيش «مدفوع» ولا «التحصيل» ولا مبالغ ولا عمود المحافظة');
+  // ➖ مرات الإرسال بلا إرسال = شرطة
+  is((await tr(page, '#6003').locator('td').nth(8).textContent()).trim() === '—', 'عمود «مرات الإرسال» لشحنة ما اتبعتلهاش = — مش «لم يُرسل»');
   await ctx.close();
 }
 
