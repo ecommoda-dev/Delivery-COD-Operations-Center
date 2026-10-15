@@ -153,6 +153,20 @@
      بلون مرحلته (`.dco-qrow.age-*`) و`--fill` بيتكتب على الصف من الـ JS. */
   --age: var(--border-strong); --age-light: var(--surface-2); --age-border: var(--border); --age-dark: var(--text-muted);
   --fill: 0; --edge: 14px;
+  /* 🎨 هوية صفوف الرئيسية وحاويات الأقسام (v1.43.0 · قرار أحمد 15-10-2026).
+     ألوان **بعيدة عن سلّم العمر** (أخضر · أزرق · كهرماني · أحمر) عن قصد:
+     سلّم العمر بيقول «الرقم قديم قد إيه»، والهوية بتقول «ده أنهي صف» —
+     لو اتشاركوا نفس اللون الموظف مايعرفش اللون بيقول إيه. */
+  --id-upload:#a21caf; --id-upload-light:#fdf4ff; --id-upload-border:#f0abfc;
+  --id-track:#6d28d9;  --id-track-light:#f5f3ff;  --id-track-border:#c4b5fd;
+  --id-ready:#0f766e;  --id-ready-light:#f0fdfa;  --id-ready-border:#99f6e4;
+  --id-shipped:#334155; --id-shipped-light:#f1f5f9; --id-shipped-border:#cbd5e1;
+  --sec-bosta-bg:#faf5ff; --sec-bosta-border:#e9d5ff; --sec-bosta-fg:#6b21a8; --sec-bosta-solid:#7e22ce;
+  --sec-flow-bg:var(--teal-light); --sec-flow-border:var(--teal-border); --sec-flow-fg:var(--teal-dark); --sec-flow-solid:var(--id-ready);
+  /* قيم افتراضية محايدة — كل صف/حاوية بيبدّلها (`.id-*` · `.sec-*`) زي `--age` فوق */
+  --idc: var(--accent); --idc-light: var(--accent-light); --idc-border: var(--accent-border);
+  --sec-bg: transparent; --sec-border: var(--border); --sec-fg: var(--text-primary); --sec-solid: var(--text-mid);
+  --sec-tools-bg:#f8fafc; --sec-tools-border:#e2e8f0; --sec-tools-fg:#334155; --sec-tools-solid:#475569;
   --font-body:      'Noto Sans Arabic', -apple-system, sans-serif;
   --font-mono:      'Noto Sans Arabic', -apple-system, sans-serif;
   /* خط **الليبل المطبوع** في `sku-barcode.html` بس — استثناء موثّق من
@@ -345,9 +359,24 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
       عند كل دخول، وماياخدهوش إلا اللي عنده طابور
       حقيقي وجلبه رخيص.
    ══════════════════════════════════════════════════════════════ */
-.dco-home-sec{margin-bottom:18px}
-.dco-home-sec-title{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:11px}
-.dco-home-sec-title::after{content:"";flex:1;height:1px;background:var(--border)}
+/* 🎨 كل قسم **حاوية** بخلفية وإطار بلون عيلته (v1.43.0) — الأربع صفوف كانوا
+   بيتقروا قايمة واحدة. العنوان 17px بأيقونة مربعة، وفي حاويتَي الطوابير شارة
+   «أقدم رقم» (`.dco-worst`) بتقول لو فيه صف قديم من غير ما الموظف يفتح الصفوف.
+   ⚠️ الصفوف **جوّه** الحاوية ما اتغيّرتش: مربع «آخر تحديث» وزرار التحديث
+      والحافة والخلفية التدريجية بالحرف زي v1.38.0. */
+.dco-home-sec{margin-bottom:14px;padding:0 14px 14px;border-radius:16px;background:var(--sec-bg);border:1.5px solid var(--sec-border)}
+.dco-home-sec.sec-bosta{--sec-bg:var(--sec-bosta-bg);--sec-border:var(--sec-bosta-border);--sec-fg:var(--sec-bosta-fg);--sec-solid:var(--sec-bosta-solid)}
+.dco-home-sec.sec-flow{--sec-bg:var(--sec-flow-bg);--sec-border:var(--sec-flow-border);--sec-fg:var(--sec-flow-fg);--sec-solid:var(--sec-flow-solid)}
+.dco-home-sec.sec-tools{--sec-bg:var(--sec-tools-bg);--sec-border:var(--sec-tools-border);--sec-fg:var(--sec-tools-fg);--sec-solid:var(--sec-tools-solid)}
+.dco-home-sec-hd{display:flex;align-items:center;gap:10px;padding:12px 4px}
+.dco-home-sec-ico{width:32px;height:32px;flex-shrink:0;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--sec-solid);color:var(--on-accent)}
+.dco-home-sec-ico svg{width:17px;height:17px}
+.dco-home-sec-title{font-size:17px;font-weight:900;line-height:1.3;color:var(--sec-fg)}
+.dco-home-sec-sub{font-size:12px;font-weight:700;color:var(--text-secondary)}
+/* شارة «أقدم رقم» — بنفس سلّم العمر (`agoInfo`) من غير سلّم تاني */
+.dco-worst{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;border:1px solid var(--age-border);background:var(--age-light);color:var(--age-dark);font-size:12px;font-weight:800;white-space:nowrap}
+.dco-worst[hidden]{display:none}
+.dco-worst i{width:8px;height:8px;border-radius:50%;background:var(--age);display:inline-block}
 /* ══ الطوابير = صفوف بعرض الشاشة (اتجاه B — قرار أحمد 06-09-2026) ══
    القراءة من فوق لتحت مش جنب بعض. السبب العملي: الصف بيوسّع الرقم
    والتقسيمة والختم والزرار **على سطر واحد**، وبيسع رسالة فشل كاملة
@@ -368,15 +397,18 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .dco-row-act{flex:0 0 auto;margin-inline-start:auto;display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
 
 /* ══ الأدوات = مربعات مضغوطة تحت الطوابير ══
-   ⚠️ `auto-fit` مقصود — أداة جديدة بتدخل الصف من غير أي تعديل CSS
+   ⚠️ **تلات أعمدة ثابتة من v1.43.0** (كان `auto-fit`): الكارت الوحيد في «أدوات
+      أخرى» كان بياخد عرض الصف كله. أداة رابعة بتنزل سطر جديد من غير أي تعديل CSS
       (أول مرشّح: صفحة «التنبيهات» في `docs/ALERTS-TOOL-PLAN.md`). */
-.dco-tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-.dco-tool{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:15px 13px;font-family:var(--font-body);color:var(--text-primary);text-decoration:none;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .06s}
+.dco-tools-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:720px){.dco-tools-grid{grid-template-columns:minmax(0,1fr)}}
+.dco-tool{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:112px;gap:10px;text-align:center;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:15px 13px;font-family:var(--font-body);color:var(--text-primary);text-decoration:none;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .06s}
 .dco-tool:hover{border-color:var(--accent);box-shadow:0 6px 18px rgba(37,99,235,.12)}
 .dco-tool:active{transform:translateY(1px)}
 .dco-tool:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--focus-ring)}
-.dco-tool .dco-card-ico{width:42px;height:42px;border-radius:11px;font-size:22px}
-.dco-tool .dco-card-name{font-size:13.5px}
+.dco-tool .dco-card-ico{width:46px;height:46px;border-radius:12px;font-size:22px}
+.dco-tool .dco-card-ico svg{width:26px;height:26px}
+.dco-tool .dco-card-name{font-size:14px}
 /* ⚠️ مربع بثيم أحمر — **للأدوات الهدّامة بس** (`remove.html` النهاردة.
    `returned.html` كانت هنا كمان لحد v1.24.1 وبقت `.tool-return` تحت).
    الأداة دي بتحذف بند من أوردر حي وبند متحذف **مالوش رجعة**، فاللون هنا
@@ -389,13 +421,14 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .dco-tool.tool-danger .dco-card-name{color:var(--red-dark)}
 .dco-tool.tool-danger .dco-card-ico{background:var(--surface);border-color:var(--red-border)}
 
-/* ⚠️ الأيقونة في مربع ملوّن — اللون هو اللي بيفرّق الطباعة عن التغليف
-   قبل ما الموظف يقرا الاسم أصلاً. والإيموجي لازم يكون **نفس** إيموجي
-   هيدر الأداة نفسها، وبـ variation selector (FE0F) عشان يترسم ملوّن
-   على أجهزة المخزن بدل مربع فاضي. */
+/* ⚠️ الأيقونة في مربع ملوّن — اللون هو اللي بيفرّق الأداة عن التانية
+   قبل ما الموظف يقرا الاسم أصلاً.
+   🔴 **من v1.43.0 أيقونات الرئيسية SVG** (stroke بـ`currentColor`) مش إيموجي —
+      ورق الإيموجي كان بيترسم بشكل مختلف من جهاز لجهاز. وهيدر صفحات الأدوات
+      لسه بالإيموجي القديم، فالأيقونتين مش متطابقتين (بند مفتوح). */
 .dco-card-ico{width:52px;height:52px;flex-shrink:0;border-radius:13px;display:grid;place-items:center;font-size:28px;line-height:1;border:1px solid var(--border);background:var(--surface-2)}
-.dco-card-ico.ico-blue{background:var(--accent-light);border-color:var(--accent-border)}
-.dco-card-ico.ico-green{background:var(--green-light);border-color:var(--green-border)}
+.dco-card-ico.ico-blue{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent)}
+.dco-card-ico.ico-green{background:var(--green-light);border-color:var(--green-border);color:var(--green)}
 .dco-card-name{font-size:15.5px;font-weight:800;line-height:1.3}
 .dco-card-desc{font-size:12px;color:var(--text-secondary);font-weight:600;line-height:1.6}
 /* 🔴 كود الحالة تحت اسم الطابور (`Ready` · `Shipped`) — v1.6.0 · طلب أحمد.
@@ -498,10 +531,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .dco-qrow{position:relative;overflow:hidden;padding-inline-start:calc(18px + var(--edge));
   background:color-mix(in srgb,var(--age) calc(var(--fill) * 18%),var(--surface));transition:background-color .4s,border-color .4s,box-shadow .15s}
 .dco-qrow::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:var(--edge);background:var(--age);transition:background-color .4s}
-.dco-qrow.age-fresh{--age:var(--green);--age-light:var(--green-light);--age-border:var(--green-border);--age-dark:var(--green-dark)}
-.dco-qrow.age-ok{--age:var(--accent);--age-light:var(--accent-light);--age-border:var(--accent-border);--age-dark:var(--accent-dark)}
-.dco-qrow.age-warn{--age:var(--amber);--age-light:var(--amber-light);--age-border:var(--amber-border);--age-dark:var(--amber-dark);border-color:var(--age-border)}
-.dco-qrow.age-stale{--age:var(--red);--age-light:var(--red-light);--age-border:var(--red-border);--age-dark:var(--red-dark);border-color:var(--age-border)}
+.dco-qrow.age-fresh,.dco-worst.age-fresh{--age:var(--green);--age-light:var(--green-light);--age-border:var(--green-border);--age-dark:var(--green-dark)}
+.dco-qrow.age-ok,.dco-worst.age-ok{--age:var(--accent);--age-light:var(--accent-light);--age-border:var(--accent-border);--age-dark:var(--accent-dark)}
+.dco-qrow.age-warn,.dco-worst.age-warn{--age:var(--amber);--age-light:var(--amber-light);--age-border:var(--amber-border);--age-dark:var(--amber-dark);border-color:var(--age-border)}
+.dco-qrow.age-stale,.dco-worst.age-stale{--age:var(--red);--age-light:var(--red-light);--age-border:var(--red-border);--age-dark:var(--red-dark);border-color:var(--age-border)}
 .dco-qrow:hover{border-color:var(--accent)}
 
 /* العدد — من غير كلمة «أوردر»، وبخط تحته (قرار أحمد). ⚠️ `aria-label` على
@@ -540,6 +573,18 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .dco-qrow .dco-qref:disabled{cursor:wait;background:var(--surface);color:var(--accent-dark);border:1.5px dashed var(--accent)}
 .dco-qref:disabled .dco-qref-ico{animation:spin .9s linear infinite}
 .dco-qref:disabled .dco-qref-tx{font-size:11.5px}
+/* 🎨 هوية كل صف (v1.43.0) — الأيقونة والاسم وكود الحالة والرقم بلون الصف.
+   ⚠️ **ما بتلمسش** الحافة ولا الخلفية ولا مربع «آخر تحديث» ولا الزرار: دول
+      لون العمر. الهوية بتتحط على العناصر اللي بتقول «ده أنهي صف» بس. */
+.dco-qrow.id-upload{--idc:var(--id-upload);--idc-light:var(--id-upload-light);--idc-border:var(--id-upload-border)}
+.dco-qrow.id-track{--idc:var(--id-track);--idc-light:var(--id-track-light);--idc-border:var(--id-track-border)}
+.dco-qrow.id-ready{--idc:var(--id-ready);--idc-light:var(--id-ready-light);--idc-border:var(--id-ready-border)}
+.dco-qrow.id-shipped{--idc:var(--id-shipped);--idc-light:var(--id-shipped-light);--idc-border:var(--id-shipped-border)}
+.dco-qrow .dco-card-ico{width:54px;height:54px;border-radius:14px;background:var(--idc);border-color:var(--idc);color:var(--on-accent)}
+.dco-qrow .dco-card-ico svg{width:28px;height:28px}
+.dco-qrow .dco-card-name{font-size:16px;font-weight:900;color:var(--idc)}
+.dco-qrow .dco-card-code{color:var(--idc);background:var(--idc-light);border-color:var(--idc-border)}
+.dco-qrow .dco-count:not(.pending):not(.failed){color:var(--idc);border-bottom-color:var(--idc);font-size:46px}
 @media (prefers-reduced-motion: reduce){.dco-qrow,.dco-qrow *{transition:none!important;animation:none!important}}
 
 /* شريط الرجوع للطابور — بيظهر لما الصفحة اتفتحت من جدول التغليف */
@@ -570,12 +615,9 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .dco-money.is-zero{opacity:.62}
 
 /* أيقونات الصفوف — لون المربع هو اللي بيفرّق الطابورين قبل قراءة الاسم */
-.dco-card-ico.ico-amber{background:var(--amber-light);border-color:var(--amber-border)}
-.dco-card-ico.ico-purple{background:var(--purple-light);border-color:var(--purple-border)}
-/* 🔴 «رفع بوسطة» (v1.13.0) — أول كارت بيستخدم لوجو حقيقي (bosta-logo.png)
-   بدل إيموجي، بلون بوسطة الرسمي (أحمر) بدل تلوين الأداة العشوائي. */
-.dco-card-ico.ico-red{background:var(--red-light);border-color:var(--red-border)}
-.dco-card-ico.ico-red img{width:26px;height:26px;object-fit:contain}
+.dco-card-ico.ico-amber{background:var(--amber-light);border-color:var(--amber-border);color:var(--amber)}
+.dco-card-ico.ico-purple{background:var(--purple-light);border-color:var(--purple-border);color:var(--purple)}
+/* ⚠️ `.ico-red` (لوجو بوسطة) اتشال في v1.43.0 — «رفع بوسطة» بقى بأيقونة SVG بلون هويته. */
 
 /* ── §IDLE — بانر الخروج التلقائي (Standards #52) ───────────────
    z-index 9000: فوق المودالات (600) وتحت التوست (9999). */

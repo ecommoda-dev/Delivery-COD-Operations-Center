@@ -1330,10 +1330,10 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
   const secs = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec')].map(sec => ({
     title: sec.querySelector('.dco-home-sec-title')?.textContent.trim(),
     rows: [...sec.querySelectorAll('.dco-qrow')].map(r => r.id) })));
-  is(secs[0].title === 'قسم أوردرات بوسطة' && JSON.stringify(secs[0].rows) === '["rowBosta","rowWebhook"]',
-     '🔴 «قسم أوردرات بوسطة» أول قسم وفيه «رفع بوسطة» و«متابعة شحنات بوسطة»', JSON.stringify(secs));
-  is(secs[1].title === 'قسم الحالات الانتقالية' && JSON.stringify(secs[1].rows) === '["rowReady","rowShipped"]',
-     'و«قسم الحالات الانتقالية» فيه الجاهز والمشحون بس');
+  is(secs[0].title === 'أوردرات بوسطة' && JSON.stringify(secs[0].rows) === '["rowBosta","rowWebhook"]',
+     '🔴 «أوردرات بوسطة» أول قسم وفيه «رفع بوسطة» و«متابعة شحنات بوسطة»', JSON.stringify(secs));
+  is(secs[1].title === 'الحالات الانتقالية' && JSON.stringify(secs[1].rows) === '["rowReady","rowShipped"]',
+     'و«الحالات الانتقالية» فيه الجاهز والمشحون بس');
   is((await page.textContent('#rowWebhook .dco-card-name')).trim() === 'متابعة شحنات بوسطة', 'الاسم «متابعة شحنات بوسطة»');
   is(num(await page.textContent('#cntWebhook')) === 7, 'الرقم الكبير == عدد أرقام التتبع تحت التوصيل', await page.textContent('#cntWebhook'));
   const chips = (await page.textContent('#chipsWebhook')).replace(/\s+/g, ' ');
@@ -1385,6 +1385,122 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
   state.webhookFail = false;
   await ctx.close();
 }
+
+// ══════════════════════════════════════════════════════════════
+// ⑫ الرئيسية: هوية الصفوف · حاويات الأقسام · شارة «أقدم رقم» · أيقونات الأدوات (v1.43.0)
+// 🔴 والبند الأهم: **سلّم العمر ما اتلمسش** — الهوية بتتحط على الأيقونة والاسم
+//    والكود والرقم بس، وبألوان بعيدة عن الأخضر والأزرق والكهرماني والأحمر.
+// ══════════════════════════════════════════════════════════════
+console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات الأقسام والأدوات ══');
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/index.html`);
+  await page.waitForTimeout(1400);
+  await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important}' });
+  if (process.env.DCO_SHOT) await page.screenshot({ path: process.env.DCO_SHOT, fullPage: true });
+
+  // ① الحاويات
+  const secs = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec')].map(sec => {
+    const cs = getComputedStyle(sec);
+    return { cls: [...sec.classList].filter(c => c.startsWith('sec-')).join(), title: sec.querySelector('.dco-home-sec-title')?.textContent.trim(),
+             sub: sec.querySelector('.dco-home-sec-sub')?.textContent.trim(), svg: !!sec.querySelector('.dco-home-sec-ico svg'),
+             bg: cs.backgroundColor, bd: cs.borderTopColor, radius: parseFloat(cs.borderTopLeftRadius),
+             tsize: parseFloat(getComputedStyle(sec.querySelector('.dco-home-sec-title')).fontSize) };
+  }));
+  is(secs.length === 4 && secs.map(x => x.cls).join('|') === 'sec-bosta|sec-flow|sec-tools|sec-tools',
+     '🎨 أربع حاويات: بوسطة · الحالات · أدوات العمليات · أدوات أخرى', JSON.stringify(secs.map(x => x.cls)));
+  is(secs.map(x => x.title).join('|') === 'أوردرات بوسطة|الحالات الانتقالية|أدوات العمليات|أدوات أخرى', 'عناوين الحاويات بالاسم المعتمد', secs.map(x => x.title).join('|'));
+  is(secs.every(x => x.svg && x.sub && x.radius >= 16 && x.tsize >= 17), 'كل حاوية: أيقونة SVG + عنوان فرعي + حواف ١٦px + عنوان ١٧px', JSON.stringify(secs));
+  is(new Set([secs[0].bg, secs[1].bg, secs[2].bg]).size === 3 && secs[2].bg === secs[3].bg && secs[0].bg !== 'rgba(0, 0, 0, 0)',
+     'خلفية كل عيلة مختلفة (بوسطة · الحالات · الأدوات) والأداتين نفس الخلفية');
+
+  // ② هوية الصفوف — أيقونة SVG بمربع مصمت
+  const ids = ['rowBosta', 'rowWebhook', 'rowReady', 'rowShipped'];
+  const idv = await page.evaluate((ids) => ids.map(id => {
+    const row = document.getElementById(id), ico = row.querySelector('.dco-card-ico');
+    return { id, svg: !!ico.querySelector('svg'), txt: ico.textContent.trim(), img: !!ico.querySelector('img'),
+             icoBg: getComputedStyle(ico).backgroundColor, icoSize: ico.getBoundingClientRect().width,
+             name: getComputedStyle(row.querySelector('.dco-card-name')).color,
+             code: getComputedStyle(row.querySelector('.dco-card-code')).color,
+             cnt: getComputedStyle(row.querySelector('.dco-count')).color };
+  }), ids);
+  is(idv.every(r => r.svg && r.txt === '' && !r.img), '🔴 أيقونات الصفوف الأربعة SVG (مفيش إيموجي ولا صورة)', JSON.stringify(idv.map(r => [r.id, r.svg, r.txt])));
+  is(await page.evaluate(() => !document.querySelector('img[src*="bosta-logo"]')), '⛔ لوجو بوسطة اتشال من الرئيسية');
+  is(idv.every(r => r.icoSize === 54), 'مربع الأيقونة 54px', idv.map(r => r.icoSize).join());
+  is(new Set(idv.map(r => r.icoBg)).size === 4, 'أربع ألوان هوية مختلفة', idv.map(r => r.icoBg).join(' | '));
+  is(idv.every(r => r.icoBg === r.name && r.name === r.code && r.code === r.cnt),
+     'الأيقونة والاسم والكود والرقم بلون الصف نفسه', JSON.stringify(idv.map(r => [r.icoBg, r.name, r.code, r.cnt])));
+  const ageCols = await page.evaluate(() => ['--green', '--accent', '--amber', '--red'].map(n => {
+    const d = document.createElement('i'); d.style.color = `var(${n})`; document.body.append(d);
+    const c = getComputedStyle(d).color; d.remove(); return c; }));
+  is(idv.every(r => !ageCols.includes(r.icoBg)), '🔴 وألوان الهوية **بعيدة** عن سلّم العمر (أخضر · أزرق · كهرماني · أحمر)', ageCols.join(' | '));
+
+  // ③ سلّم العمر ما اتغيّرش جوّه الحاوية
+  const look = await page.evaluate(() => {
+    homeQ.ready.at = new Date(Date.now() - 35 * 60000); renderFreshness();
+    const row = document.getElementById('rowReady');
+    return { edge: getComputedStyle(row, '::before').backgroundColor, box: getComputedStyle(row.querySelector('.dco-agebox')).backgroundColor,
+             btn: getComputedStyle(document.getElementById('btnReady')).backgroundColor,
+             num: getComputedStyle(row.querySelector('.dco-count')).color };
+  });
+  is(look.edge === ageCols[2] && look.btn === ageCols[2],
+     '🔴 صف عمره ٣٥ د: الحافة والزرار **كهرماني** (لون العمر) — والرقم لسه بلون هويته', JSON.stringify(look));
+  is(look.num !== ageCols[2], 'والرقم مش كهرماني');
+
+  // ④ شارة «أقدم رقم»
+  const worst = await page.evaluate(() => {
+    const now = Date.now(), at = m => new Date(now - m * 60000);
+    const read = id => { const e = document.getElementById(id); return { hidden: e.hidden, cls: e.className, t: e.textContent.trim() }; };
+    homeQ.bosta.at = at(2); homeQ.webhook.at = at(40); homeQ.ready.at = at(125); homeQ.shipped.at = at(3);
+    renderFreshness(now);
+    const a = { b: read('worstBosta'), f: read('worstFlow') };
+    homeQ.bosta.at = null; homeQ.webhook.at = at(0);
+    renderFreshness(now);
+    const b = { b: read('worstBosta') };
+    homeQ.webhook.at = null; renderFreshness(now);
+    const c = { b: read('worstBosta') };
+    return { a, b, c };
+  });
+  is(worst.a.b.t === 'أقدم رقم: 40 د' && worst.a.b.cls.includes('age-warn') && !worst.a.b.hidden,
+     '🔴 شارة بوسطة: أقدم رقم ٤٠ د **بلون كهرماني** (نفس سلّم `agoInfo`)', JSON.stringify(worst.a.b));
+  is(worst.a.f.t === 'أقدم رقم: 2 س' && worst.a.f.cls.includes('age-stale'), 'شارة الحالات: ساعتين **بالأحمر**', JSON.stringify(worst.a.f));
+  is(worst.b.b.t === 'أقدم رقم: لحظات' && worst.b.b.cls.includes('age-fresh'), '⚠️ الصف اللي ما اتجابش (`at = null`) **مابيدخلش** الحساب', JSON.stringify(worst.b.b));
+  is(worst.c.b.hidden === true, '⛔ ولو كلهم `null` الشارة **بتختفي** (مش «أقدم رقم: لحظات»)', JSON.stringify(worst.c.b));
+  is(await page.evaluate(() => !document.querySelector('.dco-home-sec.sec-tools .dco-worst')), 'ومفيش شارة على حاويات الأدوات');
+
+  // ⑤ الأدوات
+  const tools = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec.sec-tools')].map(sec => {
+    const grid = sec.querySelector('.dco-tools-grid');
+    return { cols: getComputedStyle(grid).gridTemplateColumns.split(' ').length,
+             cards: [...grid.querySelectorAll('.dco-tool')].map(a => ({ href: a.getAttribute('href'), name: a.querySelector('.dco-card-name').textContent.trim(),
+               svg: !!a.querySelector('.dco-card-ico svg'), txt: a.querySelector('.dco-card-ico').textContent.trim(),
+               w: Math.round(a.getBoundingClientRect().width), ico: a.querySelector('.dco-card-ico').getBoundingClientRect().width,
+               d: a.querySelector('.dco-card-ico svg').innerHTML.replace(/\s+/g, ' ') })) };
+  }));
+  is(tools[0].cols === 3 && tools[0].cards.length === 3 && tools[1].cols === 3 && tools[1].cards.length === 1,
+     '🎨 الأدوات في ٣ أعمدة ثابتة (٣ كروت + كارت «أسماء المناديب»)', JSON.stringify(tools.map(t => t.cols)));
+  is(tools[1].cards[0].w === tools[0].cards[0].w, '🔴 كارت «أسماء المناديب» **بنفس عرض** كروت أدوات العمليات (مش عرض الصف كله)', `${tools[1].cards[0].w} vs ${tools[0].cards[0].w}`);
+  const allTools = [...tools[0].cards, ...tools[1].cards];
+  is(allTools.every(c => c.svg && c.txt === '' && c.ico === 46), 'كل أيقونات الأدوات SVG بمربع ٤٦px (مفيش إيموجي)', JSON.stringify(allTools.map(c => [c.name, c.svg, c.txt, c.ico])));
+  is(new Set(allTools.map(c => c.d)).size === 4, 'أربع أيقونات مختلفة');
+  const [updI, codI, partI] = tools[0].cards.map(c => c.d);
+  is(updI.includes('M20 11a8 8 0 0 0-14.5-4.5') && updI.includes('M12 7.5l4 2v5'), '«تحديث حالة الأوردرات»: صندوق جوّه سهمين دائريين (الصندوق ٨px عرض)');
+  is(codI.includes('rx="2"') && codI.includes('M5 5h14M7 2h10'), '«تحصيل COD»: رزمة أوراق نقدية');
+  is(partI.includes('M10 2.5L4 5v6.5') && partI.includes('M14 2.5l6 2.5v6.5') && partI.includes('M12 17l-4.5 4.5M12 17l4.5 4.5'),
+     '«التسليم الجزئي»: صندوق متقسّم نصّين **+ سهم بيتفرّع**');
+  is(tools[0].cards.map(c => c.href).join() === 'Order-Status-Updater.html,COD-Payment-Center.html,Partial-Delivery.html'
+     && tools[1].cards[0].href === 'Courier-Names.html', 'روابط الكروت زي ما هي');
+
+  // ⑥ موبايل — الحاويات مابتعملش سكرول أفقي والأدوات عمود واحد
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.waitForTimeout(300);
+  const mob = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, iw: innerWidth,
+    cols: getComputedStyle(document.querySelector('.dco-tools-grid')).gridTemplateColumns.split(' ').length }));
+  is(mob.sw <= mob.iw && mob.cols === 1, 'موبايل ٣٩٠px: صفر سكرول أفقي والأدوات عمود واحد', JSON.stringify(mob));
+  is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
 
 // ══════════════════════════════════════════════════════════════
 // ⑦ الفحص الذاتي وحارس النسخة
