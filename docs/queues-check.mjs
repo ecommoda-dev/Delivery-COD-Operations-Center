@@ -252,7 +252,7 @@ function makeStub() {
       // v1.44.0 — «متابعة التأجيلات» ليها Worker تاني بنفس الـ action وشكل رد مختلف
       if (url.hostname.startsWith('bosta-delivery-follow-up-worker')) {
         if (state.followUpFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
-        else body = { ok:true, windowDays:3, total:6, pending:4, sent:1, needsAction:1 };
+        else body = { ok:true, windowDays:60, total:6, unsent:4, sent:2 };   // v1.45.0 — unsent/sent/total (التابات اتشالت)
       }
       else if (state.webhookFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
       else body = { ok:true, main:{ total:7, attempts:{ '0':3, '1':2, '2':2 } }, inReturn:4 };
@@ -1392,8 +1392,8 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
 }
 
 // ══════════════════════════════════════════════════════════════
-// ⑬ الرئيسية: صف «متابعة التأجيلات» (v1.44.0) — Worker `bosta-delivery-follow-up-worker`
-// 🔴 الرقم الكبير = «محتاجين رسالة» (`pending`)، والمربعات = مستنيين رد · محتاجين تصرّف.
+// ⑬ الرئيسية: صف «متابعة التأجيلات» (v1.44.0 · اتعدّل v1.45.0) — Worker `bosta-delivery-follow-up-worker`
+// 🔴 الرقم الكبير = «محتاجين رسالة» (`unsent`)، والمربعات = اتبعتلهم رسالة · إجمالي الشحنات.
 // ══════════════════════════════════════════════════════════════
 console.log('\n══ ⑬ الرئيسية: متابعة التأجيلات ══');
 {
@@ -1402,12 +1402,14 @@ console.log('\n══ ⑬ الرئيسية: متابعة التأجيلات ═�
   await page.goto(`${BASE}/index.html`);
   await page.waitForTimeout(1400);
   is((await page.textContent('#rowFollowUp .dco-card-name')).trim() === 'متابعة التأجيلات', 'الاسم «متابعة التأجيلات»');
-  is(num(await page.textContent('#cntFollowUp')) === 4, '🔴 الرقم الكبير = محتاجين رسالة (`pending`) مش الإجمالي', await page.textContent('#cntFollowUp'));
+  is(num(await page.textContent('#cntFollowUp')) === 4, '🔴 الرقم الكبير = محتاجين رسالة (`unsent`) مش الإجمالي', await page.textContent('#cntFollowUp'));
   const chips = await page.$$eval('#chipsFollowUp .dco-chip', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()));
-  is(chips.length === 2 && chips[0].includes('مستنيين رد') && chips[1].includes('محتاجين تصرّف'), 'المربعين: مستنيين رد · محتاجين تصرّف', JSON.stringify(chips));
+  is(chips.length === 2 && chips[0].includes('اتبعتلهم رسالة') && chips[0].includes('2') && chips[1].includes('إجمالي الشحنات') && chips[1].includes('6'),
+     'المربعين: اتبعتلهم رسالة (2) · إجمالي الشحنات (6)', JSON.stringify(chips));
+  is(!chips.some(c => c.includes('مستنيين رد') || c.includes('محتاجين تصرّف')), '⛔ مربعات «مستنيين رد» و«محتاجين تصرّف» اتشالت (الحالات دي مابقتش موجودة)');
   is((await page.getAttribute('#rowFollowUp', 'href')) === 'Bosta-Delivery-Follow-Up.html', 'الصف بيفتح صفحة الأداة');
   const fc = await page.evaluate(() => JSON.parse(sessionStorage.getItem('dco_queue_followup') || 'null'));
-  is(fc && fc.data.pending === 4 && fc.data.needsAction === 1, 'الكاش اتكتب بالرد الخام', JSON.stringify(fc));
+  is(fc && fc.data.unsent === 4 && fc.data.sent === 2 && fc.data.total === 6, 'الكاش اتكتب بالرد الخام (total · unsent · sent)', JSON.stringify(fc));
   is(!(await page.textContent('#agoFollowUp')).includes('ما اتحدّثش'), 'مربع «آخر تحديث منذ:» اتملّى');
   state.calls.length = 0;
   await page.reload();

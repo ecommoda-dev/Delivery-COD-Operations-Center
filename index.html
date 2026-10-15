@@ -235,10 +235,10 @@
         </div>
       </a>
 
-    <!-- ══ صف ⑤ — «متابعة التأجيلات» (v1.44.0) ═════════════════════
+    <!-- ══ صف ⑤ — «متابعة التأجيلات» (v1.44.0 · اتعدّل v1.45.0) ═════════════════════
          🔴 نفس شكل وسلوك صف «متابعة شحنات بوسطة» بالحرف (كاش ١٠ دقايق · تحديث يدوي ·
             «آخر تحديث منذ:» · فشل بيقول «تعذّر» مش صفر). الرقم الكبير = **محتاجين رسالة**
-            (شحنات متأجلة بطلب العميل لسه ما اتبعتلهاش واتساب)، والمربعات = مستنيين رد · محتاجين تصرّف.
+            (شحنات تحت التوصيل عليها محاولة توصيل ≥ 1 ولسه ما اتبعتلهاش واتساب)، والمربعات = اتبعتلهم رسالة · إجمالي الشحنات.
          🔴 الرقم من `queue_summary` في `bosta-delivery-follow-up-worker` (SQL مجمّع بلا شوبيفاي).
          ⚠️ الوحدة «شحنة» مش «عميل». بلا «مستحق تحصيل». -->
       <a class="dco-row dco-qrow id-track age-none" id="rowFollowUp" href="Bosta-Delivery-Follow-Up.html">
@@ -1287,7 +1287,7 @@ const HOME_QUEUES = {
     },
     fromCache() {
       const c = cacheGet(DCO_CACHE_FOLLOWUP);
-      if (!cacheFresh(c) || typeof c.data.pending !== 'number') return null;
+      if (!cacheFresh(c) || typeof c.data.unsent !== 'number') return null;
       return { at: new Date(c.at), r: dcoFollowUpDerive(c.data) };
     },
   },

@@ -101,8 +101,8 @@ const TOOLS = [
   },
   {
     // 🔴 v1.44.0 — «متابعة التأجيلات» (صف في «أوردرات بوسطة»). Worker وبس في ريبو
-    //    `Bosta-Delivery-Follow-Up`، مفيش نسخة مستقلة ولا `source` ولا سر قديم. كروت بتابات
-    //    مخصوصة (`.fu-tab`) مش `.main-tab-btn`.
+    //    `Bosta-Delivery-Follow-Up`، مفيش نسخة مستقلة ولا `source` ولا سر قديم. (v1.45.0) جدول بفلاتر رأس
+    //    العمود بدل الكروت والتابات — مفيش `.main-tab-btn` (`tabs: 0`).
     page:      'Bosta-Delivery-Follow-Up.html',
     title:     'متابعة التأجيلات',
     workerKey: 'deliveryFollowUp',

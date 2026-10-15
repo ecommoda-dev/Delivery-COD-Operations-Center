@@ -193,10 +193,10 @@ const DCO_WORKERS = {
   //    فالحارس هنا بيمسك الحالة الوحيدة: الـ Worker ما اتنشرش أو الـ Promote ناقص.
   //    ⛔ بيقرا جدول `bosta_webhook_events` بتاع المستقبل (قراءة بس) — وسره **سر الهب**
   //       (`delivery_cod_ops`)، فلازم يتضم للمجموعة قبل أول استخدام وإلا `401`.
-  deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'متابعة التأجيلات' },
+  deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.0.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.44.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.45.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -400,18 +400,21 @@ function dcoWebhookSummaryFromRows(mainRows, inReturnRows) {
   return { main: { total: mainRows.length, attempts }, inReturn: inReturnRows.length };
 }
 
-// ── ملخّص «متابعة التأجيلات» (v1.44.0) ─────────────────────────
-// 🔴 **الرقم الكبير = «محتاجين رسالة»** (شحنات متأجلة مفتوحة لسه ما اتبعتلهاش)، والمربعات = «مستنيين رد»
-//    و«محتاجين تصرّف» (ردّ بنتيجة ميعاد تاني / مطلبتش تأجيل / إلغاء ولسه ما اتقفلش).
+// ── ملخّص «متابعة التأجيلات» (v1.44.0 · اتغيّر في v1.45.0) ─────────────────────────
+// 🔴 **الرقم الكبير = «محتاجين رسالة»** = شحنات تحت التوصيل عليها محاولة توصيل أو أكتر **ولسه ما اتبعتلهاش ولا
+//    رسالة** (`unsent`). المربعات = «اتبعتلهم رسالة» (`sent`) و«إجمالي الشحنات» (`total`).
+//    (v1.44.0 كان «مستنيين رد» و«محتاجين تصرّف» — الحالات دي اتشالت مع التابات.)
 // 🔴 التعريف الوحيد في `openListCTE()` بتاع `bosta-delivery-follow-up-worker` — الرئيسية بتاخد
-//    `queue_summary` (SQL مجمّع) والصفحة بتكتب **نفس الشكل الخام** `{ pending, sent, needsAction, total }`
+//    `queue_summary` (SQL مجمّع) والصفحة بتكتب **نفس الشكل الخام** `{ total, unsent, sent }`
 //    في نفس مفتاح الكاش بعد كل تحميل. `derive` واحدة هنا للشبكة وللكاش (درس R1).
 // ⚠️ الوحدة «شحنة» مش «عميل»: التجميع بالتليفون في الصفحة بس (التليفون من شوبيفاي، والـ SQL مايشوفوش).
 function dcoFollowUpDerive(d) {
   const chips = [];
-  if (d?.sent)        chips.push({ cls: 'qc-att-1', label: 'مستنيين رد',    n: d.sent });
-  if (d?.needsAction) chips.push({ cls: 'qc-att-2', label: 'محتاجين تصرّف', n: d.needsAction });
-  return { total: d?.pending || 0, chips };
+  if (d?.total) {
+    chips.push({ cls: 'qc-att-0', label: 'اتبعتلهم رسالة', n: d.sent || 0 });
+    chips.push({ cls: '',        label: 'إجمالي الشحنات', n: d.total });
+  }
+  return { total: d?.unsent || 0, chips };
 }
 
 // ══════════════════════════════════════════════════════════════
