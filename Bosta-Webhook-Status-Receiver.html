@@ -275,7 +275,16 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
     <div class="eco-modal-body">
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.37.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.41.0</span>
+          <span class="cl-ver-date">15-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⚡ <b>أول تحميل أسرع</b> — <code>list_events</code> مابقاش بيرجّع <code>raw_payload</code> (JSON كبير × آلاف الأحداث)، و«Raw Payload» في لوحة السجل بيتجاب لحدث واحد وقت الضغط من <code>get_event_payload</code> (Worker ≥ 1.10.0). منطق الشاشة ما اتغيّرش.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.37.0</span>
           <span class="cl-ver-date">13-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -1121,8 +1130,8 @@ function openHistoryDrawer(tn) {
       <div class="tl-desc">${esc(e.description || '—')} <span style="color:var(--text-secondary);font-weight:400">(${esc(e.state)})</span></div>
       <div class="tl-meta"><span>${formatDateTime(e.received_at)}</span><span>محاولات: ${e.number_of_attempts ?? '—'}</span>${resultBadge(e.write_status)}</div>
       ${e.exception_reason ? `<div class="tl-meta"><span>سبب فشل التوصيل: <b>${esc(reasonAr(e.exception_reason))}</b></span></div>` : ''}
-      <div class="raw-toggle" onclick="toggleRaw(this)"><span class="arrow">◀</span><span>Raw Payload</span></div>
-      <div class="raw-body"><pre>${esc(prettyPayload(e.raw_payload))}</pre></div>
+      <div class="raw-toggle" onclick="toggleRaw(this, ${Number(e.id) || 0})"><span class="arrow">◀</span><span>Raw Payload</span></div>
+      <div class="raw-body"><pre>${e.raw_payload != null ? esc(prettyPayload(e.raw_payload)) : ''}</pre></div>
     </div>`).join('') || '<div>لا توجد أحداث</div>';
   document.getElementById('histOverlay').classList.add('open');
   const d = document.getElementById('histDrawer'); d.classList.add('open'); d.setAttribute('aria-hidden', 'false');
@@ -1132,9 +1141,25 @@ function prettyPayload(raw) {
   if (raw == null || raw === '') return '—';
   try { return JSON.stringify(JSON.parse(raw), null, 2); } catch (_) { return String(raw); }
 }
-function toggleRaw(el) {
+// 🔴 Worker >= 1.10.0: list_events مابقاش بيرجّع raw_payload (حجمه كبير × آلاف الأحداث في أول تحميل) —
+//    بيتجاب لحدث واحد وقت الضغط من get_event_payload، وبيتخزّن في الصف (rawEvents) فمفيش نداء تاني.
+async function toggleRaw(el, id) {
   el.classList.toggle('open');
-  el.nextElementSibling.classList.toggle('open');
+  const body = el.nextElementSibling;
+  body.classList.toggle('open');
+  if (!el.classList.contains('open')) return;
+  const pre = body.querySelector('pre');
+  if (pre.textContent) return;            // اتحمّل قبل كده
+  const ev = rawEvents.find(e => Number(e.id) === id);
+  if (ev && ev.raw_payload != null) { pre.textContent = prettyPayload(ev.raw_payload); return; }
+  pre.textContent = '...جاري التحميل';
+  try {
+    const data = await apiGet('get_event_payload', { id });
+    if (ev) ev.raw_payload = data.raw_payload;
+    pre.textContent = prettyPayload(data.raw_payload);
+  } catch (err) {
+    pre.textContent = `تعذّر تحميل الـ payload: ${err.message}`;
+  }
 }
 function closeHistoryDrawer() {
   openHistoryDrawer._tn = null;
@@ -1195,13 +1220,15 @@ function sortEventsDesc(arr) {
   return arr.sort((a, b) => String(b.received_at || '').localeCompare(String(a.received_at || '')) || (Number(b.id) || 0) - (Number(a.id) || 0));
 }
 // يدمج صفوف جديدة/محدّثة في rawEvents بالـ id ويرجّع true لو حصل تغيير فعلي
+// raw_payload بيتجاب على الطلب (get_event_payload) وبيتخزّن في الصف — مقارنة التغيير بتتجاهله
+function stripRaw(e) { const { raw_payload, ...rest } = e; return rest; }
 function mergeEvents(rows) {
   const byId = new Map(rawEvents.map(e => [e.id, e]));
   let changed = false;
   rows.forEach(r => {
     const cur = byId.get(r.id);
     if (!cur) { byId.set(r.id, r); changed = true; }
-    else if (JSON.stringify(cur) !== JSON.stringify(r)) { byId.set(r.id, r); changed = true; }
+    else if (JSON.stringify(stripRaw(cur)) !== JSON.stringify(stripRaw(r))) { byId.set(r.id, r.raw_payload === undefined && cur.raw_payload !== undefined ? { ...r, raw_payload: cur.raw_payload } : r); changed = true; }
   });
   if (changed) rawEvents = sortEventsDesc([...byId.values()]);
   return changed;
@@ -1279,8 +1306,8 @@ async function loadEvents({ full = false } = {}) {
       const { rows } = await fetchAllEvents();
       const prev = rawEvents;
       const sameSize = prev.length === rows.length;
-      const before = new Map(prev.map(e => [e.id, JSON.stringify(e)]));
-      changed = !sameSize || rows.some(r => before.get(r.id) !== JSON.stringify(r));
+      const before = new Map(prev.map(e => [e.id, JSON.stringify(stripRaw(e))]));
+      changed = !sameSize || rows.some(r => before.get(r.id) !== JSON.stringify(stripRaw(r)));
       if (changed) rawEvents = sortEventsDesc(rows);
       lastFullAt = Date.now();
     }

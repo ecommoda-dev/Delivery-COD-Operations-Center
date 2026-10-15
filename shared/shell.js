@@ -188,10 +188,10 @@ const DCO_WORKERS = {
   //    🎯 **min اترفع لـ `1.9.0` (v1.39.0)** — صف «مستقبل حالة بوسطة» في الرئيسية بينادي
   //       `queue_summary` (عدّ مجمّع بـ SQL). على Worker أقدم الصف بيقول فشل بالـ 404
   //       والصفحة نفسها شغّالة — فالحارس بيسمّي الأداة والنسخة.
-  bostaWebhook: { url: 'https://bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev', min: '1.9.0', label: 'متابعة شحنات بوسطة' },
+  bostaWebhook: { url: 'https://bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev', min: '1.10.0', label: 'متابعة شحنات بوسطة' },
 };
 
-const TOOL_VERSION = 'v1.40.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.41.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
