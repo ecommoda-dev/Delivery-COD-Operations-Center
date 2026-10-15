@@ -99,6 +99,18 @@ const TOOLS = [
     // 🔴 v1.39.0 — اتنقل من «أدوات أخرى» لصف في «قسم الحالات الانتقالية» (بعدّاد حيّ).
     homeRow:   true,
   },
+  {
+    // 🔴 v1.44.0 — «متابعة التأجيلات» (صف في «أوردرات بوسطة»). Worker وبس في ريبو
+    //    `Bosta-Delivery-Follow-Up`، مفيش نسخة مستقلة ولا `source` ولا سر قديم. كروت بتابات
+    //    مخصوصة (`.fu-tab`) مش `.main-tab-btn`.
+    page:      'Bosta-Delivery-Follow-Up.html',
+    title:     'متابعة التأجيلات',
+    workerKey: 'deliveryFollowUp',
+    host:      'bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev',
+    oldSecret: 'bosta_delivery_follow_up_worker_secret',
+    tabs:      0,
+    homeRow:   true,
+  },
 ];
 
 const MIME = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8' };
@@ -520,7 +532,7 @@ for (const t of TOOLS) {
     try { await apiGet('get_config'); return '(ما رماش)'; } catch (e) { return e.message; }
   });
   const label = JSON.parse(JSON.stringify(
-    { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD', partialDelivery: 'التسليم الجزئي', couriers: 'أسماء المناديب', bostaWebhook: 'متابعة شحنات بوسطة' }))[t.workerKey];
+    { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD', partialDelivery: 'التسليم الجزئي', couriers: 'أسماء المناديب', bostaWebhook: 'متابعة شحنات بوسطة', deliveryFollowUp: 'متابعة التأجيلات' }))[t.workerKey];
   is(msg.includes(label), `${t.page}: رسالة الفشل بتسمّي الأداة («${label}»)`, msg);
   await ctx.close();
 }

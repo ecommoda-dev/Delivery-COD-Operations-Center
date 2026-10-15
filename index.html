@@ -234,6 +234,42 @@
           </button>
         </div>
       </a>
+
+    <!-- ══ صف ⑤ — «متابعة التأجيلات» (v1.44.0) ═════════════════════
+         🔴 نفس شكل وسلوك صف «متابعة شحنات بوسطة» بالحرف (كاش ١٠ دقايق · تحديث يدوي ·
+            «آخر تحديث منذ:» · فشل بيقول «تعذّر» مش صفر). الرقم الكبير = **محتاجين رسالة**
+            (شحنات متأجلة بطلب العميل لسه ما اتبعتلهاش واتساب)، والمربعات = مستنيين رد · محتاجين تصرّف.
+         🔴 الرقم من `queue_summary` في `bosta-delivery-follow-up-worker` (SQL مجمّع بلا شوبيفاي).
+         ⚠️ الوحدة «شحنة» مش «عميل». بلا «مستحق تحصيل». -->
+      <a class="dco-row dco-qrow id-track age-none" id="rowFollowUp" href="Bosta-Delivery-Follow-Up.html">
+        <div class="dco-row-id">
+          <span class="dco-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 11h6M9 14h4"/></svg></span>
+          <div>
+            <div class="dco-card-name">متابعة التأجيلات</div>
+            <div class="dco-card-code">محتاجين رسالة</div>
+          </div>
+        </div>
+        <div class="dco-row-num">
+          <span class="dco-count pending" id="cntFollowUp">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
+        </div>
+        <div class="dco-row-mid">
+          <div class="dco-chips" id="chipsFollowUp"></div>
+          <div class="home-money-row" id="moneyFollowUp"></div>
+          <div class="dco-fail" id="failFollowUp" style="display:none"></div>
+        </div>
+        <div class="dco-row-act">
+          <div class="dco-agebox">
+            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
+            <div class="dco-agebox-val" id="agoFollowUp">—</div>
+            <div class="dco-agebar" aria-hidden="true"><i></i></div>
+            <div class="dco-agebox-dt" id="stampFollowUp"><span class="dco-stamp-chip">—</span></div>
+          </div>
+          <button class="dco-qref" id="btnFollowUp" type="button"
+                  onclick="event.preventDefault();event.stopPropagation();loadQueue('followUp', false)">
+            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
+          </button>
+        </div>
+      </a>
   </div>
 
   <div class="dco-home-sec sec-flow">
@@ -513,7 +549,17 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.43.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.44.0</span>
+          <span class="cl-ver-date">15-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>📲 <b>أداة «متابعة التأجيلات»</b> — صف جديد في «أوردرات بوسطة» بيعدّ الشحنات اللي بوسطة سجّلت عليها «تأجيل بطلب العميل» ولسه ما اتبعتلهاش رسالة، وبيفتح صفحة فيها رسالة واتساب جاهزة لكل عميل (إرسال يدوي من رقم متابعة الشحن) وتسجيل رد العميل.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>Worker <code>bosta-delivery-follow-up-worker</code> (ريبو <code>Bosta-Delivery-Follow-Up</code>) لازم يتنشر وسرّه يتدوّر لقيمة مجموعة <code>delivery_cod_ops</code></b> قبل أول استخدام، وإلا الصف بيقول «تعذّر» (<code>401</code>) — و🩺 فحص النظام بيسمّي الأداة.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.43.0</span>
           <span class="cl-ver-date">15-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -895,7 +941,7 @@ const { apiGet, apiPost } = dcoApi(DCO_WORKERS.auth);
 // ✅ **والفشل هنا مابيولّعش تحذير نسخة كاذب** — `checkWorkerVersion`
 //    بتبلع الاستثناء عن قصد: الـ Worker اللي لسه ما انضمّش لمجموعة السر
 //    بيرجّع `401`، ودي **مش** «نسخة قديمة». اللي بيقولها بالنص هو 🩺.
-const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery', 'bostaUpload', 'couriers', 'bostaWebhook'];
+const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery', 'bostaUpload', 'couriers', 'bostaWebhook', 'deliveryFollowUp'];
 
 // §AUTH-JS — Unified Login UI (منقولة من أداة التغليف)
 // ══════════════════════════════════════════════════════════════
@@ -1227,6 +1273,24 @@ const HOME_QUEUES = {
       return { at: new Date(c.at), r: dcoWebhookDerive(c.data) };
     },
   },
+  // 🔴 «متابعة التأجيلات» — `queue_summary` من `bosta-delivery-follow-up-worker`. الكاش بالرد **الخام**
+  //    و`dcoFollowUpDerive` (الـ shell) بتشتق منه — وصفحة الأداة بتكتب نفس الشكل بعد كل تحميل.
+  followUp: {
+    err: 'تعذّر جلب ملخّص متابعة التأجيلات',
+    unit: 'شحنة',
+    ids: { row:'rowFollowUp', count:'cntFollowUp', chips:'chipsFollowUp', money:'moneyFollowUp', fail:'failFollowUp',
+           ago:'agoFollowUp', stamp:'stampFollowUp', btn:'btnFollowUp' },
+    async fetch() {
+      const data = await dcoApi(DCO_WORKERS.deliveryFollowUp).apiGet('queue_summary');
+      cacheSet(DCO_CACHE_FOLLOWUP, data);
+      return dcoFollowUpDerive(data);
+    },
+    fromCache() {
+      const c = cacheGet(DCO_CACHE_FOLLOWUP);
+      if (!cacheFresh(c) || typeof c.data.pending !== 'number') return null;
+      return { at: new Date(c.at), r: dcoFollowUpDerive(c.data) };
+    },
+  },
 };
 
 const homeQ = {
@@ -1234,6 +1298,7 @@ const homeQ = {
   shipped: { at: null, loading: false },
   bosta:   { at: null, loading: false },
   webhook: { at: null, loading: false },
+  followUp: { at: null, loading: false },
 };
 let homeTickTimer = null;
 
@@ -1372,7 +1437,7 @@ function ageValueHtml(mins) {
 //    غير ما الموظف يفتح الصفوف. ⚠️ **نفس `q.at` ونفس `agoInfo`** — مفيش سلّم تاني،
 //    ومفيش نداء شبكة. ⛔ والصف اللي ما اتجابش (`at === null`) **مابيدخلش الحساب**:
 //    «ما اتحدّثش» مش «لسه متحدّث»، ولو كلهم null الشارة بتختفي.
-const HOME_WORST = { worstBosta: ['bosta', 'webhook'], worstFlow: ['ready', 'shipped'] };
+const HOME_WORST = { worstBosta: ['bosta', 'webhook', 'followUp'], worstFlow: ['ready', 'shipped'] };
 function worstAgeText(mins) {
   if (mins < 1) return 'لحظات';
   return mins < 60 ? mins + ' د' : Math.floor(mins / 60) + ' س';

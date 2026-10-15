@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>متابعة التأجيلات — مركز عمليات الشحن والتحصيل</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
+<link rel="stylesheet" href="shared/shell.css">
+
+<style>
+/* ══════════════════════════════════════════════════════
+   §STYLES — الصفحة دي بس.
+   🔴 **الصفحة دي مش متولّدة بسكربت** — النسخة الوحيدة. الريبو `Bosta-Delivery-Follow-Up`
+      Worker وبس (نفس نمط Courier-Names / Partial-Delivery).
+   🔴 **مفيش كتلة توكنز هنا** — كلها في shared/shell.css. Tier L (الافتراضي).
+   ⚠️ كروت مش جدول: الوحدة هنا «عميل» (تجميع بالتليفون) مش «صف». معيار الجدول
+      (فلاتر الرأس · تثبيت العناوين · سحب الأعمدة) مش منطبق — لو اتحوّلت لجدول
+      يوم، تتبنى على `data-table-standard` كله.
+   ══════════════════════════════════════════════════════ */
+.fu-warn { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; margin-bottom: 12px;
+  background: var(--amber-light); border: 1px solid var(--amber); color: var(--amber-dark); }
+.fu-warn.bad { background: var(--red-light); border-color: var(--red); color: var(--red-dark); }
+.fu-warn.info { background: var(--surface-2); border-color: var(--border-strong); color: var(--text-secondary); font-weight: 600; }
+
+/* ── التابات (مربعات العدّ) — بتكتب في الفلتر الوحيد: التاب النشط ── */
+.fu-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.fu-tab { flex: 1 1 150px; text-align: right; cursor: pointer; font-family: var(--font-body);
+  padding: 10px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-strong); background: var(--surface); }
+.fu-tab .n { display: block; font-size: 24px; font-weight: 800; line-height: 1.2; }
+.fu-tab .l { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); }
+.fu-tab.active { border-color: var(--accent); background: var(--accent-light); }
+.fu-tab.active .l { color: var(--accent-dark); }
+
+.fu-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+.fu-bar input[type=text], .fu-bar select { padding: 8px 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-strong);
+  font-family: var(--font-body); font-size: 13px; background: var(--surface); }
+.fu-bar input[type=text] { flex: 1 1 200px; min-width: 0; padding-left: 30px; }
+.fu-bar label { font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+.fu-bar .grow { flex: 1; }
+.fu-results { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); }
+
+/* ── كارت العميل ── */
+.fu-card { border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); margin-bottom: 12px; overflow: hidden; }
+.fu-card-hd { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 14px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+.fu-name { font-weight: 800; font-size: 15px; }
+.fu-phone { font-family: var(--font-mono); direction: ltr; font-size: 13px; font-weight: 700; }
+.fu-badge { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11.5px; font-weight: 700; white-space: nowrap;
+  background: var(--surface-2); color: var(--neutral-dark); border: 1px solid var(--border-strong); }
+.fu-badge.green { background: var(--green-light); color: var(--green-dark); border-color: var(--green); }
+.fu-badge.amber { background: var(--amber-light); color: var(--amber-dark); border-color: var(--amber); }
+.fu-badge.red   { background: var(--red-light); color: var(--red-dark); border-color: var(--red); }
+.fu-badge.blue  { background: var(--accent-light); color: var(--accent-dark); border-color: var(--accent-border); }
+
+.fu-ship { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.fu-ship:last-of-type { border-bottom: 0; }
+.fu-ship .meta { color: var(--text-secondary); font-size: 12.5px; }
+.fu-ship a { font-weight: 700; }
+
+.fu-body { padding: 12px 14px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; }
+@media (max-width: 760px) { .fu-body { grid-template-columns: 1fr; } }
+.fu-body h4 { margin: 0 0 6px; font-size: 12.5px; color: var(--text-secondary); }
+.fu-msg { width: 100%; min-height: 240px; resize: vertical; padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-strong);
+  font-family: var(--font-body); font-size: 13.5px; line-height: 1.7; box-sizing: border-box; background: var(--surface); }
+.fu-msg:focus { outline: none; border-color: var(--accent); }
+.fu-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.fu-res select, .fu-res input { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-strong); font-family: var(--font-body); font-size: 13px; margin-bottom: 8px; background: var(--surface); }
+.fu-foot { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+.fu-nophone { padding: 10px; border-radius: var(--radius-sm); background: var(--red-light); border: 1px solid var(--red); color: var(--red-dark); font-weight: 700; font-size: 13px; }
+.q-empty { text-align: center; padding: 28px; color: var(--text-secondary); }
+
+/* ── نافذة تأكيد صغيرة غير مستخدمة — مفيش فعل لا رجعة فيه هنا (كل تسجيل بيتعدّل بـ«إعادة فتح») ── */
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     🔴 متابعة التأجيلات — صفحة جوّه المركز (قسم «أوردرات بوسطة»). الريبو
+        `Bosta-Delivery-Follow-Up` Worker وبس. الإرسال **يدوي** من رقم موظف
+        متابعة الشحن — الصفحة بتجهّز القايمة والنص وبتسجّل النتيجة بس.
+     ══════════════════════════════════════════════════════ -->
+<div id="headerMount"></div>
+
+<div class="container">
+
+  <div class="fu-warn">⛔ ابعت من <b>رقم متابعة الشحن</b> — مش رقم خدمة العملاء (+20 11 26399000). الإرسال يدوي، رسالة رسالة، وبلا لينكات.</div>
+  <div id="fuBanners"></div>
+
+  <div class="fu-tabs" id="fuTabs" role="tablist" aria-label="حالة المتابعة"></div>
+
+  <div class="card">
+    <div class="fu-bar">
+      <input type="text" id="fuSearch" autocomplete="off" aria-label="بحث برقم الأوردر أو اسم العميل أو رقم التتبع أو التليفون">
+      <select id="fuState" aria-label="حالة الشحنة الحالية"></select>
+      <select id="fuProvince" aria-label="المحافظة"></select>
+      <label><input type="checkbox" id="fuMulti"> اتأجلت أكتر من مرة</label>
+      <select id="fuDays" aria-label="نافذة القايمة">
+        <option value="3">آخر 3 أيام</option>
+        <option value="7">آخر 7 أيام</option>
+        <option value="14">آخر 14 يوم</option>
+      </select>
+      <span class="grow"></span>
+      <button class="btn btn-outline" id="fuReload" type="button">↺ تحديث</button>
+    </div>
+    <div class="fu-results" id="fuResults">النتائج: —</div>
+  </div>
+
+  <div id="fuList"><div class="q-empty">⏳ جاري تحميل القايمة...</div></div>
+</div>
+
+<!-- مودال الإعدادات + حاوية التوست — بيتحقنوا من الـ shell -->
+<div id="sharedMount"></div>
+
+<!-- ══════════════ §CHANGELOG ══════════════ -->
+<div class="eco-overlay" id="changelogOverlay">
+  <div class="eco-modal" style="max-width:560px;">
+    <div class="eco-modal-hdr"><h3>📋 سجل الإصدارات</h3><button class="modal-close-x" onclick="closeChangelog()">✕</button></div>
+    <div class="eco-modal-body">
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.44.0</span>
+          <span class="cl-ver-date">15-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>📲 <b>متابعة التأجيلات</b> — قايمة الشحنات اللي مندوب بوسطة سجّل عليها «تأجيل بطلب من العميل» (<code>exception_code = 3</code>) ولسه ما اتقفلتش، ورسالة واتساب جاهزة لكل عميل بتتبعت <b>يدوي</b> من رقم متابعة الشحن، وتسجيل رد العميل.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 Worker الأداة <code>bosta-delivery-follow-up-worker</code> (ريبو <code>Bosta-Delivery-Follow-Up</code>) <b>لازم يتنشر وسرّه يتضم لمجموعة <code>delivery_cod_ops</code></b> قبل أول استخدام، وإلا <code>401</code>.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ §ABOUT ══════════════ -->
+<div class="eco-overlay" id="aboutOverlay">
+  <div class="eco-modal">
+    <div class="eco-modal-hdr"><h3>ℹ️ عن الأداة — متابعة التأجيلات</h3><button class="modal-close-x" onclick="closeAbout()">✕</button></div>
+    <div class="eco-modal-body">
+      <details class="about-sec" open>
+        <summary>📋 بتعمل إيه</summary>
+        <div class="about-sec-body">
+          <p>بتعرض الشحنات اللي <b>بوسطة سجّلت عليها تأجيل بطلب العميل</b> ولسه ما اتسلّمتش ولا رجعت، وبتجهّز لكل عميل رسالة واتساب
+             بتفتحها بزرار. <b>الإرسال يدوي بالكامل</b> من واتساب على رقم موظف متابعة الشحن — مفيش إرسال تلقائي.</p>
+          <p><b>الدورة:</b> تاب «محتاجين رسالة» ← راجع النص ← «فتح واتساب» ← ابعت ← لما العميل يرد اختار النتيجة.</p>
+          <ul>
+            <li><b>الميعاد مناسب</b> ← خلاص (بتتقفل).</li>
+            <li><b>محتاج ميعاد تاني</b> ← عدّله في داشبورد بوسطة (الـ API مفيهوش تغيير ميعاد) واكتب في الملاحظة اللي اتعمل.</li>
+            <li><b>مطلبتش تأجيل</b> ← تصعيد «محاولة وهمية» لبوسطة (سياستهم: خلال 7 أيام عمل).</li>
+            <li><b>عايز يلغي</b> ← حوّله للمسؤول — مش قرار الأداة.</li>
+          </ul>
+          <p>⏰ التأجيلات بتتسجّل لحد 10 م. الأفضل الإرسال نفس اليوم قبل 9 م أو الساعة 10 ص اليوم اللي بعده. <b>مفيش رسايل بالليل.</b></p>
+        </div>
+      </details>
+      <details class="about-sec">
+        <summary>⚠️ لازم تعرف</summary>
+        <div class="about-sec-body">
+          <ul>
+            <li><b>تعريف القايمة (مكانه الـ Worker بس):</b> شحنة فيها تأجيل (كود 3) في آخر N أيام ومفيش عليها تسليم/مرتجع/إنهاء ولا حدث RTO. <b>مش «آخر حالة = تأجيل»</b> — بعد التأجيل الشحنة بتتحرك (في المخزن · خارج للتوصيل).</li>
+            <li><b>الشحنة اللي الأوردر بتاعها ملغي على شوبيفاي، أو مالهاش أوردر، أو مفيهاش موبايل صالح</b> بتفضل في القايمة بعلامة — مابتختفيش.</li>
+            <li><b>اسم العميل وتليفونه بيتجابوا من شوبيفاي وقت العرض بس</b> — مابيتخزنوش في أي مكان (ولا في السجل). لو الأوردرات ظهرت بلا اسم وتليفون، صلاحية «بيانات العملاء» ناقصة على التطبيق (🩺 فحص النظام بيقول).</li>
+            <li><b>أكتر من شحنة لنفس التليفون</b> بتتجمع في كارت واحد، والرسالة بتذكر كل الأوردرات، والتسجيل بينزل على كلها.</li>
+            <li><b>الرقم الأولوية فيه لرقم الشحن</b> (اللي المندوب بيكلمه). لو رقم الأوردر مختلف بيظهر زرار بديل.</li>
+            <li>الرسالة <b>بلا إيموجي</b> — الإيموجي بيوصل <code>�</code> بعد تحويل رابط واتساب.</li>
+            <li>رقم الرئيسية «محتاجين رسالة» بيتحسب على نافذة <b>آخر 3 أيام</b> دايمًا، وبيتحدّث لما تفتح الصفحة دي بنافذة 3 أيام.</li>
+            <li>مفيش تحديث تلقائي — زرار «تحديث» بس.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="about-sec">
+        <summary>🔧 تشريح الكود</summary>
+        <div class="about-sec-body">
+          <ul>
+            <li>§CONFIG — <code>DCO_WORKERS.deliveryFollowUp</code> (<code>shared/shell.js</code>) · الجلسة والسر من الـ shell.</li>
+            <li>§MESSAGE — <code>FU_TEMPLATE</code> (ثابت واحد سهل التعديل) · <code>fuBuildMessage</code> · <code>fuNormPhone</code> · <code>fuWaUrl</code>.</li>
+            <li>§GROUPS — تجميع بالتليفون داخل كل تاب · التابات = <code>followUp.status</code>.</li>
+            <li>§RECORD — <code>record</code> (<code>opened</code> / <code>result</code> / <code>reopen</code>) بـ <code>items[]</code> للمجموعة.</li>
+            <li>§CACHE — بتكتب <code>dco_queue_followup</code> (نفس شكل <code>queue_summary</code>) فالرئيسية بتاخد رقمها ببلاش.</li>
+          </ul>
+          <p>الـ Worker: <code>bosta-delivery-follow-up-worker</code> في ريبو <code>Bosta-Delivery-Follow-Up</code> — Worker وبس، والصفحة دي هي النسخة الوحيدة.
+             بيقرا <code>bosta_webhook_events</code> (قراءة بس) ويكتب في <code>bosta_delivery_followups</code>.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<script src="shared/shell.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script>
+// ══════════════════════════════════════════════════════
+// §CONFIG — بوابة الجلسة + نداءات الـ shell
+// ══════════════════════════════════════════════════════
+// 🔴 أول سطر — بوابة الجلسة (بترمي عن قصد لو مفيش جلسة).
+const dcoSession = requireSession();
+
+// 🔴 `bosta-delivery-follow-up-worker` لازم يكون اتضمّ لمجموعة `delivery_cod_ops` — قبلها كل نداء `401`.
+const { apiGet, apiPost } = dcoApi(DCO_WORKERS.deliveryFollowUp);
+const PAGE_WORKERS = ['deliveryFollowUp'];
+
+// ⛔ كل أسماء الصفحة بادئتها `fu`/`FU_` — الـ shell و`<script>` الصفحة في نفس النطاق العام،
+//    وإعادة تعريف `const`/`let` بنفس الاسم بتقتل سكربت الصفحة كله.
+
+const FU_DEFAULT_DAYS = 3;   // نفس نافذة `queue_summary` — الكاش بيتكتب منها بس
+
+const FU_RESULTS = [
+  ['ok',            '✅ الميعاد مناسب'],
+  ['other_day',     '📅 محتاج ميعاد تاني'],
+  ['not_requested', '🙅 مطلبتش تأجيل'],
+  ['cancel',        '❌ عايز يلغي'],
+  ['other',         '💬 رد تاني'],
+  ['no_reply',      '🔇 مفيش رد'],
+  ['no_wa',         '🚫 الرقم مش على واتساب'],
+  ['skip',          '⏭ ما اتبعتش'],
+];
+const FU_RESULT_LABEL = Object.fromEntries(FU_RESULTS);
+
+// التابات = حالة المتابعة بالظبط (نفس تعريف عدّادات `queue_summary`): pending · sent · replied · closed
+const FU_TABS = [
+  { key: 'pending', label: 'محتاجين رسالة' },
+  { key: 'sent',    label: 'مستنيين رد' },
+  { key: 'replied', label: 'محتاجين تصرّف' },
+  { key: 'closed',  label: 'خلصت' },
+];
+const FU_STATE_LABEL = { 20: 'مع مندوب (Route Assigned)', 24: 'في المخزن', 41: 'خارج للتوصيل', 47: 'اتأجل' };
+
+// ══════════════════════════════════════════════════════
+// §MESSAGE — النص الجاهز + التليفون + رابط واتساب
+// ══════════════════════════════════════════════════════
+// 🔴 النص النهائي بيتتفق عليه بعدين (قرار أحمد) — فهو ثابت واحد هنا.
+//    ⛔ بلا إيموجي (الـ 4-byte بيوصل `�` بعد تحويل wa.me ← api.whatsapp.com).
+//    ⛔ بلا خصم/عرض/«اطلب تاني» ولا لينكات ولا جملة «إلغاء الأوردر».
+const FU_TEMPLATE = [
+  'أهلاً {name}',
+  'معاك مسئول متابعة الشحن من EcomModa',
+  'بخصوص {orders}',
+  '',
+  'شركة الشحن (بوسطة) سجّلت إنك طلبت تأجيل الاستلام.',
+  '',
+  'ممكن تأكد لنا اليوم المناسب ليك للاستلام؟ ولو ماكنتش طلبت تأجيل أصلاً قولنا عشان نتابع مع شركة الشحن.',
+  'شكراً ليك',
+].join('\n');
+
+// 01xxxxxxxxx · +201xxxxxxxxx · 201xxxxxxxxx · 00201… → 201xxxxxxxxx (أو null)
+function fuNormPhone(p) {
+  if (!p) return null;
+  let d = String(p).replace(/\D/g, '');
+  if (!d) return null;
+  if (d.startsWith('0020')) d = d.slice(2);
+  if (d.startsWith('0')) d = '2' + d;
+  if (!d.startsWith('20')) d = '20' + d;
+  return /^201[0125]\d{8}$/.test(d) ? d : null;
+}
+
+function fuOrderTag(name) {
+  const n = String(name ?? '').trim();
+  return n ? (n.startsWith('#') ? n : '#' + n) : '—';
+}
+function fuIsS2(r) { return String(r.slot || '').toLowerCase() === 's2'; }
+
+function fuBuildMessage(rows) {
+  const first = (rows.map(r => r.customer?.firstName).find(Boolean) || '').trim();
+  const name = first || 'بيك';
+  let orders;
+  if (rows.length === 1) {
+    orders = fuIsS2(rows[0])
+      ? `شحنة الاستبدال الخاصة بأوردرك رقم ${fuOrderTag(rows[0].order)}`
+      : `أوردرك رقم ${fuOrderTag(rows[0].order)}`;
+  } else {
+    const list = rows.map(r => fuOrderTag(r.order) + (fuIsS2(r) ? ' (استبدال)' : ''));
+    orders = `أوردراتك رقم ${list.join(' و')}`;
+  }
+  return FU_TEMPLATE.replace('{name}', name).replace('{orders}', orders);
+}
+
+// api.whatsapp.com مباشرة (من غير wa.me — تفادي التحويل اللي بوّظ الإيموجي)
+function fuWaUrl(phone, text) {
+  return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`;
+}
+// أي حرف خارج BMP (إيموجي) — حارس ضد رجوعه في نص اتعدّل بالإيد
+function fuHasAstral(text) { return /[\u{10000}-\u{10FFFF}]/u.test(text); }
+
+// أرقام الشحنة بأولوية: رقم الشحن ← رقم الأوردر ← رقم العميل (الصالح فقط، بلا تكرار)
+function fuPhones(r) {
+  const c = r.customer;
+  if (!c) return [];
+  const seen = new Set(), out = [];
+  for (const raw of [c.shipPhone, c.orderPhone, c.custPhone]) {
+    const n = fuNormPhone(raw);
+    if (n && !seen.has(n)) { seen.add(n); out.push(n); }
+  }
+  return out;
+}
+
+// DD-MM-YYYY → { iso:'YYYY-MM-DD', text:'DD/MM/YYYY' } أو null (قاعدة ٦: ممنوع new Date عليه مباشرة)
+function fuParsePromise(s) {
+  const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(String(s ?? '').trim());
+  if (!m) return null;
+  const d = +m[1], mo = +m[2], y = +m[3];
+  const t = new Date(Date.UTC(y, mo - 1, d));
+  if (t.getUTCFullYear() !== y || t.getUTCMonth() !== mo - 1 || t.getUTCDate() !== d) return null;
+  return { iso: `${m[3]}-${m[2]}-${m[1]}`, text: `${m[1]}/${m[2]}/${m[3]}` };
+}
+function fuTodayCairo() {
+  const p = cairoParts(new Date());
+  return p ? `${p.year}-${p.month}-${p.day}` : null;
+}
+
+// ══════════════════════════════════════════════════════
+// §STATE + LOAD
+// ══════════════════════════════════════════════════════
+let fuRows = [];                 // الرد الخام (الحقيقة) — كل حالة المتابعة جوّه `followUp`
+let fuLoaded = false;
+let fuLoading = false;
+let fuMeta = { shopifyError: null, truncated: false, cap: 0, days: FU_DEFAULT_DAYS };
+let fuTab = 'pending';
+let fuBusyKeys = new Set();      // كروت فيها تسجيل شغّال — بتمنع الضغطة المزدوجة
+const fuMsgs = new Map();        // نص اتعدّل بالإيد لكل كارت (يفضل بعد إعادة الرسم)
+const fuDrafts = new Map();      // نتيجة/ملاحظة لسه ما اتحفظتش
+
+const fuStatusOf = (r) => { const s = r.followUp?.status || 'pending'; return s === 'skipped' ? 'closed' : s; };
+
+async function fuLoad() {
+  if (fuLoading) return;
+  fuLoading = true;
+  const btn = document.getElementById('fuReload');
+  btn.disabled = true;
+  const days = Number(document.getElementById('fuDays').value) || FU_DEFAULT_DAYS;
+  try {
+    const d = await apiGet('get_followups', { days });
+    fuRows = Array.isArray(d.rows) ? d.rows : [];
+    fuMeta = { shopifyError: d.shopifyError || null, truncated: !!d.truncated, cap: d.cap || 0, days };
+    fuLoaded = true;
+    fuWriteCache();
+    fuSyncFilters();
+    fuRender();
+  } catch (e) {
+    // الفشل ≠ «مفيش شغل»: لو فيه قايمة قديمة بتفضل، ولو لأ بنقول تعذّر
+    document.getElementById('fuBanners').innerHTML =
+      `<div class="fu-warn bad">⚠️ تعذّر تحميل القايمة: ${esc(e.message)}</div>`;
+    if (!fuLoaded) document.getElementById('fuList').innerHTML = '<div class="q-empty">تعذّر تحميل القايمة — اضغط «تحديث».</div>';
+  } finally {
+    fuLoading = false;
+    btn.disabled = false;
+  }
+}
+
+// الرئيسية بتقرا نفس الشكل الخام لـ `queue_summary` — بنكتبه من القايمة بس لما النافذة = نافذتها
+function fuWriteCache() {
+  if (fuMeta.days !== FU_DEFAULT_DAYS) return;
+  const c = { pending: 0, sent: 0, replied: 0 };
+  fuRows.forEach(r => { const s = fuStatusOf(r); if (s in c) c[s]++; });
+  cacheSet(DCO_CACHE_FOLLOWUP, { ok: true, windowDays: FU_DEFAULT_DAYS, total: fuRows.length,
+                                 pending: c.pending, sent: c.sent, needsAction: c.replied });
+}
+
+// ══════════════════════════════════════════════════════
+// §FILTERS — البنود بتتبني من القايمة الكاملة (مش المفلترة)
+// ══════════════════════════════════════════════════════
+function fuSyncFilters() {
+  const fill = (id, items, allLabel) => {
+    const el = document.getElementById(id), cur = el.value;
+    el.innerHTML = `<option value="">${esc(allLabel)}</option>` + items.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
+    // الاختيار القديم بيتشال لو قيمته اختفت — فلتر على قيمة مختفية = قايمة فاضية بلا سبب ظاهر
+    el.value = items.some(([v]) => v === cur) ? cur : '';
+  };
+  const states = [...new Set(fuRows.map(r => r.state).filter(s => s != null))].sort((a, b) => a - b);
+  fill('fuState', states.map(s => [String(s), FU_STATE_LABEL[s] || `حالة ${s}`]), 'كل الحالات');
+  const provs = [...new Set(fuRows.map(r => r.customer?.province).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ar'));
+  fill('fuProvince', provs.map(p => [p, p]), 'كل المحافظات');
+}
+
+function fuPass(r) {
+  const st = document.getElementById('fuState').value;
+  if (st && String(r.state) !== st) return false;
+  const pv = document.getElementById('fuProvince').value;
+  if (pv && r.customer?.province !== pv) return false;
+  if (document.getElementById('fuMulti').checked && !(r.postponeCount > 1)) return false;
+  const q = document.getElementById('fuSearch').value.trim().toLowerCase().replace(/^#/, '');
+  if (q) {
+    const hay = [r.order, r.trackingNumber, r.customer?.fullName, r.customer?.firstName, ...fuPhones(r)]
+      .filter(Boolean).join(' ').toLowerCase().replace(/#/g, '');
+    if (!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+// ══════════════════════════════════════════════════════
+// §GROUPS — تجميع بالتليفون جوّه التاب النشط
+// ══════════════════════════════════════════════════════
+// الشحنة بلا موبايل صالح كارت لوحدها (مفيش مفتاح تجميع). التجميع جوّه التاب نفسه
+// عشان عدد شحنات التاب == اللي الرئيسية بتقوله، ومفيش كارت بحالات متفرقة.
+function fuGroups(rows) {
+  const map = new Map();
+  for (const r of rows) {
+    const phones = fuPhones(r);
+    const key = phones[0] ? 'p:' + phones[0] : 't:' + r.trackingNumber;
+    if (!map.has(key)) map.set(key, { key, phone: phones[0] || null, rows: [] });
+    map.get(key).rows.push(r);
+  }
+  const groups = [...map.values()];
+  for (const g of groups) {
+    g.rows.sort((a, b) => String(b.lastPostponedAt).localeCompare(String(a.lastPostponedAt)));
+    // أرقام بديلة: أي رقم صالح تاني على أي شحنة في الكارت
+    const all = new Set(g.rows.flatMap(fuPhones));
+    all.delete(g.phone);
+    g.alts = [...all];
+    g.msgKey = g.rows.map(r => r.trackingNumber).sort().join('|');
+  }
+  groups.sort((a, b) => String(b.rows[0].lastPostponedAt).localeCompare(String(a.rows[0].lastPostponedAt)));
+  return groups;
+}
+
+// ══════════════════════════════════════════════════════
+// §RENDER
+// ══════════════════════════════════════════════════════
+function fuRenderTabs() {
+  const counts = Object.fromEntries(FU_TABS.map(t => [t.key, 0]));
+  fuRows.forEach(r => { const s = fuStatusOf(r); if (s in counts) counts[s]++; });   // من القايمة الكاملة
+  document.getElementById('fuTabs').innerHTML = FU_TABS.map(t =>
+    `<button type="button" role="tab" class="fu-tab${t.key === fuTab ? ' active' : ''}" data-tab="${t.key}" aria-selected="${t.key === fuTab}">
+       <span class="n">${fuLoaded ? counts[t.key] : '—'}</span><span class="l">${esc(t.label)} · شحنة</span></button>`).join('');
+}
+
+function fuRenderBanners() {
+  const out = [];
+  if (fuMeta.shopifyError)
+    out.push(`<div class="fu-warn bad">⚠️ بيانات العملاء (الاسم والتليفون) غايبة — شوبيفاي ردّت بخطأ: ${esc(fuMeta.shopifyError)}. مفيش زراير واتساب لحد ما تتحدّث.</div>`);
+  else if (fuLoaded && fuRows.length && fuRows.every(r => !r.customer))
+    out.push('<div class="fu-warn bad">⚠️ مفيش ولا شحنة جابت بيانات عميل — غالبًا صلاحية «بيانات العملاء» (Protected customer data) ناقصة على التطبيق. شغّل 🩺 فحص النظام.</div>');
+  if (fuMeta.truncated)
+    out.push(`<div class="fu-warn">⚠️ القايمة اتقصّت عند ${esc(fuMeta.cap)} شحنة — قلّل النافذة.</div>`);
+  const p = cairoParts(new Date());
+  if (p && (Number(p.hour) >= 21 || Number(p.hour) < 10))
+    out.push('<div class="fu-warn info">🌙 الوقت دلوقتي بره وقت الإرسال المناسب (من 10 ص لـ 9 م) — مفيش رسايل بالليل.</div>');
+  document.getElementById('fuBanners').innerHTML = out.join('');
+}
+
+function fuShipHtml(r) {
+  const c = r.customer;
+  const badges = [];
+  badges.push(`<span class="fu-badge blue">${esc(FU_STATE_LABEL[r.state] || r.stateDesc || ('حالة ' + r.state))}</span>`);
+  if (r.postponeCount > 1) badges.push(`<span class="fu-badge amber">اتأجلت ${esc(r.postponeCount)} مرات</span>`);
+  if (fuIsS2(r)) badges.push('<span class="fu-badge">استبدال (S2)</span>');
+  if (r.cancelled) badges.push('<span class="fu-badge red">الأوردر ملغي على شوبيفاي</span>');
+  if (r.financial === 'PAID') badges.push('<span class="fu-badge green">مدفوع</span>');
+  const orderTxt = r.orderId ? `<a class="order-link" href="${esc(shopifyOrderUrl(r.orderId))}" target="_blank" rel="noopener">${esc(fuOrderTag(r.order))}</a>` : `<b>${esc(fuOrderTag(r.order))}</b>`;
+  const bosta = `<a href="https://business.bosta.co/orders/${encodeURIComponent(r.trackingNumber)}" target="_blank" rel="noopener">بوسطة ${esc(r.trackingNumber)}</a>`;
+  const prom = fuParsePromise(r.promiseDate);
+  const today = fuTodayCairo();
+  const promTxt = prom ? (today && prom.iso < today ? `<span class="meta">ميعاد بوسطة ${esc(prom.text)} (فات)</span>` : `<span class="meta">الميعاد المتوقع ${esc(prom.text)}</span>`) : '';
+  const place = c ? [c.city, c.province].filter(Boolean).join(' · ') : '';
+  const total = r.total != null ? `${Number(r.total).toLocaleString('en-US')} ج` : '—';
+  const noOrder = !r.hasOrder ? '<span class="fu-badge red">مالوش أوردر متطابق على شوبيفاي</span>' : '';
+  return `<div class="fu-ship">${orderTxt} ${bosta} ${badges.join(' ')} ${noOrder}
+      <span class="meta">آخر تأجيل ${esc(formatDateTime(r.lastPostponedAt))}</span>${promTxt}
+      <span class="meta">${esc(place || '—')}</span><span class="meta">${esc(total)}</span></div>`;
+}
+
+function fuCardHtml(g, tab) {
+  const lead = g.rows[0];
+  const c = lead.customer;
+  const name = (g.rows.map(r => r.customer?.fullName).find(Boolean)) || '—';
+  const anyCancelled = g.rows.some(r => r.cancelled);
+  const busy = fuBusyKeys.has(g.key);
+  const text = fuMsgs.has(g.msgKey) ? fuMsgs.get(g.msgKey) : fuBuildMessage(g.rows);
+  const draft = fuDrafts.get(g.msgKey) || {};
+  const f = lead.followUp || {};
+  let waBlock;
+  if (!g.phone) {
+    waBlock = `<div class="fu-nophone">🚫 مفيش موبايل صالح${c ? '' : ' (بيانات العميل غايبة)'} — اتصل من بوسطة أو شوبيفاي، وسجّل النتيجة.</div>`;
+  } else {
+    const alts = g.alts.map(p => `<button type="button" class="btn btn-outline" data-act="wa" data-phone="${p}" ${busy ? 'disabled' : ''}>واتساب برقم بديل ${esc('0' + p.slice(2))}</button>`).join('');
+    waBlock = `<textarea class="fu-msg" data-msg="${esc(g.msgKey)}" aria-label="نص الرسالة">${esc(text)}</textarea>
+      <div class="fu-actions">
+        <button type="button" class="btn btn-green" data-act="wa" data-phone="${g.phone}" ${busy ? 'disabled' : ''}>📲 فتح واتساب</button>
+        <button type="button" class="btn btn-outline" data-act="copy">نسخ النص</button>${alts}
+      </div>`;
+  }
+  const opts = FU_RESULTS.map(([v, l]) => `<option value="${v}"${draft.result === v ? ' selected' : ''}>${esc(l)}</option>`).join('');
+  const resBlock = tab === 'closed'
+    ? `<div class="fu-foot">النتيجة: <b>${esc(FU_RESULT_LABEL[f.result] || f.result || '—')}</b>${f.note ? ' — ' + esc(f.note) : ''}</div>
+       <div class="fu-actions"><button type="button" class="btn btn-outline" data-act="reopen" ${busy ? 'disabled' : ''}>↩ إعادة فتح (غلطة تسجيل)</button></div>`
+    : `<div class="fu-res">
+         <select data-res aria-label="نتيجة الرد"><option value="">— نتيجة الرد —</option>${opts}</select>
+         <input type="text" data-note maxlength="500" value="${esc(draft.note || '')}" aria-label="ملاحظة">
+         <div class="fu-actions"><button type="button" class="btn btn-primary" data-act="result" ${busy ? 'disabled' : ''}>حفظ النتيجة</button>
+         ${tab === 'replied' || tab === 'sent' ? `<button type="button" class="btn btn-outline" data-act="reopen" ${busy ? 'disabled' : ''}>↩ رجّعها لمحتاجين رسالة</button>` : ''}</div>
+       </div>`;
+  const foot = f.sentBy
+    ? `<div class="fu-foot">اتبعتت: ${esc(f.sentBy)} · ${esc(formatDateTime(f.sentAt))}${f.result ? ` · النتيجة: ${esc(FU_RESULT_LABEL[f.result] || f.result)} (${esc(f.resultBy || '—')})` : ''}${f.note && tab !== 'closed' ? ' — ' + esc(f.note) : ''}</div>` : '';
+  return `<div class="fu-card" data-key="${esc(g.key)}" data-mk="${esc(g.msgKey)}">
+    <div class="fu-card-hd"><span class="fu-name">${esc(name)}</span>
+      ${g.phone ? `<span class="fu-phone">0${esc(g.phone.slice(2))}</span>` : ''}
+      ${g.rows.length > 1 ? `<span class="fu-badge amber">${g.rows.length} شحنات لنفس العميل</span>` : ''}
+      ${anyCancelled ? '<span class="fu-badge red">فيه أوردر ملغي — راجع قبل الإرسال</span>' : ''}</div>
+    ${g.rows.map(fuShipHtml).join('')}
+    <div class="fu-body"><div><h4>الرسالة${tab === 'pending' ? '' : ' (للإعادة)'}</h4>${waBlock}</div>
+      <div><h4>رد العميل</h4>${resBlock}${foot}</div></div></div>`;
+}
+
+function fuRender() {
+  fuRenderTabs();
+  fuRenderBanners();
+  const list = document.getElementById('fuList');
+  if (!fuLoaded) return;
+  const tabRows = fuRows.filter(r => fuStatusOf(r) === fuTab);
+  const shown = tabRows.filter(fuPass);
+  document.getElementById('fuResults').textContent = `النتائج: ${shown.length} شحنة`;
+  if (!tabRows.length) { list.innerHTML = `<div class="q-empty">مفيش شحنات في «${esc(FU_TABS.find(t => t.key === fuTab).label)}» ✅</div>`; return; }
+  // «مفيش نتيجة للفلتر» ≠ «التاب فاضي»
+  if (!shown.length) { list.innerHTML = '<div class="q-empty">مفيش نتيجة للفلتر — امسح الفلتر أو غيّره.</div>'; return; }
+  list.innerHTML = fuGroups(shown).map(g => fuCardHtml(g, fuTab)).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// §RECORD — تسجيل الأفعال (idempotent في الـ Worker)
+// ══════════════════════════════════════════════════════
+// العقد: `results[]` نتيجة لكل عنصر في `items` بنفس الترتيب (الفهرس).
+async function fuRecord(group, action, extra) {
+  const items = group.rows.map(r => ({ trackingNumber: r.trackingNumber, eventId: r.eventId }));
+  return apiPost('record', { employee: dcoSession.username, action, items, ...extra });
+}
+
+function fuApplyLocal(group, action, results, extra) {
+  const now = new Date().toISOString();
+  group.rows.forEach((r, i) => {
+    const res = results?.[i];
+    if (!res?.ok) return;
+    const f = r.followUp = r.followUp || {};
+    f.status = res.status;
+    if (action === 'opened') { if (!f.sentBy) { f.sentBy = dcoSession.username; f.sentAt = now; } }
+    else if (action === 'result') { f.result = extra.result; f.note = extra.note || null; f.resultBy = dcoSession.username; f.resultAt = now; }
+    else if (action === 'reopen') { f.result = null; f.note = null; f.resultBy = null; f.resultAt = null; }
+  });
+}
+
+function fuHandleFailures(results) {
+  const failed = (results || []).filter(r => !r.ok);
+  if (!failed.length) return false;
+  const stale = failed.some(r => r.status === 409);
+  showToast(stale ? 'الشحنة اتقفلت أو جالها تأجيل أحدث — بحدّث القايمة' : `التسجيل فشل: ${failed[0].error || 'خطأ'}`, 'error', 5000);
+  if (stale) fuLoad();
+  return true;
+}
+
+async function fuAction(card, act, btn) {
+  const key = card.dataset.key;
+  const tabRows = fuRows.filter(r => fuStatusOf(r) === fuTab).filter(fuPass);
+  const group = fuGroups(tabRows).find(g => g.key === key);
+  if (!group || fuBusyKeys.has(key)) return;
+
+  if (act === 'wa') {
+    const ta = card.querySelector('textarea.fu-msg');
+    const text = ta ? ta.value : fuBuildMessage(group.rows);
+    if (!text.trim()) { showToast('النص فاضي', 'error'); return; }
+    // 🔴 window.open لازم يتنادى متزامنًا مع الضغطة (قبل أي await) وإلا المتصفح يحجبه
+    window.open(fuWaUrl(btn.dataset.phone, text), '_blank', 'noopener');
+    if (fuHasAstral(text)) showToast('النص فيه إيموجي — ممكن يوصل بعلامة � — الأفضل تشيله', 'warning', 6000);
+    // التسجيل بعد الفتح ومن غير ما يعطّله: بس على الشحنات اللي لسه pending
+    const pending = { ...group, rows: group.rows.filter(r => fuStatusOf(r) === 'pending') };
+    if (!pending.rows.length) return;
+    fuBusyKeys.add(key);
+    try {
+      const d = await fuRecord(pending, 'opened');
+      fuApplyLocal(pending, 'opened', d.results, {});
+      if (!fuHandleFailures(d.results)) showToast('اتسجّل إن الرسالة اتفتحت ✅', 'success');
+      if (d.results?.some(r => r.ok && r.logged === false)) showToast('التسجيل تم لكن سجل D1 فشل', 'warning');
+    } catch (e) {
+      showToast(`الواتساب اتفتح لكن التسجيل فشل: ${e.message} — اضغط تاني بعد التحديث`, 'error', 6000);
+    } finally { fuBusyKeys.delete(key); fuWriteCache(); fuRender(); }
+    return;
+  }
+
+  if (act === 'copy') {
+    const ta = card.querySelector('textarea.fu-msg');
+    try { await navigator.clipboard.writeText(ta.value); showToast('اتنسخ النص', 'success'); }
+    catch { ta.select(); showToast('انسخ يدويًا (Ctrl+C)', 'warning'); }
+    return;
+  }
+
+  if (act === 'result') {
+    const result = card.querySelector('[data-res]').value;
+    const note = card.querySelector('[data-note]').value.trim();
+    if (!result) { showToast('اختار نتيجة الرد الأول', 'error'); return; }
+    fuBusyKeys.add(key); fuRender();
+    try {
+      const d = await fuRecord(group, 'result', { result, note });
+      fuApplyLocal(group, 'result', d.results, { result, note });
+      if (!fuHandleFailures(d.results)) { fuDrafts.delete(group.msgKey); showToast('اتسجّلت النتيجة ✅', 'success'); }
+    } catch (e) { showToast(`فشل تسجيل النتيجة: ${e.message}`, 'error', 6000); }
+    finally { fuBusyKeys.delete(key); fuWriteCache(); fuRender(); }
+    return;
+  }
+
+  if (act === 'reopen') {
+    fuBusyKeys.add(key); fuRender();
+    try {
+      const d = await fuRecord(group, 'reopen');
+      fuApplyLocal(group, 'reopen', d.results, {});
+      if (!fuHandleFailures(d.results)) showToast('رجعت لمحتاجين رسالة', 'success');
+    } catch (e) { showToast(`فشلت إعادة الفتح: ${e.message}`, 'error', 6000); }
+    finally { fuBusyKeys.delete(key); fuWriteCache(); fuRender(); }
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// §EVENTS — تفويض أحداث (مفيش onclick بنص فيه بيانات عميل)
+// ══════════════════════════════════════════════════════
+document.getElementById('fuList').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-act]');
+  const card = btn?.closest('.fu-card');
+  if (btn && card && !btn.disabled) fuAction(card, btn.dataset.act, btn);
+});
+document.getElementById('fuList').addEventListener('input', (e) => {
+  const card = e.target.closest('.fu-card');
+  if (!card) return;
+  if (e.target.matches('textarea.fu-msg')) fuMsgs.set(e.target.dataset.msg, e.target.value);
+  else if (e.target.matches('[data-res],[data-note]')) {
+    const key = card.dataset.mk;
+    fuDrafts.set(key, { result: card.querySelector('[data-res]').value, note: card.querySelector('[data-note]').value });
+  }
+});
+document.getElementById('fuTabs').addEventListener('click', (e) => {
+  const t = e.target.closest('[data-tab]');
+  if (t) { fuTab = t.dataset.tab; fuRender(); }
+});
+['fuState', 'fuProvince', 'fuMulti'].forEach(id => document.getElementById(id).addEventListener('change', fuRender));
+document.getElementById('fuSearch').addEventListener('input', fuRender);
+document.getElementById('fuDays').addEventListener('change', fuLoad);
+document.getElementById('fuReload').addEventListener('click', fuLoad);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('settingsOverlay')?.classList.contains('open')) closeSettings();
+  document.getElementById('aboutOverlay')?.classList.remove('open');
+  document.getElementById('changelogOverlay')?.classList.remove('open');
+});
+
+// ══════════════════════════════════════════════════════
+// §INIT
+// ══════════════════════════════════════════════════════
+document.getElementById('headerMount').innerHTML = dcoHeader({
+  icon:     '📲',
+  title:    'متابعة التأجيلات',
+  subtitle: 'شحنات بوسطة المتأجلة بطلب العميل — رسالة واتساب يدوية',
+  session:  dcoSession,
+});
+
+renderVersionUI();
+checkWorkerVersion(PAGE_WORKERS);
+fuRenderTabs();
+fuLoad();
+</script>
+</body>
+</html>

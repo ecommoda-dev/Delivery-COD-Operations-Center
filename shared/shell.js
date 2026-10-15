@@ -189,9 +189,14 @@ const DCO_WORKERS = {
   //       `queue_summary` (عدّ مجمّع بـ SQL). على Worker أقدم الصف بيقول فشل بالـ 404
   //       والصفحة نفسها شغّالة — فالحارس بيسمّي الأداة والنسخة.
   bostaWebhook: { url: 'https://bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev', min: '1.10.0', label: 'متابعة شحنات بوسطة' },
+  // 🔴 «متابعة التأجيلات» (v1.44.0) — Worker في ريبو `Bosta-Delivery-Follow-Up`. `1.0.0` = أول نسخة،
+  //    فالحارس هنا بيمسك الحالة الوحيدة: الـ Worker ما اتنشرش أو الـ Promote ناقص.
+  //    ⛔ بيقرا جدول `bosta_webhook_events` بتاع المستقبل (قراءة بس) — وسره **سر الهب**
+  //       (`delivery_cod_ops`)، فلازم يتضم للمجموعة قبل أول استخدام وإلا `401`.
+  deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'متابعة التأجيلات' },
 };
 
-const TOOL_VERSION = 'v1.43.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.44.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -257,6 +262,7 @@ const DCO_CACHE_READY   = 'dco_queue_ready';
 const DCO_CACHE_SHIPPED = 'dco_queue_shipped';
 const DCO_CACHE_BOSTA   = 'dco_queue_bosta';    // عدّادات «رفع بوسطة» التلاتة (v1.38.0)
 const DCO_CACHE_WEBHOOK = 'dco_queue_webhook';  // ملخّص «مستقبل حالة بوسطة» — رد `queue_summary` خام (v1.39.0)
+const DCO_CACHE_FOLLOWUP = 'dco_queue_followup'; // ملخّص «متابعة التأجيلات» — رد `queue_summary` خام (v1.44.0)
 // 🔴 **الرئيسية بتترسم من الكاش لو عمره أقل من ده — من غير أي نداء** (v1.38.0
 //    · قرار أحمد 14-10-2026). التحديث التلقائي اتلغى، فالرجوع للرئيسية بـ 🏠
 //    كان هيبقى أتقل نداء في الهب (٥ نداءات كل رجوع) لو ماكانش فيه الحد ده.
@@ -291,6 +297,7 @@ function clearSession() {
     sessionStorage.removeItem(DCO_CACHE_SHIPPED);
     sessionStorage.removeItem(DCO_CACHE_BOSTA);
     sessionStorage.removeItem(DCO_CACHE_WEBHOOK);
+    sessionStorage.removeItem(DCO_CACHE_FOLLOWUP);
     sessionStorage.removeItem(DCO_IDLE_KEY);
     // ⚠️ `dco_audit_ready` (حالة جرد المكتب) **مش** بيتمسح هنا عن قصد —
     //    مش بيانات حساسة، وبتتحمّل ساعات شغل (Standards #52 · multi-page-hub § ٩).
@@ -391,6 +398,20 @@ function dcoWebhookSummaryFromRows(mainRows, inReturnRows) {
     attempts[k] = (attempts[k] || 0) + 1;
   });
   return { main: { total: mainRows.length, attempts }, inReturn: inReturnRows.length };
+}
+
+// ── ملخّص «متابعة التأجيلات» (v1.44.0) ─────────────────────────
+// 🔴 **الرقم الكبير = «محتاجين رسالة»** (شحنات متأجلة مفتوحة لسه ما اتبعتلهاش)، والمربعات = «مستنيين رد»
+//    و«محتاجين تصرّف» (ردّ بنتيجة ميعاد تاني / مطلبتش تأجيل / إلغاء ولسه ما اتقفلش).
+// 🔴 التعريف الوحيد في `openListCTE()` بتاع `bosta-delivery-follow-up-worker` — الرئيسية بتاخد
+//    `queue_summary` (SQL مجمّع) والصفحة بتكتب **نفس الشكل الخام** `{ pending, sent, needsAction, total }`
+//    في نفس مفتاح الكاش بعد كل تحميل. `derive` واحدة هنا للشبكة وللكاش (درس R1).
+// ⚠️ الوحدة «شحنة» مش «عميل»: التجميع بالتليفون في الصفحة بس (التليفون من شوبيفاي، والـ SQL مايشوفوش).
+function dcoFollowUpDerive(d) {
+  const chips = [];
+  if (d?.sent)        chips.push({ cls: 'qc-att-1', label: 'مستنيين رد',    n: d.sent });
+  if (d?.needsAction) chips.push({ cls: 'qc-att-2', label: 'محتاجين تصرّف', n: d.needsAction });
+  return { total: d?.pending || 0, chips };
 }
 
 // ══════════════════════════════════════════════════════════════
