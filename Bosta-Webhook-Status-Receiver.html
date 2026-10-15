@@ -275,7 +275,16 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
     <div class="eco-modal-body">
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.41.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.42.0</span>
+          <span class="cl-ver-date">15-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⚡ <b>أول تحميل أسرع فعلًا</b> — السحب الكامل للأحداث بقى بالتوازي (٦ نداءات مع بعض بصفحات ١٠٠٠) بدل ٤٥ نداء ورا بعض. الوقت كان بيتحكم فيه عدد رحلات الشبكة مش حجم الرد.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.41.0</span>
           <span class="cl-ver-date">15-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -368,7 +377,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
           <h4>KEY VARIABLES</h4>
           <ul>
             <li><code>DCO_WORKERS.bostaWebhook</code> (في <code>shared/shell.js</code>) — رابط الـ Worker والحد الأدنى للنسخة · <code>dcoSession</code> — الجلسة · <code>dcoApi()</code> — نداءات الـ Worker بسر المجموعة</li>
-            <li><code>rawEvents</code> — كل الأحداث من <code>list_events</code> (سحب واحد بلا فلاتر، على batches من <code>LOAD_PAGE_SIZE</code> = 500 لحد ما تنتهي الصفحات) — كل تاب بيفلترها بـ <code>tabPartition()</code> وبعدين بفلاتره الخاصة</li>
+            <li><code>rawEvents</code> — كل الأحداث من <code>list_events</code> (سحب واحد بلا فلاتر، على موجات بالتوازي (<code>FULL_FETCH_CONCURRENCY</code> × <code>LOAD_PAGE_SIZE</code> = 1000) لحد ما تنتهي الصفحات) — كل تاب بيفلترها بـ <code>tabPartition()</code> وبعدين بفلاتره الخاصة</li>
           </ul>
           <h4>NOTES</h4>
           <ul>
@@ -1182,7 +1191,8 @@ function switchMainTab(tabKey) {
 // LOAD_PAGE_SIZE. الحمل بيتم مرة واحدة بدون أي فلتر سيرفر (أوردر/تتبع/
 // تاريخ) — كل الفلترة دلوقتي client-side ومستقلة لكل تاب (راجع §TOOL::tabs)،
 // فمفيش داعي نبعت فلاتر للـ Worker أصلًا.
-const LOAD_PAGE_SIZE = 500;
+const LOAD_PAGE_SIZE = 1000;
+const FULL_FETCH_CONCURRENCY = 6;
 
 // 🔴 v1.11.0 — التحديث بقى "stale-while-revalidate":
 //   • "جاري التحميل" بتظهر في أول تحميل بس (rawEvents فاضية). بعد كده الصفوف
@@ -1233,16 +1243,25 @@ function mergeEvents(rows) {
   if (changed) rawEvents = sortEventsDesc([...byId.values()]);
   return changed;
 }
+// 🔴 v1.42.0 — السحب الكامل بالتوازي: قبل كده كان صفحة ورا صفحة (٤٥ نداء بالتتابع على ٢٢ ألف حدث)،
+//    فزمن أول تحميل = ٤٥ × رحلة الشبكة. دلوقتي موجات من FULL_FETCH_CONCURRENCY نداء مع بعض بصفحات
+//    أكبر (LOAD_PAGE_SIZE). الأحداث الجديدة وقت السحب بتزحزح الـ offset لليمين (تكرار مش فقد) —
+//    والـ dedupe بالـ id بيشيله، والتراكمي (afterId) بيلحق أي حدث وصل أثناء السحب.
 async function fetchAllEvents() {
   const all = new Map();
-  let offset = 0;
-  while (true) {
-    const data = await apiGet('list_events', { limit: LOAD_PAGE_SIZE, offset });
-    const page = data.events || [];
-    // dedupe بالـ id: حدث جديد وقت السحب بيزحزح الـ offset فبعض الصفوف كانت بتتكرر
-    page.forEach(e => all.set(e.id, e));
-    if (page.length < LOAD_PAGE_SIZE) break;
-    offset += LOAD_PAGE_SIZE;
+  let offset = 0, done = false;
+  while (!done) {
+    const wave = [];
+    for (let i = 0; i < FULL_FETCH_CONCURRENCY; i++) {
+      wave.push(apiGet('list_events', { limit: LOAD_PAGE_SIZE, offset: offset + i * LOAD_PAGE_SIZE }));
+    }
+    const pages = await Promise.all(wave);
+    for (const data of pages) {
+      const page = data.events || [];
+      page.forEach(e => all.set(e.id, e));
+      if (page.length < LOAD_PAGE_SIZE) done = true;
+    }
+    offset += FULL_FETCH_CONCURRENCY * LOAD_PAGE_SIZE;
   }
   return { rows: [...all.values()], hasMaxId: true };
 }
