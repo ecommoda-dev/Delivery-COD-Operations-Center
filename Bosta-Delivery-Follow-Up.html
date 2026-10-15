@@ -14,64 +14,201 @@
    §STYLES — الصفحة دي بس.
    🔴 **الصفحة دي مش متولّدة بسكربت** — النسخة الوحيدة. الريبو `Bosta-Delivery-Follow-Up`
       Worker وبس (نفس نمط Courier-Names / Partial-Delivery).
-   🔴 **مفيش كتلة توكنز هنا** — كلها في shared/shell.css. Tier L (الافتراضي).
-   ⚠️ كروت مش جدول: الوحدة هنا «عميل» (تجميع بالتليفون) مش «صف». معيار الجدول
-      (فلاتر الرأس · تثبيت العناوين · سحب الأعمدة) مش منطبق — لو اتحوّلت لجدول
-      يوم، تتبنى على `data-table-standard` كله.
+   🔴 **مفيش كتلة توكنز هنا ولا --container-max** — 12 عمود = Tier L (1400) وهو الافتراضي في shared/shell.css.
+   ⚠️ v1.45.0: الجدول (فلاتر رأس العمود · عناوين ثابتة · سحب عرض الأعمدة) نسخة من نمط
+      `Bosta-Webhook-Status-Receiver.html` — **الفكرة مش الأعمدة**. أي تعديل في نمط الجدول
+      هناك لازم يتقاس هنا (درس R1: نسختين بيفترقوا).
    ══════════════════════════════════════════════════════ */
+.hbtn .ico { display: inline-block; }
+.hbtn.refreshing .ico { animation: fu-spin .7s linear infinite; }
+@keyframes fu-spin { to { transform: rotate(360deg); } }
+.bg-spin { display: none; font-size: 15px; color: var(--accent); line-height: 1; }
+.bg-spin.on { display: inline-block; animation: fu-spin .8s linear infinite; }
+.last-upd { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); direction: ltr; white-space: nowrap; }
+.last-upd.err { color: var(--red); font-weight: 700; }
+
 .fu-warn { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; margin-bottom: 12px;
   background: var(--amber-light); border: 1px solid var(--amber); color: var(--amber-dark); }
 .fu-warn.bad { background: var(--red-light); border-color: var(--red); color: var(--red-dark); }
 .fu-warn.info { background: var(--surface-2); border-color: var(--border-strong); color: var(--text-secondary); font-weight: 600; }
 
-/* ── التابات (مربعات العدّ) — بتكتب في الفلتر الوحيد: التاب النشط ── */
-.fu-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
-.fu-tab { flex: 1 1 150px; text-align: right; cursor: pointer; font-family: var(--font-body);
-  padding: 10px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-strong); background: var(--surface); }
-.fu-tab .n { display: block; font-size: 24px; font-weight: 800; line-height: 1.2; }
-.fu-tab .l { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); }
-.fu-tab.active { border-color: var(--accent); background: var(--accent-light); }
-.fu-tab.active .l { color: var(--accent-dark); }
+/* ─── لوحة سجل الإرسال (drawer) ─── */
+.drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:600; opacity:0; pointer-events:none; transition:opacity .2s; }
+.drawer-overlay.open { opacity:1; pointer-events:auto; }
+.drawer { position:fixed; top:0; bottom:0; left:0; width:min(460px,100vw); background:var(--surface); box-shadow:4px 0 24px rgba(0,0,0,.2); z-index:601; transform:translateX(-100%); transition:transform .25s ease; display:flex; flex-direction:column; }
+.drawer.open { transform:translateX(0); }
+.drawer-head { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 16px; border-bottom:1px solid var(--border); }
+.drawer-title { font-size:15px; font-weight:700; }
+.drawer-close { border:none; background:none; font-size:20px; cursor:pointer; color:var(--text-secondary); }
+.drawer-body { padding:16px; overflow-y:auto; flex:1; }
+.tl-item { position:relative; padding:0 22px 16px 0; border-right:2px solid var(--border); margin-right:6px; }
+.tl-item::before { content:''; position:absolute; right:-7px; top:3px; width:12px; height:12px; border-radius:50%; background:var(--border-strong); border:2px solid var(--surface); }
+.tl-item.latest::before { background:var(--green); }
+.tl-item:last-child { border-right-color:transparent; }
+.tl-desc { font-weight:700; font-size:13px; }
+.tl-meta { font-size:12px; color:var(--text-secondary); margin-top:2px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.fu-pre { background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; font-family:var(--font-body); font-size:12.5px; line-height:1.8; white-space:pre-wrap; word-break:break-word; margin:6px 0 0; }
 
-.fu-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
-.fu-bar input[type=text], .fu-bar select { padding: 8px 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-strong);
-  font-family: var(--font-body); font-size: 13px; background: var(--surface); }
-.fu-bar input[type=text] { flex: 1 1 200px; min-width: 0; padding-left: 30px; }
-.fu-bar label { font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
-.fu-bar .grow { flex: 1; }
-.fu-results { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); }
+/* ─── §TOOL::unifiedTable — data-table-standard.md (فلاتر في رأس العمود، v8.1.0) ─── */
+.unified-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;}
+.clear-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--radius-sm);
+  font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;
+  white-space:nowrap;height:34px;
+  border:1px solid var(--red-border);color:var(--red);background:var(--red-light);}
+.clear-btn:hover{background:var(--red);color:var(--on-accent);border-color:var(--red);}
+.clear-btn.inactive{border-color:var(--border);color:var(--text-muted);background:var(--surface-2);cursor:not-allowed;opacity:.6;}
+.clear-btn.inactive:hover{background:var(--surface-2);color:var(--text-muted);border-color:var(--border);}
 
-/* ── كارت العميل ── */
-.fu-card { border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); margin-bottom: 12px; overflow: hidden; }
-.fu-card-hd { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 14px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
-.fu-name { font-weight: 800; font-size: 15px; }
-.fu-phone { font-family: var(--font-mono); direction: ltr; font-size: 13px; font-weight: 700; }
-.fu-badge { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11.5px; font-weight: 700; white-space: nowrap;
+/* مدخلات القوائم */
+.inp{width:100%;height:36px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:0 11px;font-family:inherit;font-size:13px;font-weight:600;color:var(--text-primary);background:var(--surface);outline:none;transition:border-color .15s,background .15s}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.inp.has-value{border-color:var(--accent);background:var(--accent-light)}
+.search-wrap{position:relative}
+.search-wrap .inp{padding-left:34px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text-muted);pointer-events:none}
+/* قائمة الفلتر العائمة — position:fixed على body فمش بيقصها سكرول الجدول */
+.pop{position:fixed;z-index:200;width:268px;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,.16);max-height:72vh;display:flex;flex-direction:column}
+.pop.wide{width:340px}
+.pop-hd{padding:9px 12px;font-weight:800;font-size:12.5px;border-bottom:1px solid var(--border);background:var(--surface-2);border-radius:var(--radius-sm) var(--radius-sm) 0 0}
+.pop-body{padding:10px 12px;display:flex;flex-direction:column;gap:9px}
+.pop-srch{padding:8px 10px 0}
+.ms-ftr-top{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border)}
+.lnk{border:none;background:none;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;color:var(--accent)}
+.lnk:hover{text-decoration:underline}
+.ms-list{overflow:auto;padding:4px}
+.ms-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12.5px;font-weight:600;user-select:none}
+.ms-item:hover{background:var(--surface-hover)}
+.ms-item .cb{width:16px;height:16px;border:1.5px solid var(--border-strong);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--on-accent);flex-shrink:0}
+.ms-item.on .cb{background:var(--accent);border-color:var(--accent)}
+.ms-item.on .cb::after{content:'✓'}
+.ms-lbl{min-width:0;overflow-wrap:anywhere;line-height:1.5}
+.ms-cnt{margin-inline-start:auto;font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--text-mid);background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:0 7px;flex-shrink:0}
+.rng{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rng>div{min-width:0}
+.rng label,.pop-body label{font-size:11.5px;font-weight:700;color:var(--text-mid);display:block;margin-bottom:3px}
+.inp[type=date]{min-width:0;padding:0 8px;font-size:12.5px}
+.preset-list{display:flex;flex-direction:column;gap:2px}
+.preset-list button:not(.clear-btn){text-align:right;padding:7px 9px;border:none;background:none;border-radius:6px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text-primary)}
+.preset-list button:not(.clear-btn):hover{background:var(--surface-hover)}
+.preset-list button.on:not(.clear-btn){background:var(--accent-light);color:var(--accent-dark);font-weight:800}
+/* زرار «مسح الاختيار» جوه القوائم = نفس .clear-btn — تخطيط بس */
+.pop .clear-btn{height:30px;padding:4px 10px;font-size:12px}
+.pop .pop-body>.clear-btn{align-self:flex-start}
+.pop .preset-list>.clear-btn{margin:6px 8px;align-self:flex-start}
+/* تولتيب قيم الفلتر المفعّل */
+.tip{position:fixed;z-index:210;max-width:300px;background:var(--neutral-dark);color:var(--on-accent);font-size:12px;font-weight:600;line-height:1.7;padding:6px 10px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.2);pointer-events:none;word-break:break-word}
+
+/* Chips — سطر لكل فلتر، اسم الفلتر مرة واحدة */
+.chips-zone{display:flex;flex-direction:column;gap:6px}
+.chips-zone.pad{padding:10px 16px;border-top:1px solid var(--border)}
+.chips-zone:empty{display:none}
+.ms-chips-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.chips-label{font-size:11.5px;font-weight:700;color:var(--text-mid);white-space:nowrap;}
+.ms-chip{display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);border:1px solid var(--accent-border);color:var(--accent-dark);border-radius:20px;padding:2px 4px 2px 10px;font-size:12px;font-weight:700}
+.ms-chip button{border:none;background:var(--accent-border);color:var(--accent-dark);width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:10px;line-height:1}
+.ms-chip button:hover{background:var(--accent);color:var(--on-accent)}
+/* مربعات (عدد المحاولات · مرات الإرسال) — مربوطة بنفس الفلاتر مش حالة تانية جنبها */
+.att-chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 16px;margin-bottom:16px;}
+.att-chips-label{font-size:12.5px;font-weight:700;color:var(--text-secondary);margin-inline-end:4px;}
+.att-chips-sep{width:1px;align-self:stretch;background:var(--border);margin:0 8px;}
+.att-chip{display:inline-flex;align-items:center;gap:9px;padding:8px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface-2);color:var(--text-secondary);font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;transition:filter .12s,transform .1s;}
+.att-chip:hover{filter:brightness(.97);}
+.att-chip:active{transform:translateY(1px);}
+.att-chip-n{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 7px;border-radius:20px;background:var(--surface);border:1px solid currentColor;font-family:var(--font-mono);font-size:12.5px;font-weight:800;line-height:1;direction:ltr;font-variant-numeric:tabular-nums;}
+.att-chip.att-0{background:var(--green-light);color:var(--green-dark);border-color:var(--green-border);}
+.att-chip.att-1{background:var(--amber-light);color:var(--amber-dark);border-color:var(--amber-border);}
+.att-chip.att-2,.att-chip.att-3{background:var(--red-light);color:var(--red-dark);border-color:var(--red-border);}
+.att-chip.att-null{background:var(--surface-2);color:var(--text-secondary);border-color:var(--border);}
+.att-chip.on{box-shadow:0 0 0 2px currentColor inset;}
+.att-chip.on::after{content:'✕';font-size:12px;font-weight:800;opacity:.75;}
+.att-chip.static{padding:3px 12px;cursor:default;pointer-events:none;font-size:13px;}
+.att-chip.static:hover{filter:none;}
+.state-code{display:inline-block;min-width:26px;padding:1px 6px;margin-inline-end:6px;border-radius:5px;background:var(--surface-2);border:1px solid var(--border);font-family:var(--font-mono);font-size:12px;font-weight:700;direction:ltr;text-align:center;}
+
+/* صف النتائج + طي الجدول (grid 1fr/0fr — مفيش سقف ارتفاع ثابت، Standards #46) */
+.tbl-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;
+  background:var(--surface-2);cursor:pointer;user-select:none;transition:background .12s;flex-wrap:wrap;border-radius:var(--radius) var(--radius) 0 0;}
+.tbl-bar:hover{background:var(--surface-hover);}
+.tbl-bar-right,.tbl-bar-left{display:flex;align-items:center;gap:8px;}
+.tbl-toggle{font-size:13px;color:var(--text-muted);transition:transform .25s;}
+.tbl-toggle.open{transform:rotate(180deg);}
+.results-wrap{display:flex;align-items:center;gap:8px;}
+.results-label{font-size:14px;font-weight:800;color:var(--text-primary);white-space:nowrap;}
+.results-count{display:inline-flex;align-items:center;justify-content:center;
+  min-width:44px;height:34px;padding:0 10px;
+  font-family:var(--font-mono);font-size:17px;font-weight:800;
+  color:var(--purple);background:var(--purple-light);
+  border:1.5px solid var(--purple-border);border-radius:var(--radius-sm);}
+/* تثبيت العناوين — سكرول داخلي: العناوين sticky جوه .tbl-scroll */
+.tbl-scroll{max-height:68vh;overflow:auto;border-radius:0 0 var(--radius) var(--radius);}
+.tbl-body-wrap{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:1fr;transition:grid-template-rows .3s ease;}
+.tbl-body-wrap>*{min-height:0;}
+.tbl-body-wrap.collapsed{grid-template-rows:0fr;overflow:hidden;}
+.tbl-body-wrap.collapsed>*{overflow:hidden;}
+
+/* الجدول */
+.data-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:var(--td-size);}
+.data-table.auto{table-layout:auto;}
+.data-table thead th{position:sticky;top:0;z-index:20;background:var(--surface-2);color:var(--th-color);font-weight:var(--th-weight);font-size:var(--th-size);letter-spacing:.3px;padding:10px 6px;text-align:center;white-space:normal;box-shadow:inset 0 -2px 0 var(--border-strong);}
+.data-table tbody td{text-align:center;padding:9px 6px;border-bottom:1px solid var(--border);white-space:normal;overflow-wrap:anywhere;font-size:var(--td-size);font-weight:var(--td-weight);}
+.data-table thead th,.data-table tbody td{border-inline-start:1px solid var(--border);}
+.data-table thead th:first-child,.data-table tbody td:first-child{border-inline-start:none;}
+.data-table tbody tr:hover{background:var(--surface-2);}
+.data-table td.empty{padding:40px;color:var(--text-mid);font-weight:700;white-space:normal;}
+.th-in{display:inline-flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px;}
+/* التحكم اللايف في عرض الأعمدة — v8.2.0 (Standards #51) */
+.data-table.measuring th,.data-table.measuring td{white-space:nowrap;}
+.data-table.measuring .th-in{flex-wrap:nowrap;max-width:none;}
+.col-rz{position:absolute;top:0;bottom:0;inset-inline-end:0;width:10px;cursor:col-resize;touch-action:none;z-index:3;}
+.col-rz::after{content:'';position:absolute;top:24%;bottom:24%;inset-inline-end:3px;width:2px;border-radius:2px;background:var(--border-strong);transition:background .12s,top .12s,bottom .12s;}
+.col-rz:hover::after,.col-rz.active::after{background:var(--accent);top:8%;bottom:8%;}
+body.col-resizing,body.col-resizing *{cursor:col-resize!important;user-select:none!important;}
+col.hl{background:var(--accent-light);}
+.w-badge{position:fixed;z-index:220;bottom:14px;left:50%;transform:translateX(-50%);background:var(--neutral-dark);color:var(--on-accent);font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:20px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.25);}
+.th-label{cursor:pointer;user-select:none;padding:2px 4px;border-radius:5px;transition:background .12s,color .12s;}
+.th-label:hover,th.sorted .th-label{background:var(--accent-light);color:var(--accent-dark);}
+.sort-icon{display:inline-block;font-size:10px;color:var(--accent);font-weight:900;}
+.sort-icon.active{margin-inline-start:4px;}
+.th-flt{min-width:22px;height:22px;padding:0 3px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:800;}
+.th-flt svg{width:14px;height:14px;}
+.th-flt:hover{background:var(--accent-light);color:var(--accent);}
+th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent);}
+
+/* ─── خلايا الأداة ─── */
+.tracking-link{font-family:var(--font-mono);font-weight:600;color:var(--accent);text-decoration:none;direction:ltr;}
+.tracking-link:hover{text-decoration:underline;}
+.fu-name { font-weight: 800; }
+.fu-phone { font-family: var(--font-mono); direction: ltr; font-size: 12px; font-weight: 700; display: block; }
+.fu-sub { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-top: 2px; }
+.fu-badge { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 700; white-space: nowrap; margin-top: 3px;
   background: var(--surface-2); color: var(--neutral-dark); border: 1px solid var(--border-strong); }
 .fu-badge.green { background: var(--green-light); color: var(--green-dark); border-color: var(--green); }
 .fu-badge.amber { background: var(--amber-light); color: var(--amber-dark); border-color: var(--amber); }
 .fu-badge.red   { background: var(--red-light); color: var(--red-dark); border-color: var(--red); }
 .fu-badge.blue  { background: var(--accent-light); color: var(--accent-dark); border-color: var(--accent-border); }
+.fu-late { color: var(--red-dark); font-weight: 700; }
+.fu-row-btns { display: flex; flex-direction: column; gap: 5px; align-items: stretch; }
+.fu-send-btn { border: 1px solid var(--green); background: var(--green); color: var(--on-accent); border-radius: var(--radius-sm);
+  padding: 6px 10px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.fu-send-btn:hover { filter: brightness(.94); }
+.fu-send-btn:disabled { background: var(--surface-2); border-color: var(--border-strong); color: var(--text-muted); cursor: not-allowed; filter: none; font-weight: 600; }
+.hist-btn { border:1px solid var(--accent-border); background:var(--accent-light); color:var(--accent-dark); border-radius:var(--radius-sm); padding:4px 10px; font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; }
+.hist-btn:hover { background:var(--accent-hover); }
+.hist-btn:disabled { background: var(--surface-2); border-color: var(--border); color: var(--text-muted); cursor: default; }
 
-.fu-ship { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
-.fu-ship:last-of-type { border-bottom: 0; }
-.fu-ship .meta { color: var(--text-secondary); font-size: 12.5px; }
-.fu-ship a { font-weight: 700; }
-
-.fu-body { padding: 12px 14px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; }
-@media (max-width: 760px) { .fu-body { grid-template-columns: 1fr; } }
-.fu-body h4 { margin: 0 0 6px; font-size: 12.5px; color: var(--text-secondary); }
-.fu-msg { width: 100%; min-height: 240px; resize: vertical; padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-strong);
+/* ─── نافذة الإرسال ─── */
+.fu-cust { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin-bottom: 10px; }
+.fu-ships { border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 12px; overflow: hidden; }
+.fu-ship { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; padding: 7px 12px; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+.fu-ship:last-child { border-bottom: 0; }
+.fu-ship .meta { color: var(--text-secondary); }
+.fu-lbl { display: block; margin: 0 0 6px; font-size: 12.5px; font-weight: 700; color: var(--text-secondary); }
+.fu-msg { width: 100%; min-height: 230px; resize: vertical; padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-strong);
   font-family: var(--font-body); font-size: 13.5px; line-height: 1.7; box-sizing: border-box; background: var(--surface); }
 .fu-msg:focus { outline: none; border-color: var(--accent); }
-.fu-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.fu-res select, .fu-res input { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: var(--radius-sm);
-  border: 1.5px solid var(--border-strong); font-family: var(--font-body); font-size: 13px; margin-bottom: 8px; background: var(--surface); }
-.fu-foot { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
-.fu-nophone { padding: 10px; border-radius: var(--radius-sm); background: var(--red-light); border: 1px solid var(--red); color: var(--red-dark); font-weight: 700; font-size: 13px; }
+.fu-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.fu-foot { font-size: 12px; color: var(--text-secondary); margin-top: 8px; line-height: 1.7; }
 .q-empty { text-align: center; padding: 28px; color: var(--text-secondary); }
-
-/* ── نافذة تأكيد صغيرة غير مستخدمة — مفيش فعل لا رجعة فيه هنا (كل تسجيل بيتعدّل بـ«إعادة فتح») ── */
 </style>
 </head>
 <body>
@@ -79,35 +216,33 @@
 <!-- ══════════════════════════════════════════════════════
      🔴 متابعة التأجيلات — صفحة جوّه المركز (قسم «أوردرات بوسطة»). الريبو
         `Bosta-Delivery-Follow-Up` Worker وبس. الإرسال **يدوي** من رقم موظف
-        متابعة الشحن — الصفحة بتجهّز القايمة والنص وبتسجّل النتيجة بس.
+        متابعة الشحن — الصفحة بتجهّز القايمة والنص وبتسجّل إن الرسالة اتفتحت وبس.
+        (v1.45.0: جدول بدل الكروت والتابات · القايمة = كل شحنة تحت التوصيل عليها محاولة ≥ 1 · بلا نتايج رد)
      ══════════════════════════════════════════════════════ -->
+<div class="container">
 <div id="headerMount"></div>
 
-<div class="container">
+<div class="fu-warn">⛔ ابعت من <b>رقم متابعة الشحن</b> — مش رقم خدمة العملاء (+20 11 26399000). الإرسال يدوي، رسالة رسالة، وبلا لينكات.</div>
+<div id="fuBanners"></div>
 
-  <div class="fu-warn">⛔ ابعت من <b>رقم متابعة الشحن</b> — مش رقم خدمة العملاء (+20 11 26399000). الإرسال يدوي، رسالة رسالة، وبلا لينكات.</div>
-  <div id="fuBanners"></div>
+<div class="att-chips" id="fuChipsBar" style="display:none"></div>
 
-  <div class="fu-tabs" id="fuTabs" role="tablist" aria-label="حالة المتابعة"></div>
+<div id="fuTableRoot"></div>
+</div><!-- /.container -->
 
-  <div class="card">
-    <div class="fu-bar">
-      <input type="text" id="fuSearch" autocomplete="off" aria-label="بحث برقم الأوردر أو اسم العميل أو رقم التتبع أو التليفون">
-      <select id="fuState" aria-label="حالة الشحنة الحالية"></select>
-      <select id="fuProvince" aria-label="المحافظة"></select>
-      <label><input type="checkbox" id="fuMulti"> اتأجلت أكتر من مرة</label>
-      <select id="fuDays" aria-label="نافذة القايمة">
-        <option value="3">آخر 3 أيام</option>
-        <option value="7">آخر 7 أيام</option>
-        <option value="14">آخر 14 يوم</option>
-      </select>
-      <span class="grow"></span>
-      <button class="btn btn-outline" id="fuReload" type="button">↺ تحديث</button>
-    </div>
-    <div class="fu-results" id="fuResults">النتائج: —</div>
+<!-- لوحة سجل الإرسال -->
+<div class="drawer-overlay" id="histOverlay" onclick="fuCloseHistory()"></div>
+<aside class="drawer" id="histDrawer" aria-hidden="true">
+  <div class="drawer-head"><div class="drawer-title" id="histTitle">—</div><button class="drawer-close" onclick="fuCloseHistory()" aria-label="إغلاق">✕</button></div>
+  <div class="drawer-body" id="histBody"></div>
+</aside>
+
+<!-- نافذة الإرسال -->
+<div class="eco-overlay" id="fuSendOverlay" onclick="if(event.target===this)fuCloseCompose()">
+  <div class="eco-modal" style="max-width:660px;">
+    <div class="eco-modal-hdr"><h3>📲 إرسال رسالة واتساب</h3><button class="modal-close-x" onclick="fuCloseCompose()">✕</button></div>
+    <div class="eco-modal-body" id="fuSendBody"></div>
   </div>
-
-  <div id="fuList"><div class="q-empty">⏳ جاري تحميل القايمة...</div></div>
 </div>
 
 <!-- مودال الإعدادات + حاوية التوست — بيتحقنوا من الـ shell -->
@@ -120,12 +255,23 @@
     <div class="eco-modal-body">
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.44.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.45.0</span>
+          <span class="cl-ver-date">15-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>📋 <b>جدول بدل الكروت والتابات</b> — نفس فكرة جدول «متابعة شحنات بوسطة»: فلتر في رأس كل عمود · ترتيب بالضغط على العنوان · عناوين ثابتة · عرض الأعمدة بالسحب · «مسح كل الفلاتر». التابات الأربعة (محتاجين رسالة · مستنيين رد · محتاجين تصرّف · خلصت) اتشالت.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>📲 <b>الأداة بقت إرسال بس</b> — اتشال «رد العميل» و«نتيجة الرد» و«إعادة الفتح». بدالهم عمود <b>«مرات الإرسال»</b> بعدد المرات اللي اتفتح فيها واتساب للشحنة، وزرار <b>🕘 السجل</b> بيفتح تفاصيل كل مرة: مين · امتى · بعد أنهي محاولة · ونص الرسالة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🚚 <b>القايمة بقت كل الشحنات تحت التوصيل اللي عليها محاولة توصيل أو أكتر</b> — مش «تأجيل بطلب العميل» بس. نص الرسالة بيتغيّر لو آخر سبب كان تأجيل بطلب العميل.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 <b>الـ Worker لازم يتنشر (v2.0.0) قبل الصفحة</b> — الصفحة بتعتمد على <code>get_sends</code> وعلى التعريف الجديد، والرئيسية بتقرا <code>unsent</code>.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.44.0</span>
           <span class="cl-ver-date">15-10-2026</span>
         </div>
         <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>📲 <b>متابعة التأجيلات</b> — قايمة الشحنات اللي مندوب بوسطة سجّل عليها «تأجيل بطلب من العميل» (<code>exception_code = 3</code>) ولسه ما اتقفلتش، ورسالة واتساب جاهزة لكل عميل بتتبعت <b>يدوي</b> من رقم متابعة الشحن، وتسجيل رد العميل.</span></li>
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 Worker الأداة <code>bosta-delivery-follow-up-worker</code> (ريبو <code>Bosta-Delivery-Follow-Up</code>) <b>لازم يتنشر وسرّه يتضم لمجموعة <code>delivery_cod_ops</code></b> قبل أول استخدام، وإلا <code>401</code>.</span></li>
         </ul>
       </div>
     </div>
@@ -140,29 +286,29 @@
       <details class="about-sec" open>
         <summary>📋 بتعمل إيه</summary>
         <div class="about-sec-body">
-          <p>بتعرض الشحنات اللي <b>بوسطة سجّلت عليها تأجيل بطلب العميل</b> ولسه ما اتسلّمتش ولا رجعت، وبتجهّز لكل عميل رسالة واتساب
-             بتفتحها بزرار. <b>الإرسال يدوي بالكامل</b> من واتساب على رقم موظف متابعة الشحن — مفيش إرسال تلقائي.</p>
-          <p><b>الدورة:</b> تاب «محتاجين رسالة» ← راجع النص ← «فتح واتساب» ← ابعت ← لما العميل يرد اختار النتيجة.</p>
+          <p>بتعرض <b>كل شحنة بوسطة تحت التوصيل وعليها محاولة توصيل أو أكتر</b> ولسه ما اتسلّمتش ولا رجعت (أيًا كان السبب: تأجيل · العميل مش موجود · مش بيرد · عنوان …)،
+             وبتجهّز لكل عميل رسالة واتساب بتفتحها بزرار. <b>الإرسال يدوي بالكامل</b> من واتساب على رقم موظف متابعة الشحن — مفيش إرسال تلقائي.</p>
+          <p><b>الدورة:</b> ابحث/فلتر في الجدول ← «📲 إرسال» على الشحنة ← راجع النص (وعدّله لو عايز) ← «فتح واتساب» ← ابعت من واتساب.</p>
           <ul>
-            <li><b>الميعاد مناسب</b> ← خلاص (بتتقفل).</li>
-            <li><b>محتاج ميعاد تاني</b> ← عدّله في داشبورد بوسطة (الـ API مفيهوش تغيير ميعاد) واكتب في الملاحظة اللي اتعمل.</li>
-            <li><b>مطلبتش تأجيل</b> ← تصعيد «محاولة وهمية» لبوسطة (سياستهم: خلال 7 أيام عمل).</li>
-            <li><b>عايز يلغي</b> ← حوّله للمسؤول — مش قرار الأداة.</li>
+            <li><b>الهدف الوحيد إرسال الرسالة</b> — مفيش تسجيل لرد العميل ولا حالات متابعة. اللي بيتسجّل: <b>مين فتح الواتساب · امتى · بعد أنهي محاولة · ونص الرسالة</b>.</li>
+            <li><b>عمود «مرات الإرسال»</b> بيعدّ ضغطات «فتح واتساب» على الشحنة. ⚠️ ده <b>مش دليل إن الرسالة اتبعتت فعلاً</b> — الأداة مش بتشوف واتساب، هي بتعرف إن الموظف فتحه بالنص ده.</li>
+            <li>زرار <b>🕘 السجل</b> بيفتح تفاصيل كل مرة (الأحدث فوق) بنص الرسالة زي ما اتبعتت.</li>
+            <li>ضغطتين سريعتين على «فتح واتساب» بيتحسبوا مرة واحدة (نفس الموظف خلال ١٥ ثانية).</li>
           </ul>
-          <p>⏰ التأجيلات بتتسجّل لحد 10 م. الأفضل الإرسال نفس اليوم قبل 9 م أو الساعة 10 ص اليوم اللي بعده. <b>مفيش رسايل بالليل.</b></p>
+          <p>⏰ الأفضل الإرسال بين <b>10 ص و9 م</b>. <b>مفيش رسايل بالليل.</b></p>
         </div>
       </details>
       <details class="about-sec">
         <summary>⚠️ لازم تعرف</summary>
         <div class="about-sec-body">
           <ul>
-            <li><b>تعريف القايمة (مكانه الـ Worker بس):</b> شحنة فيها تأجيل (كود 3) في آخر N أيام ومفيش عليها تسليم/مرتجع/إنهاء ولا حدث RTO. <b>مش «آخر حالة = تأجيل»</b> — بعد التأجيل الشحنة بتتحرك (في المخزن · خارج للتوصيل).</li>
-            <li><b>الشحنة اللي الأوردر بتاعها ملغي على شوبيفاي، أو مالهاش أوردر، أو مفيهاش موبايل صالح</b> بتفضل في القايمة بعلامة — مابتختفيش.</li>
-            <li><b>اسم العميل وتليفونه بيتجابوا من شوبيفاي وقت العرض بس</b> — مابيتخزنوش في أي مكان (ولا في السجل). لو الأوردرات ظهرت بلا اسم وتليفون، صلاحية «بيانات العملاء» ناقصة على التطبيق (🩺 فحص النظام بيقول).</li>
-            <li><b>أكتر من شحنة لنفس التليفون</b> بتتجمع في كارت واحد، والرسالة بتذكر كل الأوردرات، والتسجيل بينزل على كلها.</li>
-            <li><b>الرقم الأولوية فيه لرقم الشحن</b> (اللي المندوب بيكلمه). لو رقم الأوردر مختلف بيظهر زرار بديل.</li>
+            <li><b>تعريف القايمة (مكانه الـ Worker بس):</b> رقم تتبع آخر حدث عليه مش نهائي (مفيش تسليم/مرتجع/إنهاء ولا RTO) <b>وأعلى «عدد محاولات» عليه 1 أو أكتر</b>، وليه نشاط في آخر <b>60 يوم</b>. نفس تعريف تاب «الأوردرات تحت التوصيل» في «متابعة شحنات بوسطة» + شرط المحاولات.</li>
+            <li><b>الشحنة اللي الأوردر بتاعها ملغي على شوبيفاي، أو مالهاش أوردر، أو مفيهاش موبايل صالح</b> بتفضل في الجدول بعلامة — مابتختفيش، وزرار الإرسال بيتقفل عليها.</li>
+            <li><b>اسم العميل وتليفونه بيتجابوا من شوبيفاي وقت العرض بس</b> — مابيتخزنوش في أي مكان. <b>نص الرسالة بيتخزّن باسم العميل مستبدل بـ{name}</b> وأي رقم موبايل جواه بيتشال. لو كتبت اسم بإيدك بشكل مختلف عن اللي في شوبيفاي ممكن يتخزّن زي ما هو — ماتكتبش بيانات شخصية في النص.</li>
+            <li><b>أكتر من شحنة لنفس التليفون</b> الرسالة بتذكرهم كلهم، والتسجيل بينزل على كل شحنة منهم.</li>
+            <li><b>الرقم الأولوية فيه لرقم الشحن</b> (اللي المندوب بيكلمه). لو رقم تاني صالح على الأوردر بيظهر زرار بديل في نافذة الإرسال.</li>
             <li>الرسالة <b>بلا إيموجي</b> — الإيموجي بيوصل <code>�</code> بعد تحويل رابط واتساب.</li>
-            <li>رقم الرئيسية «محتاجين رسالة» بيتحسب على نافذة <b>آخر 3 أيام</b> دايمًا، وبيتحدّث لما تفتح الصفحة دي بنافذة 3 أيام.</li>
+            <li>رقم الرئيسية «محتاجين رسالة» = شحنات ما اتبعتلهاش ولا مرة، وبيتحدّث لما تفتح الصفحة دي.</li>
             <li>مفيش تحديث تلقائي — زرار «تحديث» بس.</li>
           </ul>
         </div>
@@ -172,13 +318,13 @@
         <div class="about-sec-body">
           <ul>
             <li>§CONFIG — <code>DCO_WORKERS.deliveryFollowUp</code> (<code>shared/shell.js</code>) · الجلسة والسر من الـ shell.</li>
-            <li>§MESSAGE — <code>FU_TEMPLATE</code> (ثابت واحد سهل التعديل) · <code>fuBuildMessage</code> · <code>fuNormPhone</code> · <code>fuWaUrl</code>.</li>
-            <li>§GROUPS — تجميع بالتليفون داخل كل تاب · التابات = <code>followUp.status</code>.</li>
-            <li>§RECORD — <code>record</code> (<code>opened</code> / <code>result</code> / <code>reopen</code>) بـ <code>items[]</code> للمجموعة.</li>
-            <li>§CACHE — بتكتب <code>dco_queue_followup</code> (نفس شكل <code>queue_summary</code>) فالرئيسية بتاخد رقمها ببلاش.</li>
+            <li>§MESSAGE — <code>FU_TPL_POSTPONED</code> · <code>FU_TPL_ATTEMPT</code> (ثوابت سهلة التعديل) · <code>fuBuildMessage</code> · <code>fuMaskName</code> · <code>fuNormPhone</code> · <code>fuWaUrl</code>.</li>
+            <li>§TABLE — <code>FU_COLS</code> · فلاتر رأس العمود (<code>fuOpenPop</code>) · ترتيب 3 حالات · عرض الأعمدة بالسحب (<code>dco_col_widths_v1_Bosta-Delivery-Follow-Up.html</code>) — نمط <code>Bosta-Webhook-Status-Receiver.html</code>.</li>
+            <li>§COMPOSE — نافذة الإرسال · <code>record</code> بـ <code>items[]</code> لمجموعة التليفون الواحد · <code>get_sends</code> للسجل.</li>
+            <li>§CACHE — بتكتب <code>dco_queue_followup</code> (نفس شكل <code>queue_summary</code>: <code>total · unsent · sent</code>) فالرئيسية بتاخد رقمها ببلاش.</li>
           </ul>
           <p>الـ Worker: <code>bosta-delivery-follow-up-worker</code> في ريبو <code>Bosta-Delivery-Follow-Up</code> — Worker وبس، والصفحة دي هي النسخة الوحيدة.
-             بيقرا <code>bosta_webhook_events</code> (قراءة بس) ويكتب في <code>bosta_delivery_followups</code>.</p>
+             بيقرا <code>bosta_webhook_events</code> (قراءة بس) ويكتب في <code>bosta_followup_sends</code>.</p>
         </div>
       </details>
     </div>
@@ -200,37 +346,17 @@ const PAGE_WORKERS = ['deliveryFollowUp'];
 
 // ⛔ كل أسماء الصفحة بادئتها `fu`/`FU_` — الـ shell و`<script>` الصفحة في نفس النطاق العام،
 //    وإعادة تعريف `const`/`let` بنفس الاسم بتقتل سكربت الصفحة كله.
-
-const FU_DEFAULT_DAYS = 3;   // نفس نافذة `queue_summary` — الكاش بيتكتب منها بس
-
-const FU_RESULTS = [
-  ['ok',            '✅ الميعاد مناسب'],
-  ['other_day',     '📅 محتاج ميعاد تاني'],
-  ['not_requested', '🙅 مطلبتش تأجيل'],
-  ['cancel',        '❌ عايز يلغي'],
-  ['other',         '💬 رد تاني'],
-  ['no_reply',      '🔇 مفيش رد'],
-  ['no_wa',         '🚫 الرقم مش على واتساب'],
-  ['skip',          '⏭ ما اتبعتش'],
-];
-const FU_RESULT_LABEL = Object.fromEntries(FU_RESULTS);
-
-// التابات = حالة المتابعة بالظبط (نفس تعريف عدّادات `queue_summary`): pending · sent · replied · closed
-const FU_TABS = [
-  { key: 'pending', label: 'محتاجين رسالة' },
-  { key: 'sent',    label: 'مستنيين رد' },
-  { key: 'replied', label: 'محتاجين تصرّف' },
-  { key: 'closed',  label: 'خلصت' },
-];
-const FU_STATE_LABEL = { 20: 'مع مندوب (Route Assigned)', 24: 'في المخزن', 41: 'خارج للتوصيل', 47: 'اتأجل' };
+const fuEl = (id) => document.getElementById(id);
 
 // ══════════════════════════════════════════════════════
 // §MESSAGE — النص الجاهز + التليفون + رابط واتساب
 // ══════════════════════════════════════════════════════
-// 🔴 النص النهائي بيتتفق عليه بعدين (قرار أحمد) — فهو ثابت واحد هنا.
+// 🔴 النص النهائي بيتتفق عليه بعدين (قرار أحمد) — فهو ثابت هنا.
 //    ⛔ بلا إيموجي (الـ 4-byte بيوصل `�` بعد تحويل wa.me ← api.whatsapp.com).
 //    ⛔ بلا خصم/عرض/«اطلب تاني» ولا لينكات ولا جملة «إلغاء الأوردر».
-const FU_TEMPLATE = [
+// صيغتين: لو آخر سبب فشل على **كل** شحنات الكارت = «تأجيل بطلب العميل» (exception_code 3) → صيغة التأجيل،
+// غير كده → صيغة المحاولة العامة (v1.45.0: القايمة بقت كل المحاولات مش التأجيل بس).
+const FU_TPL_POSTPONED = [
   'أهلاً {name}',
   'معاك مسئول متابعة الشحن من EcomModa',
   'بخصوص {orders}',
@@ -238,6 +364,16 @@ const FU_TEMPLATE = [
   'شركة الشحن (بوسطة) سجّلت إنك طلبت تأجيل الاستلام.',
   '',
   'ممكن تأكد لنا اليوم المناسب ليك للاستلام؟ ولو ماكنتش طلبت تأجيل أصلاً قولنا عشان نتابع مع شركة الشحن.',
+  'شكراً ليك',
+].join('\n');
+const FU_TPL_ATTEMPT = [
+  'أهلاً {name}',
+  'معاك مسئول متابعة الشحن من EcomModa',
+  'بخصوص {orders}',
+  '',
+  'شركة الشحن (بوسطة) حاولت توصّلك الشحنة ولسه ماتسلّمتش.',
+  '',
+  'ممكن تأكد لنا اليوم المناسب ليك للاستلام وإن رقمك شغال؟ ولو فيه أي مشكلة في العنوان قولنا عشان نتابع مع شركة الشحن.',
   'شكراً ليك',
 ].join('\n');
 
@@ -251,12 +387,14 @@ function fuNormPhone(p) {
   if (!d.startsWith('20')) d = '20' + d;
   return /^201[0125]\d{8}$/.test(d) ? d : null;
 }
+const fuLocalPhone = (p) => '0' + p.slice(2);
 
 function fuOrderTag(name) {
   const n = String(name ?? '').trim();
   return n ? (n.startsWith('#') ? n : '#' + n) : '—';
 }
 function fuIsS2(r) { return String(r.slot || '').toLowerCase() === 's2'; }
+function fuIsPostponed(r) { return String(r.lastExcCode) === '3'; }
 
 function fuBuildMessage(rows) {
   const first = (rows.map(r => r.customer?.firstName).find(Boolean) || '').trim();
@@ -264,14 +402,34 @@ function fuBuildMessage(rows) {
   let orders;
   if (rows.length === 1) {
     orders = fuIsS2(rows[0])
-      ? `شحنة الاستبدال الخاصة بأوردرك رقم ${fuOrderTag(rows[0].order)}`
+      ? `شحنة الاستبدال/الاسترجاع الخاصة بأوردرك رقم ${fuOrderTag(rows[0].order)}`
       : `أوردرك رقم ${fuOrderTag(rows[0].order)}`;
   } else {
-    const list = rows.map(r => fuOrderTag(r.order) + (fuIsS2(r) ? ' (استبدال)' : ''));
+    const list = rows.map(r => fuOrderTag(r.order) + (fuIsS2(r) ? ' (استبدال/استرجاع)' : ''));
     orders = `أوردراتك رقم ${list.join(' و')}`;
   }
-  return FU_TEMPLATE.replace('{name}', name).replace('{orders}', orders);
+  const tpl = rows.every(fuIsPostponed) ? FU_TPL_POSTPONED : FU_TPL_ATTEMPT;
+  return tpl.replace('{name}', name).replace('{orders}', orders);
 }
+
+// 🔴 الخصوصية: النص بيتخزّن في D1، واسم العميل مايتخزّنش — فبنبدّله بـ{name} قبل الإرسال للـ Worker
+//    (كلمة كاملة بس، بحدود حروف/أرقام). الاسم بيرجع وقت عرض السجل من شوبيفاي.
+function fuNameTokens(rows) {
+  const set = new Set();
+  rows.forEach(r => [r.customer?.firstName, ...String(r.customer?.fullName || '').split(/\s+/)].forEach(t => {
+    t = String(t || '').trim(); if (t.length >= 2) set.add(t);
+  }));
+  return [...set].sort((a, b) => b.length - a.length);
+}
+function fuMaskName(text, rows) {
+  let out = String(text);
+  for (const t of fuNameTokens(rows)) {
+    const esc1 = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    out = out.replace(new RegExp(`(?<![\\p{L}\\p{N}])${esc1}(?![\\p{L}\\p{N}])`, 'giu'), '{name}');
+  }
+  return out;
+}
+const fuUnmask = (msg, r) => String(msg ?? '').split('{name}').join(r?.customer?.firstName || '[الاسم]');
 
 // api.whatsapp.com مباشرة (من غير wa.me — تفادي التحويل اللي بوّظ الإيموجي)
 function fuWaUrl(phone, text) {
@@ -301,355 +459,814 @@ function fuParsePromise(s) {
   if (t.getUTCFullYear() !== y || t.getUTCMonth() !== mo - 1 || t.getUTCDate() !== d) return null;
   return { iso: `${m[3]}-${m[2]}-${m[1]}`, text: `${m[1]}/${m[2]}/${m[3]}` };
 }
-function fuTodayCairo() {
-  const p = cairoParts(new Date());
-  return p ? `${p.year}-${p.month}-${p.day}` : null;
+
+// ─── تواريخ (القاهرة · Intl من الـ shell) — بوسطة مش بتضمن صيغة ISO نضيفة لكل حقل ───
+function fuValidDate(v) {
+  if (!v) return null;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
 }
+function fuCairoDayOf(iso) { const d = fuValidDate(iso); if (!d) return ''; const p = cairoParts(d); return p ? `${p.year}-${p.month}-${p.day}` : ''; }
+function fuTodayStr() { const p = cairoParts(new Date()); return p ? `${p.year}-${p.month}-${p.day}` : ''; }
+function fuAddDays(dateStr, n) {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  const pad = x => String(x).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+}
+function fuFmtD(v) { if (!v) return '—'; const p = String(v).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : v; }
+
+// ─── أسباب بوسطة المعروفة (كود ← عربي). أي سبب مش في القايمة بيتعرض حرفيًا. ───
+// ⚠️ نسخة من `REASON_AR_BY_EN` في Bosta-Webhook-Status-Receiver.html — تعديل هناك لازم ينزل هنا (درس R1).
+const FU_REASON_AR_BY_EN = {
+  'Retry delivery - the customer is not in the address.': 'العميل غير متواجد',
+  'Retry delivery - the customer changed the address.': 'العميل غيّر العنوان',
+  'Postponed - the customer requested postponement for another day.': 'تأجيل بطلب من العميل',
+  'Cancellation - the customer wants to open the shipment.': '(إلغاء) العميل يريد فتح الشحنة',
+  'Waiting for data modification - address or phone number not clear/wrong.': 'العنوان / التليفون خطأ',
+  'Cancellation - cancellation of delivery at the request of the sender.': 'إلغاء بطلب من المُرسل',
+  'Customer is not answering.': 'العميل لا يرد',
+  'Cancellation - the customer refuses to receive the shipment.': '(إلغاء) العميل رفض الاستلام',
+  'Cancellation - the delivery address is outside Bosta coverage area.': '(إلغاء) العنوان خارج التغطية',
+  'Waiting for data modification - address not clear.': 'العنوان غير واضح',
+  'Waiting for data modification - wrong phone number.': 'رقم التليفون خطأ',
+  'Bad Weather.': 'ظروف جوية',
+  'Suspicious consignee.': 'اشتباه في المُرسل إليه',
+  'Cancellation - The customer refuses to give the shipment to the star': '(إلغاء) العميل رفض الاستلام',
+  'Cancellation - product issue': '(إلغاء) مشكلة منتج',
+  'Description / Number of items does not match the order': 'وصف / عدد المنتجات مختلف عن المسجّل في الشحنة',
+};
+const fuNormReason = r => String(r).trim().replace(/\.+$/, '').toLowerCase();
+const FU_REASON_AR = new Map(Object.entries(FU_REASON_AR_BY_EN).map(([en, ar]) => [fuNormReason(en), ar]));
+const fuReasonAr = r => FU_REASON_AR.get(fuNormReason(r)) || r;
+const fuReasonOf = (r) => r.lastReason && String(r.lastReason).trim() ? fuReasonAr(r.lastReason) : '—';
 
 // ══════════════════════════════════════════════════════
 // §STATE + LOAD
 // ══════════════════════════════════════════════════════
-let fuRows = [];                 // الرد الخام (الحقيقة) — كل حالة المتابعة جوّه `followUp`
+let fuRows = [];                 // الرد الخام (الحقيقة)
 let fuLoaded = false;
 let fuLoading = false;
-let fuMeta = { shopifyError: null, truncated: false, cap: 0, days: FU_DEFAULT_DAYS };
-let fuTab = 'pending';
-let fuBusyKeys = new Set();      // كروت فيها تسجيل شغّال — بتمنع الضغطة المزدوجة
-const fuMsgs = new Map();        // نص اتعدّل بالإيد لكل كارت (يفضل بعد إعادة الرسم)
-const fuDrafts = new Map();      // نتيجة/ملاحظة لسه ما اتحفظتش
+let fuLastOkAt = 0;
+let fuMeta = { shopifyError: null, loadError: null, truncated: false, cap: 0, windowDays: 60, minAttempts: 1 };
+let fuGroupMap = new Map();      // trackingNumber → كل شحنات نفس التليفون (من القايمة الكاملة)
 
-const fuStatusOf = (r) => { const s = r.followUp?.status || 'pending'; return s === 'skipped' ? 'closed' : s; };
+const FU_MS_KEYS = ['province', 'state', 'reason', 'attempts', 'sends'];
+const FU_FL = { order: 'رقم الأوردر', customer: 'العميل', tracking: 'رقم التتبع', province: 'المحافظة', state: 'الحالة عند بوسطة',
+  reason: 'آخر سبب', attempts: 'عدد المحاولات', date: 'وقت آخر تحديث', sends: 'مرات الإرسال' };
+const FU_PRESETS = { today: 'اليوم', yesterday: 'أمس', last7: 'آخر 7 أيام', last30: 'آخر 30 يوم', thisMonth: 'الشهر الحالي', lastMonth: 'الشهر السابق' };
+
+function fuNewState() {
+  const ms = {}; FU_MS_KEYS.forEach(k => ms[k] = new Set());
+  return { ms, q: { order: '', customer: '', tracking: '' }, date: { preset: '', from: '', to: '' }, sort: { key: null, dir: null } };
+}
+const fuFilter = fuNewState();
+
+const fuSendsOf = (r) => r.sends?.count || 0;
+const fuSendsBucket = (r) => { const n = fuSendsOf(r); return n === 0 ? '0' : n === 1 ? '1' : '2+'; };
+const FU_VAL = {
+  province: r => r.customer?.province || '—',
+  state:    r => `${r.state} · ${r.stateDesc || '—'}`,
+  reason:   r => fuReasonOf(r),
+  attempts: r => r.attempts == null ? 'null' : String(r.attempts),
+  sends:    r => fuSendsBucket(r),
+};
+function fuLabelOf(k, v) {
+  if (k === 'attempts') return v === 'null' ? '— (بدون)' : fuAttemptLabel(v);
+  if (k === 'sends') return v === '0' ? 'لم يُرسل' : v === '1' ? 'مرة واحدة' : 'مرتين فأكتر';
+  if (k === 'reason' && v === '—') return '— (بدون سبب)';
+  if (k === 'province' && v === '—') return '— (بلا محافظة)';
+  return v;
+}
 
 async function fuLoad() {
   if (fuLoading) return;
   fuLoading = true;
-  const btn = document.getElementById('fuReload');
-  btn.disabled = true;
-  const days = Number(document.getElementById('fuDays').value) || FU_DEFAULT_DAYS;
+  fuSetRefreshing(true);
   try {
-    const d = await apiGet('get_followups', { days });
+    const d = await apiGet('get_followups');
     fuRows = Array.isArray(d.rows) ? d.rows : [];
-    fuMeta = { shopifyError: d.shopifyError || null, truncated: !!d.truncated, cap: d.cap || 0, days };
+    fuMeta = { shopifyError: d.shopifyError || null, loadError: null, truncated: !!d.truncated, cap: d.cap || 0,
+               windowDays: d.windowDays || 60, minAttempts: d.minAttempts || 1 };
     fuLoaded = true;
+    fuLastOkAt = Date.now();
+    fuBuildGroups();
     fuWriteCache();
-    fuSyncFilters();
+    fuPruneFilters();
     fuRender();
+    fuSetLastUpdated(false);
   } catch (e) {
     // الفشل ≠ «مفيش شغل»: لو فيه قايمة قديمة بتفضل، ولو لأ بنقول تعذّر
-    document.getElementById('fuBanners').innerHTML =
-      `<div class="fu-warn bad">⚠️ تعذّر تحميل القايمة: ${esc(e.message)}</div>`;
-    if (!fuLoaded) document.getElementById('fuList').innerHTML = '<div class="q-empty">تعذّر تحميل القايمة — اضغط «تحديث».</div>';
+    fuMeta.loadError = e.message;
+    fuRenderBanners();
+    if (!fuLoaded) fuEl('fuBody').innerHTML = `<tr><td colspan="${FU_COLS.length}" class="empty">تعذّر تحميل القايمة — اضغط «تحديث».</td></tr>`;
+    fuSetLastUpdated(true);
   } finally {
     fuLoading = false;
-    btn.disabled = false;
+    fuSetRefreshing(false);
   }
 }
-
-// الرئيسية بتقرا نفس الشكل الخام لـ `queue_summary` — بنكتبه من القايمة بس لما النافذة = نافذتها
-function fuWriteCache() {
-  if (fuMeta.days !== FU_DEFAULT_DAYS) return;
-  const c = { pending: 0, sent: 0, replied: 0 };
-  fuRows.forEach(r => { const s = fuStatusOf(r); if (s in c) c[s]++; });
-  cacheSet(DCO_CACHE_FOLLOWUP, { ok: true, windowDays: FU_DEFAULT_DAYS, total: fuRows.length,
-                                 pending: c.pending, sent: c.sent, needsAction: c.replied });
+function fuSetRefreshing(on) {
+  const btn = fuEl('refreshBtn');
+  if (btn) { btn.disabled = on; btn.classList.toggle('refreshing', on); }
+  document.querySelectorAll('.bg-spin').forEach(el => el.classList.toggle('on', on));
 }
+function fuSetLastUpdated(failed) {
+  const t = fuLastOkAt ? new Date(fuLastOkAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Cairo' }) : '';
+  document.querySelectorAll('.last-upd').forEach(el => {
+    el.textContent = failed ? `⚠️ فشل التحديث${t ? ' — آخر بيانات ' + t : ''}` : (t ? `آخر تحديث ${t}` : '');
+    el.classList.toggle('err', !!failed);
+  });
+}
+
+// الرئيسية بتقرا نفس الشكل الخام لـ `queue_summary` — بنكتبه من القايمة الكاملة (نفس تعريف الـ Worker).
+// ⚠️ لو القايمة اتقصّت عند السقف الرقم هيكون أقل من الحقيقي — فمابنكتبوش (الرئيسية تجيبه من الـ Worker).
+function fuWriteCache() {
+  if (fuMeta.truncated) return;
+  const sent = fuRows.filter(r => fuSendsOf(r) > 0).length;
+  cacheSet(DCO_CACHE_FOLLOWUP, { ok: true, windowDays: fuMeta.windowDays, total: fuRows.length, unsent: fuRows.length - sent, sent });
+}
+
+// مجموعات نفس التليفون الأساسي — من القايمة الكاملة مش المفلترة (الرسالة بتشمل كل شحنات العميل)
+function fuBuildGroups() {
+  fuGroupMap = new Map();
+  const byPhone = new Map();
+  fuRows.forEach(r => { const p = fuPhones(r)[0]; if (p) { if (!byPhone.has(p)) byPhone.set(p, []); byPhone.get(p).push(r); } });
+  byPhone.forEach(list => { list.sort((a, b) => String(a.order).localeCompare(String(b.order), 'en', { numeric: true })); list.forEach(r => fuGroupMap.set(r.trackingNumber, list)); });
+}
+const fuGroupRows = (r) => fuGroupMap.get(r.trackingNumber) || [r];
 
 // ══════════════════════════════════════════════════════
 // §FILTERS — البنود بتتبني من القايمة الكاملة (مش المفلترة)
 // ══════════════════════════════════════════════════════
-function fuSyncFilters() {
-  const fill = (id, items, allLabel) => {
-    const el = document.getElementById(id), cur = el.value;
-    el.innerHTML = `<option value="">${esc(allLabel)}</option>` + items.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
-    // الاختيار القديم بيتشال لو قيمته اختفت — فلتر على قيمة مختفية = قايمة فاضية بلا سبب ظاهر
-    el.value = items.some(([v]) => v === cur) ? cur : '';
-  };
-  const states = [...new Set(fuRows.map(r => r.state).filter(s => s != null))].sort((a, b) => a - b);
-  fill('fuState', states.map(s => [String(s), FU_STATE_LABEL[s] || `حالة ${s}`]), 'كل الحالات');
-  const provs = [...new Set(fuRows.map(r => r.customer?.province).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ar'));
-  fill('fuProvince', provs.map(p => [p, p]), 'كل المحافظات');
+function fuValsOf(k, r) { return [FU_VAL[k](r)]; }
+function fuItemsFor(k) {
+  const m = new Map();
+  fuRows.forEach(r => fuValsOf(k, r).forEach(v => m.set(v, (m.get(v) || 0) + 1)));
+  const a = [...m.entries()].map(([v, c]) => ({ v, c, label: fuLabelOf(k, v) }));
+  const num = x => x === 'null' ? Infinity : Number(x);
+  if (k === 'attempts') a.sort((x, y) => num(x.v) - num(y.v));
+  else if (k === 'state') a.sort((x, y) => Number(x.v.split(' · ')[0]) - Number(y.v.split(' · ')[0]));
+  else if (k === 'sends') a.sort((x, y) => ['0', '1', '2+'].indexOf(x.v) - ['0', '1', '2+'].indexOf(y.v));
+  else a.sort((x, y) => x.label.localeCompare(y.label, 'ar'));
+  return a;
+}
+// الاختيار القديم بيتشال لو قيمته اختفت — فلتر على قيمة مختفية = جدول فاضي بلا سبب ظاهر
+function fuPruneFilters() {
+  FU_MS_KEYS.forEach(k => {
+    const have = new Set(fuItemsFor(k).map(i => i.v));
+    [...fuFilter.ms[k]].forEach(v => { if (!have.has(v)) fuFilter.ms[k].delete(v); });
+  });
 }
 
 function fuPass(r) {
-  const st = document.getElementById('fuState').value;
-  if (st && String(r.state) !== st) return false;
-  const pv = document.getElementById('fuProvince').value;
-  if (pv && r.customer?.province !== pv) return false;
-  if (document.getElementById('fuMulti').checked && !(r.postponeCount > 1)) return false;
-  const q = document.getElementById('fuSearch').value.trim().toLowerCase().replace(/^#/, '');
-  if (q) {
-    const hay = [r.order, r.trackingNumber, r.customer?.fullName, r.customer?.firstName, ...fuPhones(r)]
-      .filter(Boolean).join(' ').toLowerCase().replace(/#/g, '');
-    if (!hay.includes(q)) return false;
+  const s = fuFilter;
+  for (const k of FU_MS_KEYS) { const set = s.ms[k]; if (set.size && !fuValsOf(k, r).some(v => set.has(v))) return false; }
+  const o = s.q.order.trim().replace(/^#/, '').toLowerCase();
+  if (o && !String(r.order || '').toLowerCase().replace(/^#/, '').includes(o)) return false;
+  const tn = s.q.tracking.trim().toLowerCase();
+  if (tn && !String(r.trackingNumber || '').toLowerCase().includes(tn)) return false;
+  const cq = s.q.customer.trim().toLowerCase();
+  if (cq) {
+    const hay = [r.customer?.fullName, r.customer?.firstName, ...fuPhones(r).flatMap(p => [p, fuLocalPhone(p)])].filter(Boolean).join(' ').toLowerCase();
+    if (!hay.includes(cq.replace(/\s+/g, ' '))) return false;
+  }
+  if (s.date.from || s.date.to) {
+    const d = fuCairoDayOf(r.lastEventAt);
+    if (!d) return false;
+    if (s.date.from && d < s.date.from) return false;
+    if (s.date.to && d > s.date.to) return false;
   }
   return true;
 }
+function fuActiveCount(k) {
+  const s = fuFilter;
+  if (FU_MS_KEYS.includes(k)) return s.ms[k].size;
+  if (k === 'order' || k === 'customer' || k === 'tracking') return s.q[k].trim() ? 1 : 0;
+  if (k === 'date') return (s.date.from || s.date.to) ? 1 : 0;
+  return 0;
+}
+// ⚠️ باج المعيار القاتل: !!value مش !== null (data-table-standard.md §3)
+function fuAnyFilterActive() {
+  const s = fuFilter;
+  return FU_MS_KEYS.some(k => s.ms[k].size > 0) || !!s.q.order.trim() || !!s.q.customer.trim() || !!s.q.tracking.trim() || !!s.date.from || !!s.date.to;
+}
+function fuResetDate() { fuFilter.date = { preset: '', from: '', to: '' }; }
+function fuClearAll() {
+  const s = fuFilter;
+  FU_MS_KEYS.forEach(k => s.ms[k].clear());
+  s.q = { order: '', customer: '', tracking: '' }; fuResetDate();
+  fuClosePop(); fuRender();
+}
+
+// مربعات (عدد المحاولات · مرات الإرسال) — بتكتب في نفس فلاتر الأعمدة، والعدّ من القايمة الكاملة مش المفلترة
+function fuAttemptClass(v) { const n = Number(v); return Number.isFinite(n) ? 'att-' + Math.min(n, 3) : 'att-0'; }
+function fuAttemptLabel(k) {
+  if (k === 'null') return '— بدون';
+  const n = Number(k);
+  if (n === 0) return '0 محاولات';
+  if (n === 1) return 'محاولة واحدة';
+  if (n === 2) return 'محاولتين';
+  return n <= 10 ? `${n} محاولات` : `${n} محاولة`;
+}
+function fuRenderChipsBar() {
+  const box = fuEl('fuChipsBar');
+  if (!fuRows.length) { box.style.display = 'none'; return; }
+  const att = new Map(), snd = new Map();
+  fuRows.forEach(r => { const a = FU_VAL.attempts(r), s = FU_VAL.sends(r); att.set(a, (att.get(a) || 0) + 1); snd.set(s, (snd.get(s) || 0) + 1); });
+  const aKeys = [...att.keys()].sort((a, b) => (a === 'null') - (b === 'null') || Number(b) - Number(a));   // تنازلي: 3 ← 2 ← 1 (RTL = من اليمين)
+  const sKeys = ['0', '1', '2+'].filter(k => snd.has(k));
+  const sCls = { '0': 'att-1', '1': 'att-0', '2+': 'att-0' };   // «لم يُرسل» كهرماني (شغل لسه) · اتبعت أخضر
+  box.style.display = '';
+  box.innerHTML = `<span class="att-chips-label">عدد المحاولات:</span>` + aKeys.map(k => {
+    const on = fuFilter.ms.attempts.has(k);
+    return `<button type="button" class="att-chip ${k === 'null' ? 'att-null' : fuAttemptClass(k)} ${on ? 'on' : ''}" data-att="${esc(k)}" aria-pressed="${on}"><span>${fuAttemptLabel(k)}</span><span class="att-chip-n">${att.get(k)}</span></button>`;
+  }).join('') + `<span class="att-chips-sep" aria-hidden="true"></span><span class="att-chips-label">مرات الإرسال:</span>` + sKeys.map(k => {
+    const on = fuFilter.ms.sends.has(k);
+    return `<button type="button" class="att-chip ${sCls[k]} ${on ? 'on' : ''}" data-snd="${esc(k)}" aria-pressed="${on}"><span>${fuLabelOf('sends', k)}</span><span class="att-chip-n">${snd.get(k)}</span></button>`;
+  }).join('');
+}
 
 // ══════════════════════════════════════════════════════
-// §GROUPS — تجميع بالتليفون جوّه التاب النشط
+// §TABLE — أعمدة + رأس + صف
 // ══════════════════════════════════════════════════════
-// الشحنة بلا موبايل صالح كارت لوحدها (مفيش مفتاح تجميع). التجميع جوّه التاب نفسه
-// عشان عدد شحنات التاب == اللي الرئيسية بتقوله، ومفيش كارت بحالات متفرقة.
-function fuGroups(rows) {
-  const map = new Map();
-  for (const r of rows) {
-    const phones = fuPhones(r);
-    const key = phones[0] ? 'p:' + phones[0] : 't:' + r.trackingNumber;
-    if (!map.has(key)) map.set(key, { key, phone: phones[0] || null, rows: [] });
-    map.get(key).rows.push(r);
+const FU_FUNNEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></svg>';
+// 🔴 `k` هو مفتاح الترتيب (`FU_SORTV`) ومفتاح عرض العمود المحفوظ — ارفع `_v1` في `FU_LS_COLS` لو الأعمدة اتغيّرت.
+const FU_COLS = [
+  { k: 'order',    l: 'الأوردر',               flt: 'order' },
+  { k: 'customer', l: 'العميل',                flt: 'customer' },
+  { k: 'tracking', l: 'رقم التتبع',            flt: 'tracking' },
+  { k: 'province', l: 'المحافظة',              flt: 'province' },
+  { k: 'state',    l: 'الحالة عند بوسطة',      flt: 'state' },
+  { k: 'reason',   l: 'آخر سبب',               flt: 'reason' },
+  { k: 'promise',  l: 'موعد التسليم المتوقع' },
+  { k: 'attempts', l: 'عدد المحاولات',         flt: 'attempts' },
+  { k: 'time',     l: 'وقت آخر تحديث',         flt: 'date' },
+  { k: 'total',    l: 'التحصيل' },
+  { k: 'sends',    l: 'مرات الإرسال',          flt: 'sends' },
+  { k: 'act',      l: 'إجراء',                 nosort: true },
+];
+function fuBuildThead() {
+  return '<tr>' + FU_COLS.map(c => `<th data-col="${c.k}" ${c.flt ? `data-fk="${c.flt}"` : ''}><div class="th-in">` +
+    (c.nosort ? `<span>${c.l}</span>` : `<span class="th-label" data-sort="${c.k}">${c.l}<span class="sort-icon"></span></span>`) +
+    (c.flt ? `<button type="button" class="th-flt" data-flt="${c.flt}" aria-label="فلتر ${esc(c.l)}">${FU_FUNNEL}<b class="th-cnt"></b></button>` : '') +
+    `</div><span class="col-rz" data-rz="${c.k}"></span></th>`).join('') + '</tr>';
+}
+function fuBuildPanelHtml() {
+  return `
+  <div class="unified-section">
+    <div class="tbl-bar" data-tblbar>
+      <div class="tbl-bar-right">
+        <span class="tbl-toggle open" id="fuToggleIcon">▲</span>
+        <div class="results-wrap">
+          <span class="results-label">النتائج:</span>
+          <span class="results-count" id="fuCount">—</span>
+          <span class="bg-spin" aria-label="جاري التحديث">⟳</span>
+          <span class="last-upd" title="آخر تحديث ناجح"></span>
+        </div>
+      </div>
+      <div class="tbl-bar-left"><button type="button" class="clear-btn inactive" data-clearall>✕ مسح كل الفلاتر</button></div>
+    </div>
+    <div class="chips-zone pad" id="fuChips"></div>
+    <div class="tbl-body-wrap" id="fuBodyWrap">
+      <div><div class="tbl-scroll">
+        <table class="data-table auto measuring" id="fuTbl">
+          <colgroup id="fuCg">${FU_COLS.map(c => `<col data-c="${c.k}">`).join('')}</colgroup>
+          <thead>${fuBuildThead()}</thead>
+          <tbody id="fuBody"><tr><td colspan="${FU_COLS.length}" class="empty">⏳ جاري تحميل القايمة...</td></tr></tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>`;
+}
+
+const fuBostaUrl = (tn) => `https://business.bosta.co/orders/${encodeURIComponent(tn)}`;
+function fuRowHtml(r) {
+  const c = r.customer;
+  const grp = fuGroupRows(r);
+  const phone = fuPhones(r)[0];
+  // الأوردر
+  const orderTxt = r.orderId ? `<a class="order-link" href="${esc(shopifyOrderUrl(r.orderId))}" target="_blank" rel="noopener">${esc(fuOrderTag(r.order))}</a>` : `<b>${esc(fuOrderTag(r.order))}</b>`;
+  const ob = [];
+  if (fuIsS2(r)) ob.push('<span class="fu-badge">استبدال/استرجاع (S2)</span>');
+  if (r.cancelled) ob.push('<span class="fu-badge red">ملغي على شوبيفاي</span>');
+  if (!r.hasOrder) ob.push('<span class="fu-badge red">مالوش أوردر على شوبيفاي</span>');
+  if (r.financial === 'PAID') ob.push('<span class="fu-badge green">مدفوع</span>');
+  // العميل
+  let cust;
+  if (!c) cust = '<span class="fu-sub">— بيانات العميل غايبة —</span>';
+  else {
+    cust = `<span class="fu-name">${esc(c.fullName || '—')}</span>` +
+      (phone ? `<span class="fu-phone">${esc(fuLocalPhone(phone))}</span>` : '<span class="fu-badge red">🚫 بلا موبايل صالح</span>');
+    if (grp.length > 1) cust += `<span class="fu-badge amber">${grp.length} شحنات لنفس العميل</span>`;
   }
-  const groups = [...map.values()];
-  for (const g of groups) {
-    g.rows.sort((a, b) => String(b.lastPostponedAt).localeCompare(String(a.lastPostponedAt)));
-    // أرقام بديلة: أي رقم صالح تاني على أي شحنة في الكارت
-    const all = new Set(g.rows.flatMap(fuPhones));
-    all.delete(g.phone);
-    g.alts = [...all];
-    g.msgKey = g.rows.map(r => r.trackingNumber).sort().join('|');
-  }
-  groups.sort((a, b) => String(b.rows[0].lastPostponedAt).localeCompare(String(a.rows[0].lastPostponedAt)));
-  return groups;
+  const place = c ? [c.province, c.city].filter(Boolean) : [];
+  // الميعاد
+  const prom = fuParsePromise(r.promiseDate), today = fuTodayStr();
+  const promTxt = prom ? (today && prom.iso < today ? `<span class="fu-late">${esc(prom.text)}</span><span class="fu-sub">فات</span>` : esc(prom.text)) : '—';
+  // التحصيل
+  const money = r.total != null ? r.total : r.codBosta;
+  const moneyTxt = money != null ? `${Number(money).toLocaleString('en-US')} ج` : '—';
+  // الإرسال
+  const n = fuSendsOf(r);
+  const sendsCell = n === 0
+    ? '<span class="fu-badge">لم يُرسل</span>'
+    : `<span class="fu-badge green">${n === 1 ? 'مرة واحدة' : n === 2 ? 'مرتين' : n + ' مرات'}</span>` +
+      `<span class="fu-sub">آخر: ${esc(r.sends.lastBy || '—')}</span><span class="fu-sub">${esc(formatDateTime(r.sends.lastAt))}</span>`;
+  const canSend = !!c && !!phone;
+  const sendBtn = canSend
+    ? `<button type="button" class="fu-send-btn" data-act="send" data-tn="${esc(r.trackingNumber)}">📲 إرسال</button>`
+    : `<button type="button" class="fu-send-btn" disabled title="${c ? 'مفيش موبايل صالح — اتصل من بوسطة أو شوبيفاي' : 'بيانات العميل غايبة'}">🚫 ${c ? 'بلا موبايل' : 'بلا بيانات'}</button>`;
+  const histBtn = `<button type="button" class="hist-btn" data-act="hist" data-tn="${esc(r.trackingNumber)}" ${n ? '' : 'disabled'}>🕘 السجل${n ? ` · ${n}` : ''}</button>`;
+  return `
+    <tr data-tn="${esc(r.trackingNumber)}">
+      <td>${orderTxt}${ob.length ? '<br>' + ob.join(' ') : ''}</td>
+      <td>${cust}</td>
+      <td class="col-num"><a href="${esc(fuBostaUrl(r.trackingNumber))}" target="_blank" rel="noopener" class="tracking-link">${esc(r.trackingNumber)}</a></td>
+      <td>${esc(place[0] || '—')}${place[1] ? `<span class="fu-sub">${esc(place[1])}</span>` : ''}</td>
+      <td><span class="state-code">${esc(r.state ?? '—')}</span> ${esc(r.stateDesc || '—')}</td>
+      <td>${esc(fuReasonOf(r))}</td>
+      <td>${promTxt}</td>
+      <td>${r.attempts == null ? '—' : `<span class="att-chip static ${fuAttemptClass(r.attempts)}">${esc(r.attempts)}</span>`}</td>
+      <td>${esc(formatDateTime(r.lastEventAt))}</td>
+      <td>${esc(moneyTxt)}</td>
+      <td>${sendsCell}</td>
+      <td><div class="fu-row-btns">${sendBtn}${histBtn}</div></td>
+    </tr>`;
+}
+
+// ─── chips — سطر لكل فلتر، اسم الفلتر مرة واحدة (data-table-standard.md §6) ───
+function fuChipRow(label, chips) { return `<div class="ms-chips-row"><span class="chips-label">${label}:</span>${chips.join('')}</div>`; }
+const fuChip = (t, rm) => `<span class="ms-chip">${esc(t)}<button type="button" data-rm="${esc(rm)}">✕</button></span>`;
+function fuRenderFilterChips() {
+  const z = fuEl('fuChips'); if (!z) return;
+  const s = fuFilter, rows = [];
+  ['order', 'customer', 'tracking'].forEach(k => { if (s.q[k].trim()) rows.push(fuChipRow(FU_FL[k], [fuChip(s.q[k].trim(), `q:${k}:`)])); });
+  FU_MS_KEYS.forEach(k => { if (s.ms[k].size) rows.push(fuChipRow(FU_FL[k], [...s.ms[k]].map(v => fuChip(fuLabelOf(k, v), `ms:${k}:${v}`)))); });
+  if (s.date.from || s.date.to) rows.push(fuChipRow(FU_FL.date, [fuChip(s.date.preset ? FU_PRESETS[s.date.preset] : `من 📅 ${fuFmtD(s.date.from)} إلى 📅 ${fuFmtD(s.date.to)}`, 'date::')]));
+  z.innerHTML = rows.join('');
+}
+function fuUpdateStates() {
+  const root = fuEl('fuTableRoot'); if (!root) return;
+  const s = fuFilter, on = fuAnyFilterActive();
+  root.querySelectorAll('[data-clearall]').forEach(b => b.classList.toggle('inactive', !on));
+  root.querySelectorAll('th[data-fk]').forEach(th => {
+    const n = fuActiveCount(th.dataset.fk);
+    th.classList.toggle('flt-on', n > 0);
+    const c = th.querySelector('.th-cnt'); if (c) c.textContent = n > 1 ? n : (n ? '●' : '');
+  });
+  root.querySelectorAll('th[data-col]').forEach(th => {
+    const act = s.sort.key === th.dataset.col;
+    th.classList.toggle('sorted', act);
+    const si = th.querySelector('.sort-icon');
+    if (si) { si.textContent = act ? (s.sort.dir === 'asc' ? '▲' : '▼') : ''; si.classList.toggle('active', act); }
+  });
+}
+
+// ─── §TABLE::sort — 3 حالات، مستقل عن الفلاتر (data-table-standard.md §8) ───
+const FU_SORTV = {
+  order: r => r.order, customer: r => r.customer?.fullName || null, tracking: r => r.trackingNumber,
+  province: r => r.customer?.province || null, state: r => Number(r.state), reason: r => { const x = fuReasonOf(r); return x === '—' ? '' : x; },
+  promise: r => fuParsePromise(r.promiseDate)?.iso || null, attempts: r => r.attempts,
+  time: r => { const d = fuValidDate(r.lastEventAt); return d ? d.getTime() : null; },
+  total: r => r.total != null ? r.total : r.codBosta, sends: r => fuSendsOf(r),
+};
+function fuToggleSort(k) {
+  const s = fuFilter;
+  if (s.sort.key !== k) s.sort = { key: k, dir: 'asc' };
+  else if (s.sort.dir === 'asc') s.sort.dir = 'desc';
+  else s.sort = { key: null, dir: null };
+  fuRender();
+}
+function fuSortRows(rows) {
+  const s = fuFilter;
+  if (!s.sort.key) return rows;
+  const g = FU_SORTV[s.sort.key], d = s.sort.dir === 'asc' ? 1 : -1;
+  return [...rows].sort((a, b) => {
+    const x = g(a), y = g(b);
+    if (x == null && y == null) return 0;
+    if (x == null) return 1; if (y == null) return -1;   // الفاضي دايمًا في الآخر
+    return (typeof x === 'string' ? String(x).localeCompare(String(y), 'ar', { numeric: true }) : x - y) * d;
+  });
 }
 
 // ══════════════════════════════════════════════════════
 // §RENDER
 // ══════════════════════════════════════════════════════
-function fuRenderTabs() {
-  const counts = Object.fromEntries(FU_TABS.map(t => [t.key, 0]));
-  fuRows.forEach(r => { const s = fuStatusOf(r); if (s in counts) counts[s]++; });   // من القايمة الكاملة
-  document.getElementById('fuTabs').innerHTML = FU_TABS.map(t =>
-    `<button type="button" role="tab" class="fu-tab${t.key === fuTab ? ' active' : ''}" data-tab="${t.key}" aria-selected="${t.key === fuTab}">
-       <span class="n">${fuLoaded ? counts[t.key] : '—'}</span><span class="l">${esc(t.label)} · شحنة</span></button>`).join('');
-}
-
 function fuRenderBanners() {
   const out = [];
+  if (fuMeta.loadError) out.push(`<div class="fu-warn bad">⚠️ تعذّر تحميل القايمة: ${esc(fuMeta.loadError)}</div>`);
   if (fuMeta.shopifyError)
-    out.push(`<div class="fu-warn bad">⚠️ بيانات العملاء (الاسم والتليفون) غايبة — شوبيفاي ردّت بخطأ: ${esc(fuMeta.shopifyError)}. مفيش زراير واتساب لحد ما تتحدّث.</div>`);
+    out.push(`<div class="fu-warn bad">⚠️ بيانات العملاء (الاسم والتليفون) غايبة — شوبيفاي ردّت بخطأ: ${esc(fuMeta.shopifyError)}. مفيش زراير إرسال لحد ما تتحدّث.</div>`);
   else if (fuLoaded && fuRows.length && fuRows.every(r => !r.customer))
     out.push('<div class="fu-warn bad">⚠️ مفيش ولا شحنة جابت بيانات عميل — غالبًا صلاحية «بيانات العملاء» (Protected customer data) ناقصة على التطبيق. شغّل 🩺 فحص النظام.</div>');
   if (fuMeta.truncated)
-    out.push(`<div class="fu-warn">⚠️ القايمة اتقصّت عند ${esc(fuMeta.cap)} شحنة — قلّل النافذة.</div>`);
+    out.push(`<div class="fu-warn">⚠️ القايمة اتقصّت عند ${esc(fuMeta.cap)} شحنة — الباقي مش ظاهر. بلّغ المسؤول يرفع السقف.</div>`);
+  if (fuLoaded)
+    out.push(`<div class="fu-warn info">القايمة = كل شحنة تحت التوصيل عليها <b>${esc(fuMeta.minAttempts)}</b> محاولة توصيل أو أكتر، وليها نشاط في آخر <b>${esc(fuMeta.windowDays)}</b> يوم.</div>`);
   const p = cairoParts(new Date());
   if (p && (Number(p.hour) >= 21 || Number(p.hour) < 10))
     out.push('<div class="fu-warn info">🌙 الوقت دلوقتي بره وقت الإرسال المناسب (من 10 ص لـ 9 م) — مفيش رسايل بالليل.</div>');
-  document.getElementById('fuBanners').innerHTML = out.join('');
-}
-
-function fuShipHtml(r) {
-  const c = r.customer;
-  const badges = [];
-  badges.push(`<span class="fu-badge blue">${esc(FU_STATE_LABEL[r.state] || r.stateDesc || ('حالة ' + r.state))}</span>`);
-  if (r.postponeCount > 1) badges.push(`<span class="fu-badge amber">اتأجلت ${esc(r.postponeCount)} مرات</span>`);
-  if (fuIsS2(r)) badges.push('<span class="fu-badge">استبدال (S2)</span>');
-  if (r.cancelled) badges.push('<span class="fu-badge red">الأوردر ملغي على شوبيفاي</span>');
-  if (r.financial === 'PAID') badges.push('<span class="fu-badge green">مدفوع</span>');
-  const orderTxt = r.orderId ? `<a class="order-link" href="${esc(shopifyOrderUrl(r.orderId))}" target="_blank" rel="noopener">${esc(fuOrderTag(r.order))}</a>` : `<b>${esc(fuOrderTag(r.order))}</b>`;
-  const bosta = `<a href="https://business.bosta.co/orders/${encodeURIComponent(r.trackingNumber)}" target="_blank" rel="noopener">بوسطة ${esc(r.trackingNumber)}</a>`;
-  const prom = fuParsePromise(r.promiseDate);
-  const today = fuTodayCairo();
-  const promTxt = prom ? (today && prom.iso < today ? `<span class="meta">ميعاد بوسطة ${esc(prom.text)} (فات)</span>` : `<span class="meta">الميعاد المتوقع ${esc(prom.text)}</span>`) : '';
-  const place = c ? [c.city, c.province].filter(Boolean).join(' · ') : '';
-  const total = r.total != null ? `${Number(r.total).toLocaleString('en-US')} ج` : '—';
-  const noOrder = !r.hasOrder ? '<span class="fu-badge red">مالوش أوردر متطابق على شوبيفاي</span>' : '';
-  return `<div class="fu-ship">${orderTxt} ${bosta} ${badges.join(' ')} ${noOrder}
-      <span class="meta">آخر تأجيل ${esc(formatDateTime(r.lastPostponedAt))}</span>${promTxt}
-      <span class="meta">${esc(place || '—')}</span><span class="meta">${esc(total)}</span></div>`;
-}
-
-function fuCardHtml(g, tab) {
-  const lead = g.rows[0];
-  const c = lead.customer;
-  const name = (g.rows.map(r => r.customer?.fullName).find(Boolean)) || '—';
-  const anyCancelled = g.rows.some(r => r.cancelled);
-  const busy = fuBusyKeys.has(g.key);
-  const text = fuMsgs.has(g.msgKey) ? fuMsgs.get(g.msgKey) : fuBuildMessage(g.rows);
-  const draft = fuDrafts.get(g.msgKey) || {};
-  const f = lead.followUp || {};
-  let waBlock;
-  if (!g.phone) {
-    waBlock = `<div class="fu-nophone">🚫 مفيش موبايل صالح${c ? '' : ' (بيانات العميل غايبة)'} — اتصل من بوسطة أو شوبيفاي، وسجّل النتيجة.</div>`;
-  } else {
-    const alts = g.alts.map(p => `<button type="button" class="btn btn-outline" data-act="wa" data-phone="${p}" ${busy ? 'disabled' : ''}>واتساب برقم بديل ${esc('0' + p.slice(2))}</button>`).join('');
-    waBlock = `<textarea class="fu-msg" data-msg="${esc(g.msgKey)}" aria-label="نص الرسالة">${esc(text)}</textarea>
-      <div class="fu-actions">
-        <button type="button" class="btn btn-green" data-act="wa" data-phone="${g.phone}" ${busy ? 'disabled' : ''}>📲 فتح واتساب</button>
-        <button type="button" class="btn btn-outline" data-act="copy">نسخ النص</button>${alts}
-      </div>`;
-  }
-  const opts = FU_RESULTS.map(([v, l]) => `<option value="${v}"${draft.result === v ? ' selected' : ''}>${esc(l)}</option>`).join('');
-  const resBlock = tab === 'closed'
-    ? `<div class="fu-foot">النتيجة: <b>${esc(FU_RESULT_LABEL[f.result] || f.result || '—')}</b>${f.note ? ' — ' + esc(f.note) : ''}</div>
-       <div class="fu-actions"><button type="button" class="btn btn-outline" data-act="reopen" ${busy ? 'disabled' : ''}>↩ إعادة فتح (غلطة تسجيل)</button></div>`
-    : `<div class="fu-res">
-         <select data-res aria-label="نتيجة الرد"><option value="">— نتيجة الرد —</option>${opts}</select>
-         <input type="text" data-note maxlength="500" value="${esc(draft.note || '')}" aria-label="ملاحظة">
-         <div class="fu-actions"><button type="button" class="btn btn-primary" data-act="result" ${busy ? 'disabled' : ''}>حفظ النتيجة</button>
-         ${tab === 'replied' || tab === 'sent' ? `<button type="button" class="btn btn-outline" data-act="reopen" ${busy ? 'disabled' : ''}>↩ رجّعها لمحتاجين رسالة</button>` : ''}</div>
-       </div>`;
-  const foot = f.sentBy
-    ? `<div class="fu-foot">اتبعتت: ${esc(f.sentBy)} · ${esc(formatDateTime(f.sentAt))}${f.result ? ` · النتيجة: ${esc(FU_RESULT_LABEL[f.result] || f.result)} (${esc(f.resultBy || '—')})` : ''}${f.note && tab !== 'closed' ? ' — ' + esc(f.note) : ''}</div>` : '';
-  return `<div class="fu-card" data-key="${esc(g.key)}" data-mk="${esc(g.msgKey)}">
-    <div class="fu-card-hd"><span class="fu-name">${esc(name)}</span>
-      ${g.phone ? `<span class="fu-phone">0${esc(g.phone.slice(2))}</span>` : ''}
-      ${g.rows.length > 1 ? `<span class="fu-badge amber">${g.rows.length} شحنات لنفس العميل</span>` : ''}
-      ${anyCancelled ? '<span class="fu-badge red">فيه أوردر ملغي — راجع قبل الإرسال</span>' : ''}</div>
-    ${g.rows.map(fuShipHtml).join('')}
-    <div class="fu-body"><div><h4>الرسالة${tab === 'pending' ? '' : ' (للإعادة)'}</h4>${waBlock}</div>
-      <div><h4>رد العميل</h4>${resBlock}${foot}</div></div></div>`;
+  fuEl('fuBanners').innerHTML = out.join('');
 }
 
 function fuRender() {
-  fuRenderTabs();
   fuRenderBanners();
-  const list = document.getElementById('fuList');
   if (!fuLoaded) return;
-  const tabRows = fuRows.filter(r => fuStatusOf(r) === fuTab);
-  const shown = tabRows.filter(fuPass);
-  document.getElementById('fuResults').textContent = `النتائج: ${shown.length} شحنة`;
-  if (!tabRows.length) { list.innerHTML = `<div class="q-empty">مفيش شحنات في «${esc(FU_TABS.find(t => t.key === fuTab).label)}» ✅</div>`; return; }
-  // «مفيش نتيجة للفلتر» ≠ «التاب فاضي»
-  if (!shown.length) { list.innerHTML = '<div class="q-empty">مفيش نتيجة للفلتر — امسح الفلتر أو غيّره.</div>'; return; }
-  list.innerHTML = fuGroups(shown).map(g => fuCardHtml(g, fuTab)).join('');
+  fuHideTip();
+  const f = fuRows.filter(fuPass);
+  const sorted = fuSortRows(f);
+  fuEl('fuCount').textContent = f.length.toLocaleString('en-US');
+  // «مفيش نتيجة للفلتر» ≠ «القايمة فاضية»
+  fuEl('fuBody').innerHTML = sorted.length ? sorted.map(fuRowHtml).join('')
+    : `<tr><td colspan="${FU_COLS.length}" class="empty">${fuRows.length ? 'مفيش نتيجة للفلتر — امسح الفلتر أو غيّره.' : 'مفيش شحنات تحت التوصيل عليها محاولة توصيل دلوقتي ✅'}</td></tr>`;
+  fuRenderChipsBar(); fuRenderFilterChips(); fuUpdateStates();
+  fuEnsureWidths();
 }
 
 // ══════════════════════════════════════════════════════
-// §RECORD — تسجيل الأفعال (idempotent في الـ Worker)
+// §TABLE::colWidths — التحكم اللايف في عرض الأعمدة (v8.2.0 · Standards #51)
 // ══════════════════════════════════════════════════════
-// العقد: `results[]` نتيجة لكل عنصر في `items` بنفس الترتيب (الفهرس).
-async function fuRecord(group, action, extra) {
-  const items = group.rows.map(r => ({ trackingNumber: r.trackingNumber, eventId: r.eventId }));
-  return apiPost('record', { employee: dcoSession.username, action, items, ...extra });
+// بيتحفظ في localStorage (تفضيل شاشة مش هوية، مايتمسحش مع الخروج). مفيش زرار إعادة ضبط.
+const FU_LS_COLS = 'dco_col_widths_v1_Bosta-Delivery-Follow-Up.html';   // ارفع _v1 → _v2 لو الأعمدة اتغيّرت
+const FU_MIN_W = 64, FU_MAX_W = 700, FU_INIT_CAP = 260;
+const fuW = {}; let fuWReady = false, fuDrag = null, fuWBadge = null;
+const fuTbl = () => fuEl('fuTbl');
+function fuSaveW() { try { localStorage.setItem(FU_LS_COLS, JSON.stringify(fuW)); } catch (e) {} }
+function fuLoadW() {
+  try { const s = JSON.parse(localStorage.getItem(FU_LS_COLS) || 'null'); return s && FU_COLS.every(c => s[c.k] >= FU_MIN_W) ? s : null; } catch (e) { return null; }
 }
-
-function fuApplyLocal(group, action, results, extra) {
-  const now = new Date().toISOString();
-  group.rows.forEach((r, i) => {
-    const res = results?.[i];
-    if (!res?.ok) return;
-    const f = r.followUp = r.followUp || {};
-    f.status = res.status;
-    if (action === 'opened') { if (!f.sentBy) { f.sentBy = dcoSession.username; f.sentAt = now; } }
-    else if (action === 'result') { f.result = extra.result; f.note = extra.note || null; f.resultBy = dcoSession.username; f.resultAt = now; }
-    else if (action === 'reopen') { f.result = null; f.note = null; f.resultBy = null; f.resultAt = null; }
+function fuApplyW() {
+  const t = fuTbl(); if (!t) return;
+  const sum = FU_COLS.reduce((a, c) => a + (fuW[c.k] || 0), 0);
+  t.querySelectorAll('colgroup col').forEach(col => { col.style.width = fuW[col.dataset.c] + 'px'; });
+  t.style.width = sum + 'px';
+}
+function fuFreezeW() { const t = fuTbl(); t.classList.remove('auto', 'measuring'); fuApplyW(); fuWReady = true; }
+// بيتنادى من fuRender: بيقيس على الجدول لما يبقى فيه صفوف حقيقية ومعروض (الجدول المطوي عرضه صفر)
+function fuEnsureWidths() {
+  if (fuWReady) return;
+  const saved = fuLoadW();
+  if (saved) { Object.assign(fuW, saved); fuFreezeW(); return; }
+  const t = fuTbl();
+  if (!t || !t.offsetParent || !t.querySelector('tbody td:not(.empty)')) return;
+  t.classList.add('auto', 'measuring'); t.style.width = '';
+  t.querySelectorAll('colgroup col').forEach(c => { c.style.width = ''; });
+  let sum = 0;
+  t.querySelectorAll('thead th').forEach(th => {
+    const w = Math.min(FU_INIT_CAP, Math.max(FU_MIN_W, Math.round(th.getBoundingClientRect().width)));
+    fuW[th.dataset.col] = w; sum += w;
   });
+  const avail = t.closest('.tbl-scroll').clientWidth;
+  // أول مرة: يملا عرض الكارت لو أصغر منه، ويتضغط ليه لو أكبر (12 عمود — سكرول أفقي من أول شاشة بيخبّي أعمدة الإرسال).
+  // ⚠️ الضغط بيحصل في القياس الأول بس؛ العرض اللي الموظف ظبطه بإيده بيفضل زي ما هو (ممكن يعدّي الشاشة = سكرول أفقي).
+  if (sum !== avail) { const f = avail / sum; FU_COLS.forEach(c => { fuW[c.k] = Math.max(FU_MIN_W, Math.floor(fuW[c.k] * f)); }); }
+  fuFreezeW();
 }
-
-function fuHandleFailures(results) {
-  const failed = (results || []).filter(r => !r.ok);
-  if (!failed.length) return false;
-  const stale = failed.some(r => r.status === 409);
-  showToast(stale ? 'الشحنة اتقفلت أو جالها تأجيل أحدث — بحدّث القايمة' : `التسجيل فشل: ${failed[0].error || 'خطأ'}`, 'error', 5000);
-  if (stale) fuLoad();
-  return true;
+function fuShowWBadge(w) {
+  if (!fuWBadge) { fuWBadge = document.createElement('div'); fuWBadge.className = 'w-badge'; document.body.appendChild(fuWBadge); }
+  fuWBadge.textContent = w + ' px';
 }
+function fuHideWBadge() { if (fuWBadge) fuWBadge.remove(); fuWBadge = null; }
+document.addEventListener('pointerdown', e => {
+  const h = e.target.closest && e.target.closest('[data-rz]'); if (!h) return;
+  if (e.button !== undefined && e.button !== 0) return;
+  if (!fuWReady) fuEnsureWidths(); if (!fuWReady) return;
+  e.preventDefault(); e.stopPropagation(); fuClosePop(); fuHideTip();
+  const k = h.dataset.rz, t = h.closest('table');
+  fuDrag = { k, x: e.clientX, w: fuW[k], sign: getComputedStyle(t).direction === 'rtl' ? -1 : 1, h };   // RTL: السحب لليسار = توسيع
+  try { h.setPointerCapture(e.pointerId); } catch (_) {}
+  h.classList.add('active'); document.body.classList.add('col-resizing');
+  const c = t.querySelector(`colgroup col[data-c="${k}"]`); if (c) c.classList.add('hl');
+  fuShowWBadge(fuW[k]);
+});
+document.addEventListener('pointermove', e => {
+  if (!fuDrag) return;
+  fuW[fuDrag.k] = Math.max(FU_MIN_W, Math.min(FU_MAX_W, Math.round(fuDrag.w + fuDrag.sign * (e.clientX - fuDrag.x))));
+  fuApplyW(); fuShowWBadge(fuW[fuDrag.k]);
+});
+function fuEndDrag() {
+  if (!fuDrag) return;
+  fuDrag.h.classList.remove('active'); document.body.classList.remove('col-resizing');
+  document.querySelectorAll('colgroup col.hl').forEach(c => c.classList.remove('hl'));
+  fuDrag = null; fuHideWBadge(); fuSaveW();
+}
+document.addEventListener('pointerup', fuEndDrag);
+document.addEventListener('pointercancel', fuEndDrag);
+// دبل كليك على المقبض = ضبط تلقائي على أطول محتوى (بيقيس المحتوى بـ Range مش الخلية — الخلية بتدّي العرض الحالي)
+function fuFitCol(k, t) {
+  const i = FU_COLS.findIndex(c => c.k === k); if (i < 0) return;
+  t.classList.add('measuring');
+  let w = t.querySelectorAll('thead th')[i].querySelector('.th-in').getBoundingClientRect().width + 16;
+  t.querySelectorAll('tbody tr').forEach(tr => {
+    const td = tr.children[i]; if (!td || td.classList.contains('empty')) return;
+    const rg = document.createRange(); rg.selectNodeContents(td);
+    w = Math.max(w, rg.getBoundingClientRect().width + 16);
+  });
+  t.classList.remove('measuring');
+  fuW[k] = Math.max(FU_MIN_W, Math.min(FU_MAX_W, Math.ceil(w))); fuApplyW(); fuSaveW();
+}
+document.addEventListener('dblclick', e => { const h = e.target.closest && e.target.closest('[data-rz]'); if (h && fuWReady) fuFitCol(h.dataset.rz, h.closest('table')); });
 
-async function fuAction(card, act, btn) {
-  const key = card.dataset.key;
-  const tabRows = fuRows.filter(r => fuStatusOf(r) === fuTab).filter(fuPass);
-  const group = fuGroups(tabRows).find(g => g.key === key);
-  if (!group || fuBusyKeys.has(key)) return;
-
-  if (act === 'wa') {
-    const ta = card.querySelector('textarea.fu-msg');
-    const text = ta ? ta.value : fuBuildMessage(group.rows);
-    if (!text.trim()) { showToast('النص فاضي', 'error'); return; }
-    // 🔴 window.open لازم يتنادى متزامنًا مع الضغطة (قبل أي await) وإلا المتصفح يحجبه
-    window.open(fuWaUrl(btn.dataset.phone, text), '_blank', 'noopener');
-    if (fuHasAstral(text)) showToast('النص فيه إيموجي — ممكن يوصل بعلامة � — الأفضل تشيله', 'warning', 6000);
-    // التسجيل بعد الفتح ومن غير ما يعطّله: بس على الشحنات اللي لسه pending
-    const pending = { ...group, rows: group.rows.filter(r => fuStatusOf(r) === 'pending') };
-    if (!pending.rows.length) return;
-    fuBusyKeys.add(key);
-    try {
-      const d = await fuRecord(pending, 'opened');
-      fuApplyLocal(pending, 'opened', d.results, {});
-      if (!fuHandleFailures(d.results)) showToast('اتسجّل إن الرسالة اتفتحت ✅', 'success');
-      if (d.results?.some(r => r.ok && r.logged === false)) showToast('التسجيل تم لكن سجل D1 فشل', 'warning');
-    } catch (e) {
-      showToast(`الواتساب اتفتح لكن التسجيل فشل: ${e.message} — اضغط تاني بعد التحديث`, 'error', 6000);
-    } finally { fuBusyKeys.delete(key); fuWriteCache(); fuRender(); }
-    return;
+// ══════════════════════════════════════════════════════
+// §TABLE::filterPop — القائمة العائمة (position:fixed على body، z 200)
+// ══════════════════════════════════════════════════════
+let fuPop = null, fuPopKey = null, fuPopAnchor = null, fuPopQ = '';
+function fuClosePop() { if (fuPop) fuPop.remove(); fuPop = null; fuPopKey = null; fuPopAnchor = null; fuPopQ = ''; }
+function fuOpenPop(k, anchor) {
+  fuHideTip();
+  if (fuPopKey === k && fuPopAnchor === anchor) { fuClosePop(); return; }
+  fuClosePop(); fuPopKey = k; fuPopAnchor = anchor;
+  fuPop = document.createElement('div'); fuPop.className = 'pop'; document.body.appendChild(fuPop);
+  fuBuildPop(); fuPlace();
+  const f = fuPop.querySelector('[data-autofocus]'); if (f) f.focus();
+}
+function fuPlace() {
+  if (!fuPop || !fuPopAnchor) return;
+  if (!document.contains(fuPopAnchor)) { fuClosePop(); return; }
+  const r = fuPopAnchor.getBoundingClientRect(), w = fuPop.offsetWidth, h = fuPop.offsetHeight;
+  const left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8));
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  fuPop.style.left = left + 'px'; fuPop.style.top = top + 'px';
+}
+function fuListHtml(k) {
+  const q = fuPopQ.trim().toLowerCase(), sel = fuFilter.ms[k];
+  const its = fuItemsFor(k).filter(i => !q || i.label.toLowerCase().includes(q));
+  return its.map(i => `<div class="ms-item ${sel.has(i.v) ? 'on' : ''}" data-ms="${esc(i.v)}"><span class="cb"></span><span class="ms-lbl">${esc(i.label)}</span><span class="ms-cnt">${i.c}</span></div>`).join('')
+    || '<div class="empty" style="padding:14px">لا نتائج</div>';
+}
+function fuPresetsHtml(s) {
+  return `<div class="preset-list"><button type="button" class="clear-btn" data-act="dclear">✕ مسح الاختيار</button>` +
+    Object.keys(FU_PRESETS).map(p => `<button type="button" class="${s.date.preset === p ? 'on' : ''}" data-preset="${p}">${FU_PRESETS[p]}</button>`).join('') + '</div>';
+}
+function fuBuildPop() {
+  const k = fuPopKey, s = fuFilter; let h = '';
+  if (FU_MS_KEYS.includes(k)) {
+    h = `<div class="pop-hd">${FU_FL[k]}</div><div class="ms-ftr-top"><button type="button" class="clear-btn" data-act="clear">✕ مسح الاختيار</button><button type="button" class="lnk" data-act="all">تحديد الكل</button></div>` +
+      (fuItemsFor(k).length > 8 ? '<div class="pop-srch"><input class="inp" data-msq placeholder="بحث..." data-autofocus></div>' : '') + `<div class="ms-list">${fuListHtml(k)}</div>`;
+  } else if (k === 'order' || k === 'tracking' || k === 'customer') {
+    h = `<div class="pop-hd">${FU_FL[k]}</div><div class="pop-body"><div class="search-wrap"><input class="inp ${s.q[k] ? 'has-value' : ''}" data-q="${k}" value="${esc(s.q[k])}" data-autofocus><span class="search-icon">🔍</span></div><button type="button" class="clear-btn" data-act="qclear">✕ مسح الاختيار</button></div>`;
+  } else if (k === 'date') {
+    h = `<div class="pop-hd">${FU_FL.date}</div><div class="pop-body">${fuPresetsHtml(s)}<div class="rng"><div><label>من تاريخ</label><input type="date" class="inp" data-d="from" value="${s.date.from}" onclick="this.showPicker&&this.showPicker()"></div><div><label>إلى تاريخ</label><input type="date" class="inp" data-d="to" value="${s.date.to}" onclick="this.showPicker&&this.showPicker()"></div></div></div>`;
   }
+  fuPop.innerHTML = h; fuPop.classList.toggle('wide', k === 'date' || k === 'reason' || k === 'state');
+}
+function fuRenderList() { const l = fuPop && fuPop.querySelector('.ms-list'); if (l) l.innerHTML = fuListHtml(fuPopKey); }
+function fuComputePresetRange(preset) {
+  const today = fuTodayStr();
+  switch (preset) {
+    case 'today':     return { from: today, to: today };
+    case 'yesterday': { const y = fuAddDays(today, -1); return { from: y, to: y }; }
+    case 'last7':     return { from: fuAddDays(today, -6), to: today };
+    case 'last30':    return { from: fuAddDays(today, -29), to: today };
+    case 'thisMonth': { const p = cairoParts(new Date()); return { from: `${p.year}-${p.month}-01`, to: today }; }
+    case 'lastMonth': {
+      const p = cairoParts(new Date());
+      const firstThis = new Date(Date.UTC(+p.year, +p.month - 1, 1));
+      const lastPrev = new Date(firstThis); lastPrev.setUTCDate(0);
+      const pad = n => String(n).padStart(2, '0');
+      return { from: `${lastPrev.getUTCFullYear()}-${pad(lastPrev.getUTCMonth() + 1)}-01`,
+               to:   `${lastPrev.getUTCFullYear()}-${pad(lastPrev.getUTCMonth() + 1)}-${pad(lastPrev.getUTCDate())}` };
+    }
+    default: return null;
+  }
+}
+function fuPopAction(t) {
+  const k = fuPopKey, s = fuFilter;
+  const it = t.closest('.ms-item');
+  if (it) { const set = s.ms[k], v = it.dataset.ms; set.has(v) ? set.delete(v) : set.add(v); fuRenderList(); fuRender(); return; }
+  const pr = t.closest('[data-preset]');
+  if (pr) { const r = fuComputePresetRange(pr.dataset.preset); if (r) { s.date = { preset: pr.dataset.preset, from: r.from, to: r.to }; } fuRender(); fuBuildPop(); fuPlace(); return; }
+  const a = t.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'clear') { s.ms[k].clear(); fuBuildPop(); fuRender(); }
+  else if (act === 'all') {
+    const q = fuPopQ.trim().toLowerCase();
+    fuItemsFor(k).filter(i => !q || i.label.toLowerCase().includes(q)).forEach(i => s.ms[k].add(i.v));
+    fuRenderList(); fuRender();
+  } else if (act === 'qclear') { s.q[k] = ''; fuBuildPop(); fuRender(); }
+  else if (act === 'dclear') { fuResetDate(); fuRender(); fuBuildPop(); }
+}
 
-  if (act === 'copy') {
-    const ta = card.querySelector('textarea.fu-msg');
+// تولتيب بقيم الفلتر المحددة — مفيش حاجة محددة = مفيش تولتيب (§2.5)
+function fuTipText(k) {
+  if (!fuActiveCount(k)) return '';
+  const s = fuFilter;
+  if (FU_MS_KEYS.includes(k)) return [...s.ms[k]].map(v => fuLabelOf(k, v)).join('، ');
+  if (k === 'order' || k === 'tracking' || k === 'customer') return s.q[k].trim();
+  if (k === 'date') { const r = `من 📅 ${fuFmtD(s.date.from)} إلى 📅 ${fuFmtD(s.date.to)}`; return s.date.preset ? `${FU_PRESETS[s.date.preset]}: ${r}` : r; }
+  return '';
+}
+let fuTipEl = null;
+function fuHideTip() { if (fuTipEl) fuTipEl.remove(); fuTipEl = null; }
+function fuShowTip(btn) {
+  fuHideTip();
+  const text = fuTipText(btn.dataset.flt);
+  if (!text || fuPopAnchor === btn) return;
+  fuTipEl = document.createElement('div'); fuTipEl.className = 'tip'; fuTipEl.textContent = text; document.body.appendChild(fuTipEl);
+  const r = btn.getBoundingClientRect(), w = fuTipEl.offsetWidth, h = fuTipEl.offsetHeight;
+  fuTipEl.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + 'px';
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  fuTipEl.style.top = top + 'px';
+}
+document.addEventListener('mouseover', e => { const b = e.target.closest && e.target.closest('.th-flt'); if (b) fuShowTip(b); else if (fuTipEl) fuHideTip(); });
+document.addEventListener('mouseout', e => { if (!e.relatedTarget) fuHideTip(); });
+document.addEventListener('scroll', fuHideTip, true);
+
+// ══════════════════════════════════════════════════════
+// §COMPOSE — نافذة الإرسال + التسجيل (record)
+// ══════════════════════════════════════════════════════
+let fuCompose = null;            // { rows, phone, alts }
+let fuSendBusy = false;
+// 🔴 صفحة فيها دفعة بتعرّف `shellIsBusy` — الخروج التلقائي واليدوي موقوفين طول ما التسجيل شغّال (الـ shell §IDLE).
+window.shellIsBusy = () => fuSendBusy;
+
+function fuOpenCompose(tn) {
+  const r = fuRows.find(x => x.trackingNumber === tn); if (!r) return;
+  const rows = fuGroupRows(r);
+  const phone = fuPhones(r)[0];
+  if (!r.customer || !phone) return;
+  const alts = [...new Set(rows.flatMap(fuPhones))].filter(p => p !== phone);
+  fuCompose = { rows, phone, alts };
+  const name = rows.map(x => x.customer?.fullName).find(Boolean) || '—';
+  const anyCancelled = rows.some(x => x.cancelled);
+  const ships = rows.map(x => {
+    const n = fuSendsOf(x);
+    return `<div class="fu-ship"><b>${esc(fuOrderTag(x.order))}</b>
+      <a class="tracking-link" href="${esc(fuBostaUrl(x.trackingNumber))}" target="_blank" rel="noopener">${esc(x.trackingNumber)}</a>
+      <span class="meta">${esc(x.attempts ?? '—')} محاولة</span>
+      <span class="meta">آخر سبب: ${esc(fuReasonOf(x))}</span>
+      <span class="fu-badge ${n ? 'green' : ''}">${n ? 'اتبعتت ' + n + ' مرة' : 'لم يُرسل'}</span>
+      ${x.cancelled ? '<span class="fu-badge red">ملغي على شوبيفاي</span>' : ''}</div>`;
+  }).join('');
+  const altBtns = alts.map(p => `<button type="button" class="btn btn-outline" data-send-phone="${p}">واتساب برقم بديل ${esc(fuLocalPhone(p))}</button>`).join('');
+  fuEl('fuSendBody').innerHTML = `
+    <div class="fu-cust"><span class="fu-name">${esc(name)}</span><span class="fu-phone" style="display:inline">${esc(fuLocalPhone(phone))}</span>
+      ${rows.length > 1 ? `<span class="fu-badge amber">${rows.length} شحنات لنفس العميل</span>` : ''}</div>
+    <div class="fu-ships">${ships}</div>
+    ${anyCancelled ? '<div class="fu-warn bad">فيه أوردر ملغي على شوبيفاي — راجع قبل الإرسال.</div>' : ''}
+    <label class="fu-lbl" for="fuMsgText">الرسالة</label>
+    <textarea class="fu-msg" id="fuMsgText" aria-label="نص الرسالة">${esc(fuBuildMessage(rows))}</textarea>
+    <div class="fu-actions">
+      <button type="button" class="btn btn-green" id="fuWaBtn" data-send-phone="${phone}">📲 فتح واتساب</button>
+      <button type="button" class="btn btn-outline" id="fuCopyBtn">نسخ النص</button>${altBtns}
+    </div>
+    <div class="fu-foot">${rows.length > 1 ? 'الرسالة بتشمل كل شحنات العميل، والتسجيل هينزل على كل شحنة منهم. ' : ''}«فتح واتساب» بيسجّل <b>مرة إرسال</b> (مين · امتى · نص الرسالة) — التسجيل مش دليل إن الرسالة اتبعتت فعلاً.</div>`;
+  fuEl('fuSendOverlay').classList.add('open');
+  fuEl('fuMsgText').focus();
+}
+function fuCloseCompose() { fuEl('fuSendOverlay').classList.remove('open'); fuCompose = null; }
+
+async function fuDoSend(phone) {
+  if (fuSendBusy || !fuCompose) return;
+  const text = fuEl('fuMsgText').value;
+  if (!text.trim()) { showToast('النص فاضي', 'error'); return; }
+  // 🔴 window.open لازم يتنادى متزامنًا مع الضغطة (قبل أي await) وإلا المتصفح يحجبه
+  window.open(fuWaUrl(phone, text), '_blank', 'noopener');
+  if (fuHasAstral(text)) showToast('النص فيه إيموجي — ممكن يوصل بعلامة � — الأفضل تشيله', 'warning', 6000);
+  const { rows } = fuCompose;
+  fuSendBusy = true;
+  fuEl('fuSendBody').querySelectorAll('button').forEach(b => { b.disabled = true; });
+  try {
+    const d = await apiPost('record', { employee: dcoSession.username, items: rows.map(r => ({ trackingNumber: r.trackingNumber })), message: fuMaskName(text, rows) });
+    const results = d.results || [];
+    const now = new Date().toISOString();
+    rows.forEach((r, i) => {
+      const res = results[i];
+      if (!res?.ok) return;
+      r.sends = { count: res.count, lastBy: dcoSession.username, lastAt: res.deduped ? (r.sends?.lastAt || now) : now };
+    });
+    const failed = results.filter(r => !r.ok);
+    if (failed.length) showToast(`الواتساب اتفتح لكن التسجيل فشل: ${failed[0].error || 'خطأ'}`, 'error', 6000);
+    else if (results.every(r => r.deduped)) showToast('الإرسال ده اتسجّل من لحظات — مش هيتكرر', 'neutral');
+    else {
+      const n = results[0]?.count;
+      showToast(rows.length > 1 ? `اتسجّل الإرسال لـ ${rows.length} شحنات ✅` : `اتسجّل الإرسال ✅ (المرة ${n})`, 'success');
+    }
+    if (results.some(r => r.ok && r.logged === false)) showToast('التسجيل تم لكن سجل D1 فشل', 'warning');
+    fuCloseCompose();
+  } catch (e) {
+    showToast(`الواتساب اتفتح لكن التسجيل فشل: ${e.message} — اضغط تاني بعد التحديث`, 'error', 6000);
+    fuEl('fuSendBody').querySelectorAll('button').forEach(b => { b.disabled = false; });
+  } finally {
+    fuSendBusy = false;
+    fuWriteCache(); fuRender();
+  }
+}
+
+fuEl('fuSendOverlay').addEventListener('click', async (e) => {
+  const sendBtn = e.target.closest('[data-send-phone]');
+  if (sendBtn && !sendBtn.disabled) { fuDoSend(sendBtn.dataset.sendPhone); return; }
+  if (e.target.closest('#fuCopyBtn')) {
+    const ta = fuEl('fuMsgText');
     try { await navigator.clipboard.writeText(ta.value); showToast('اتنسخ النص', 'success'); }
     catch { ta.select(); showToast('انسخ يدويًا (Ctrl+C)', 'warning'); }
-    return;
   }
+});
 
-  if (act === 'result') {
-    const result = card.querySelector('[data-res]').value;
-    const note = card.querySelector('[data-note]').value.trim();
-    if (!result) { showToast('اختار نتيجة الرد الأول', 'error'); return; }
-    fuBusyKeys.add(key); fuRender();
-    try {
-      const d = await fuRecord(group, 'result', { result, note });
-      fuApplyLocal(group, 'result', d.results, { result, note });
-      if (!fuHandleFailures(d.results)) { fuDrafts.delete(group.msgKey); showToast('اتسجّلت النتيجة ✅', 'success'); }
-    } catch (e) { showToast(`فشل تسجيل النتيجة: ${e.message}`, 'error', 6000); }
-    finally { fuBusyKeys.delete(key); fuWriteCache(); fuRender(); }
-    return;
+// ══════════════════════════════════════════════════════
+// §HISTORY — لوحة تفاصيل كل مرات الإرسال لرقم تتبع
+// ══════════════════════════════════════════════════════
+let fuHistTn = null;
+async function fuOpenHistory(tn) {
+  const r = fuRows.find(x => x.trackingNumber === tn); if (!r) return;
+  fuHistTn = tn;
+  fuEl('histTitle').innerHTML = `سجل الإرسال · <bdi>${esc(fuOrderTag(r.order))}</bdi> · <bdi>${esc(tn)}</bdi> <span style="color:var(--text-secondary);font-weight:400">(${fuSendsOf(r)} مرة)</span>`;
+  fuEl('histBody').innerHTML = '<div class="q-empty">⏳ جاري التحميل...</div>';
+  fuEl('histOverlay').classList.add('open');
+  const d = fuEl('histDrawer'); d.classList.add('open'); d.setAttribute('aria-hidden', 'false');
+  try {
+    const data = await apiGet('get_sends', { trackingNumber: tn });
+    if (fuHistTn !== tn) return;                       // اتقفلت أو اتفتحت على شحنة تانية وسط التحميل
+    const sends = data.sends || [];
+    const total = sends.length;
+    fuEl('histBody').innerHTML = sends.map((s, i) => `
+      <div class="tl-item ${i === 0 ? 'latest' : ''}">
+        <div class="tl-desc">المرة ${total - i} · ${esc(s.sentBy)}</div>
+        <div class="tl-meta"><span>${esc(formatDateTime(s.sentAt))}</span>
+          <span>بعد المحاولة: ${esc(s.attempts ?? '—')}</span>${s.state != null ? `<span>الحالة: ${esc(s.state)}</span>` : ''}</div>
+        <pre class="fu-pre">${esc(fuUnmask(s.message, r))}</pre>
+      </div>`).join('') || '<div class="q-empty">مفيش إرسال مسجّل للشحنة دي.</div>';
+  } catch (e) {
+    if (fuHistTn === tn) fuEl('histBody').innerHTML = `<div class="fu-warn bad">تعذّر تحميل السجل: ${esc(e.message)}</div>`;
   }
-
-  if (act === 'reopen') {
-    fuBusyKeys.add(key); fuRender();
-    try {
-      const d = await fuRecord(group, 'reopen');
-      fuApplyLocal(group, 'reopen', d.results, {});
-      if (!fuHandleFailures(d.results)) showToast('رجعت لمحتاجين رسالة', 'success');
-    } catch (e) { showToast(`فشلت إعادة الفتح: ${e.message}`, 'error', 6000); }
-    finally { fuBusyKeys.delete(key); fuWriteCache(); fuRender(); }
-  }
+}
+function fuCloseHistory() {
+  fuHistTn = null;
+  fuEl('histOverlay').classList.remove('open');
+  const d = fuEl('histDrawer'); d.classList.remove('open'); d.setAttribute('aria-hidden', 'true');
 }
 
 // ══════════════════════════════════════════════════════
-// §EVENTS — تفويض أحداث (مفيش onclick بنص فيه بيانات عميل)
+// §EVENTS — تفويض أحداث (مفيش onclick بنص فيه بيانات عميل) + حارس Standards #32
 // ══════════════════════════════════════════════════════
-document.getElementById('fuList').addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-act]');
-  const card = btn?.closest('.fu-card');
-  if (btn && card && !btn.disabled) fuAction(card, btn.dataset.act, btn);
-});
-document.getElementById('fuList').addEventListener('input', (e) => {
-  const card = e.target.closest('.fu-card');
-  if (!card) return;
-  if (e.target.matches('textarea.fu-msg')) fuMsgs.set(e.target.dataset.msg, e.target.value);
-  else if (e.target.matches('[data-res],[data-note]')) {
-    const key = card.dataset.mk;
-    fuDrafts.set(key, { result: card.querySelector('[data-res]').value, note: card.querySelector('[data-note]').value });
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (!document.contains(t)) return;                      // الهدف اتشال بسبب re-render → مفيش قرار قفل
+  const trg = t.closest('[data-flt]');
+  if (trg) { e.stopPropagation(); fuOpenPop(trg.dataset.flt, trg); return; }
+  if (fuPop && fuPop.contains(t)) { fuPopAction(t); return; }
+  if (fuPop) fuClosePop();
+  const act = t.closest('[data-act][data-tn]');
+  if (act && !act.disabled) { if (act.dataset.act === 'send') fuOpenCompose(act.dataset.tn); else if (act.dataset.act === 'hist') fuOpenHistory(act.dataset.tn); return; }
+  const rm = t.closest('[data-rm]');
+  if (rm) {
+    const [type, key, ...rest] = rm.dataset.rm.split(':'), v = rest.join(':'), s = fuFilter;
+    if (type === 'ms') s.ms[key].delete(v);
+    else if (type === 'q') s.q[key] = '';
+    else if (type === 'date') fuResetDate();
+    fuRender(); return;
+  }
+  if (t.closest('[data-clearall]')) { e.stopPropagation(); if (fuAnyFilterActive()) fuClearAll(); return; }
+  const so = t.closest('[data-sort]'); if (so) { fuToggleSort(so.dataset.sort); return; }
+  const att = t.closest('[data-att]'); if (att) { const set = fuFilter.ms.attempts, v = att.dataset.att; set.has(v) ? set.delete(v) : set.add(v); fuRender(); return; }
+  const snd = t.closest('[data-snd]'); if (snd) { const set = fuFilter.ms.sends, v = snd.dataset.snd; set.has(v) ? set.delete(v) : set.add(v); fuRender(); return; }
+  if (t.closest('[data-tblbar]')) {
+    fuEl('fuBodyWrap').classList.toggle('collapsed');
+    fuEl('fuToggleIcon').classList.toggle('open');
   }
 });
-document.getElementById('fuTabs').addEventListener('click', (e) => {
-  const t = e.target.closest('[data-tab]');
-  if (t) { fuTab = t.dataset.tab; fuRender(); }
+document.addEventListener('input', e => {
+  const t = e.target; if (!fuPop || !fuPop.contains(t)) return;
+  const s = fuFilter;
+  if (t.dataset.q !== undefined) { s.q[t.dataset.q] = t.value; t.classList.toggle('has-value', !!t.value.trim()); fuRender(); }
+  else if (t.dataset.d) { s.date[t.dataset.d] = t.value; s.date.preset = ''; fuRender(); fuPop.querySelectorAll('[data-preset]').forEach(b => b.classList.remove('on')); }
+  else if (t.dataset.msq !== undefined) { fuPopQ = t.value; fuRenderList(); }
 });
-['fuState', 'fuProvince', 'fuMulti'].forEach(id => document.getElementById(id).addEventListener('change', fuRender));
-document.getElementById('fuSearch').addEventListener('input', fuRender);
-document.getElementById('fuDays').addEventListener('change', fuLoad);
-document.getElementById('fuReload').addEventListener('click', fuLoad);
-
+document.addEventListener('scroll', fuPlace, true);
+window.addEventListener('resize', fuPlace);
+// Enter داخل أي حقل في قائمة الفلتر = اقفل القائمة والفلتر يفضل (§2.4) — Escape يقفلها
 document.addEventListener('keydown', (e) => {
-  if (e.key !== 'Escape') return;
-  if (document.getElementById('settingsOverlay')?.classList.contains('open')) closeSettings();
-  document.getElementById('aboutOverlay')?.classList.remove('open');
-  document.getElementById('changelogOverlay')?.classList.remove('open');
+  if (e.key === 'Escape') {
+    fuClosePop(); fuCloseHistory();
+    if (!fuSendBusy) fuCloseCompose();
+    if (document.getElementById('settingsOverlay')?.classList.contains('open')) closeSettings();
+    document.getElementById('aboutOverlay')?.classList.remove('open');
+    document.getElementById('changelogOverlay')?.classList.remove('open');
+    return;
+  }
+  if (e.key === 'Enter' && fuPop && fuPop.contains(e.target) && e.target.matches('input[data-q],input[data-d]')) {
+    e.preventDefault(); e.target.blur(); fuClosePop();
+  }
 });
+
+async function fuRefresh() { await fuLoad(); }
 
 // ══════════════════════════════════════════════════════
 // §INIT
 // ══════════════════════════════════════════════════════
-document.getElementById('headerMount').innerHTML = dcoHeader({
+fuEl('fuTableRoot').innerHTML = fuBuildPanelHtml();
+fuEnsureWidths();   // لو فيه عرض محفوظ بيتطبّق فورًا؛ غير كده بيتقاس عند أول عرض بيانات
+fuEl('headerMount').innerHTML = dcoHeader({
   icon:     '📲',
   title:    'متابعة التأجيلات',
-  subtitle: 'شحنات بوسطة المتأجلة بطلب العميل — رسالة واتساب يدوية',
+  subtitle: 'شحنات بوسطة تحت التوصيل بمحاولة توصيل أو أكتر — رسالة واتساب يدوية',
   session:  dcoSession,
+  extras:   '<button class="hbtn" id="refreshBtn" onclick="fuRefresh()"><span class="ico">↺</span> تحديث</button>',
 });
 
 renderVersionUI();
 checkWorkerVersion(PAGE_WORKERS);
-fuRenderTabs();
 fuLoad();
 </script>
 </body>
