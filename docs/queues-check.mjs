@@ -249,7 +249,12 @@ function makeStub() {
     else if (action === 'check_employee') body = { ok:true, exists:true, isActive:true, hasPin:true };
     // v1.39.0 — ملخّص «مستقبل حالة بوسطة» (Worker ≥ 1.9.0)
     else if (action === 'queue_summary') {
-      if (state.webhookFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
+      // v1.44.0 — «متابعة التأجيلات» ليها Worker تاني بنفس الـ action وشكل رد مختلف
+      if (url.hostname.startsWith('bosta-delivery-follow-up-worker')) {
+        if (state.followUpFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
+        else body = { ok:true, windowDays:3, total:6, pending:4, sent:1, needsAction:1 };
+      }
+      else if (state.webhookFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
       else body = { ok:true, main:{ total:7, attempts:{ '0':3, '1':2, '2':2 } }, inReturn:4 };
     }
     else if (action === 'get_ready_queue') {
@@ -1330,8 +1335,8 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
   const secs = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec')].map(sec => ({
     title: sec.querySelector('.dco-home-sec-title')?.textContent.trim(),
     rows: [...sec.querySelectorAll('.dco-qrow')].map(r => r.id) })));
-  is(secs[0].title === 'أوردرات بوسطة' && JSON.stringify(secs[0].rows) === '["rowBosta","rowWebhook"]',
-     '🔴 «أوردرات بوسطة» أول قسم وفيه «رفع بوسطة» و«متابعة شحنات بوسطة»', JSON.stringify(secs));
+  is(secs[0].title === 'أوردرات بوسطة' && JSON.stringify(secs[0].rows) === '["rowBosta","rowWebhook","rowFollowUp"]',
+     '🔴 «أوردرات بوسطة» أول قسم وفيه «رفع بوسطة» و«متابعة شحنات بوسطة» و«متابعة التأجيلات»', JSON.stringify(secs));
   is(secs[1].title === 'الحالات الانتقالية' && JSON.stringify(secs[1].rows) === '["rowReady","rowShipped"]',
      'و«الحالات الانتقالية» فيه الجاهز والمشحون بس');
   is((await page.textContent('#rowWebhook .dco-card-name')).trim() === 'متابعة شحنات بوسطة', 'الاسم «متابعة شحنات بوسطة»');
@@ -1383,6 +1388,43 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
   is(await page.isVisible('#failWebhook'), 'ورسالة الفشل ظاهرة');
   is(num(await page.textContent('#cntReady')) === READY_TOTAL, 'وفشله ما خبّاش باقي الطوابير (`allSettled`)');
   state.webhookFail = false;
+  await ctx.close();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ⑬ الرئيسية: صف «متابعة التأجيلات» (v1.44.0) — Worker `bosta-delivery-follow-up-worker`
+// 🔴 الرقم الكبير = «محتاجين رسالة» (`pending`)، والمربعات = مستنيين رد · محتاجين تصرّف.
+// ══════════════════════════════════════════════════════════════
+console.log('\n══ ⑬ الرئيسية: متابعة التأجيلات ══');
+{
+  state.calls.length = 0;
+  const { page, ctx } = await newPage();
+  await page.goto(`${BASE}/index.html`);
+  await page.waitForTimeout(1400);
+  is((await page.textContent('#rowFollowUp .dco-card-name')).trim() === 'متابعة التأجيلات', 'الاسم «متابعة التأجيلات»');
+  is(num(await page.textContent('#cntFollowUp')) === 4, '🔴 الرقم الكبير = محتاجين رسالة (`pending`) مش الإجمالي', await page.textContent('#cntFollowUp'));
+  const chips = await page.$$eval('#chipsFollowUp .dco-chip', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()));
+  is(chips.length === 2 && chips[0].includes('مستنيين رد') && chips[1].includes('محتاجين تصرّف'), 'المربعين: مستنيين رد · محتاجين تصرّف', JSON.stringify(chips));
+  is((await page.getAttribute('#rowFollowUp', 'href')) === 'Bosta-Delivery-Follow-Up.html', 'الصف بيفتح صفحة الأداة');
+  const fc = await page.evaluate(() => JSON.parse(sessionStorage.getItem('dco_queue_followup') || 'null'));
+  is(fc && fc.data.pending === 4 && fc.data.needsAction === 1, 'الكاش اتكتب بالرد الخام', JSON.stringify(fc));
+  is(!(await page.textContent('#agoFollowUp')).includes('ما اتحدّثش'), 'مربع «آخر تحديث منذ:» اتملّى');
+  state.calls.length = 0;
+  await page.reload();
+  await page.waitForTimeout(1200);
+  is(!state.calls.includes('queue_summary') && num(await page.textContent('#cntFollowUp')) === 4,
+     '🔴 الرجوع بالكاش الجديد = صفر نداء والرقم من الكاش', state.calls.join(','));
+  await ctx.close();
+}
+{
+  state.followUpFail = true;
+  const { page, ctx } = await newPage();
+  await page.goto(`${BASE}/index.html`);
+  await page.waitForTimeout(1400);
+  is((await page.textContent('#cntFollowUp')).trim() === 'تعذّر', '🔴 فشل الـ Worker = «تعذّر» مش `0`');
+  is(await page.isVisible('#failFollowUp'), 'ورسالة الفشل ظاهرة');
+  is(num(await page.textContent('#cntWebhook')) === 7, 'وفشله ما خبّاش صف «متابعة شحنات بوسطة» (`allSettled`)');
+  state.followUpFail = false;
   await ctx.close();
 }
 
@@ -1457,7 +1499,7 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
     homeQ.bosta.at = null; homeQ.webhook.at = at(0);
     renderFreshness(now);
     const b = { b: read('worstBosta') };
-    homeQ.webhook.at = null; renderFreshness(now);
+    homeQ.webhook.at = null; homeQ.followUp.at = null; renderFreshness(now);
     const c = { b: read('worstBosta') };
     return { a, b, c };
   });

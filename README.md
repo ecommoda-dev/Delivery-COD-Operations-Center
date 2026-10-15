@@ -21,6 +21,7 @@
 | `Partial-Delivery.html` 🔗 | **التسليم الجزئي** — أداة مدموجة (v1.10.0 · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` (في ريبوه) |
 | `Courier-Names.html` 🛵 | **أسماء المناديب** — قسم «أدوات أخرى» (v1.30.0): إضافة / حذف / ترتيب قايمة `custom.courier` | `courier-names-worker` (في ريبو `Courier-Names` — Worker وبس) |
 | `Bosta-Webhook-Status-Receiver.html` 📮 | **مستقبل حالة شحنات بوسطة** — قسم «أدوات أخرى» (v1.35.0): أحداث الويبهوك (٥ تابات · v1.36.0: In-Return) · **عرض بحت** | `bosta-webhook-status-receiver-worker` (في ريبو `Bosta-Webhook-Status-Receiver` — Worker وبس) |
+| `Bosta-Delivery-Follow-Up.html` 📲 | **متابعة التأجيلات** — صف في «أوردرات بوسطة» (v1.44.0): شحنات بوسطة المؤجلة بطلب العميل + رسالة واتساب **يدوية** + تسجيل الرد | `bosta-delivery-follow-up-worker` (في ريبو `Bosta-Delivery-Follow-Up` — Worker وبس) |
 
 > 🔴 **الريبو ده فيه النُصّين** — الواجهة على GitHub Pages، و**Worker الدخول**
 > (`index.js`) على Cloudflare. ده الشكل القياسي (قرار ٨ في الـ playbook).
@@ -61,10 +62,12 @@ npm i playwright postcss --no-save
 node docs/css-check.js shared/shell.css index.html Ready-Orders.html Shipped-Orders.html \
                        Order-Status-Updater.html COD-Payment-Center.html Partial-Delivery.html \
                        Bosta-Webhook-Status-Receiver.html
+                       Bosta-Delivery-Follow-Up.html
 node docs/rules-check.mjs
 node docs/queues-check.mjs
 node docs/tools-check.mjs
 node docs/bosta-webhook-check.mjs   # مستقبل حالة بوسطة (v1.35.0 · ٢٨ بند)
+node docs/followup-check.mjs        # متابعة التأجيلات (v1.44.0 · ٣٩ بند)
 node docs/idle-check.mjs        # الخروج التلقائي لعدم النشاط (v1.32.0 · ٢١ بند)
 ```
 
