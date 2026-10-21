@@ -152,7 +152,7 @@
   /* عمر رقم الطابور في الرئيسية (v1.38.0) — قيم محايدة هنا، وكل صف بيبدّلها
      بلون مرحلته (`.dco-qrow.age-*`) و`--fill` بيتكتب على الصف من الـ JS. */
   --age: var(--border-strong); --age-light: var(--surface-2); --age-border: var(--border); --age-dark: var(--text-muted);
-  --fill: 0; --edge: 14px;
+  --fill: 0; --edge: 8px;
   /* 🎨 هوية صفوف الرئيسية وحاويات الأقسام (v1.43.0 · قرار أحمد 15-10-2026).
      ألوان **بعيدة عن سلّم العمر** (أخضر · أزرق · كهرماني · أحمر) عن قصد:
      سلّم العمر بيقول «الرقم قديم قد إيه»، والهوية بتقول «ده أنهي صف» —
@@ -359,37 +359,67 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
       عند كل دخول، وماياخدهوش إلا اللي عنده طابور
       حقيقي وجلبه رخيص.
    ══════════════════════════════════════════════════════════════ */
-/* 🎨 كل قسم **حاوية** بخلفية وإطار بلون عيلته (v1.43.0) — الأربع صفوف كانوا
-   بيتقروا قايمة واحدة. العنوان 17px بأيقونة مربعة، وفي حاويتَي الطوابير شارة
-   «أقدم رقم» (`.dco-worst`) بتقول لو فيه صف قديم من غير ما الموظف يفتح الصفوف.
-   ⚠️ الصفوف **جوّه** الحاوية ما اتغيّرتش: مربع «آخر تحديث» وزرار التحديث
-      والحافة والخلفية التدريجية بالحرف زي v1.38.0. */
-.dco-home-sec{margin-bottom:14px;padding:0 14px 14px;border-radius:16px;background:var(--sec-bg);border:1.5px solid var(--sec-border)}
+/* 🎨 الأقسام (v1.47.0 · قرار أحمد 21-10-2026) — **بلا إطار**: العنوان في النص بخطين على الجانبين
+   (`.dco-sec-ln`)، وكل قسم قابل للطي. كان حاوية بخلفية وإطار (v1.43.0) واتشال: لون العمر
+   (كهرماني/أحمر) فوق خلفية بنفسجي أو تركواز كان بيتخلط، فاللون دلوقتي هو الأعلى صوتًا.
+   ⚠️ الصفوف **جوّه** ما اتغيّرتش في المنطق: سلّم العمر (٥ · ١٥ · ٦٠) وألوان الهوية والحافة والخلفية
+      التدريجية زي v1.38.0/v1.43.0 — اللي اتغيّر **الحجم** (أضغط) وشكل صندوق «آخر تحديث» وزرار التحديث.
+   ⚠️ مطوي = شريط ملوّن (`--sec-bg`) فيه الأيقونة والعنوان وتحته ملخّص الصفوف (`.dco-sum`)، والخطين
+      بيختفوا. الحالة **مابتتخزّنش** — كله مفتوح عند الفتح (قرار أحمد). */
+.dco-home-sec{margin-bottom:6px}
+.dco-home-sec:last-child{margin-bottom:0}
 .dco-home-sec.sec-bosta{--sec-bg:var(--sec-bosta-bg);--sec-border:var(--sec-bosta-border);--sec-fg:var(--sec-bosta-fg);--sec-solid:var(--sec-bosta-solid)}
 .dco-home-sec.sec-flow{--sec-bg:var(--sec-flow-bg);--sec-border:var(--sec-flow-border);--sec-fg:var(--sec-flow-fg);--sec-solid:var(--sec-flow-solid)}
 .dco-home-sec.sec-tools{--sec-bg:var(--sec-tools-bg);--sec-border:var(--sec-tools-border);--sec-fg:var(--sec-tools-fg);--sec-solid:var(--sec-tools-solid)}
-.dco-home-sec-hd{display:flex;align-items:center;gap:10px;padding:12px 4px}
-.dco-home-sec-ico{width:32px;height:32px;flex-shrink:0;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--sec-solid);color:var(--on-accent)}
+.dco-home-sec-hd{display:flex;align-items:center;gap:10px;padding:2px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:background-color .2s,border-color .2s}
+.dco-home-sec-hd:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dco-sec-ln{flex:1 1 0;min-width:10px;height:2px;border-radius:2px;background:var(--sec-border)}
+.dco-sec-sp{flex:none;width:30px}
+.dco-sec-mid{display:flex;align-items:center;gap:10px;min-width:0}
+.dco-sec-tx{min-width:0}
+.dco-home-sec-ico{position:relative;width:32px;height:32px;flex-shrink:0;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--sec-solid);color:var(--on-accent)}
 .dco-home-sec-ico svg{width:17px;height:17px}
 .dco-home-sec-title{font-size:17px;font-weight:900;line-height:1.3;color:var(--sec-fg)}
 .dco-home-sec-sub{font-size:12px;font-weight:700;color:var(--text-secondary)}
-/* شارة «أقدم رقم» — بنفس سلّم العمر (`agoInfo`) من غير سلّم تاني */
-.dco-worst{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;border:1px solid var(--age-border);background:var(--age-light);color:var(--age-dark);font-size:12px;font-weight:800;white-space:nowrap}
-.dco-worst[hidden]{display:none}
-.dco-worst i{width:8px;height:8px;border-radius:50%;background:var(--age);display:inline-block}
+/* زرار الطي — سهم بدائرة */
+.dco-sec-chev{width:30px;height:30px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1.5px solid var(--sec-border);background:var(--surface);color:var(--text-primary);transition:border-color .2s}
+.dco-sec-chev svg{width:16px;height:16px;transition:transform .25s}
+.dco-home-sec-hd:hover .dco-sec-chev{border-color:var(--sec-solid)}
+.dco-home-sec.is-collapsed .dco-sec-chev svg{transform:rotate(180deg)}
+/* الجسم — حركة طي بـ`grid-template-rows` (من غير ارتفاع مكتوب). ⚠️ `visibility:hidden` بعد الحركة
+   عشان الصفوف المطوية ماتاخدش تاب ولا قارئ شاشة. */
+.dco-sec-body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .25s ease}
+.dco-sec-in{overflow:hidden;min-height:0;padding-inline:6px;margin-inline:-6px;transition:visibility 0s}
+.dco-rows{padding-block:12px 14px}
+.dco-sec-in>.dco-tools-grid{margin-block:12px 14px}
+.dco-home-sec.is-collapsed .dco-sec-body{grid-template-rows:0fr}
+.dco-home-sec.is-collapsed .dco-sec-in{visibility:hidden;transition:visibility 0s .25s}
+/* مطوي = شريط ملوّن بدل الخطين */
+.dco-home-sec.is-collapsed .dco-home-sec-hd{background:var(--sec-bg);border-color:var(--sec-border);padding:8px 12px}
+.dco-home-sec.is-collapsed .dco-sec-ln{display:none}
+.dco-home-sec.is-collapsed .dco-sec-mid{margin-inline:auto}
+.dco-home-sec.is-collapsed.has-sum .dco-home-sec-sub{display:none}
+/* ملخّص الصفوف وهو مطوي: كبسولة (اسم + رقم) بلون هوية الصف، وتحتها المدة بلون عمره */
+.dco-sum{display:none;align-items:flex-start;gap:6px;flex-wrap:wrap;margin-top:4px}
+.dco-home-sec.is-collapsed .dco-sum{display:flex}
+.dco-smw{display:inline-flex;flex-direction:column;align-items:center;gap:3px}
+.dco-sm{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:999px;border:1px solid var(--idc-border);background:var(--idc-light);color:var(--idc);font-size:12px;font-weight:900}
+.dco-sm-n{font-size:11.5px;font-weight:800}
+.dco-sm em{font-style:normal;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.dco-smcap{font-style:normal;font-size:11px;font-weight:800;color:var(--age-dark);white-space:nowrap}
 /* ══ الطوابير = صفوف بعرض الشاشة (اتجاه B — قرار أحمد 06-09-2026) ══
    القراءة من فوق لتحت مش جنب بعض. السبب العملي: الصف بيوسّع الرقم
    والتقسيمة والختم والزرار **على سطر واحد**، وبيسع رسالة فشل كاملة
    من غير ما الكارت يطول ويبوّظ محاذاة اللي جنبه.
    ⚠️ وطابور تالت بيدخل **صف زيادة** — مش تخطيط جديد. */
-.dco-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 18px;margin-bottom:10px;font-family:var(--font-body);color:var(--text-primary);text-decoration:none;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .06s}
+.dco-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:9px 14px;margin-bottom:10px;font-family:var(--font-body);color:var(--text-primary);text-decoration:none;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .06s}
 .dco-row:last-child{margin-bottom:0}
 .dco-row:hover{border-color:var(--accent);box-shadow:0 6px 18px rgba(37,99,235,.12)}
 .dco-row:active{transform:translateY(1px)}
 .dco-row:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--focus-ring)}
 /* المناطق الأربعة: الهوية · الرقم · التفاصيل (بتتمدّد) · الأكشن */
-.dco-row-id{display:flex;align-items:center;gap:12px;flex:0 0 auto;min-width:215px}
-.dco-row-num{flex:0 0 auto;min-width:125px}
+.dco-row-id{display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:196px}
+.dco-row-num{flex:0 0 auto;min-width:84px}
 .dco-row-mid{flex:1 1 230px;min-width:215px;display:flex;flex-direction:column;gap:7px}
 /* منطقة الأكشن = لوحة «آخر تحديث» + زرار التحديث **مع بعض**
    (نفس `.rdy-actions` في `pack.html`). `align-items:stretch` بيخلّي
@@ -528,64 +558,73 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
       · زرار التحديث بلون المرحلة نفسها — بعد ساعة أحمر.
    ⚠️ `age-none` = ما اتجابش ولا مرة (`homeQ[k].at === null`) — رمادي محايد،
       مش أخضر: «ما اتحدّثش» ≠ «لسه متحدّث». */
-.dco-qrow{position:relative;overflow:hidden;padding-inline-start:calc(18px + var(--edge));
+.dco-qrow{position:relative;overflow:hidden;padding-inline-start:calc(14px + var(--edge));
   background:color-mix(in srgb,var(--age) calc(var(--fill) * 18%),var(--surface));transition:background-color .4s,border-color .4s,box-shadow .15s}
 .dco-qrow::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:var(--edge);background:var(--age);transition:background-color .4s}
-.dco-qrow.age-fresh,.dco-worst.age-fresh{--age:var(--green);--age-light:var(--green-light);--age-border:var(--green-border);--age-dark:var(--green-dark)}
-.dco-qrow.age-ok,.dco-worst.age-ok{--age:var(--accent);--age-light:var(--accent-light);--age-border:var(--accent-border);--age-dark:var(--accent-dark)}
-.dco-qrow.age-warn,.dco-worst.age-warn{--age:var(--amber);--age-light:var(--amber-light);--age-border:var(--amber-border);--age-dark:var(--amber-dark);border-color:var(--age-border)}
-.dco-qrow.age-stale,.dco-worst.age-stale{--age:var(--red);--age-light:var(--red-light);--age-border:var(--red-border);--age-dark:var(--red-dark);border-color:var(--age-border)}
+.dco-qrow.age-fresh,.dco-smcap.age-fresh{--age:var(--green);--age-light:var(--green-light);--age-border:var(--green-border);--age-dark:var(--green-dark)}
+.dco-qrow.age-ok,.dco-smcap.age-ok{--age:var(--accent);--age-light:var(--accent-light);--age-border:var(--accent-border);--age-dark:var(--accent-dark)}
+.dco-qrow.age-warn,.dco-smcap.age-warn{--age:var(--amber);--age-light:var(--amber-light);--age-border:var(--amber-border);--age-dark:var(--amber-dark);border-color:var(--age-border)}
+.dco-qrow.age-stale,.dco-smcap.age-stale{--age:var(--red);--age-light:var(--red-light);--age-border:var(--red-border);--age-dark:var(--red-dark);border-color:var(--age-border)}
 .dco-qrow:hover{border-color:var(--accent)}
 
 /* العدد — من غير كلمة «أوردر»، وبخط تحته (قرار أحمد). ⚠️ `aria-label` على
    العنصر بيقول «N أوردر» لقارئ الشاشة. */
-.dco-qrow .dco-row-num{min-width:110px;display:flex;justify-content:center;align-items:center}
-.dco-qrow .dco-count{border-bottom:4px solid var(--accent);padding-bottom:6px}
+.dco-qrow .dco-row-num{min-width:84px;display:flex;justify-content:center;align-items:center}
+.dco-qrow .dco-count{border-bottom:4px solid var(--accent);padding-bottom:4px;font-size:34px}
 .dco-qrow .dco-count.pending{border-bottom-color:var(--border-strong)}
 .dco-qrow .dco-count.failed{border-bottom-color:var(--red)}
 /* وقت التحديث: الرقم بيتشال ومكانه ↻ بتلف — الرقم القديم وهو بيتبدّل
    كان بيتقري «ده الرقم»، والأيقونة بتقول «استنى». */
-.dco-count-spin{display:none;font-size:40px;font-weight:700;line-height:1;color:var(--accent)}
+.dco-count-spin{display:none;font-size:30px;font-weight:700;line-height:1;color:var(--accent)}
 .dco-qrow.is-loading .dco-count{display:none}
 .dco-qrow.is-loading .dco-count-spin{display:inline-block;animation:spin .9s linear infinite}
 
 /* مربع «آخر تحديث منذ:» */
-.dco-agebox{display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:220px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--age-border);background:var(--age-light);box-shadow:var(--shadow);transition:background-color .4s,border-color .4s}
+.dco-agebox{display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:206px;padding:6px 10px;border-radius:var(--radius-sm);border:1px solid var(--age-border);background:var(--age-light);box-shadow:var(--shadow);transition:background-color .4s,border-color .4s}
 .dco-agebox-lbl{font-size:10.5px;font-weight:700;color:var(--text-muted)}
 .dco-agebox-val{display:flex;align-items:baseline;gap:6px;min-height:27px;color:var(--age-dark);font-size:14px;font-weight:900;line-height:1.1}
 .dco-agebox-val b{font-family:var(--font-mono);font-size:24px;font-weight:900;font-variant-numeric:tabular-nums}
 .dco-agebar{height:6px;border-radius:4px;background:var(--border);overflow:hidden}
 .dco-agebar i{display:block;height:100%;width:calc(var(--fill) * 100%);background:var(--age);border-radius:4px;transition:width .4s linear,background-color .4s}
-.dco-agebox-dt{display:flex;gap:6px;flex-wrap:wrap}
-.dco-agebox .dco-stamp-chip{background:var(--surface)}
+.dco-agebox-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:2px 10px;line-height:1.25}
+.dco-agebox-time{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text-secondary);direction:ltr;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dco-agebox-time svg{width:11px;height:11px;opacity:.7}
+.dco-agebox-val>span{white-space:nowrap}
 /* وقت التحديث: الشريط بيتحرك رايح جاي بالأزرق، والمربع بيكمّل بلونه */
 .dco-qrow.is-loading .dco-agebar i{width:35%;background:var(--accent);animation:dcoIndet 1.1s ease-in-out infinite}
 @keyframes dcoIndet{from{margin-inline-start:-35%}to{margin-inline-start:100%}}
 
 /* زرار التحديث — أيقونة كبيرة وتحتها الكلمة، **بلون مرحلة العمر**، ومن
    غير بادج الرقم (كان تكرار للرقم الكبير جنبه). */
-.dco-qref{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:104px;padding:8px 6px;border-radius:var(--radius-sm);border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-family:var(--font-body);cursor:pointer;box-shadow:var(--shadow);transition:background-color .4s,border-color .4s,filter .15s}
+.dco-qref{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:48px;padding:6px 4px;border-radius:var(--radius-sm);border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-family:var(--font-body);cursor:pointer;box-shadow:var(--shadow);transition:background-color .4s,border-color .4s,filter .15s}
 .dco-qrow.age-fresh .dco-qref,.dco-qrow.age-ok .dco-qref,.dco-qrow.age-warn .dco-qref,.dco-qrow.age-stale .dco-qref{background:var(--age);border-color:var(--age)}
 .dco-qref:hover:not(:disabled){filter:brightness(.92)}
 .dco-qref:focus-visible{outline:none;box-shadow:0 0 0 3px var(--focus-ring)}
-.dco-qref-ico{font-size:30px;font-weight:700;line-height:1;display:inline-block}
-.dco-qref-tx{font-size:12.5px;font-weight:800;white-space:nowrap}
+.dco-qref-ico{font-size:24px;font-weight:700;line-height:1;display:inline-block}
+.dco-qref-tx{font-size:11.5px;font-weight:800;white-space:nowrap}
 .dco-qrow .dco-qref:disabled{cursor:wait;background:var(--surface);color:var(--accent-dark);border:1.5px dashed var(--accent)}
 .dco-qref:disabled .dco-qref-ico{animation:spin .9s linear infinite}
-.dco-qref:disabled .dco-qref-tx{font-size:11.5px}
+.dco-qref:disabled .dco-qref-tx{font-size:11px}
 /* 🎨 هوية كل صف (v1.43.0) — الأيقونة والاسم وكود الحالة والرقم بلون الصف.
    ⚠️ **ما بتلمسش** الحافة ولا الخلفية ولا مربع «آخر تحديث» ولا الزرار: دول
       لون العمر. الهوية بتتحط على العناصر اللي بتقول «ده أنهي صف» بس. */
-.dco-qrow.id-upload{--idc:var(--id-upload);--idc-light:var(--id-upload-light);--idc-border:var(--id-upload-border)}
-.dco-qrow.id-track{--idc:var(--id-track);--idc-light:var(--id-track-light);--idc-border:var(--id-track-border)}
-.dco-qrow.id-ready{--idc:var(--id-ready);--idc-light:var(--id-ready-light);--idc-border:var(--id-ready-border)}
-.dco-qrow.id-shipped{--idc:var(--id-shipped);--idc-light:var(--id-shipped-light);--idc-border:var(--id-shipped-border)}
-.dco-qrow .dco-card-ico{width:54px;height:54px;border-radius:14px;background:var(--idc);border-color:var(--idc);color:var(--on-accent)}
-.dco-qrow .dco-card-ico svg{width:28px;height:28px}
-.dco-qrow .dco-card-name{font-size:16px;font-weight:900;color:var(--idc)}
-.dco-qrow .dco-card-code{color:var(--idc);background:var(--idc-light);border-color:var(--idc-border)}
-.dco-qrow .dco-count:not(.pending):not(.failed){color:var(--idc);border-bottom-color:var(--idc);font-size:46px}
-@media (prefers-reduced-motion: reduce){.dco-qrow,.dco-qrow *{transition:none!important;animation:none!important}}
+.dco-qrow.id-upload,.dco-sm.id-upload{--idc:var(--id-upload);--idc-light:var(--id-upload-light);--idc-border:var(--id-upload-border)}
+.dco-qrow.id-track,.dco-sm.id-track{--idc:var(--id-track);--idc-light:var(--id-track-light);--idc-border:var(--id-track-border)}
+.dco-qrow.id-ready,.dco-sm.id-ready{--idc:var(--id-ready);--idc-light:var(--id-ready-light);--idc-border:var(--id-ready-border)}
+.dco-qrow.id-shipped,.dco-sm.id-shipped{--idc:var(--id-shipped);--idc-light:var(--id-shipped-light);--idc-border:var(--id-shipped-border)}
+.dco-qrow .dco-card-ico{width:42px;height:42px;border-radius:11px;background:var(--idc);border-color:var(--idc);color:var(--on-accent)}
+.dco-qrow .dco-card-ico svg{width:22px;height:22px}
+.dco-qrow .dco-card-name{font-size:15px;font-weight:900;color:var(--idc)}
+.dco-qrow .dco-card-code{color:var(--idc);background:var(--idc-light);border-color:var(--idc-border);margin-top:3px;padding:1px 10px;font-size:12.5px}
+.dco-qrow .dco-count:not(.pending):not(.failed){color:var(--idc);border-bottom-color:var(--idc)}
+.dco-qrow .dco-count.failed{font-size:20px}
+@media (prefers-reduced-motion: reduce){.dco-qrow,.dco-qrow *,.dco-sec-body,.dco-sec-in,.dco-sec-chev svg,.dco-home-sec-hd{transition:none!important;animation:none!important}}
+@media (max-width:720px){
+  .dco-row-id,.dco-row-mid{min-width:0}
+  .dco-row-act{margin-inline-start:0;width:100%}
+  .dco-agebox{flex:1 1 0;min-width:0}
+  .dco-home-sec-sub{display:none}
+}
 
 /* شريط الرجوع للطابور — بيظهر لما الصفحة اتفتحت من جدول التغليف */
 .dco-back-bar{display:none;align-items:center;justify-content:space-between;gap:10px;background:var(--accent-light);border:1px solid var(--accent-border);color:var(--accent-dark);border-radius:var(--radius-sm);padding:9px 14px;margin-bottom:12px;font-size:13px;font-weight:700}

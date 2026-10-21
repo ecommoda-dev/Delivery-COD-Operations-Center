@@ -143,13 +143,21 @@
   <!-- ══ قسم «أوردرات بوسطة» (طلب أحمد 14-10-2026) — أول قسم فوق ═════
        🔴 **فيه أداتين بوسطة بعدّاد حيّ**: «رفع بوسطة» (اللي مستنية رفع) و«متابعة شحنات بوسطة»
           (اللي تحت التوصيل). نفس شكل الصفوف في «قسم الحالات الانتقالية» وسلوكها بالحرف. -->
-  <div class="dco-home-sec sec-bosta">
-    <div class="dco-home-sec-hd">
-      <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/></svg></span>
-      <div class="dco-home-sec-title">أوردرات بوسطة</div>
-      <div class="dco-home-sec-sub">رفع الشحنات ومتابعتها</div>
-      <span class="dco-worst" id="worstBosta" hidden></span>
+  <section class="dco-home-sec sec-bosta has-sum" id="secBosta">
+    <div class="dco-home-sec-hd" role="button" tabindex="0" aria-expanded="true" aria-controls="secBodyBosta" data-sec-toggle>
+      <i class="dco-sec-sp" aria-hidden="true"></i><i class="dco-sec-ln" aria-hidden="true"></i>
+      <div class="dco-sec-mid">
+        <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/></svg></span>
+        <div class="dco-sec-tx">
+          <div class="dco-home-sec-title">أوردرات بوسطة</div>
+          <div class="dco-home-sec-sub">رفع الشحنات ومتابعتها</div>
+          <div class="dco-sum" id="sumBosta"></div>
+        </div>
+      </div>
+      <i class="dco-sec-ln" aria-hidden="true"></i>
+      <span class="dco-sec-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>
     </div>
+    <div class="dco-sec-body" id="secBodyBosta"><div class="dco-sec-in"><div class="dco-rows">
 
     <!-- ══ صف ③ — «رفع بوسطة» (طلب أحمد 27-09-2026) ══════════════
          🔴 **بقى صف بعدّاد حيّ بنفس شكل «Ready»/«Shipped» بالحرف** — كان
@@ -183,10 +191,9 @@
         </div>
         <div class="dco-row-act">
           <div class="dco-agebox">
-            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
+            <div class="dco-agebox-top"><span class="dco-agebox-lbl">آخر تحديث منذ:</span><span class="dco-agebox-time" id="stampBosta">—</span></div>
             <div class="dco-agebox-val" id="agoBosta">—</div>
             <div class="dco-agebar" aria-hidden="true"><i></i></div>
-            <div class="dco-agebox-dt" id="stampBosta"><span class="dco-stamp-chip">—</span></div>
           </div>
           <button class="dco-qref" id="btnBosta" type="button"
                   onclick="event.preventDefault();event.stopPropagation();loadQueue('bosta', false)">
@@ -223,10 +230,9 @@
         </div>
         <div class="dco-row-act">
           <div class="dco-agebox">
-            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
+            <div class="dco-agebox-top"><span class="dco-agebox-lbl">آخر تحديث منذ:</span><span class="dco-agebox-time" id="stampWebhook">—</span></div>
             <div class="dco-agebox-val" id="agoWebhook">—</div>
             <div class="dco-agebar" aria-hidden="true"><i></i></div>
-            <div class="dco-agebox-dt" id="stampWebhook"><span class="dco-stamp-chip">—</span></div>
           </div>
           <button class="dco-qref" id="btnWebhook" type="button"
                   onclick="event.preventDefault();event.stopPropagation();loadQueue('webhook', false)">
@@ -259,10 +265,9 @@
         </div>
         <div class="dco-row-act">
           <div class="dco-agebox">
-            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
+            <div class="dco-agebox-top"><span class="dco-agebox-lbl">آخر تحديث منذ:</span><span class="dco-agebox-time" id="stampFollowUp">—</span></div>
             <div class="dco-agebox-val" id="agoFollowUp">—</div>
             <div class="dco-agebar" aria-hidden="true"><i></i></div>
-            <div class="dco-agebox-dt" id="stampFollowUp"><span class="dco-stamp-chip">—</span></div>
           </div>
           <button class="dco-qref" id="btnFollowUp" type="button"
                   onclick="event.preventDefault();event.stopPropagation();loadQueue('followUp', false)">
@@ -270,15 +275,24 @@
           </button>
         </div>
       </a>
-  </div>
+  </div></div></div>
+  </section>
 
-  <div class="dco-home-sec sec-flow">
-    <div class="dco-home-sec-hd">
-      <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12M12 6l6 6-6 6"/></svg></span>
-      <div class="dco-home-sec-title">الحالات الانتقالية</div>
-      <div class="dco-home-sec-sub">Ready ثم Shipped</div>
-      <span class="dco-worst" id="worstFlow" hidden></span>
+  <section class="dco-home-sec sec-flow has-sum" id="secFlow">
+    <div class="dco-home-sec-hd" role="button" tabindex="0" aria-expanded="true" aria-controls="secBodyFlow" data-sec-toggle>
+      <i class="dco-sec-sp" aria-hidden="true"></i><i class="dco-sec-ln" aria-hidden="true"></i>
+      <div class="dco-sec-mid">
+        <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12M12 6l6 6-6 6"/></svg></span>
+        <div class="dco-sec-tx">
+          <div class="dco-home-sec-title">الحالات الانتقالية</div>
+          <div class="dco-home-sec-sub">Ready ثم Shipped</div>
+          <div class="dco-sum" id="sumFlow"></div>
+        </div>
+      </div>
+      <i class="dco-sec-ln" aria-hidden="true"></i>
+      <span class="dco-sec-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>
     </div>
+    <div class="dco-sec-body" id="secBodyFlow"><div class="dco-sec-in"><div class="dco-rows">
 
     <!-- ══ صف ① — «أوردرات جاهزة للشحن» (Ready) ═══════════════════
          🔴 **الرقم بيعدّ الأوردرات اللي حالتها `Ready`** في أي من
@@ -318,10 +332,9 @@
         </div>
         <div class="dco-row-act">
           <div class="dco-agebox">
-            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
+            <div class="dco-agebox-top"><span class="dco-agebox-lbl">آخر تحديث منذ:</span><span class="dco-agebox-time" id="stampReady">—</span></div>
             <div class="dco-agebox-val" id="agoReady">—</div>
             <div class="dco-agebar" aria-hidden="true"><i></i></div>
-            <div class="dco-agebox-dt" id="stampReady"><span class="dco-stamp-chip">—</span></div>
           </div>
           <button class="dco-qref" id="btnReady" type="button"
                   onclick="event.preventDefault();event.stopPropagation();loadQueue('ready', false)">
@@ -357,10 +370,9 @@
         </div>
         <div class="dco-row-act">
           <div class="dco-agebox">
-            <span class="dco-agebox-lbl">آخر تحديث منذ:</span>
+            <div class="dco-agebox-top"><span class="dco-agebox-lbl">آخر تحديث منذ:</span><span class="dco-agebox-time" id="stampShipped">—</span></div>
             <div class="dco-agebox-val" id="agoShipped">—</div>
             <div class="dco-agebar" aria-hidden="true"><i></i></div>
-            <div class="dco-agebox-dt" id="stampShipped"><span class="dco-stamp-chip">—</span></div>
           </div>
           <button class="dco-qref" id="btnShipped" type="button"
                   onclick="event.preventDefault();event.stopPropagation();loadQueue('shipped', false)">
@@ -369,7 +381,8 @@
         </div>
       </a>
 
-  </div>
+  </div></div></div>
+  </section>
 
   <!-- ══ قسم «أدوات» ══════════════════════════════════════════
        🔴 **بلا عدّاد عن قصد** — والكلام ده مكتوب في `shared/shell.css`
@@ -389,12 +402,20 @@
           `update_status` بتكتب حالة على شوبيفاي، و`pay`/`refund` بيسجّلوا
           فلوس، و`remove_items` بتشيل منتج من أوردر. الوصف تحت كل واحدة
           بيقول كده بالنص عشان الموظف يعرف إنه داخل على فعل. -->
-  <div class="dco-home-sec sec-tools">
-    <div class="dco-home-sec-hd">
-      <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></span>
-      <div class="dco-home-sec-title">أدوات العمليات</div>
-      <div class="dco-home-sec-sub">أدوات بتكتب على الأوردرات</div>
+  <section class="dco-home-sec sec-tools" id="secTools">
+    <div class="dco-home-sec-hd" role="button" tabindex="0" aria-expanded="true" aria-controls="secBodyTools" data-sec-toggle>
+      <i class="dco-sec-sp" aria-hidden="true"></i><i class="dco-sec-ln" aria-hidden="true"></i>
+      <div class="dco-sec-mid">
+        <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></span>
+        <div class="dco-sec-tx">
+          <div class="dco-home-sec-title">أدوات العمليات</div>
+          <div class="dco-home-sec-sub">أدوات بتكتب على الأوردرات</div>
+        </div>
+      </div>
+      <i class="dco-sec-ln" aria-hidden="true"></i>
+      <span class="dco-sec-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>
     </div>
+    <div class="dco-sec-body" id="secBodyTools"><div class="dco-sec-in">
     <div class="dco-tools-grid">
 
       <a class="dco-tool" href="Order-Status-Updater.html">
@@ -413,7 +434,8 @@
       </a>
 
     </div>
-  </div>
+  </div></div>
+  </section>
 
   <!-- ══ قسم «أدوات أخرى» (v1.30.0 · طلب أحمد 05-10-2026) ═════════
        🔴 **تحت «قسم أدوات العمليات» مباشرةً — قسم لوحده مش كارت جواه.**
@@ -421,12 +443,20 @@
           «أسماء المناديب» بتعدّل **قايمة الاختيار نفسها** (`custom.courier`)
           اللي كل الأوردرات بتختار منها — نوع تاني من الفعل، فقسم تاني.
        ⚠️ **وبلا عدّاد** زي قسم الأدوات (فعل مش طابور). -->
-  <div class="dco-home-sec sec-tools">
-    <div class="dco-home-sec-hd">
-      <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg></span>
-      <div class="dco-home-sec-title">أدوات أخرى</div>
-      <div class="dco-home-sec-sub">قوائم مساعدة</div>
+  <section class="dco-home-sec sec-tools" id="secOther">
+    <div class="dco-home-sec-hd" role="button" tabindex="0" aria-expanded="true" aria-controls="secBodyOther" data-sec-toggle>
+      <i class="dco-sec-sp" aria-hidden="true"></i><i class="dco-sec-ln" aria-hidden="true"></i>
+      <div class="dco-sec-mid">
+        <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg></span>
+        <div class="dco-sec-tx">
+          <div class="dco-home-sec-title">أدوات أخرى</div>
+          <div class="dco-home-sec-sub">قوائم مساعدة</div>
+        </div>
+      </div>
+      <i class="dco-sec-ln" aria-hidden="true"></i>
+      <span class="dco-sec-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>
     </div>
+    <div class="dco-sec-body" id="secBodyOther"><div class="dco-sec-in">
     <div class="dco-tools-grid">
 
       <a class="dco-tool" href="Courier-Names.html">
@@ -435,7 +465,8 @@
       </a>
 
     </div>
-  </div>
+  </div></div>
+  </section>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -549,7 +580,18 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.44.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.47.0</span>
+          <span class="cl-ver-date">21-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🎨 <b>الأقسام بلا إطار وقابلة للطي</b> — العنوان في النص بخطين على الجانبين، والضغط عليه بيطوي القسم لشريط ملوّن بيعرض اسم كل صف ورقمه وتحته مدة آخر تحديث بلون عمره (مثلًا «4 دقيقة»). كله مفتوح عند الفتح.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>📐 <b>الصفوف أضغط</b> — أيقونة وعدّاد أصغر وحشو أقل، ومربع «آخر تحديث» بالساعة (صباحاً/مساءً) جنب العنوان من غير التاريخ، وزرار التحديث نحيف (48px) بنفس ارتفاع المربع.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>➖ <b>شارة «أقدم رقم» اتشالت</b> — الملخّص المطوي بيقول عمر كل صف لوحده.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.44.0</span>
           <span class="cl-ver-date">15-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -1369,6 +1411,7 @@ async function loadQueue(key, silent = true) {
 
 function setCount(key, r) {
   const ids = HOME_QUEUES[key].ids;
+  homeQ[key].total = r.total;     // للملخّص وهو مطوي
   const c = document.getElementById(ids.count);
   c.textContent = String(r.total);
   c.setAttribute('aria-label', `${r.total} ${HOME_QUEUES[key].unit || 'أوردر'}`);
@@ -1419,7 +1462,8 @@ function setRefreshing(key, on) {
   document.getElementById(ids.row)?.classList.toggle('is-loading', on);
   if (!btn) return;
   btn.disabled = on;
-  btn.querySelector('.dco-qref-tx').textContent = on ? 'جاري التحديث' : 'تحديث';
+  btn.querySelector('.dco-qref-tx').textContent = on ? 'جاري' : 'تحديث';   // الزرار نحيف (48px) — «جاري التحديث» بتتقال في مربع العمر
+  btn.setAttribute('aria-busy', String(on));
 }
 
 // ─── عمر الرقم على الصف ───
@@ -1427,36 +1471,41 @@ function setRefreshing(key, on) {
 //    **الحاجة الوحيدة** اللي بتقول إن الرقم قدم.
 // ⚠️ المرحلة (اللون) من `agoInfo` في `shared/shell.js` §HELPERS — **ممنوع
 //    سلّم تاني هنا**. اللي بيتحسب هنا هو **الدقايق** (للنص الكبير والشريط).
+const DCO_CLOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
 function ageValueHtml(mins) {
   if (mins < 1)  return '<b>لحظات</b>';
   if (mins < 60) return `<b>${mins}</b>${mins >= 3 && mins <= 10 ? 'دقايق' : 'دقيقة'}`;
   const h = Math.floor(mins / 60);
   return h <= 2 ? `<b>${esc(arHour(h))}</b>` : `<b>${h}</b>${h <= 10 ? 'ساعات' : 'ساعة'}`;
 }
-// 🎨 شارة «أقدم رقم» في عنوان حاوية القسم (v1.43.0) — بتقول لو فيه صف قديم من
-//    غير ما الموظف يفتح الصفوف. ⚠️ **نفس `q.at` ونفس `agoInfo`** — مفيش سلّم تاني،
-//    ومفيش نداء شبكة. ⛔ والصف اللي ما اتجابش (`at === null`) **مابيدخلش الحساب**:
-//    «ما اتحدّثش» مش «لسه متحدّث»، ولو كلهم null الشارة بتختفي.
-const HOME_WORST = { worstBosta: ['bosta', 'webhook', 'followUp'], worstFlow: ['ready', 'shipped'] };
-function worstAgeText(mins) {
+// 🎨 ملخّص القسم وهو مطوي (v1.47.0 · طلب أحمد 21-10-2026) — اسم كل صف ورقمه، وتحته المدة
+//    بلون عمره ("4 دقيقة"). ⚠️ **نفس `homeQ` ونفس `agoInfo`** — مفيش سلّم تاني ولا نداء شبكة.
+//    ⚠️ الصف اللي ما اتجابش `—` مش `0`، والفاشل «تعذّر» (قاعدة ٣ و٤). الاسم ولون الهوية بيتقروا من
+//    الصف نفسه (مصدر واحد). ⛔ الشارة «أقدم رقم» اتشالت بقرار أحمد — الملخّص بيقول عمر كل صف لوحده.
+const HOME_SECS = { sumBosta: ['bosta', 'webhook', 'followUp'], sumFlow: ['ready', 'shipped'] };
+function sumAgeText(mins) {
   if (mins < 1) return 'لحظات';
-  return mins < 60 ? mins + ' د' : Math.floor(mins / 60) + ' س';
+  return mins < 60 ? mins + ' دقيقة' : Math.floor(mins / 60) + ' ساعة';
 }
-function renderWorst(now) {
-  Object.keys(HOME_WORST).forEach(id => {
+function renderSummary(now) {
+  Object.keys(HOME_SECS).forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    const ats = HOME_WORST[id].map(k => homeQ[k] && homeQ[k].at).filter(Boolean);
-    if (!ats.length) { el.hidden = true; return; }
-    const oldest = ats.reduce((a, b) => (a.getTime() <= b.getTime() ? a : b));
-    const mins = Math.max(0, Math.floor((now - oldest.getTime()) / 60000));
-    el.className = 'dco-worst ' + agoInfo(oldest, now).cls.replace('ago-', 'age-');
-    el.innerHTML = '<i aria-hidden="true"></i>أقدم رقم: ' + esc(worstAgeText(mins));
-    el.hidden = false;
+    el.innerHTML = HOME_SECS[id].map(key => {
+      const q = homeQ[key], row = document.getElementById(HOME_QUEUES[key].ids.row);
+      if (!row) return '';
+      const name = row.querySelector('.dco-card-name').textContent.trim();
+      const idCls = [...row.classList].find(c => c.startsWith('id-')) || '';
+      const lvl = q.at ? agoInfo(q.at, now).cls.replace('ago-', '') : 'none';
+      const mins = q.at ? Math.max(0, Math.floor((now - q.at.getTime()) / 60000)) : 0;
+      const failed = !!row.querySelector('.dco-count.failed');
+      const n = failed ? 'تعذّر' : typeof q.total === 'number' ? String(q.total) : '—';
+      const cap = q.loading ? 'جاري التحديث…' : q.at ? sumAgeText(mins) : 'لسه ما اتحدّثش';
+      return `<span class="dco-smw"><span class="dco-sm ${idCls}"><span class="dco-sm-n">${esc(name)}</span><em>${esc(n)}</em></span><i class="dco-smcap age-${lvl}">${esc(cap)}</i></span>`;
+    }).join('');
   });
 }
 function renderFreshness(now = Date.now()) {
-  renderWorst(now);
   Object.keys(homeQ).forEach(key => {
     const q = homeQ[key], ids = HOME_QUEUES[key].ids;
     const row = document.getElementById(ids.row);
@@ -1470,13 +1519,16 @@ function renderFreshness(now = Date.now()) {
     row.style.setProperty('--fill', String(q.at ? Math.min(mins / 60, 1) : 0));
     document.getElementById(ids.ago).innerHTML = q.loading
       ? '<span>جاري التحديث…</span>'
-      : q.at ? ageValueHtml(mins) : '<span>لسه ما اتحدّثش</span>';
+      : q.at ? '<span>' + ageValueHtml(mins) + '</span>' : '<span>لسه ما اتحدّثش</span>';
+    // 🕐 الساعة بس جنب العنوان (صباحاً/مساءً) — التاريخ اتشال (طلب أحمد): الكاش عمره ١٠ دقايق والخروج
+    //    التلقائي بعد ساعة، فالتاريخ هو النهارده دايمًا. وبيفضل في `title` الصندوق لو احتاجه حد.
     const iso = q.at ? q.at.toISOString() : null;
-    document.getElementById(ids.stamp).innerHTML = iso
-      ? `<span class="dco-stamp-chip">${esc(formatDate(iso))}</span>`
-        + `<span class="dco-stamp-chip">${esc(formatTimeOnly(iso))}</span>`
-      : '<span class="dco-stamp-chip">—</span>';
+    const p = iso ? cairoParts(iso) : null;
+    const stampEl = document.getElementById(ids.stamp);
+    stampEl.innerHTML = p ? DCO_CLOCK_SVG + esc(_ampm(p)) : '—';
+    stampEl.closest('.dco-agebox').title = p ? `آخر تحديث ${formatDate(iso)} ${_ampm(p)}` : '';
   });
+  renderSummary(now);
 }
 
 // ─── النبضة — أرقام محسوبة محليًا، **صفر نداء شبكة** ───
@@ -1505,6 +1557,25 @@ async function renderAboutWorkers() {
     `<table><tr><th>الأداة</th><th>نسخة الـ Worker</th><th>الحد الأدنى</th></tr>${rows.join('')}</table>
      <p>نسخة الواجهة (الهب كله): <code>${esc(TOOL_VERSION)}</code></p>`;
 }
+
+
+// ─── طي الأقسام (v1.47.0 · طلب أحمد 21-10-2026) ───
+// ⚠️ **كله مفتوح عند الفتح** (قرار أحمد) و**الحالة مابتتخزّنش** — الريفريش بيرجّعها مفتوحة. والصفوف
+//    المخفية `visibility:hidden` بعد الحركة (CSS)، فمابتاخدش تاب ولا قارئ شاشة وهي مطوية.
+function toggleHomeSec(h) {
+  const sec = h.closest('.dco-home-sec');
+  const c = !sec.classList.contains('is-collapsed');
+  sec.classList.toggle('is-collapsed', c);
+  h.setAttribute('aria-expanded', String(!c));
+}
+document.addEventListener('click', e => {
+  const h = e.target.closest && e.target.closest('[data-sec-toggle]');
+  if (h) toggleHomeSec(h);
+});
+document.addEventListener('keydown', e => {
+  const h = e.target.closest && e.target.closest('[data-sec-toggle]');
+  if (h && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleHomeSec(h); }
+});
 
 // ══════════════════════════════════════════════════════════════
 // §INIT
