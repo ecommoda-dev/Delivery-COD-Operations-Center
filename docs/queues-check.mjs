@@ -1346,7 +1346,9 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
   is((await page.textContent('#rowWebhook .eco-card-name')).trim() === 'متابعة شحنات بوسطة', 'الاسم «متابعة شحنات بوسطة»');
   is(num(await page.textContent('#cntWebhook')) === 7, 'الرقم الكبير == عدد أرقام التتبع تحت التوصيل', await page.textContent('#cntWebhook'));
   const chips = (await page.textContent('#chipsWebhook')).replace(/\s+/g, ' ');
-  is(chips.includes('محاولتين فأكتر 2') && chips.includes('محاولة واحدة 2') && chips.includes('0 محاولات 3') && chips.includes('In-Return 4'),
+  // 🎨 §HOME-CHIPS: المحاولات «مجموعة موصولة» (الرقم قبل الاسم)، و«In-Return» كبسولة لوحدها (الاسم قبل الرقم)
+  is(chips.includes('2محاولتين فأكتر') && chips.includes('2محاولة واحدة') && chips.includes('30 محاولات') && chips.includes('In-Return 4')
+     && (await page.locator('#chipsWebhook .eco-cgroup .eco-chip').count()) === 3,
      'المربعات: المحاولات + In-Return بأعدادها', chips);
   const lines = await page.$$eval('#chipsWebhook .eco-chips-line', ls => ls.map(l => ({ t: l.textContent.replace(/\s+/g, ' '), y: l.getBoundingClientRect().top })));
   is(lines.length === 2 && lines[0].t.includes('محاولات') && !lines[0].t.includes('In-Return')

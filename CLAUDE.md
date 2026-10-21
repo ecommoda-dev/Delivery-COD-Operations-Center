@@ -97,6 +97,14 @@
 - ⚠️ **مولّدات هب الشحن** (`docs/build-pages.py` · `docs/port-standalone.py`) بتولّد الصفحات بالأسماء الجديدة؛ `port-standalone.py` محتاج `/home/user/sib` فيه `Delivery-COD-Operations-Center` + `Order-Status-Updater` + `COD-Payment-Center` (symlinks) وبيتشغّل بالمسار الكامل. **أي تعديل في صفحة متولّدة بيتعمل في ريبوها الأصلي الأول** — وبعد أي تعديل في المولّد شغّل المولّدين وتأكد إن `git diff` على الصفحات المتولّدة هو اللي اتوقّعته بس.
 - الفحوصات: WOC browser · sku-barcode · pack · scanners · office · warehouse · audit · home · idle · **table** — DCO queues · tools · rules · idle · followup · bosta-webhook · bosta-table — والاتنين `css-check` و`core-twin-check` و`auth-worker-twin-check`.
 
+## 🎨 تمريرة v1.51.0 (الشحن) — chips «مجموعة موصولة» + العنوان المطوي على اليمين (طلب أحمد 22-10-2026)
+
+- 🔴 **من مختبر الـ chips (artifact):** مربعات الصف اللي ليها `grp: true` في `derive` (مناديب · بوسطة · شو روم · أوضاع الرفع · محاولات بوسطة) بتتلزق في **كبسولة واحدة** (`.eco-cgroup`) بفواصل — الرقم يمين والاسم يسار، مقاس صغير، **الصفر باهت** (النص بس)، والـ chips في النص. مربع بلا `grp` بيفضل كبسولة لوحده جنبها.
+- 🎨 **`att: { n, title }` على مربع** = بادج ⏳ عليه (المخزن: «في انتظار الرفع على بوسطة» على خانة بوسطة). ⚠️ **مابيبهتش** مع الصفر — ده تحذير.
+- ⚠️ **ده بيلغي قرار «chips منفصلة»** (توحيد الهبّين 22-10-2026) — الكود في `shared/home.js` (`setCount`) و`core.css` (`.eco-cgroup` · `.eco-att`) نسخة متطابقة في الهبّين؛ `grp`/`att` بتتحط في `derive` بتاع كل هب. الألوان من نفس كلاسات `.eco-chip`.
+- 🎨 **القسم المطوي:** العنوان على اليمين في **كل** الأقسام (أدوات مساعدة · العمليات · أخرى كانت في النص).
+- ✅ الفحص: queues 451 · tools · bosta-webhook · followup · css-check.
+
 ## 🔎 تمريرة v1.50.0 — تحديث الـ core المشترك (المرحلة ٥ · طلب أحمد 22-10-2026)
 
 - `shared/core.js` و`core.css` اتزوّدوا بمكوّن **§TABLE** (فلاتر رأس العمود · عناوين ثابتة · سحب العرض) — **نسخة متطابقة بايت ببايت مع هب المخزن** (`bash docs/core-twin-check.sh`).
