@@ -432,6 +432,9 @@ function dcoFollowUpDerive(d) {
 //    الفشل اللي أنتجت ٥٩ صف فشل كذّاب في سجل سكانر المرتجعات.
 // ⚠️ الرقم طويل عن قصد — طابور بمئات الأوردرات بياخد عشرات الثواني على
 //    شوبيفاي، والقطع بدري أسوأ من الانتظار.
+// ⚠️ ورسالة الـ timeout **بتقول للموظف يراجع السجل قبل الإعادة** — «ما ردّش» ≠
+//    «ما اتنفّذش»، وفي الأدوات اللي بتكتب (تحصيل · تغيير حالة · حذف منتج · مناديب)
+//    الكتابة ممكن تكون تمّت. ⛔ ممنوع ترجع لـ«جرّب تاني» — نفس صياغة `WOC_API_TIMEOUT_MS`.
 const DCO_API_TIMEOUT_MS = 90000;
 
 function dcoApi(worker) {
@@ -455,7 +458,7 @@ function dcoApi(worker) {
       });
     } catch (e) {
       if (e.name === 'AbortError')
-        throw new Error(`Worker ${worker.label} ما ردّش خلال ${DCO_API_TIMEOUT_MS / 1000} ثانية — جرّب تاني، والطابور بيتجاب من أول`);
+        throw new Error(`Worker ${worker.label} ما ردّش خلال ${DCO_API_TIMEOUT_MS / 1000} ثانية — راجع السجل قبل ما تعيد المحاولة، ممكن تكون العملية تمّت`);
       throw new Error(`تعذّر الوصول لـ Worker ${worker.label} — راجع الاتصال أو حالة الـ Worker: ${e.message}`);
     } finally {
       clearTimeout(timer);

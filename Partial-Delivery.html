@@ -525,7 +525,9 @@ async function confirmRemove() {
     else if (d.status === 'warning') { playBeep('warn'); await lookupOrder(currentOrder.name); }
     else { playBeep('error'); btn.disabled = false; }
   } catch (e) {
-    resEl.innerHTML = `<div class="pd-result error"><span class="badge">✗ فشل</span>${esc(e.message)}</div>`;
+    // 🔴 فشل شبكة/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — الحذف مالوش رجعة،
+    //    فالرسالة بتقول يراجع الأوردر قبل أي إعادة.
+    resEl.innerHTML = `<div class="pd-result error"><span class="badge">✗ ما قدرناش نتأكد</span>${esc(e.message)}<br>⚠️ افتح الأوردر تاني وشوف البنود قبل ما تعيد المحاولة — الحذف ممكن يكون اتنفّذ فعلاً.</div>`;
     playBeep('error'); btn.disabled = false;
   }
 }
