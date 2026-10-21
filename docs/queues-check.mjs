@@ -1346,7 +1346,9 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
   is((await page.textContent('#rowWebhook .eco-card-name')).trim() === 'متابعة شحنات بوسطة', 'الاسم «متابعة شحنات بوسطة»');
   is(num(await page.textContent('#cntWebhook')) === 7, 'الرقم الكبير == عدد أرقام التتبع تحت التوصيل', await page.textContent('#cntWebhook'));
   const chips = (await page.textContent('#chipsWebhook')).replace(/\s+/g, ' ');
-  is(chips.includes('محاولتين فأكتر 2') && chips.includes('محاولة واحدة 2') && chips.includes('0 محاولات 3') && chips.includes('In-Return 4'),
+  // 🎨 §HOME-CHIPS: المحاولات «مجموعة موصولة» (الرقم قبل الاسم)، و«In-Return» كبسولة لوحدها (الاسم قبل الرقم)
+  is(chips.includes('2محاولتين فأكتر') && chips.includes('2محاولة واحدة') && chips.includes('30 محاولات') && chips.includes('In-Return 4')
+     && (await page.locator('#chipsWebhook .eco-cgroup .eco-chip').count()) === 3,
      'المربعات: المحاولات + In-Return بأعدادها', chips);
   const lines = await page.$$eval('#chipsWebhook .eco-chips-line', ls => ls.map(l => ({ t: l.textContent.replace(/\s+/g, ' '), y: l.getBoundingClientRect().top })));
   is(lines.length === 2 && lines[0].t.includes('محاولات') && !lines[0].t.includes('In-Return')
@@ -1554,9 +1556,9 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
       bodyH: Math.round(sec.querySelector('.eco-sec-body').getBoundingClientRect().height),
       vis: getComputedStyle(sec.querySelector('.eco-sec-in')).visibility,
       sum: sec.querySelector('.eco-sum') ? getComputedStyle(sec.querySelector('.eco-sum')).display !== 'none' : null,
-      pills: [...sec.querySelectorAll('.eco-smw')].map((w, i) => ({ name: w.querySelector('.eco-sm-n').textContent.trim(), n: w.querySelector('.eco-sm em').textContent.trim(),
+      pills: [...sec.querySelectorAll('.eco-sm:has(.eco-sm-nn)')].map((w, i) => ({ name: w.querySelector('.eco-sm-n').textContent.trim(), n: w.querySelector('.eco-sm-nn').textContent.trim(),
         cap: w.querySelector('.eco-smcap').textContent.trim(), capCol: getComputedStyle(w.querySelector('.eco-smcap')).color,
-        pillCol: getComputedStyle(w.querySelector('.eco-sm')).color, rowName: getComputedStyle(document.getElementById(rows[i]).querySelector('.eco-card-name')).color })),
+        pillCol: getComputedStyle(w).color, rowName: getComputedStyle(document.getElementById(rows[i]).querySelector('.eco-card-name')).color })),
       hdBg: getComputedStyle(hd).backgroundColor, hdBd: getComputedStyle(hd).borderTopColor, hdBw: getComputedStyle(hd).borderTopWidth,
       secFg: v('--sec-' + (id === 'secBosta' ? 'bosta' : id === 'secFlow' ? 'flow' : 'tools') + '-fg'), lines: [...hd.querySelectorAll('.eco-sec-ln')].some(l => getComputedStyle(l).display !== 'none'),
       sub: getComputedStyle(sec.querySelector('.eco-home-sec-sub')).display !== 'none',
@@ -1566,7 +1568,7 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   is(await page.evaluate(() => ['secBosta', 'secFlow'].every(id => { const s = document.getElementById(id), c = getComputedStyle(s.querySelector('.eco-home-sec-title')).color;
     return [...s.querySelectorAll('.eco-sec-ln')].every(l => getComputedStyle(l).backgroundColor === c); })),
      '🎨 خطين العنوان على الجانبين **بنفس لون العنوان** (أغمق من الحدود — قرار أحمد 22-10-2026)');
-  await page.click('#secBosta .eco-home-sec-hd');
+  await page.click('#secBosta .eco-sec-chev');
   await page.waitForTimeout(450);
   const cb = await readSec('secBosta', ['rowBosta', 'rowWebhook', 'rowFollowUp']);
   is(cb.cls && cb.exp === 'false' && cb.bodyH < 2 && cb.vis === 'hidden', '🔴 الضغط على العنوان بيطوي القسم: الصفوف اتخفت (`visibility:hidden` فمفيش تاب عليها)', JSON.stringify([cb.cls, cb.exp, cb.bodyH, cb.vis]));
@@ -1580,18 +1582,26 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   is(cb.hdBg === cb.secBg && cb.hdBg !== 'rgba(0, 0, 0, 0)' && !cb.lines, '🎨 المطوي شريط ملوّن بلون عيلة القسم والخطين اتشالوا', JSON.stringify([cb.hdBg, cb.secBg, cb.lines]));
   is(cb.hdBd === cb.secFg && parseFloat(cb.hdBw) >= 2, '🎨 والمطوي له **إطار محدد بنفس لون العنوان** (قرار أحمد 22-10-2026)', JSON.stringify([cb.hdBd, cb.secFg, cb.hdBw]));
   is(cb.sub === false, 'والعنوان الفرعي بيختفي وهو مطوي (الملخّص مكانه)');
-  await page.click('#secFlow .eco-home-sec-hd');
+  await page.click('#secFlow .eco-sec-chev');
   await page.waitForTimeout(450);
   const cf = await readSec('secFlow', ['rowReady', 'rowShipped']);
   if (process.env.ECO_SHOT2) await page.screenshot({ path: process.env.ECO_SHOT2, fullPage: true });
   is(cf.pills.map(p => p.cap).join('|') === '1 ساعة|4 دقيقة' && cf.pills[0].capCol === cf.red && cf.pills[1].capCol === cf.green,
      'القسم التاني: ٧٥ د ← «1 ساعة» بالأحمر · ٤ د ← «4 دقيقة» بالأخضر', cf.pills.map(p => p.cap + ':' + p.capCol).join(' | '));
-  await page.click('#secTools .eco-home-sec-hd');
+  await page.click('#secTools .eco-sec-chev');
   await page.waitForTimeout(450);
   const ct = await readSec('secTools', []);
-  is(ct.cls && ct.bodyH < 2 && ct.sum === null && ct.sub, 'أقسام الأدوات بتتطوي كمان — بلا ملخّص (مفيش أرقام) والعنوان الفرعي بيفضل', JSON.stringify([ct.bodyH, ct.sum, ct.sub]));
+  const tt = await page.evaluate(() => [...document.querySelectorAll('#secTools .eco-sm')].map(a => [a.getAttribute('href'), !!a.querySelector('.eco-sm-nn')]));
+  is(ct.cls && ct.bodyH < 2 && ct.sum === true && tt.length === 3 && tt.every(x => /\.html$/.test(x[0]) && !x[1]),
+     '🎨 أقسام الأدوات بتتطوي ببلاطات (أيقونة + اسم · لينك لصفحة الأداة · بلا رقم)', JSON.stringify([ct.bodyH, ct.sum, tt]));
+  // 🎨 بلاطة الطابور: لينك للصفحة، والضغطة عليها مابتفتحش القسم
+  const tl = await page.evaluate(() => [...document.querySelectorAll('#secBosta .eco-sm')].map(a => a.getAttribute('href')));
+  is(tl.join() === 'Bosta-Orders-Upload.html,Bosta-Webhook-Status-Receiver.html,Bosta-Delivery-Follow-Up.html', '🎨 بلاطات الملخّص روابط مباشرة لصفحات الأدوات', tl.join());
+  await page.evaluate(() => document.querySelector('#secBosta .eco-sm').addEventListener('click', e => e.preventDefault(), { once: true }));
+  await page.click('#secBosta .eco-sm'); await page.waitForTimeout(300);
+  is(await page.evaluate(() => document.getElementById('secBosta').classList.contains('is-collapsed')), 'والضغط على البلاطة مايفتحش القسم');
   // فتح تاني + كيبورد
-  await page.click('#secBosta .eco-home-sec-hd');
+  await page.click('#secBosta .eco-sec-chev');
   await page.focus('#secFlow .eco-home-sec-hd');
   await page.keyboard.press('Enter');
   await page.keyboard.press('Tab');

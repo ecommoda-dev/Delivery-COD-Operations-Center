@@ -53,7 +53,7 @@ const ECO_WEBHOOK_ATT = [
 ];
 function ecoWebhookDerive(d) {
   const a = d?.main?.attempts || {};
-  const chips = ECO_WEBHOOK_ATT.filter(x => a[x.k]).map(x => ({ cls: x.cls, label: x.label, n: a[x.k] }));
+  const chips = ECO_WEBHOOK_ATT.filter(x => a[x.k]).map(x => ({ grp: true, cls: x.cls, label: x.label, n: a[x.k] }));
   if (d?.inReturn) chips.push({ cls: 'qc-job-return', label: '🔁 In-Return', n: d.inReturn, row: 1 });   // سطر لوحده تحت المحاولات
   return { total: d?.main?.total || 0, chips };
 }
@@ -333,7 +333,7 @@ function ecoFlaggedCount(rows) {
 //    على الشاشة بيتحوّل لديكور والموظف بيبطّل يشوفه.
 function ecoChips(rows) {
   const cn = ecoCourierCounts(rows);
-  const chips = ECO_COURIER_GROUPS.map(g => ({ cls: g.cls, label: g.label, n: cn[g.key] }));
+  const chips = ECO_COURIER_GROUPS.map(g => ({ grp: true, cls: g.cls, label: g.label, n: cn[g.key] }));   // 🎨 مجموعة موصولة (§HOME-CHIPS)
   const flagged = ecoFlaggedCount(rows);
   if (flagged) chips.push({ cls: 'qc-flag', label: '⚠️ محتاجة مراجعة', n: flagged });
   return chips;

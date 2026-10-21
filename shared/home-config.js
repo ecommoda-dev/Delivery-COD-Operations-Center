@@ -33,7 +33,7 @@ const BOSTA_MODES = [
   { key: 'exchange', label: '🔄 استبدال',  cls: 'qc-job-exchange' },
 ];
 function deriveBosta(counts) {
-  const chips = BOSTA_MODES.map(m => ({ cls: m.cls, label: m.label, n: counts[m.key] }));
+  const chips = BOSTA_MODES.map(m => ({ grp: true, cls: m.cls, label: m.label, n: counts[m.key] }));   // 🎨 مجموعة موصولة (§HOME-CHIPS)
   return { total: chips.reduce((a, c) => a + c.n, 0), chips };
 }
 
