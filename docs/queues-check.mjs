@@ -1156,7 +1156,7 @@ console.log('\n══ ⑥ index.html — مصدر واحد للرقم ══');
   // v1.38.0 — زرار التحديث من غير بادج الرقم، والعدد من غير كلمة «أوردر»
   is(!(await page.$('#badgeReady')) && (await page.textContent('#btnReady')).replace(/\s+/g,'') === '↻تحديث',
      'زرار التحديث = ↻ + «تحديث» وبس — مفيش بادج يكرر الرقم', (await page.textContent('#btnReady')).trim());
-  is(!(await page.textContent('#rowReady .dco-row-num')).includes('أوردر')
+  is(!(await page.textContent('#rowReady .eco-row-num')).includes('أوردر')
      && (await page.getAttribute('#cntReady', 'aria-label')) === `${READY_TOTAL} أوردر`,
      'كلمة «أوردر» اتشالت من جنب العدد — ولسه في `aria-label` لقارئ الشاشة');
 
@@ -1166,7 +1166,7 @@ console.log('\n══ ⑥ index.html — مصدر واحد للرقم ══');
 
   // 🔴 v1.40.0 — «مستحق التحصيل» اتشال من الرئيسية (طلب أحمد) — في الصفّين
   is((await page.textContent('#moneyReady')).trim() === '' && (await page.textContent('#moneyShipped')).trim() === ''
-     && (await page.locator('.dco-money').count()) === 0,
+     && (await page.locator('.eco-money').count()) === 0,
      '⛔ مفيش «مستحق التحصيل» ولا «مدفوع مقدمًا» في صفّي الجاهز والمشحون');
 
   const chipsR = await page.textContent('#chipsReady');
@@ -1256,8 +1256,8 @@ console.log('\n══ ⑪ الرئيسية: الكاش الأول · بلا تا
              fill: row.style.getPropertyValue('--fill'),
              val: document.getElementById('agoReady').innerText.replace(/\s+/g, ' ').trim(),
              btnBg: getComputedStyle(btn).backgroundColor,
-             edge: getComputedStyle(row, '::before').backgroundColor,
-             box: getComputedStyle(row.querySelector('.dco-agebox')).backgroundColor };
+             edge: getComputedStyle(row, '::before').content, bg: getComputedStyle(row).backgroundColor,
+             box: getComputedStyle(row.querySelector('.eco-agebox')).backgroundColor };
   }, mins);
   const css = await page.evaluate(() => {
     const v = n => { const d = document.createElement('i'); d.style.color = `var(${n})`; document.body.append(d);
@@ -1270,19 +1270,20 @@ console.log('\n══ ⑪ الرئيسية: الكاش الأول · بلا تا
      [a2.cls, a10.cls, a35.cls, a130.cls].join(' · '));
   is(a2.btnBg === css.green && a10.btnBg === css.accent && a35.btnBg === css.amber && a130.btnBg === css.red,
      '🔴 لون زرار التحديث == لون المرحلة (بعد ساعة أحمر)', [a2.btnBg, a10.btnBg, a35.btnBg, a130.btnBg].join(' · '));
-  is(a130.edge === css.red && a35.edge === css.amber, 'الحافة الجانبية بلون المرحلة', a130.edge);
+  is(a130.edge === 'none' && a35.edge === 'none', '⛔ مفيش حافة جانبية ملوّنة على الصف (قرار أحمد 22-10-2026) — لون العمر على الخلفية والمربع والزرار بس', a130.edge);
+  is(a10.bg !== a35.bg && a35.bg !== a130.bg, '🔴 والخلفية لسه بتتلوّن بالعمر (هي اللي شالت دور الحافة)', [a10.bg, a35.bg, a130.bg].join(' · '));
   is(Number(a10.fill) < Number(a35.fill) && Number(a130.fill) === 1,
      'الخلفية والشريط بيتملوا تدريجيًا (`--fill`) وبيقفوا عند ساعة', [a10.fill, a35.fill, a130.fill].join(' · '));
   is(a35.box !== a130.box, 'مربع «آخر تحديث منذ:» بيتلوّن مع المرحلة');
   is(/^35\s*دقيقة$/.test(a35.val) && /^10\s*دقايق$/.test(a10.val),
      'المدة بالدقايق بس — من غير «يفضّل تحدّث»', [a10.val, a35.val].join(' · '));
   is(a130.val === 'ساعتين' && !a130.val.includes('قديم'), 'بعد الساعة: «ساعتين» من غير «الرقم قديم»', a130.val);
-  is((await page.textContent('#rowReady .dco-agebox-lbl')).trim() === 'آخر تحديث منذ:', 'العنوان «آخر تحديث منذ:»');
+  is((await page.textContent('#rowReady .eco-agebox-lbl')).trim() === 'آخر تحديث منذ:', 'العنوان «آخر تحديث منذ:»');
   // 🕐 v1.47.0: الساعة بس جنب العنوان (صباحاً/مساءً)، والتاريخ اتشال (طلب أحمد) وبقى في `title` الصندوق
   const stamp = (await page.textContent('#stampReady')).replace(/\s+/g, ' ').trim();
   is(/^\d{2}:\d{2} (صباحاً|مساءً)$/.test(stamp), '🕐 الساعة بس بالشكل hh:mm صباحاً/مساءً (مش ص/م)، بلا تاريخ', stamp);
-  is(await page.evaluate(() => !document.querySelector('#rowReady .dco-stamp-chip')), '⛔ chip التاريخ والوقت اتشال من صندوق «آخر تحديث»');
-  is(await page.evaluate(() => /\d{2}\/\d{2}\/\d{4}/.test(document.querySelector('#rowReady .dco-agebox').title)),
+  is(await page.evaluate(() => !document.querySelector('#rowReady .eco-stamp-chip')), '⛔ chip التاريخ والوقت اتشال من صندوق «آخر تحديث»');
+  is(await page.evaluate(() => /\d{2}\/\d{2}\/\d{4}/.test(document.querySelector('#rowReady .eco-agebox').title)),
      'والتاريخ لسه متاح في `title` الصندوق (تلميح عند التمرير)');
 
   // ⑥ وقت التحديث: الرقم بيتبدّل بـ ↻ بتلف، والزرار «جاري التحديث»
@@ -1297,7 +1298,7 @@ console.log('\n══ ⑪ الرئيسية: الكاش الأول · بلا تا
     const row = document.getElementById('rowReady'), btn = document.getElementById('btnReady');
     return { loading: row.classList.contains('is-loading'),
              countHidden: getComputedStyle(document.getElementById('cntReady')).display === 'none',
-             spinShown: getComputedStyle(row.querySelector('.dco-count-spin')).display !== 'none',
+             spinShown: getComputedStyle(row.querySelector('.eco-count-spin')).display !== 'none',
              btnDisabled: btn.disabled, btnTx: btn.innerText.replace(/\s+/g, ''),
              val: document.getElementById('agoReady').innerText.trim() };
   });
@@ -1335,19 +1336,19 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
   await page.waitForTimeout(1400);
   is(state.calls.includes('queue_summary'), 'الصف بينادي `queue_summary` (مش `list_events`)', state.calls.join(','));
   is(!state.calls.includes('list_events'), '⛔ والرئيسية ما سحبتش الأحداث', state.calls.join(','));
-  const secs = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec')].map(sec => ({
-    title: sec.querySelector('.dco-home-sec-title')?.textContent.trim(),
-    rows: [...sec.querySelectorAll('.dco-qrow')].map(r => r.id) })));
+  const secs = await page.evaluate(() => [...document.querySelectorAll('.eco-home-sec')].map(sec => ({
+    title: sec.querySelector('.eco-home-sec-title')?.textContent.trim(),
+    rows: [...sec.querySelectorAll('.eco-qrow')].map(r => r.id) })));
   is(secs[0].title === 'أوردرات بوسطة' && JSON.stringify(secs[0].rows) === '["rowBosta","rowWebhook","rowFollowUp"]',
      '🔴 «أوردرات بوسطة» أول قسم وفيه «رفع بوسطة» و«متابعة شحنات بوسطة» و«متابعة التأجيلات»', JSON.stringify(secs));
   is(secs[1].title === 'الحالات الانتقالية' && JSON.stringify(secs[1].rows) === '["rowReady","rowShipped"]',
      'و«الحالات الانتقالية» فيه الجاهز والمشحون بس');
-  is((await page.textContent('#rowWebhook .dco-card-name')).trim() === 'متابعة شحنات بوسطة', 'الاسم «متابعة شحنات بوسطة»');
+  is((await page.textContent('#rowWebhook .eco-card-name')).trim() === 'متابعة شحنات بوسطة', 'الاسم «متابعة شحنات بوسطة»');
   is(num(await page.textContent('#cntWebhook')) === 7, 'الرقم الكبير == عدد أرقام التتبع تحت التوصيل', await page.textContent('#cntWebhook'));
   const chips = (await page.textContent('#chipsWebhook')).replace(/\s+/g, ' ');
   is(chips.includes('محاولتين فأكتر 2') && chips.includes('محاولة واحدة 2') && chips.includes('0 محاولات 3') && chips.includes('In-Return 4'),
      'المربعات: المحاولات + In-Return بأعدادها', chips);
-  const lines = await page.$$eval('#chipsWebhook .dco-chips-line', ls => ls.map(l => ({ t: l.textContent.replace(/\s+/g, ' '), y: l.getBoundingClientRect().top })));
+  const lines = await page.$$eval('#chipsWebhook .eco-chips-line', ls => ls.map(l => ({ t: l.textContent.replace(/\s+/g, ' '), y: l.getBoundingClientRect().top })));
   is(lines.length === 2 && lines[0].t.includes('محاولات') && !lines[0].t.includes('In-Return')
      && lines[1].t.includes('In-Return') && !lines[1].t.includes('محاولة') && lines[1].y > lines[0].y,
      '🔴 «In-Return» في سطر لوحده **تحت** مربعات المحاولات', JSON.stringify(lines));
@@ -1355,7 +1356,7 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
   is(!(await page.textContent('#agoWebhook')).includes('ما اتحدّثش'), 'مربع «آخر تحديث منذ:» اتملّى');
   const wc = await page.evaluate(() => JSON.parse(sessionStorage.getItem('dco_queue_webhook') || 'null'));
   is(wc && wc.data.main.total === 7, 'الكاش اتكتب بالرد الخام', JSON.stringify(wc));
-  is(await page.evaluate(() => document.querySelectorAll('.dco-tools-grid a[href="Bosta-Webhook-Status-Receiver.html"]').length === 0),
+  is(await page.evaluate(() => document.querySelectorAll('.eco-tools-grid a[href="Bosta-Webhook-Status-Receiver.html"]').length === 0),
      '⛔ ومفيش كارت مكرّر في «أدوات أخرى»');
 
   // الرجوع بالكاش = صفر نداء
@@ -1404,9 +1405,9 @@ console.log('\n══ ⑬ الرئيسية: متابعة التأجيلات ═�
   const { page, ctx } = await newPage();
   await page.goto(`${BASE}/index.html`);
   await page.waitForTimeout(1400);
-  is((await page.textContent('#rowFollowUp .dco-card-name')).trim() === 'متابعة التأجيلات', 'الاسم «متابعة التأجيلات»');
+  is((await page.textContent('#rowFollowUp .eco-card-name')).trim() === 'متابعة التأجيلات', 'الاسم «متابعة التأجيلات»');
   is(num(await page.textContent('#cntFollowUp')) === 4, '🔴 الرقم الكبير = محتاجين رسالة (`unsent`) مش الإجمالي', await page.textContent('#cntFollowUp'));
-  const chips = await page.$$eval('#chipsFollowUp .dco-chip', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()));
+  const chips = await page.$$eval('#chipsFollowUp .eco-chip', els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim()));
   is(chips.length === 2 && chips[0].includes('اتبعتلهم رسالة') && chips[0].includes('2') && chips[1].includes('إجمالي الشحنات') && chips[1].includes('6'),
      'المربعين: اتبعتلهم رسالة (2) · إجمالي الشحنات (6)', JSON.stringify(chips));
   is(!chips.some(c => c.includes('مستنيين رد') || c.includes('محتاجين تصرّف')), '⛔ مربعات «مستنيين رد» و«محتاجين تصرّف» اتشالت (الحالات دي مابقتش موجودة)');
@@ -1447,12 +1448,12 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   if (process.env.ECO_SHOT) await page.screenshot({ path: process.env.ECO_SHOT, fullPage: true });
 
   // ① الحاويات
-  const secs = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec')].map(sec => {
+  const secs = await page.evaluate(() => [...document.querySelectorAll('.eco-home-sec')].map(sec => {
     const cs = getComputedStyle(sec);
-    return { cls: [...sec.classList].filter(c => c.startsWith('sec-')).join(), title: sec.querySelector('.dco-home-sec-title')?.textContent.trim(),
-             sub: sec.querySelector('.dco-home-sec-sub')?.textContent.trim(), svg: !!sec.querySelector('.dco-home-sec-ico svg'),
+    return { cls: [...sec.classList].filter(c => c.startsWith('sec-')).join(), title: sec.querySelector('.eco-home-sec-title')?.textContent.trim(),
+             sub: sec.querySelector('.eco-home-sec-sub')?.textContent.trim(), svg: !!sec.querySelector('.eco-home-sec-ico svg'),
              bg: cs.backgroundColor, bw: parseFloat(cs.borderTopWidth),
-             tsize: parseFloat(getComputedStyle(sec.querySelector('.dco-home-sec-title')).fontSize) };
+             tsize: parseFloat(getComputedStyle(sec.querySelector('.eco-home-sec-title')).fontSize) };
   }));
   is(secs.length === 4 && secs.map(x => x.cls).join('|') === 'sec-bosta|sec-flow|sec-tools|sec-tools',
      '🎨 أربع حاويات: بوسطة · الحالات · أدوات العمليات · أدوات أخرى', JSON.stringify(secs.map(x => x.cls)));
@@ -1460,10 +1461,10 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   is(secs.every(x => x.svg && x.sub && x.tsize >= 17), 'كل حاوية: أيقونة SVG + عنوان فرعي + عنوان ١٧px', JSON.stringify(secs));
   // 🎨 v1.47.0: بلا إطار — الحاوية مجرد عنوان بخطين وصفوف
   is(secs.every(x => x.bg === 'rgba(0, 0, 0, 0)' && x.bw === 0), '🎨 بلا إطار ولا خلفية (الإطار والخلفية الملوّنة اتشالوا)', JSON.stringify(secs.map(x => [x.bg, x.bw])));
-  const hd = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec')].map(sec => {
-    const h = sec.querySelector('.dco-home-sec-hd'), r = h.getBoundingClientRect(), m = sec.querySelector('.dco-sec-mid').getBoundingClientRect();
-    return { off: Math.abs((m.left + m.right) / 2 - (r.left + r.right) / 2), lns: [...h.querySelectorAll('.dco-sec-ln')].map(l => l.getBoundingClientRect().width),
-             role: h.getAttribute('role'), exp: h.getAttribute('aria-expanded'), chev: !!h.querySelector('.dco-sec-chev svg'),
+  const hd = await page.evaluate(() => [...document.querySelectorAll('.eco-home-sec')].map(sec => {
+    const h = sec.querySelector('.eco-home-sec-hd'), r = h.getBoundingClientRect(), m = sec.querySelector('.eco-sec-mid').getBoundingClientRect();
+    return { off: Math.abs((m.left + m.right) / 2 - (r.left + r.right) / 2), lns: [...h.querySelectorAll('.eco-sec-ln')].map(l => l.getBoundingClientRect().width),
+             role: h.getAttribute('role'), exp: h.getAttribute('aria-expanded'), chev: !!h.querySelector('.eco-sec-chev svg'),
              open: !sec.classList.contains('is-collapsed') };
   }));
   is(hd.every(x => x.off < 3 && x.lns.length === 2 && x.lns.every(w => w > 20)), '🎨 العنوان في النص بخطين على الجانبين', JSON.stringify(hd.map(x => [x.off, x.lns])));
@@ -1472,12 +1473,12 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   // ② هوية الصفوف — أيقونة SVG بمربع مصمت
   const ids = ['rowBosta', 'rowWebhook', 'rowReady', 'rowShipped'];
   const idv = await page.evaluate((ids) => ids.map(id => {
-    const row = document.getElementById(id), ico = row.querySelector('.dco-card-ico');
+    const row = document.getElementById(id), ico = row.querySelector('.eco-card-ico');
     return { id, svg: !!ico.querySelector('svg'), txt: ico.textContent.trim(), img: !!ico.querySelector('img'),
              icoBg: getComputedStyle(ico).backgroundColor, icoSize: ico.getBoundingClientRect().width,
-             name: getComputedStyle(row.querySelector('.dco-card-name')).color,
-             code: getComputedStyle(row.querySelector('.dco-card-code')).color,
-             cnt: getComputedStyle(row.querySelector('.dco-count')).color };
+             name: getComputedStyle(row.querySelector('.eco-card-name')).color,
+             code: getComputedStyle(row.querySelector('.eco-card-code')).color,
+             cnt: getComputedStyle(row.querySelector('.eco-count')).color };
   }), ids);
   is(idv.every(r => r.svg && r.txt === '' && !r.img), '🔴 أيقونات الصفوف الأربعة SVG (مفيش إيموجي ولا صورة)', JSON.stringify(idv.map(r => [r.id, r.svg, r.txt])));
   is(await page.evaluate(() => !document.querySelector('img[src*="bosta-logo"]')), '⛔ لوجو بوسطة اتشال من الرئيسية');
@@ -1494,37 +1495,37 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   const look = await page.evaluate(() => {
     homeQ.ready.at = new Date(Date.now() - 35 * 60000); renderFreshness();
     const row = document.getElementById('rowReady');
-    return { edge: getComputedStyle(row, '::before').backgroundColor, box: getComputedStyle(row.querySelector('.dco-agebox')).backgroundColor,
+    return { edge: getComputedStyle(row, '::before').content, box: getComputedStyle(row.querySelector('.eco-agebox')).backgroundColor,
              btn: getComputedStyle(document.getElementById('btnReady')).backgroundColor,
-             num: getComputedStyle(row.querySelector('.dco-count')).color };
+             num: getComputedStyle(row.querySelector('.eco-count')).color };
   });
-  is(look.edge === ageCols[2] && look.btn === ageCols[2],
-     '🔴 صف عمره ٣٥ د: الحافة والزرار **كهرماني** (لون العمر) — والرقم لسه بلون هويته', JSON.stringify(look));
+  is(look.edge === 'none' && look.btn === ageCols[2],
+     '🔴 صف عمره ٣٥ د: الزرار **كهرماني** (لون العمر) وبلا حافة — والرقم لسه بلون هويته', JSON.stringify(look));
   is(look.num !== ageCols[2], 'والرقم مش كهرماني');
 
   // ④ شارة «أقدم رقم» اتشالت (قرار أحمد 21-10-2026) — الملخّص المطوي بيقول عمر كل صف لوحده
-  is(await page.evaluate(() => !document.querySelector('.dco-worst, #worstBosta, #worstFlow')), '⛔ شارة «أقدم رقم» اتشالت من عناوين الحاويات');
+  is(await page.evaluate(() => !document.querySelector('.eco-worst, #worstBosta, #worstFlow')), '⛔ شارة «أقدم رقم» اتشالت من عناوين الحاويات');
 
   // ④-ب الصف المضغوط: زرار نحيف بنفس ارتفاع الصندوق، والصندوق بالساعة جنب العنوان
   const cmp = await page.evaluate(() => {
-    const row = document.getElementById('rowReady'), box = row.querySelector('.dco-agebox').getBoundingClientRect(),
+    const row = document.getElementById('rowReady'), box = row.querySelector('.eco-agebox').getBoundingClientRect(),
           btn = document.getElementById('btnReady').getBoundingClientRect();
     return { rowH: Math.round(row.getBoundingClientRect().height), btnW: Math.round(btn.width), btnH: Math.round(btn.height), boxH: Math.round(box.height),
-             top: !!row.querySelector('.dco-agebox-top .dco-agebox-lbl') && !!row.querySelector('.dco-agebox-top .dco-agebox-time'),
-             cntFs: parseFloat(getComputedStyle(row.querySelector('.dco-count')).fontSize), edge: parseFloat(getComputedStyle(row, '::before').width) };
+             top: !!row.querySelector('.eco-agebox-top .eco-agebox-lbl') && !!row.querySelector('.eco-agebox-top .eco-agebox-time'),
+             cntFs: parseFloat(getComputedStyle(row.querySelector('.eco-count')).fontSize), edge: getComputedStyle(row, '::before').content };
   });
   is(cmp.btnW === 48 && Math.abs(cmp.btnH - cmp.boxH) <= 1, '🔴 زرار التحديث نحيف 48px وبنفس ارتفاع صندوق «آخر تحديث» (أرفع مش أصغر)', JSON.stringify(cmp));
   is(cmp.top, 'اللافتة والساعة في سطر واحد فوق المدة');
-  is(cmp.cntFs === 34 && cmp.edge === 8 && cmp.rowH <= 96, 'الصف مضغوط: عدّاد ٣٤px · حافة ٨px · ارتفاع ≤ ٩٦px', JSON.stringify(cmp));
+  is(cmp.cntFs === 34 && cmp.edge === 'none' && cmp.rowH <= 96, 'الصف مضغوط: عدّاد ٣٤px · بلا حافة · ارتفاع ≤ ٩٦px', JSON.stringify(cmp));
 
   // ⑤ الأدوات
-  const tools = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec.sec-tools')].map(sec => {
-    const grid = sec.querySelector('.dco-tools-grid');
+  const tools = await page.evaluate(() => [...document.querySelectorAll('.eco-home-sec.sec-tools')].map(sec => {
+    const grid = sec.querySelector('.eco-tools-grid');
     return { cols: getComputedStyle(grid).gridTemplateColumns.split(' ').length,
-             cards: [...grid.querySelectorAll('.dco-tool')].map(a => ({ href: a.getAttribute('href'), name: a.querySelector('.dco-card-name').textContent.trim(),
-               svg: !!a.querySelector('.dco-card-ico svg'), txt: a.querySelector('.dco-card-ico').textContent.trim(),
-               w: Math.round(a.getBoundingClientRect().width), ico: a.querySelector('.dco-card-ico').getBoundingClientRect().width,
-               d: a.querySelector('.dco-card-ico svg').innerHTML.replace(/\s+/g, ' ') })) };
+             cards: [...grid.querySelectorAll('.eco-tool')].map(a => ({ href: a.getAttribute('href'), name: a.querySelector('.eco-card-name').textContent.trim(),
+               svg: !!a.querySelector('.eco-card-ico svg'), txt: a.querySelector('.eco-card-ico').textContent.trim(),
+               w: Math.round(a.getBoundingClientRect().width), ico: a.querySelector('.eco-card-ico').getBoundingClientRect().width,
+               d: a.querySelector('.eco-card-ico svg').innerHTML.replace(/\s+/g, ' ') })) };
   }));
   is(tools[0].cols === 3 && tools[0].cards.length === 3 && tools[1].cols === 3 && tools[1].cards.length === 1,
      '🎨 الأدوات في ٣ أعمدة ثابتة (٣ كروت + كارت «أسماء المناديب»)', JSON.stringify(tools.map(t => t.cols)));
@@ -1548,20 +1549,24 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   });
   const readSec = (id, rows) => page.evaluate(([id, rows]) => {
     const v = n => { const d = document.createElement('i'); d.style.color = `var(${n})`; document.body.append(d); const c = getComputedStyle(d).color; d.remove(); return c; };
-    const sec = document.getElementById(id), hd = sec.querySelector('.dco-home-sec-hd');
+    const sec = document.getElementById(id), hd = sec.querySelector('.eco-home-sec-hd');
     return { cls: sec.classList.contains('is-collapsed'), exp: hd.getAttribute('aria-expanded'),
-      bodyH: Math.round(sec.querySelector('.dco-sec-body').getBoundingClientRect().height),
-      vis: getComputedStyle(sec.querySelector('.dco-sec-in')).visibility,
-      sum: sec.querySelector('.dco-sum') ? getComputedStyle(sec.querySelector('.dco-sum')).display !== 'none' : null,
-      pills: [...sec.querySelectorAll('.dco-smw')].map((w, i) => ({ name: w.querySelector('.dco-sm-n').textContent.trim(), n: w.querySelector('.dco-sm em').textContent.trim(),
-        cap: w.querySelector('.dco-smcap').textContent.trim(), capCol: getComputedStyle(w.querySelector('.dco-smcap')).color,
-        pillCol: getComputedStyle(w.querySelector('.dco-sm')).color, rowName: getComputedStyle(document.getElementById(rows[i]).querySelector('.dco-card-name')).color })),
-      hdBg: getComputedStyle(hd).backgroundColor, lines: [...hd.querySelectorAll('.dco-sec-ln')].some(l => getComputedStyle(l).display !== 'none'),
-      sub: getComputedStyle(sec.querySelector('.dco-home-sec-sub')).display !== 'none',
+      bodyH: Math.round(sec.querySelector('.eco-sec-body').getBoundingClientRect().height),
+      vis: getComputedStyle(sec.querySelector('.eco-sec-in')).visibility,
+      sum: sec.querySelector('.eco-sum') ? getComputedStyle(sec.querySelector('.eco-sum')).display !== 'none' : null,
+      pills: [...sec.querySelectorAll('.eco-smw')].map((w, i) => ({ name: w.querySelector('.eco-sm-n').textContent.trim(), n: w.querySelector('.eco-sm em').textContent.trim(),
+        cap: w.querySelector('.eco-smcap').textContent.trim(), capCol: getComputedStyle(w.querySelector('.eco-smcap')).color,
+        pillCol: getComputedStyle(w.querySelector('.eco-sm')).color, rowName: getComputedStyle(document.getElementById(rows[i]).querySelector('.eco-card-name')).color })),
+      hdBg: getComputedStyle(hd).backgroundColor, hdBd: getComputedStyle(hd).borderTopColor, hdBw: getComputedStyle(hd).borderTopWidth,
+      secFg: v('--sec-' + (id === 'secBosta' ? 'bosta' : id === 'secFlow' ? 'flow' : 'tools') + '-fg'), lines: [...hd.querySelectorAll('.eco-sec-ln')].some(l => getComputedStyle(l).display !== 'none'),
+      sub: getComputedStyle(sec.querySelector('.eco-home-sec-sub')).display !== 'none',
       secBg: v('--sec-' + (id === 'secBosta' ? 'bosta' : id === 'secFlow' ? 'flow' : 'tools') + '-bg'),
       green: v('--green-dark'), accent: v('--accent-dark'), amber: v('--amber-dark'), red: v('--red-dark') };
   }, [id, rows]);
-  await page.click('#secBosta .dco-home-sec-hd');
+  is(await page.evaluate(() => ['secBosta', 'secFlow'].every(id => { const s = document.getElementById(id), c = getComputedStyle(s.querySelector('.eco-home-sec-title')).color;
+    return [...s.querySelectorAll('.eco-sec-ln')].every(l => getComputedStyle(l).backgroundColor === c); })),
+     '🎨 خطين العنوان على الجانبين **بنفس لون العنوان** (أغمق من الحدود — قرار أحمد 22-10-2026)');
+  await page.click('#secBosta .eco-home-sec-hd');
   await page.waitForTimeout(450);
   const cb = await readSec('secBosta', ['rowBosta', 'rowWebhook', 'rowFollowUp']);
   is(cb.cls && cb.exp === 'false' && cb.bodyH < 2 && cb.vis === 'hidden', '🔴 الضغط على العنوان بيطوي القسم: الصفوف اتخفت (`visibility:hidden` فمفيش تاب عليها)', JSON.stringify([cb.cls, cb.exp, cb.bodyH, cb.vis]));
@@ -1573,36 +1578,37 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
      '🔴 لون المدة بلون العمر (نفس سلّم `agoInfo`): أخضر · أزرق · كهرماني', cb.pills.map(p => p.capCol).join(' | '));
   is(cb.pills.every(p => p.pillCol === p.rowName), 'الكبسولة بلون هوية صفها', cb.pills.map(p => p.pillCol).join(' | '));
   is(cb.hdBg === cb.secBg && cb.hdBg !== 'rgba(0, 0, 0, 0)' && !cb.lines, '🎨 المطوي شريط ملوّن بلون عيلة القسم والخطين اتشالوا', JSON.stringify([cb.hdBg, cb.secBg, cb.lines]));
+  is(cb.hdBd === cb.secFg && parseFloat(cb.hdBw) >= 2, '🎨 والمطوي له **إطار محدد بنفس لون العنوان** (قرار أحمد 22-10-2026)', JSON.stringify([cb.hdBd, cb.secFg, cb.hdBw]));
   is(cb.sub === false, 'والعنوان الفرعي بيختفي وهو مطوي (الملخّص مكانه)');
-  await page.click('#secFlow .dco-home-sec-hd');
+  await page.click('#secFlow .eco-home-sec-hd');
   await page.waitForTimeout(450);
   const cf = await readSec('secFlow', ['rowReady', 'rowShipped']);
   if (process.env.ECO_SHOT2) await page.screenshot({ path: process.env.ECO_SHOT2, fullPage: true });
   is(cf.pills.map(p => p.cap).join('|') === '1 ساعة|4 دقيقة' && cf.pills[0].capCol === cf.red && cf.pills[1].capCol === cf.green,
      'القسم التاني: ٧٥ د ← «1 ساعة» بالأحمر · ٤ د ← «4 دقيقة» بالأخضر', cf.pills.map(p => p.cap + ':' + p.capCol).join(' | '));
-  await page.click('#secTools .dco-home-sec-hd');
+  await page.click('#secTools .eco-home-sec-hd');
   await page.waitForTimeout(450);
   const ct = await readSec('secTools', []);
   is(ct.cls && ct.bodyH < 2 && ct.sum === null && ct.sub, 'أقسام الأدوات بتتطوي كمان — بلا ملخّص (مفيش أرقام) والعنوان الفرعي بيفضل', JSON.stringify([ct.bodyH, ct.sum, ct.sub]));
   // فتح تاني + كيبورد
-  await page.click('#secBosta .dco-home-sec-hd');
-  await page.focus('#secFlow .dco-home-sec-hd');
+  await page.click('#secBosta .eco-home-sec-hd');
+  await page.focus('#secFlow .eco-home-sec-hd');
   await page.keyboard.press('Enter');
   await page.keyboard.press('Tab');
   await page.waitForTimeout(450);
   const re = await page.evaluate(() => ({ b: document.getElementById('secBosta').classList.contains('is-collapsed'), f: document.getElementById('secFlow').classList.contains('is-collapsed'),
-    bh: Math.round(document.querySelector('#secBosta .dco-sec-body').getBoundingClientRect().height), vis: getComputedStyle(document.querySelector('#secBosta .dco-sec-in')).visibility }));
+    bh: Math.round(document.querySelector('#secBosta .eco-sec-body').getBoundingClientRect().height), vis: getComputedStyle(document.querySelector('#secBosta .eco-sec-in')).visibility }));
   is(!re.b && !re.f && re.bh > 100 && re.vis === 'visible', 'الضغطة التانية بتفتح القسم · و`Enter` على الهيدر بيفتح كمان', JSON.stringify(re));
   await page.reload();
   await page.waitForTimeout(1200);
-  is(await page.evaluate(() => document.querySelectorAll('.is-collapsed').length === 0 && document.querySelectorAll('.dco-home-sec-hd[aria-expanded="true"]').length === 4),
+  is(await page.evaluate(() => document.querySelectorAll('.is-collapsed').length === 0 && document.querySelectorAll('.eco-home-sec-hd[aria-expanded="true"]').length === 4),
      '🔴 الحالة مابتتخزّنش: الريفريش بيرجّع كل الأقسام **مفتوحة**');
 
   // ⑥ موبايل — الحاويات مابتعملش سكرول أفقي والأدوات عمود واحد
   await page.setViewportSize({ width: 390, height: 800 });
   await page.waitForTimeout(300);
   const mob = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, iw: innerWidth,
-    cols: getComputedStyle(document.querySelector('.dco-tools-grid')).gridTemplateColumns.split(' ').length }));
+    cols: getComputedStyle(document.querySelector('.eco-tools-grid')).gridTemplateColumns.split(' ').length }));
   is(mob.sw <= mob.iw && mob.cols === 1, 'موبايل ٣٩٠px: صفر سكرول أفقي والأدوات عمود واحد', JSON.stringify(mob));
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();

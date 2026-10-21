@@ -1,0 +1,45 @@
+/* ══════════════════════════════════════════════════════════════
+   shared/hub.css — ألوان هب الشحن والتحصيل (الباقي في core.css)
+   ══════════════════════════════════════════════════════════════
+   🔴 ألوان الهوية **بعيدة عن سلّم العمر** (أخضر · أزرق · كهرماني · أحمر): العمر بيقول «الرقم قديم قد إيه»،
+      والهوية بتقول «ده أنهي صف». كل صف/قسم بيبدّل `--idc*` / `--sec-*` (القيم الافتراضية في core.css).
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  --id-upload:#a21caf;
+  --id-upload-light:#fdf4ff;
+  --id-upload-border:#f0abfc;
+  --id-track:#6d28d9;
+  --id-track-light:#f5f3ff;
+  --id-track-border:#c4b5fd;
+  --id-ready:#0f766e;
+  --id-ready-light:#f0fdfa;
+  --id-ready-border:#99f6e4;
+  --id-shipped:#334155;
+  --id-shipped-light:#f1f5f9;
+  --id-shipped-border:#cbd5e1;
+  --sec-bosta-bg:#faf5ff;
+  --sec-bosta-border:#e9d5ff;
+  --sec-bosta-fg:#6b21a8;
+  --sec-bosta-solid:#7e22ce;
+  --sec-flow-bg:var(--teal-light);
+  --sec-flow-border:var(--teal-border);
+  --sec-flow-fg:var(--teal-dark);
+  --sec-flow-solid:var(--id-ready);
+}
+.eco-home-sec.sec-bosta{--sec-bg:var(--sec-bosta-bg);--sec-border:var(--sec-bosta-border);--sec-fg:var(--sec-bosta-fg);--sec-solid:var(--sec-bosta-solid)}
+.eco-home-sec.sec-flow{--sec-bg:var(--sec-flow-bg);--sec-border:var(--sec-flow-border);--sec-fg:var(--sec-flow-fg);--sec-solid:var(--sec-flow-solid)}
+.eco-chip.qc-job-s1{background:var(--accent-light);color:var(--accent-dark);border-color:var(--accent-border)}
+.eco-chip.qc-job-return{background:var(--amber-light);color:var(--amber-dark);border-color:var(--amber-border)}
+.eco-chip.qc-job-exchange{background:var(--teal-light);color:var(--teal-dark);border-color:var(--teal-border)}
+.eco-chip.qc-att-0{background:var(--green-light);color:var(--green-dark);border-color:var(--green-border)}
+.eco-chip.qc-att-1{background:var(--amber-light);color:var(--amber-dark);border-color:var(--amber-border)}
+.eco-chip.qc-att-2{background:var(--red-light);color:var(--red-dark);border-color:var(--red-border)}
+.eco-qrow.id-upload,.eco-sm.id-upload{--idc:var(--id-upload);--idc-light:var(--id-upload-light);--idc-border:var(--id-upload-border)}
+.eco-qrow.id-track,.eco-sm.id-track{--idc:var(--id-track);--idc-light:var(--id-track-light);--idc-border:var(--id-track-border)}
+.eco-qrow.id-ready,.eco-sm.id-ready{--idc:var(--id-ready);--idc-light:var(--id-ready-light);--idc-border:var(--id-ready-border)}
+.eco-qrow.id-shipped,.eco-sm.id-shipped{--idc:var(--id-shipped);--idc-light:var(--id-shipped-light);--idc-border:var(--id-shipped-border)}
+.eco-chip.qc-flag{background:var(--amber-light);color:var(--amber-dark);border-color:var(--amber-border)}
+.eco-money{display:inline-flex;align-items:center;gap:7px;padding:3px 11px;border-radius:var(--radius-sm);border:1.5px solid var(--border-strong);background:var(--surface);font-size:11.5px;font-weight:800;color:var(--text-secondary);white-space:nowrap}
+.eco-money b{font-family:var(--font-mono);font-size:13px;font-weight:900;color:var(--text-primary);direction:ltr;font-variant-numeric:tabular-nums}
+.eco-money.is-zero{opacity:.62}

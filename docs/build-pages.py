@@ -1401,7 +1401,8 @@ TPL = r'''<!DOCTYPE html>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
-  <link rel="stylesheet" href="shared/shell.css">
+  <link rel="stylesheet" href="shared/core.css">
+  <link rel="stylesheet" href="shared/hub.css">
 __AUDIT_LIB__
 <style>
 /* ══════════════════════════════════════════════════════════════
@@ -1869,16 +1870,16 @@ __AUDIT_TABS__
 __WA_CHIPS__      <div class="cb-money" id="qMoney"></div>
     </div>
     <div class="cb-act">
-      <div class="dco-fresh">
-        <div class="dco-fresh-row">
-          <span class="dco-fresh-lbl">آخر تحديث</span>
-          <span class="dco-ago" id="qAgo">لسه ما اتحدّثش</span>
+      <div class="eco-fresh">
+        <div class="eco-fresh-row">
+          <span class="eco-fresh-lbl">آخر تحديث</span>
+          <span class="eco-ago" id="qAgo">لسه ما اتحدّثش</span>
         </div>
-        <div class="dco-fresh-row" id="qStamp"><span class="dco-stamp-chip">—</span></div>
+        <div class="eco-fresh-row" id="qStamp"><span class="eco-stamp-chip">—</span></div>
       </div>
-      <button class="dco-rbtn" id="qBtn" type="button" onclick="qLoad(false)">
-        <span class="dco-rbtn-ico">↺</span><span>تحديث</span>
-        <span class="dco-rbtn-badge" id="qBadge">—</span>
+      <button class="eco-rbtn" id="qBtn" type="button" onclick="qLoad(false)">
+        <span class="eco-rbtn-ico">↺</span><span>تحديث</span>
+        <span class="eco-rbtn-badge" id="qBadge">—</span>
       </button>
     </div>
   </div>
@@ -2965,14 +2966,14 @@ function qSetFresh() {
   const info  = agoInfo(qState.at, Date.now());
   const agoEl = document.getElementById('qAgo');
   const btn   = document.getElementById('qBtn');
-  if (agoEl) { agoEl.className = 'dco-ago ' + info.cls; agoEl.textContent = info.text; }
+  if (agoEl) { agoEl.className = 'eco-ago ' + info.cls; agoEl.textContent = info.text; }
   if (btn)   btn.classList.toggle('is-stale', info.stale);
   const stamp = document.getElementById('qStamp');
   if (stamp) {
     stamp.innerHTML = qState.at
-      ? `<span class="dco-stamp-chip">${esc(formatDate(qState.at.toISOString()))}</span>` +
-        `<span class="dco-stamp-chip">${esc(formatTimeOnly(qState.at.toISOString()))}</span>`
-      : '<span class="dco-stamp-chip">—</span>';
+      ? `<span class="eco-stamp-chip">${esc(formatDate(qState.at.toISOString()))}</span>` +
+        `<span class="eco-stamp-chip">${esc(formatTimeOnly(qState.at.toISOString()))}</span>`
+      : '<span class="eco-stamp-chip">—</span>';
   }
 }
 
@@ -3001,7 +3002,7 @@ __WA_CHIPS_CALL__
   const shown = qVisible();
   const cod = ecoCod(shown);
   const filtered = qAnyFilterActive() ? ' <span style="opacity:.7">(مفلتر)</span>' : '';
-  const parts = [`<span class="dco-money${cod.due ? '' : ' is-zero'}">💰 مستحق التحصيل <b>${esc(ecoMoney(cod.due, cod.currency))}</b>`
+  const parts = [`<span class="eco-money${cod.due ? '' : ' is-zero'}">💰 مستحق التحصيل <b>${esc(ecoMoney(cod.due, cod.currency))}</b>`
                + ` <span style="opacity:.7">(${cod.dueCount} أوردر)</span>${filtered}</span>`];
   if (cod.prepaidCount) parts.push(`<span class="fchip" style="cursor:default">مدفوع مقدمًا <b>${cod.prepaidCount}</b></span>`);
   if (cod.unknownCount) parts.push(`<span class="fchip qc-flag" style="cursor:default">حالة مالية مش معروفة <b>${cod.unknownCount}</b></span>`);

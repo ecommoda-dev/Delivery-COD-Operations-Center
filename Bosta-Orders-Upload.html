@@ -8,7 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
-<link rel="stylesheet" href="shared/shell.css">
+<link rel="stylesheet" href="shared/core.css">
+<link rel="stylesheet" href="shared/hub.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <!-- ══════════════════════════════════════════════════════════════
@@ -1931,21 +1932,21 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
     <div></div>
     <div class="job-btns" id="jobBtns"></div>
     <!-- 🔴 «آخر تحديث» + زرار التحديث — نفس الكتلة بالحرف اللي في قسم
-         الجاهز للشحن (`.dco-fresh` · `.dco-rbtn` من `shared/shell.css`)،
+         الجاهز للشحن (`.eco-fresh` · `.eco-rbtn` من `shared/shell.css`)،
          وبتحدّث الوضع الحالي **والتلات عدّادات** مع بعض (طلب أحمد
          26-09-2026). ⛔ وزرار «تحديث» القديم اللي كان في هيدر الصفحة
          اتشال — كان مكرر مع زرار «تحديث» في شريط الجدول وزرار سجل
          العمليات، والكتلة دي بقت المصدر الوحيد لـ«آخر تحديث». -->
     <div class="job-bar-act">
-      <div class="dco-fresh">
-        <div class="dco-fresh-row">
-          <span class="dco-fresh-lbl">آخر تحديث</span>
-          <span class="dco-ago" id="mainAgo">لسه ما اتحدّثش</span>
+      <div class="eco-fresh">
+        <div class="eco-fresh-row">
+          <span class="eco-fresh-lbl">آخر تحديث</span>
+          <span class="eco-ago" id="mainAgo">لسه ما اتحدّثش</span>
         </div>
-        <div class="dco-fresh-row" id="mainStamp"><span class="dco-stamp-chip">—</span></div>
+        <div class="eco-fresh-row" id="mainStamp"><span class="eco-stamp-chip">—</span></div>
       </div>
-      <button class="dco-rbtn" id="mainRefreshBtn" type="button" onclick="refreshMain()">
-        <span class="dco-rbtn-ico">↺</span><span>تحديث</span>
+      <button class="eco-rbtn" id="mainRefreshBtn" type="button" onclick="refreshMain()">
+        <span class="eco-rbtn-ico">↺</span><span>تحديث</span>
       </button>
     </div>
   </div>
@@ -2595,14 +2596,14 @@ function setMainFresh() {
   const info  = agoInfo(mainLoadedAt, Date.now());
   const agoEl = document.getElementById('mainAgo');
   const btn   = document.getElementById('mainRefreshBtn');
-  if (agoEl) { agoEl.className = 'dco-ago ' + info.cls; agoEl.textContent = info.text; }
+  if (agoEl) { agoEl.className = 'eco-ago ' + info.cls; agoEl.textContent = info.text; }
   if (btn)   btn.classList.toggle('is-stale', info.stale);
   const stamp = document.getElementById('mainStamp');
   if (stamp) {
     stamp.innerHTML = mainLoadedAt
-      ? `<span class="dco-stamp-chip">${esc(formatDate(mainLoadedAt.toISOString()))}</span>` +
-        `<span class="dco-stamp-chip">${esc(formatTimeOnly(mainLoadedAt.toISOString()))}</span>`
-      : '<span class="dco-stamp-chip">—</span>';
+      ? `<span class="eco-stamp-chip">${esc(formatDate(mainLoadedAt.toISOString()))}</span>` +
+        `<span class="eco-stamp-chip">${esc(formatTimeOnly(mainLoadedAt.toISOString()))}</span>`
+      : '<span class="eco-stamp-chip">—</span>';
   }
 }
 // نبضة عرض بحت كل ٣٠ ثانية — صفر نداء شبكة، بس بتحدّث «منذ كام» في مكانها

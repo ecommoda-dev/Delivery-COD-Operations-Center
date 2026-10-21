@@ -383,18 +383,18 @@ sec('④ الشاشة الرئيسية — قسم «أدوات»');
   await mockWorker(page, []);
   await page.goto(`${BASE}/index.html`);
   await page.waitForTimeout(1200);
-  const cards = await page.$$eval('.dco-tools-grid .dco-tool',
+  const cards = await page.$$eval('.eco-tools-grid .eco-tool',
     els => els.map(e => ({ href: e.getAttribute('href'),
-                           name: e.querySelector('.dco-card-name')?.textContent.trim(),
-                           hasCount: !!e.querySelector('.dco-count, .dco-num'),
+                           name: e.querySelector('.eco-card-name')?.textContent.trim(),
+                           hasCount: !!e.querySelector('.eco-count, .eco-num'),
                            target: e.getAttribute('target') })));
   const gridTools = TOOLS.filter(t => !t.homeRow);
   is(cards.length === gridTools.length, `قسم «أدوات» فيه ${gridTools.length} كارت`, JSON.stringify(cards));
   // 🔴 v1.39.0 — «مستقبل حالة بوسطة» صف في «قسم الحالات الانتقالية» مش كارت: بيفتح نفس الصفحة
   //    وبنفس الاسم، ومالوش كارت مكرّر في قسم الأدوات.
   for (const t of TOOLS.filter(t => t.homeRow)) {
-    const r = await page.$$eval('.dco-qrow', (els, href) => els.filter(e => e.getAttribute('href') === href)
-      .map(e => ({ name: e.querySelector('.dco-card-name')?.textContent.trim(), hasCount: !!e.querySelector('.dco-count') })), t.page);
+    const r = await page.$$eval('.eco-qrow', (els, href) => els.filter(e => e.getAttribute('href') === href)
+      .map(e => ({ name: e.querySelector('.eco-card-name')?.textContent.trim(), hasCount: !!e.querySelector('.eco-count') })), t.page);
     is(r.length === 1 && r[0].name === t.title && r[0].hasCount, `صف «${t.title}» في الحالات الانتقالية بيفتح \`${t.page}\` وفيه عدّاد`, JSON.stringify(r));
     is(!cards.some(x => x.href === t.page), `⛔ ومالوش كارت مكرّر في «قسم الأدوات»`);
   }
