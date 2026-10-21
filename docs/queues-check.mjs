@@ -1278,9 +1278,12 @@ console.log('\n══ ⑪ الرئيسية: الكاش الأول · بلا تا
      'المدة بالدقايق بس — من غير «يفضّل تحدّث»', [a10.val, a35.val].join(' · '));
   is(a130.val === 'ساعتين' && !a130.val.includes('قديم'), 'بعد الساعة: «ساعتين» من غير «الرقم قديم»', a130.val);
   is((await page.textContent('#rowReady .dco-agebox-lbl')).trim() === 'آخر تحديث منذ:', 'العنوان «آخر تحديث منذ:»');
-  const stamp = (await page.textContent('#stampReady')).replace(/\s+/g, ' ');
-  is(/📅 \d{2}\/\d{2}\/\d{4}/.test(stamp) && /🕐 \d{2}:\d{2} (صباحاً|مساءً)/.test(stamp),
-     'التاريخ والوقت بالشكل المعتمد 📅 dd/mm/yyyy 🕐 hh:mm مساءً', stamp);
+  // 🕐 v1.47.0: الساعة بس جنب العنوان (صباحاً/مساءً)، والتاريخ اتشال (طلب أحمد) وبقى في `title` الصندوق
+  const stamp = (await page.textContent('#stampReady')).replace(/\s+/g, ' ').trim();
+  is(/^\d{2}:\d{2} (صباحاً|مساءً)$/.test(stamp), '🕐 الساعة بس بالشكل hh:mm صباحاً/مساءً (مش ص/م)، بلا تاريخ', stamp);
+  is(await page.evaluate(() => !document.querySelector('#rowReady .dco-stamp-chip')), '⛔ chip التاريخ والوقت اتشال من صندوق «آخر تحديث»');
+  is(await page.evaluate(() => /\d{2}\/\d{2}\/\d{4}/.test(document.querySelector('#rowReady .dco-agebox').title)),
+     'والتاريخ لسه متاح في `title` الصندوق (تلميح عند التمرير)');
 
   // ⑥ وقت التحديث: الرقم بيتبدّل بـ ↻ بتلف، والزرار «جاري التحديث»
   await page.route('**/ready-orders-worker*/**', async (route) => {
@@ -1299,8 +1302,8 @@ console.log('\n══ ⑪ الرئيسية: الكاش الأول · بلا تا
              val: document.getElementById('agoReady').innerText.trim() };
   });
   is(ld.loading && ld.countHidden && ld.spinShown, '🔴 وقت التحديث الرقم الكبير بيتبدّل بأيقونة ↻ بتلف', JSON.stringify(ld));
-  is(ld.btnDisabled && ld.btnTx === '↻جاريالتحديث' && ld.val === 'جاري التحديث…',
-     'والزرار مقفول ومكتوب «جاري التحديث»، والمربع كمان', JSON.stringify(ld));
+  is(ld.btnDisabled && ld.btnTx === '↻جاري' && ld.val === 'جاري التحديث…',
+     'والزرار النحيف مقفول ومكتوب «جاري»، والمربع بيقول «جاري التحديث…»', JSON.stringify(ld));
   await page.waitForTimeout(1800);
   const done = await page.evaluate(() => ({
     loading: document.getElementById('rowReady').classList.contains('is-loading'),
@@ -1448,15 +1451,23 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
     const cs = getComputedStyle(sec);
     return { cls: [...sec.classList].filter(c => c.startsWith('sec-')).join(), title: sec.querySelector('.dco-home-sec-title')?.textContent.trim(),
              sub: sec.querySelector('.dco-home-sec-sub')?.textContent.trim(), svg: !!sec.querySelector('.dco-home-sec-ico svg'),
-             bg: cs.backgroundColor, bd: cs.borderTopColor, radius: parseFloat(cs.borderTopLeftRadius),
+             bg: cs.backgroundColor, bw: parseFloat(cs.borderTopWidth),
              tsize: parseFloat(getComputedStyle(sec.querySelector('.dco-home-sec-title')).fontSize) };
   }));
   is(secs.length === 4 && secs.map(x => x.cls).join('|') === 'sec-bosta|sec-flow|sec-tools|sec-tools',
      '🎨 أربع حاويات: بوسطة · الحالات · أدوات العمليات · أدوات أخرى', JSON.stringify(secs.map(x => x.cls)));
   is(secs.map(x => x.title).join('|') === 'أوردرات بوسطة|الحالات الانتقالية|أدوات العمليات|أدوات أخرى', 'عناوين الحاويات بالاسم المعتمد', secs.map(x => x.title).join('|'));
-  is(secs.every(x => x.svg && x.sub && x.radius >= 16 && x.tsize >= 17), 'كل حاوية: أيقونة SVG + عنوان فرعي + حواف ١٦px + عنوان ١٧px', JSON.stringify(secs));
-  is(new Set([secs[0].bg, secs[1].bg, secs[2].bg]).size === 3 && secs[2].bg === secs[3].bg && secs[0].bg !== 'rgba(0, 0, 0, 0)',
-     'خلفية كل عيلة مختلفة (بوسطة · الحالات · الأدوات) والأداتين نفس الخلفية');
+  is(secs.every(x => x.svg && x.sub && x.tsize >= 17), 'كل حاوية: أيقونة SVG + عنوان فرعي + عنوان ١٧px', JSON.stringify(secs));
+  // 🎨 v1.47.0: بلا إطار — الحاوية مجرد عنوان بخطين وصفوف
+  is(secs.every(x => x.bg === 'rgba(0, 0, 0, 0)' && x.bw === 0), '🎨 بلا إطار ولا خلفية (الإطار والخلفية الملوّنة اتشالوا)', JSON.stringify(secs.map(x => [x.bg, x.bw])));
+  const hd = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec')].map(sec => {
+    const h = sec.querySelector('.dco-home-sec-hd'), r = h.getBoundingClientRect(), m = sec.querySelector('.dco-sec-mid').getBoundingClientRect();
+    return { off: Math.abs((m.left + m.right) / 2 - (r.left + r.right) / 2), lns: [...h.querySelectorAll('.dco-sec-ln')].map(l => l.getBoundingClientRect().width),
+             role: h.getAttribute('role'), exp: h.getAttribute('aria-expanded'), chev: !!h.querySelector('.dco-sec-chev svg'),
+             open: !sec.classList.contains('is-collapsed') };
+  }));
+  is(hd.every(x => x.off < 3 && x.lns.length === 2 && x.lns.every(w => w > 20)), '🎨 العنوان في النص بخطين على الجانبين', JSON.stringify(hd.map(x => [x.off, x.lns])));
+  is(hd.every(x => x.role === 'button' && x.exp === 'true' && x.chev && x.open), '🔴 الهيدر زرار طي (`aria-expanded`) فيه سهم، وكله **مفتوح عند الفتح**');
 
   // ② هوية الصفوف — أيقونة SVG بمربع مصمت
   const ids = ['rowBosta', 'rowWebhook', 'rowReady', 'rowShipped'];
@@ -1470,7 +1481,7 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   }), ids);
   is(idv.every(r => r.svg && r.txt === '' && !r.img), '🔴 أيقونات الصفوف الأربعة SVG (مفيش إيموجي ولا صورة)', JSON.stringify(idv.map(r => [r.id, r.svg, r.txt])));
   is(await page.evaluate(() => !document.querySelector('img[src*="bosta-logo"]')), '⛔ لوجو بوسطة اتشال من الرئيسية');
-  is(idv.every(r => r.icoSize === 54), 'مربع الأيقونة 54px', idv.map(r => r.icoSize).join());
+  is(idv.every(r => r.icoSize === 42), 'مربع الأيقونة 42px (كثافة مضغوطة)', idv.map(r => r.icoSize).join());
   is(new Set(idv.map(r => r.icoBg)).size === 4, 'أربع ألوان هوية مختلفة', idv.map(r => r.icoBg).join(' | '));
   is(idv.every(r => r.icoBg === r.name && r.name === r.code && r.code === r.cnt),
      'الأيقونة والاسم والكود والرقم بلون الصف نفسه', JSON.stringify(idv.map(r => [r.icoBg, r.name, r.code, r.cnt])));
@@ -1491,26 +1502,20 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
      '🔴 صف عمره ٣٥ د: الحافة والزرار **كهرماني** (لون العمر) — والرقم لسه بلون هويته', JSON.stringify(look));
   is(look.num !== ageCols[2], 'والرقم مش كهرماني');
 
-  // ④ شارة «أقدم رقم»
-  const worst = await page.evaluate(() => {
-    const now = Date.now(), at = m => new Date(now - m * 60000);
-    const read = id => { const e = document.getElementById(id); return { hidden: e.hidden, cls: e.className, t: e.textContent.trim() }; };
-    homeQ.bosta.at = at(2); homeQ.webhook.at = at(40); homeQ.ready.at = at(125); homeQ.shipped.at = at(3);
-    renderFreshness(now);
-    const a = { b: read('worstBosta'), f: read('worstFlow') };
-    homeQ.bosta.at = null; homeQ.webhook.at = at(0);
-    renderFreshness(now);
-    const b = { b: read('worstBosta') };
-    homeQ.webhook.at = null; homeQ.followUp.at = null; renderFreshness(now);
-    const c = { b: read('worstBosta') };
-    return { a, b, c };
+  // ④ شارة «أقدم رقم» اتشالت (قرار أحمد 21-10-2026) — الملخّص المطوي بيقول عمر كل صف لوحده
+  is(await page.evaluate(() => !document.querySelector('.dco-worst, #worstBosta, #worstFlow')), '⛔ شارة «أقدم رقم» اتشالت من عناوين الحاويات');
+
+  // ④-ب الصف المضغوط: زرار نحيف بنفس ارتفاع الصندوق، والصندوق بالساعة جنب العنوان
+  const cmp = await page.evaluate(() => {
+    const row = document.getElementById('rowReady'), box = row.querySelector('.dco-agebox').getBoundingClientRect(),
+          btn = document.getElementById('btnReady').getBoundingClientRect();
+    return { rowH: Math.round(row.getBoundingClientRect().height), btnW: Math.round(btn.width), btnH: Math.round(btn.height), boxH: Math.round(box.height),
+             top: !!row.querySelector('.dco-agebox-top .dco-agebox-lbl') && !!row.querySelector('.dco-agebox-top .dco-agebox-time'),
+             cntFs: parseFloat(getComputedStyle(row.querySelector('.dco-count')).fontSize), edge: parseFloat(getComputedStyle(row, '::before').width) };
   });
-  is(worst.a.b.t === 'أقدم رقم: 40 د' && worst.a.b.cls.includes('age-warn') && !worst.a.b.hidden,
-     '🔴 شارة بوسطة: أقدم رقم ٤٠ د **بلون كهرماني** (نفس سلّم `agoInfo`)', JSON.stringify(worst.a.b));
-  is(worst.a.f.t === 'أقدم رقم: 2 س' && worst.a.f.cls.includes('age-stale'), 'شارة الحالات: ساعتين **بالأحمر**', JSON.stringify(worst.a.f));
-  is(worst.b.b.t === 'أقدم رقم: لحظات' && worst.b.b.cls.includes('age-fresh'), '⚠️ الصف اللي ما اتجابش (`at = null`) **مابيدخلش** الحساب', JSON.stringify(worst.b.b));
-  is(worst.c.b.hidden === true, '⛔ ولو كلهم `null` الشارة **بتختفي** (مش «أقدم رقم: لحظات»)', JSON.stringify(worst.c.b));
-  is(await page.evaluate(() => !document.querySelector('.dco-home-sec.sec-tools .dco-worst')), 'ومفيش شارة على حاويات الأدوات');
+  is(cmp.btnW === 48 && Math.abs(cmp.btnH - cmp.boxH) <= 1, '🔴 زرار التحديث نحيف 48px وبنفس ارتفاع صندوق «آخر تحديث» (أرفع مش أصغر)', JSON.stringify(cmp));
+  is(cmp.top, 'اللافتة والساعة في سطر واحد فوق المدة');
+  is(cmp.cntFs === 34 && cmp.edge === 8 && cmp.rowH <= 96, 'الصف مضغوط: عدّاد ٣٤px · حافة ٨px · ارتفاع ≤ ٩٦px', JSON.stringify(cmp));
 
   // ⑤ الأدوات
   const tools = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec.sec-tools')].map(sec => {
@@ -1534,6 +1539,64 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
      '«التسليم الجزئي»: صندوق متقسّم نصّين **+ سهم بيتفرّع**');
   is(tools[0].cards.map(c => c.href).join() === 'Order-Status-Updater.html,COD-Payment-Center.html,Partial-Delivery.html'
      && tools[1].cards[0].href === 'Courier-Names.html', 'روابط الكروت زي ما هي');
+
+  // ⑤-ب طي الأقسام (v1.47.0): شريط ملوّن + ملخّص (اسم + رقم + المدة بلون العمر)، وكله مفتوح عند الفتح
+  await page.evaluate(() => {
+    const now = Date.now(), at = m => new Date(now - m * 60000);
+    homeQ.bosta.at = at(2); homeQ.webhook.at = at(12); homeQ.followUp.at = at(31); homeQ.ready.at = at(75); homeQ.shipped.at = at(4);
+    renderFreshness(now);
+  });
+  const readSec = (id, rows) => page.evaluate(([id, rows]) => {
+    const v = n => { const d = document.createElement('i'); d.style.color = `var(${n})`; document.body.append(d); const c = getComputedStyle(d).color; d.remove(); return c; };
+    const sec = document.getElementById(id), hd = sec.querySelector('.dco-home-sec-hd');
+    return { cls: sec.classList.contains('is-collapsed'), exp: hd.getAttribute('aria-expanded'),
+      bodyH: Math.round(sec.querySelector('.dco-sec-body').getBoundingClientRect().height),
+      vis: getComputedStyle(sec.querySelector('.dco-sec-in')).visibility,
+      sum: sec.querySelector('.dco-sum') ? getComputedStyle(sec.querySelector('.dco-sum')).display !== 'none' : null,
+      pills: [...sec.querySelectorAll('.dco-smw')].map((w, i) => ({ name: w.querySelector('.dco-sm-n').textContent.trim(), n: w.querySelector('.dco-sm em').textContent.trim(),
+        cap: w.querySelector('.dco-smcap').textContent.trim(), capCol: getComputedStyle(w.querySelector('.dco-smcap')).color,
+        pillCol: getComputedStyle(w.querySelector('.dco-sm')).color, rowName: getComputedStyle(document.getElementById(rows[i]).querySelector('.dco-card-name')).color })),
+      hdBg: getComputedStyle(hd).backgroundColor, lines: [...hd.querySelectorAll('.dco-sec-ln')].some(l => getComputedStyle(l).display !== 'none'),
+      sub: getComputedStyle(sec.querySelector('.dco-home-sec-sub')).display !== 'none',
+      secBg: v('--sec-' + (id === 'secBosta' ? 'bosta' : id === 'secFlow' ? 'flow' : 'tools') + '-bg'),
+      green: v('--green-dark'), accent: v('--accent-dark'), amber: v('--amber-dark'), red: v('--red-dark') };
+  }, [id, rows]);
+  await page.click('#secBosta .dco-home-sec-hd');
+  await page.waitForTimeout(450);
+  const cb = await readSec('secBosta', ['rowBosta', 'rowWebhook', 'rowFollowUp']);
+  is(cb.cls && cb.exp === 'false' && cb.bodyH < 2 && cb.vis === 'hidden', '🔴 الضغط على العنوان بيطوي القسم: الصفوف اتخفت (`visibility:hidden` فمفيش تاب عليها)', JSON.stringify([cb.cls, cb.exp, cb.bodyH, cb.vis]));
+  is(cb.sum === true && cb.pills.map(p => p.name).join('|') === 'رفع بوسطة|متابعة شحنات بوسطة|متابعة التأجيلات',
+     '🔴 المطوي بيعرض ملخّص: اسم كل صف (من الصف نفسه)', cb.pills.map(p => p.name).join('|'));
+  is(cb.pills.every(p => /^\d+$/.test(p.n)), 'والرقم جنب الاسم (رقم مش `—` لأن الجلب نجح)', cb.pills.map(p => p.n).join());
+  is(cb.pills.map(p => p.cap).join('|') === '2 دقيقة|12 دقيقة|31 دقيقة', '🔴 المدة تحت الكبسولة بالكلمة: «N دقيقة» (الرقم الأول)', cb.pills.map(p => p.cap).join('|'));
+  is(cb.pills[0].capCol === cb.green && cb.pills[1].capCol === cb.accent && cb.pills[2].capCol === cb.amber,
+     '🔴 لون المدة بلون العمر (نفس سلّم `agoInfo`): أخضر · أزرق · كهرماني', cb.pills.map(p => p.capCol).join(' | '));
+  is(cb.pills.every(p => p.pillCol === p.rowName), 'الكبسولة بلون هوية صفها', cb.pills.map(p => p.pillCol).join(' | '));
+  is(cb.hdBg === cb.secBg && cb.hdBg !== 'rgba(0, 0, 0, 0)' && !cb.lines, '🎨 المطوي شريط ملوّن بلون عيلة القسم والخطين اتشالوا', JSON.stringify([cb.hdBg, cb.secBg, cb.lines]));
+  is(cb.sub === false, 'والعنوان الفرعي بيختفي وهو مطوي (الملخّص مكانه)');
+  await page.click('#secFlow .dco-home-sec-hd');
+  await page.waitForTimeout(450);
+  const cf = await readSec('secFlow', ['rowReady', 'rowShipped']);
+  if (process.env.DCO_SHOT2) await page.screenshot({ path: process.env.DCO_SHOT2, fullPage: true });
+  is(cf.pills.map(p => p.cap).join('|') === '1 ساعة|4 دقيقة' && cf.pills[0].capCol === cf.red && cf.pills[1].capCol === cf.green,
+     'القسم التاني: ٧٥ د ← «1 ساعة» بالأحمر · ٤ د ← «4 دقيقة» بالأخضر', cf.pills.map(p => p.cap + ':' + p.capCol).join(' | '));
+  await page.click('#secTools .dco-home-sec-hd');
+  await page.waitForTimeout(450);
+  const ct = await readSec('secTools', []);
+  is(ct.cls && ct.bodyH < 2 && ct.sum === null && ct.sub, 'أقسام الأدوات بتتطوي كمان — بلا ملخّص (مفيش أرقام) والعنوان الفرعي بيفضل', JSON.stringify([ct.bodyH, ct.sum, ct.sub]));
+  // فتح تاني + كيبورد
+  await page.click('#secBosta .dco-home-sec-hd');
+  await page.focus('#secFlow .dco-home-sec-hd');
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Tab');
+  await page.waitForTimeout(450);
+  const re = await page.evaluate(() => ({ b: document.getElementById('secBosta').classList.contains('is-collapsed'), f: document.getElementById('secFlow').classList.contains('is-collapsed'),
+    bh: Math.round(document.querySelector('#secBosta .dco-sec-body').getBoundingClientRect().height), vis: getComputedStyle(document.querySelector('#secBosta .dco-sec-in')).visibility }));
+  is(!re.b && !re.f && re.bh > 100 && re.vis === 'visible', 'الضغطة التانية بتفتح القسم · و`Enter` على الهيدر بيفتح كمان', JSON.stringify(re));
+  await page.reload();
+  await page.waitForTimeout(1200);
+  is(await page.evaluate(() => document.querySelectorAll('.is-collapsed').length === 0 && document.querySelectorAll('.dco-home-sec-hd[aria-expanded="true"]').length === 4),
+     '🔴 الحالة مابتتخزّنش: الريفريش بيرجّع كل الأقسام **مفتوحة**');
 
   // ⑥ موبايل — الحاويات مابتعملش سكرول أفقي والأدوات عمود واحد
   await page.setViewportSize({ width: 390, height: 800 });
