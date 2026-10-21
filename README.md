@@ -40,8 +40,9 @@ wrangler.toml         إعدادات الـ Worker
 index.html            الدخول + الشاشة الرئيسية
 Ready-Orders.html     قسم الجاهز للشحن + 🧮 تاب جرد المكتب
 Shipped-Orders.html   طابور المشحون
-shared/shell.css      التوكنز + الـ chrome (نسخة واحدة)
-shared/shell.js       الإعدادات + الجلسة + §QUEUE-RULES + §AUDIT-RULES (مصدر الاشتقاق الوحيد)
+shared/core.css · core.js · home.js   النواة المشتركة — 🔴 متطابقة بايت ببايت مع هب المخزن (bash docs/core-twin-check.sh)
+shared/hub-config.js · hub.css · home-config.js   خاص بالهب (الـ Workers · النسخة · الألوان · أقسام الرئيسية)
+shared/dco-rules.js   §QUEUE-RULES + §AUDIT-RULES + webhook + المتابعة (مصدر الاشتقاق الوحيد)
 docs/build-pages.py   مولّد الصفحتين — 🔴 الـ HTML **متولّد**، عدّل هنا
 docs/css-check.js     فحص CSS بـ parser حقيقي
 docs/rules-check.mjs  فحص منطق §QUEUE-RULES و§AUDIT-RULES — ٩٠ بند (بلا تنصيب)
@@ -59,7 +60,7 @@ docs/idle-check.mjs   فحص الخروج التلقائي لعدم النشاط
 
 ```bash
 npm i playwright postcss --no-save
-node docs/css-check.js shared/shell.css index.html Ready-Orders.html Shipped-Orders.html \
+node docs/css-check.js shared/core.css index.html Ready-Orders.html Shipped-Orders.html \
                        Order-Status-Updater.html COD-Payment-Center.html Partial-Delivery.html \
                        Bosta-Webhook-Status-Receiver.html
                        Bosta-Delivery-Follow-Up.html

@@ -550,7 +550,7 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
           الطابور تاني من نفس الـ Worker، والرقمين ممكن يفترقوا لو الجلبتين
           حصلوا في وقتين. تاب واحد = **جلب واحد ومصدر واحد**.
        ⚠️ و`switchMainTab` **في الصفحة مش في الـ shell** — القايمة السودا
-          في أول `shared/shell.js` بتسمّيها بالاسم: منطق التابات بيفرق من
+          في أول `shared/core.js` بتسمّيها بالاسم: منطق التابات بيفرق من
           صفحة للتانية فعلاً. -->
   <div class="main-tabs-bar">
     <button class="main-tab-btn active" id="tabQueueBtn" type="button" onclick="switchMainTab('queue')">📋 الأوردرات</button>
@@ -1176,7 +1176,7 @@ const PAGE_WORKERS = ['ready'];
 // ══════════════════════════════════════════════════════════════
 //
 // 🔴 **صفر قاعدة اشتقاق في الملف ده.** الماكينة والعلامات والمربعات
-//    والفلوس كلهم من `shared/shell.js` §QUEUE-RULES — **نفس** الدوال اللي
+//    والفلوس كلهم من `shared/dco-rules.js` §QUEUE-RULES — **نفس** الدوال اللي
 //    الشاشة الرئيسية بتعدّ بيها. ⛔ أي شرط أهلية يتكتب هنا بيخلّي الرقم في
 //    الصفحة يخالف الرقم في الرئيسية **في صمت** (درس R1 · v1.11.0).
 //
@@ -2486,7 +2486,7 @@ async function renderAboutWorkers() {
 //
 // 🔴 **صفر قاعدة اشتقاق هنا.** التطبيع (`ecoScanParse`) والمطابقة
 //    (`ecoScanFind`) والتلات أقسام (`ecoAuditBuckets`) والسبب
-//    (`ecoAuditReason`) كلهم في `shared/shell.js` §AUDIT-RULES — عشان
+//    (`ecoAuditReason`) كلهم في `shared/dco-rules.js` §AUDIT-RULES — عشان
 //    `docs/rules-check.mjs` يقدر يدّيهم **مدخلات باظة**: كود بحروف بس ·
 //    صف بلا `orderId` · نفس الأوردر مرتين بصيغتين. الحالات دي مستحيل
 //    تتزرع في بيانات وهمية معقولة، وهي بالظبط اللي بتنتج رقم غلط شكله سليم.

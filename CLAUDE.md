@@ -74,6 +74,29 @@
 > تلمسه: **«مستحق التحصيل»** على كل طابور — مجموع `currentTotalPriceSet`
 > للأوردرات اللي حالتها المالية `PENDING`.
 
+> 🔄 **أسماء قديمة في الملف ده (تاريخية):** قبل المرحلة ٣/٤ (هب المخزن v1.45.0 · هب الشحن v1.49.0) كان فيه `shared/shell.js` و`shared/shell.css` والبادئات `woc*`/`dco*`. دلوقتي:
+> `shell.js` ← **`core.js`** (المشترك) + **`hub-config.js`** (`ECO_WORKERS` · `TOOL_VERSION` · مفاتيح الجلسة والسر) + **`dco-rules.js`**، و`shell.css` ← **`core.css`** (المشترك) + **`hub.css`** (ألوان الهب)، والبادئات ← **`eco*`** / `eco-` (`wocApi`←`ecoApi` · `WOC_WORKERS`/`DCO_WORKERS`←`ECO_WORKERS` · `.woc-*`/`.dco-*`←`.eco-*`). **قيم مفاتيح التخزين ما اتغيّرتش** (`woc_session` · `dco_session` · `*_worker_secret`). أي نص تحت بيقول «في الـ shell» معناه الملف المناسب من دول.
+
+## 🧩 النواة المشتركة بين الهبّين — المرجع الوحيد (المرحلة ٦)
+
+**نسختين متطابقتين بالبايت — واحدة في كل ريبو — ومفيش ريبو «أصل».** (`Warehouse-Operations-Center` · `Delivery-COD-Operations-Center`). الهبّين منفصلين تمامًا (ريبو ونشر وجلسة وسر)، والنسخ حتمي. ⛔ `bash docs/core-twin-check.sh` بيقارن ويقول الفرق بس **ومابينسخش ولا بيعدّل** — أحمد هو اللي بيقرر أنهي نسخة الصح. أي تعديل في النواة يتعمل **في الريبوهين في نفس التمريرة**، وأي اختلاف بين الهبّين قبل ما يتغيّر: اشرحه لأحمد واستنى قراره.
+
+| الملف | نسخة | فيه |
+|---|---|---|
+| `shared/core.js` | **مشتركة** | الجلسة · مصنع الـ API (`ecoApi`) · التوقيت بـ`Intl` · الصوت · الإعدادات/التوست/About · الخروج التلقائي §IDLE · الهيدر · **§TABLE** (فلاتر رأس العمود · عناوين ثابتة · سحب العرض) |
+| `shared/core.css` | **مشتركة** | التوكنز والـ chrome وكروت الرئيسية (`.eco-*`) و§TABLE |
+| `shared/home.js` | **مشتركة** | الرئيسية بتتبني من `ECO_HOME` (أقسام · صفوف · أدوات · كاش · ملخّص المطوي) |
+| `shared/hub-config.js` | خاص بالهب | `ECO_WORKERS` · `TOOL_VERSION` · مفاتيح الجلسة والسر والكاش · `ECO_HUB` |
+| `shared/hub.css` | خاص بالهب | ألوان الهوية |
+| `shared/home-config.js` | خاص بالهب | أقسام وصفوف الرئيسية |
+| `shared/dco-rules.js` (هنا) · `shared/gates.js` (المخزن) | مجال | قواعد الطوابير والجرد والمتابعة · بوابات القنوات والمكتب والمرتجعات |
+
+- ترتيب التحميل في كل صفحة: `hub-config.js` → `core.js` → (`gates.js`|`dco-rules.js`) → `home.js` → `home-config.js`.
+- 🔴 **§TABLE** مفعّل في صفحات المخزن بـ`ecoTablesAuto()`، **ومش مفعّل هنا** (جداول `Ready-Orders`/`Shipped-Orders`/`Bosta-Orders-Upload` فيها مكوّنها الخاص — تفعيله = حقن مرتين). تفاصيله في قسم «تمريرة v1.46.0» في `CLAUDE.md` بتاع هب المخزن. `ECO_DOM` بيحمي تحميل `core.js` في Node (`rules-check`).
+- 🔴 **Worker الدخول:** `index.js` متطابق خارج كتلة `HUB_CONFIG` (`§HUB-CONFIG-BEGIN/END`)، و`bash docs/auth-worker-twin-check.sh` بيقارن.
+- ⚠️ **مولّدات هب الشحن** (`docs/build-pages.py` · `docs/port-standalone.py`) بتولّد الصفحات بالأسماء الجديدة؛ `port-standalone.py` محتاج `/home/user/sib` فيه `Delivery-COD-Operations-Center` + `Order-Status-Updater` + `COD-Payment-Center` (symlinks) وبيتشغّل بالمسار الكامل. **أي تعديل في صفحة متولّدة بيتعمل في ريبوها الأصلي الأول** — وبعد أي تعديل في المولّد شغّل المولّدين وتأكد إن `git diff` على الصفحات المتولّدة هو اللي اتوقّعته بس.
+- الفحوصات: WOC browser · sku-barcode · pack · scanners · office · warehouse · audit · home · idle · **table** — DCO queues · tools · rules · idle · followup · bosta-webhook · bosta-table — والاتنين `css-check` و`core-twin-check` و`auth-worker-twin-check`.
+
 ## 🔎 تمريرة v1.50.0 — تحديث الـ core المشترك (المرحلة ٥ · طلب أحمد 22-10-2026)
 
 - `shared/core.js` و`core.css` اتزوّدوا بمكوّن **§TABLE** (فلاتر رأس العمود · عناوين ثابتة · سحب العرض) — **نسخة متطابقة بايت ببايت مع هب المخزن** (`bash docs/core-twin-check.sh`).

@@ -16,7 +16,7 @@
 <style>
 /* ══════════════════════════════════════════════════════════════
    §STYLES — الصفحة دي بس.
-   🔴 **مفيش كتلة توكنز هنا — كلها في `shared/shell.css`.** كتلة الـ ٥٦
+   🔴 **مفيش كتلة توكنز هنا — كلها في `shared/core.css`.** كتلة الـ ٥٦
       متغيّر اتشالت: معظمهم كانوا **نفس القيمة بالحرف** في الـ shell،
       و١١ اتضافوا للـ shell (عيلة cyan/rose)، والباقي اتوصّل لتوكن موجود
       بنفس القيمة بالظبط (`--neutral-tint` → `--surface-hover` ·
@@ -46,7 +46,7 @@
    (`#tabBadgeCount` · `#tabBadgeLog`) بيترسموا **نص عاري** بلا خلفية ولا
    إطار، وصفر خطأ في أي مكان.
    ⚠️ **ومكانها الصفحة مش الـ shell** — البادج ده مستهلكه **صفحة واحدة**
-      (`Order-Status-Updater.html` مابتستخدمهوش أصلاً)، والقاعدة بتقول «`shell.css`
+      (`Order-Status-Updater.html` مابتستخدمهوش أصلاً)، والقاعدة بتقول «`core.css`
       فيه الـ chrome بس، وأي CSS خاص بأداة بيفضل في صفحته». وحطّها في الـ
       shell كان هيفتح كمان التزام «أي تعديل على الـ chrome يتعمل في
       الهبين في نفس التمريرة». */
@@ -1194,7 +1194,7 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
           <ul>
             <li><code>currentEmployee</code> — { username, displayName }، مصدره <code>dco_session</code> في <code>sessionStorage</code> (جلسة المركز) — أبداً في <code>localStorage</code></li>
             <li><code>WORKER_URL</code> · <code>ADMIN_WORKER_URL</code> — <strong>ثوابت</strong> في §CONFIG مش حقول إعدادات ولا localStorage (Standards #28). الرابط مش سر — الحماية في <code>WORKER_SECRET</code> + CORS allowlist</li>
-            <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في <code>shared/shell.js</code>) — <strong>المفتاح الوحيد في localStorage</strong>، وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك بين أدوات المركز. ⚠️ المفتاح القديم <code>cod_payment_center_worker_secret</code> <strong>ما اتمسحش</strong> من متصفحات الموظفين — بقى مهمل بس.</li>
+            <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في <code>shared/hub-config.js</code>) — <strong>المفتاح الوحيد في localStorage</strong>، وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك بين أدوات المركز. ⚠️ المفتاح القديم <code>cod_payment_center_worker_secret</code> <strong>ما اتمسحش</strong> من متصفحات الموظفين — بقى مهمل بس.</li>
             <li><code>MIN_WORKER_VERSION = '3.6.0'</code> — أقل نسخة Worker الواجهة بتشتغل معاها. Worker أقدم بيسيب <code>status</code>/<code>logged</code>/<code>truncated</code> فاضيين <strong>في صمت</strong>، فالواجهة تعرض «تم» على كل حاجة — عشان كده الحارس ده إلزامي</li>
             <li><code>TOOL_NAME</code> — <strong>اتشال من الواجهة</strong>. قيمة <code>tool</code> في جدول logs (<code>cod_payment</code>) متحدّدة في كود الـ Worker ومابتتبعتش من العميل — قيمة جاية من العميل معناها أي طلب معاه السر يقدر يكتب صفوف بأي اسم أداة في الجدول المشترك.</li>
             <li><code>orders[]</code> — الأوردرات في الجدول الرئيسي (تحصيل/استرجاع/استبدال)</li>
@@ -1304,7 +1304,7 @@ const $ = id => document.getElementById(id);
 // §SHELL-JS — اللي فضل بعد ما الـ shell خد الباقي
 // ══════════════════════════════════════════════════════════════
 //
-// ⛔ **اتشال من هنا ودلوقتي في `shared/shell.js`:** `TOOL_VERSION` ·
+// ⛔ **اتشال من هنا ودلوقتي في `shared/hub-config.js`:** `TOOL_VERSION` ·
 //    `MIN_WORKER_VERSION` (بقت `ECO_WORKERS.codPayment.min` = `3.6.0`) ·
 //    `cmpVersion` · `checkWorkerVersion` · `showWorkerStale` ·
 //    `renderVersionUI` · مودال الإعدادات (`openSettings`/`saveSettings`/
@@ -1336,7 +1336,7 @@ function onSettingsSaved() {
 // حدود «فترة سريعة»، وكل حساب «اليوم/أمس» بيغلط **بساعة** — والأداة
 // **مابتشتكيش**. الكومنت اللي كان فوق الثابت بيقول حرفيًا «change to 2»،
 // يعني الإصلاح كان **خطوة يدوية متعلّمة على تاريخ**.
-// ✅ دلوقتي محسوب بـ`Intl` على `Africa/Cairo` من `shared/shell.js` —
+// ✅ دلوقتي محسوب بـ`Intl` على `Africa/Cairo` من `shared/core.js` —
 //    الصفحة دي **خرجت من نطاق بند 29-10-2026** خالص.
 //
 // ⚠️ **و`toCairo` لسه بترجّع `Date` مزحزحة عمدًا** عشان `cairoDateStr`

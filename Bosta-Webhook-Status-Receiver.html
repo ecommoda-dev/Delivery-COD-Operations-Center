@@ -17,7 +17,7 @@
       Worker وبس (نفس نمط Partial-Delivery / Courier-Names). أي تعديل على الشاشة
       بيتعمل هنا، وأي تعديل على المنطق/الـ Worker في ريبو الأداة.
    🔴 **مفيش كتلة توكنز هنا ولا --container-max** — الجدول 11 عمود = Tier L
-      (1400) وهو الافتراضي في shared/shell.css.
+      (1400) وهو الافتراضي في shared/core.css.
    ══════════════════════════════════════════════════════ */
 .hbtn .ico { display: inline-block; }
 .hbtn.refreshing .ico { animation: hbtn-spin .7s linear infinite; }
@@ -360,7 +360,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
         <div class="about-sec-body">
           <h4>FEATURE MAP</h4>
           <ul>
-            <li><code>§SHELL</code> — الجلسة والسر والهيدر والتوست والإعدادات والخروج التلقائي كلها من <code>shared/shell.js</code> (مفيش شاشة دخول هنا — الدخول من الرئيسية)</li>
+            <li><code>§SHELL</code> — الجلسة والسر والهيدر والتوست والإعدادات والخروج التلقائي كلها من <code>shared/core.js</code> (مفيش شاشة دخول هنا — الدخول من الرئيسية)</li>
             <li><code>§TOOL::tabs</code> — 5 تابات، كل واحدة بفلاتر/بحث/فترة/ترتيب مستقل بالكامل: 🚚 الأوردرات تحت التوصيل (آخر حالة لكل رقم تتبع — Exception (47) حالة عادية هنا — وبيستبعد أي رقم وصل لحالة نهائية <b>أو بقى RTO</b>)، 🔁 In-Return (أي رقم تتبع نوعه RTO ولسه ماوصلش لحالة نهائية — نفس منطق آخر حالة لكل رقم)، ↩️ Returned to business (كود 46)، ✅ Delivered (كود 45)، 🛑 Terminated (كود 48) — التلاتة الأخيرين صف واحد لكل رقم تتبع (آخر حدث بنفس الحالة)</li>
             <li><code>buildTabPanelHtml()</code> / <code>buildThead()</code> — بيولّدوا HTML الجدول لكل تاب في وقت التحميل (بدل تكرار 4 نسخ يدويًا)، بـ id namespaced بـ <code>tabKey</code>. الفلاتر في رأس العمود: زرار القمع <code>[data-flt]</code> بيفتح قايمة عائمة <code>openPop()</code> على <code>body</code></li>
             <li><code>tabState[tabKey]</code> — فلاتر اختيار متعدد + بحث أوردر/تتبع + فترة تاريخ + ترتيب، لكل تاب نسخة مستقلة بالكامل (مفيش state متشارك بين التابات)</li>
@@ -377,7 +377,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
           </ul>
           <h4>KEY VARIABLES</h4>
           <ul>
-            <li><code>ECO_WORKERS.bostaWebhook</code> (في <code>shared/shell.js</code>) — رابط الـ Worker والحد الأدنى للنسخة · <code>ecoSession</code> — الجلسة · <code>ecoApi()</code> — نداءات الـ Worker بسر المجموعة</li>
+            <li><code>ECO_WORKERS.bostaWebhook</code> (في <code>shared/hub-config.js</code>) — رابط الـ Worker والحد الأدنى للنسخة · <code>ecoSession</code> — الجلسة · <code>ecoApi()</code> — نداءات الـ Worker بسر المجموعة</li>
             <li><code>rawEvents</code> — كل الأحداث من <code>list_events</code> (سحب واحد بلا فلاتر، على موجات بالتوازي (<code>FULL_FETCH_CONCURRENCY</code> × <code>LOAD_PAGE_SIZE</code> = 1000) لحد ما تنتهي الصفحات) — كل تاب بيفلترها بـ <code>tabPartition()</code> وبعدين بفلاتره الخاصة</li>
           </ul>
           <h4>NOTES</h4>
@@ -410,7 +410,7 @@ const ecoSession = requireSession();
 
 // 🔴 `bosta-webhook-status-receiver-worker` لازم يكون **اتضمّ لمجموعة
 //    `delivery_cod_ops`** (WORKER_SECRET = قيمة المجموعة) — قبلها كل نداء `401`.
-//    الحد الأدنى للنسخة في `ECO_WORKERS.bostaWebhook.min` (shared/shell.js)،
+//    الحد الأدنى للنسخة في `ECO_WORKERS.bostaWebhook.min` (shared/hub-config.js)،
 //    وأسباب كل رقم نسخة (1.2.0 · 1.3.1 · 1.5.0 · 1.6.0 · 1.7.0) متوثّقة هناك.
 const { apiGet, apiPost } = ecoApi(ECO_WORKERS.bostaWebhook);
 const PAGE_WORKERS = ['bostaWebhook'];
