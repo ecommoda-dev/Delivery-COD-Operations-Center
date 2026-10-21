@@ -1682,7 +1682,10 @@ console.log('\n══ ⑧ الدخول ══');
 
   // 🔴 `?next=` بيحوّل للوجهة بعد الدخول — وبيتفحص بـ regex قبل التحويل
   await page.waitForTimeout(700);
-  is(page.url().endsWith('Shipped-Orders.html'), '`?next=` بيرجّع الموظف لوجهته بعد الدخول', page.url());
+  // ⚠️ على المسار (pathname) مش على نهاية الـ URL: `index.html?next=Shipped-Orders.html`
+  //    بتنتهي بنفس النص حتى لو التحويل ما حصلش — البند القديم كان بيعدّي على باج `NEXT_RE`
+  //    (`[a-z]+` كانت بترفض أي اسم صفحة فيه حرف كبير أو شرطة) وهو مش بيقيس حاجة.
+  is(new URL(page.url()).pathname.endsWith('/Shipped-Orders.html'), '`?next=` بيرجّع الموظف لوجهته بعد الدخول (المسار مش الـ query)', page.url());
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
 }

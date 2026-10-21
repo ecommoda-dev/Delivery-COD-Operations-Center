@@ -1166,7 +1166,7 @@ document.addEventListener('keydown', e => {
 // 🔴 `next` بيتفحص بـ regex **قبل** التحويل. من غير الفحص،
 //    `?next=https://evil…` بيحوّل الموظف لبرّه الهب.
 //    الـ regex بيسمح باسم ملف محلي + query بس.
-const NEXT_RE = /^[a-z]+\.html(\?[^#]*)?$/;
+const NEXT_RE = /^[A-Za-z0-9_-]+\.html(\?[^#]*)?$/;
 
 async function finishLogin(username, displayName, logged) {
   setSession(username, displayName);
