@@ -7,7 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
-<link rel="stylesheet" href="shared/shell.css">
+<link rel="stylesheet" href="shared/core.css">
+<link rel="stylesheet" href="shared/hub.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <style>
@@ -327,7 +328,7 @@
           </ul>
           <h4>KEY VARIABLES</h4>
           <ul>
-            <li><code>DCO_WORKERS.partialDelivery.url</code> + <code>.min</code> (في
+            <li><code>ECO_WORKERS.partialDelivery.url</code> + <code>.min</code> (في
                 <code>shared/shell.js</code> §CONFIG) — بدل <code>WORKER_URL</code>/
                 <code>MIN_WORKER_VERSION</code> المحليين اللي كانت في الصفحة المستقلة</li>
             <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في
@@ -362,8 +363,10 @@
   </div>
 </div>
 
-<script src="shared/shell.js"></script>
-<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 <script>
 // ══════════════════════════════════════════════════════
 // §CONFIG — بوابة الجلسة + نداءات الـ shell
@@ -372,7 +375,7 @@
 // 🔴 **أول سطر في الصفحة — بوابة الجلسة.** `requireSession()` بترمي عن
 //    قصد لو مفيش جلسة: من غير الرمي باقي السكربت بيكمّل تنفيذ وبينادي
 //    الـ Worker وبيرسم جدول **أثناء** ما التحويل شغّال.
-const dcoSession = requireSession();
+const ecoSession = requireSession();
 
 // 🔴 **الرابط والسر بقوا من الـ shell.** `WORKER_URL` و`LS_SECRET`
 //    (`partial_delivery_worker_secret`) **اتشالوا**: الأداة بقت جوّه
@@ -380,13 +383,13 @@ const dcoSession = requireSession();
 //    ⚠️ **وشرطه مذكور بالاسم:** `partial-delivery-worker` لازم يكون
 //       **اتضمّ للمجموعة** (`WORKER_SECRET` اتدوّر لقيمة المجموعة من
 //       داشبورد كلاودفلير). قبل الضم كل نداء هنا بيرجّع **401**.
-const { apiGet, apiPost } = dcoApi(DCO_WORKERS.partialDelivery);
+const { apiGet, apiPost } = ecoApi(ECO_WORKERS.partialDelivery);
 
 // الفحص الذاتي وحارس النسخة بيمشوا على الـ Worker ده بس.
 const PAGE_WORKERS = ['partialDelivery'];
 
 // العقد اللي باقي كود الأداة بيقرا منه (`employee` مع كل `remove_items`).
-let currentEmployee = { username: dcoSession.username, displayName: dcoSession.displayName };
+let currentEmployee = { username: ecoSession.username, displayName: ecoSession.displayName };
 
 // ⛔ `esc` · `isConfigured` · `openSettings`/`closeSettings`/`saveSettings` ·
 //    `showToast` · `playBeep` · `cmpVersion`/`checkWorkerVersion`/
@@ -736,11 +739,11 @@ document.addEventListener('keydown', (e) => {
 // ══════════════════════════════════════════════════════
 // §INIT
 // ══════════════════════════════════════════════════════
-document.getElementById('headerMount').innerHTML = dcoHeader({
+document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '🧩',
   title:    'التسليم الجزئي',
   subtitle: 'حذف منتج من أوردر مشحون بلا ما تلمس الباقي',
-  session:  dcoSession,
+  session:  ecoSession,
 });
 
 renderVersionUI();

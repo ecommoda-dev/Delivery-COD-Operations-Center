@@ -8,7 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
-  <link rel="stylesheet" href="shared/shell.css">
+  <link rel="stylesheet" href="shared/core.css">
+  <link rel="stylesheet" href="shared/hub.css">
 <style>
 /* ══════════════════════════════════════════════════════════════
    §STYLES — `index.html` بس (شاشة الدخول + لمسات الشاشة الرئيسية)
@@ -70,7 +71,7 @@
 /* ── الشاشة الرئيسية — لمسات فوق `.dco-*` اللي في الـ shell ──── */
 .home-hint{font-size:12px;color:var(--text-secondary);font-weight:600;line-height:1.7;margin-bottom:14px}
 .home-err{margin-bottom:12px}
-/* سطر الفلوس تحت المربعات — بيقعد في `.dco-row-mid` مع المربعات
+/* سطر الفلوس تحت المربعات — بيقعد في `.eco-row-mid` مع المربعات
    والفشل، فبياخد سطره الخاص بدل ما يزاحمهم. */
 .home-money-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 </style>
@@ -133,340 +134,7 @@
      ══════════════════════════════════════════════════════════════ -->
 <div class="container" id="appRoot" style="display:none">
   <div id="headerMount"></div>
-
-  <!-- ⚠️ **سطر الشرح اتشال** (طلب أحمد 17-09-2026) — نص بيتقرا **مرة
-       واحدة** وبياخد مساحة فوق أهم رقمين في الشاشة كل يوم.
-       ✅ **والمعلومة ما ضاعتش**: قاعدة التحديث (يدوي من v1.38.0) وقاعدة
-          «الأدوات بلا عدّاد» مكتوبين بالنص في «عن الأداة»، والعدّاد
-          الملوّن جوّه كل صف بيقول عمر الرقم لوحده. -->
-
-  <!-- ══ قسم «أوردرات بوسطة» (طلب أحمد 14-10-2026) — أول قسم فوق ═════
-       🔴 **فيه أداتين بوسطة بعدّاد حيّ**: «رفع بوسطة» (اللي مستنية رفع) و«متابعة شحنات بوسطة»
-          (اللي تحت التوصيل). نفس شكل الصفوف في «قسم الحالات الانتقالية» وسلوكها بالحرف. -->
-  <section class="dco-home-sec sec-bosta has-sum" id="secBosta">
-    <div class="dco-home-sec-hd" role="button" tabindex="0" aria-expanded="true" aria-controls="secBodyBosta" data-sec-toggle>
-      <i class="dco-sec-sp" aria-hidden="true"></i><i class="dco-sec-ln" aria-hidden="true"></i>
-      <div class="dco-sec-mid">
-        <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/></svg></span>
-        <div class="dco-sec-tx">
-          <div class="dco-home-sec-title">أوردرات بوسطة</div>
-          <div class="dco-home-sec-sub">رفع الشحنات ومتابعتها</div>
-          <div class="dco-sum" id="sumBosta"></div>
-        </div>
-      </div>
-      <i class="dco-sec-ln" aria-hidden="true"></i>
-      <span class="dco-sec-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>
-    </div>
-    <div class="dco-sec-body" id="secBodyBosta"><div class="dco-sec-in"><div class="dco-rows">
-
-    <!-- ══ صف ③ — «رفع بوسطة» (طلب أحمد 27-09-2026) ══════════════
-         🔴 **بقى صف بعدّاد حيّ بنفس شكل «Ready»/«Shipped» بالحرف** — كان
-            كارت أداة بلا عدّاد (v1.14.0). الرقم الكبير = الأوردرات اللي
-            **مستنية رفع** على بوسطة في التلات أوضاع مع بعض، والمربعات =
-            عدد كل وضع (🚚 شحن عادي · ↩️ استرجاع · 🔄 استبدال).
-         🔴 **«مستنية رفع» = `!alreadyUploaded`** — **نفس** شرط تاب «الرفع»
-            جوّه الأداة (`UPLOAD_TABS.main` في `Bosta-Orders-Upload.html`)،
-            على **نفس** الـ endpoints (`get_orders` · `fetch_candidates`).
-            ⛔ شرط تاني هنا = الرقم في الرئيسية يخالف التاب (درس R1).
-         ⚠️ **ومالوش «مستحق تحصيل»** — الأداة دي بتنشئ شحنات مش بتحصّل،
-            والسطر ده في الصفّين فوق خاص بالطابورين.
-         ⚠️ **والنداءات قراءة بحتة** — `fetch_candidates` بطّل يكتب صف
-            `scan` من Worker v2.4.0، فالتحديث (يدوي من v1.38.0) مابيملاش
-            السجل. -->
-      <a class="dco-row dco-qrow id-upload age-none" id="rowBosta" href="Bosta-Orders-Upload.html">
-        <div class="dco-row-id">
-          <span class="dco-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg></span>
-          <div>
-            <div class="dco-card-name">رفع بوسطة</div>
-            <div class="dco-card-code">لم يتم الرفع</div>
-          </div>
-        </div>
-        <div class="dco-row-num">
-          <span class="dco-count pending" id="cntBosta">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
-        </div>
-        <div class="dco-row-mid">
-          <div class="dco-chips" id="chipsBosta"></div>
-          <div class="home-money-row" id="moneyBosta"></div>
-          <div class="dco-fail" id="failBosta" style="display:none"></div>
-        </div>
-        <div class="dco-row-act">
-          <div class="dco-agebox">
-            <div class="dco-agebox-top"><span class="dco-agebox-lbl">آخر تحديث منذ:</span><span class="dco-agebox-time" id="stampBosta">—</span></div>
-            <div class="dco-agebox-val" id="agoBosta">—</div>
-            <div class="dco-agebar" aria-hidden="true"><i></i></div>
-          </div>
-          <button class="dco-qref" id="btnBosta" type="button"
-                  onclick="event.preventDefault();event.stopPropagation();loadQueue('bosta', false)">
-            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
-          </button>
-        </div>
-      </a>
-
-    <!-- ══ صف ④ — «مستقبل حالة بوسطة» (طلب أحمد 14-10-2026) ═══════
-         🔴 **نفس شكل وسلوك الصفوف التلاتة فوق بالحرف** (كاش ١٠ دقايق · تحديث يدوي ·
-            «آخر تحديث منذ:» · فشل بيسمّي الأداة). الرقم الكبير = **أرقام التتبع تحت
-            التوصيل** — نفس تعريف تاب «🚚 الأوردرات تحت التوصيل» في الأداة، والمربعات =
-            عدد المحاولات (نفس ألوان مربعات التاب) + 🔁 In-Return.
-         🔴 **الرقم من `queue_summary`** (Worker ≥ 1.9.0، SQL مجمّع) — مش من `list_events`:
-            سحب آلاف الأحداث عشان رقم واحد كان هيبقى أتقل نداء في الهب.
-            ⛔ والتعريف مكرّر في الـ Worker وفي `computeTabRows` في الأداة — أي تعديل ينزل على الاتنين.
-         ⚠️ **وحدة العد «شحنة» مش «أوردر»** — الأوردر ممكن يبقى له رقم تتبع S1 وS2.
-         ⚠️ بلا «مستحق تحصيل» (`cod: null`) — الأداة عرض بحت. -->
-      <a class="dco-row dco-qrow id-track age-none" id="rowWebhook" href="Bosta-Webhook-Status-Receiver.html">
-        <div class="dco-row-id">
-          <span class="dco-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-          <div>
-            <div class="dco-card-name">متابعة شحنات بوسطة</div>
-            <div class="dco-card-code">تحت التوصيل</div>
-          </div>
-        </div>
-        <div class="dco-row-num">
-          <span class="dco-count pending" id="cntWebhook">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
-        </div>
-        <div class="dco-row-mid">
-          <div class="dco-chips" id="chipsWebhook"></div>
-          <div class="home-money-row" id="moneyWebhook"></div>
-          <div class="dco-fail" id="failWebhook" style="display:none"></div>
-        </div>
-        <div class="dco-row-act">
-          <div class="dco-agebox">
-            <div class="dco-agebox-top"><span class="dco-agebox-lbl">آخر تحديث منذ:</span><span class="dco-agebox-time" id="stampWebhook">—</span></div>
-            <div class="dco-agebox-val" id="agoWebhook">—</div>
-            <div class="dco-agebar" aria-hidden="true"><i></i></div>
-          </div>
-          <button class="dco-qref" id="btnWebhook" type="button"
-                  onclick="event.preventDefault();event.stopPropagation();loadQueue('webhook', false)">
-            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
-          </button>
-        </div>
-      </a>
-
-    <!-- ══ صف ⑤ — «متابعة التأجيلات» (v1.44.0 · اتعدّل v1.45.0) ═════════════════════
-         🔴 نفس شكل وسلوك صف «متابعة شحنات بوسطة» بالحرف (كاش ١٠ دقايق · تحديث يدوي ·
-            «آخر تحديث منذ:» · فشل بيقول «تعذّر» مش صفر). الرقم الكبير = **محتاجين رسالة**
-            (شحنات تحت التوصيل عليها محاولة توصيل ≥ 1 ولسه ما اتبعتلهاش واتساب)، والمربعات = اتبعتلهم رسالة · إجمالي الشحنات.
-         🔴 الرقم من `queue_summary` في `bosta-delivery-follow-up-worker` (SQL مجمّع بلا شوبيفاي).
-         ⚠️ الوحدة «شحنة» مش «عميل». بلا «مستحق تحصيل». -->
-      <a class="dco-row dco-qrow id-track age-none" id="rowFollowUp" href="Bosta-Delivery-Follow-Up.html">
-        <div class="dco-row-id">
-          <span class="dco-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 11h6M9 14h4"/></svg></span>
-          <div>
-            <div class="dco-card-name">متابعة التأجيلات</div>
-            <div class="dco-card-code">محتاجين رسالة</div>
-          </div>
-        </div>
-        <div class="dco-row-num">
-          <span class="dco-count pending" id="cntFollowUp">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
-        </div>
-        <div class="dco-row-mid">
-          <div class="dco-chips" id="chipsFollowUp"></div>
-          <div class="home-money-row" id="moneyFollowUp"></div>
-          <div class="dco-fail" id="failFollowUp" style="display:none"></div>
-        </div>
-        <div class="dco-row-act">
-          <div class="dco-agebox">
-            <div class="dco-agebox-top"><span class="dco-agebox-lbl">آخر تحديث منذ:</span><span class="dco-agebox-time" id="stampFollowUp">—</span></div>
-            <div class="dco-agebox-val" id="agoFollowUp">—</div>
-            <div class="dco-agebar" aria-hidden="true"><i></i></div>
-          </div>
-          <button class="dco-qref" id="btnFollowUp" type="button"
-                  onclick="event.preventDefault();event.stopPropagation();loadQueue('followUp', false)">
-            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
-          </button>
-        </div>
-      </a>
-  </div></div></div>
-  </section>
-
-  <section class="dco-home-sec sec-flow has-sum" id="secFlow">
-    <div class="dco-home-sec-hd" role="button" tabindex="0" aria-expanded="true" aria-controls="secBodyFlow" data-sec-toggle>
-      <i class="dco-sec-sp" aria-hidden="true"></i><i class="dco-sec-ln" aria-hidden="true"></i>
-      <div class="dco-sec-mid">
-        <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12M12 6l6 6-6 6"/></svg></span>
-        <div class="dco-sec-tx">
-          <div class="dco-home-sec-title">الحالات الانتقالية</div>
-          <div class="dco-home-sec-sub">Ready ثم Shipped</div>
-          <div class="dco-sum" id="sumFlow"></div>
-        </div>
-      </div>
-      <i class="dco-sec-ln" aria-hidden="true"></i>
-      <span class="dco-sec-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>
-    </div>
-    <div class="dco-sec-body" id="secBodyFlow"><div class="dco-sec-in"><div class="dco-rows">
-
-    <!-- ══ صف ① — «أوردرات جاهزة للشحن» (Ready) ═══════════════════
-         🔴 **الرقم بيعدّ الأوردرات اللي حالتها `Ready`** في أي من
-            الماكينتين: الشحنة الأصلية (`custom.manual_status`) أو دورة
-            الاستبدال/الاسترجاع (`custom.status_2_r_e`).
-         🔴 **والعدّ بيعدّي على `dcoQueueRows` في `shared/shell.js`
-            §QUEUE-RULES** — **نفس** الدالة اللي `Ready-Orders.html` بتبني
-            بيها القايمة، على **نفس** رد الـ endpoint. ⛔ ممنوع أي حساب
-            هنا: نسخة تانية من القاعدة = الرقم هنا يخالف القايمة هناك،
-            وده بالظبط باج v1.11.0 في هب المخزن (الرئيسية قالت ٦٦ والصفحة
-            فتحت على ٦ · درس R1).
-         ⚠️ **وصفر فلترة**: الأوردر الشاذ (ملغي · حالة بره القايمة · بلا
-            قناة) **بيتعدّ وبياخد علامة** — مربع «محتاجة مراجعة» بيقول
-            عددهم. إخفاؤه كان هيخلّي سؤال «الأوردر ده فين؟» بلا إجابة. -->
-      <a class="dco-row dco-qrow id-ready age-none" id="rowReady" href="Ready-Orders.html">
-        <div class="dco-row-id">
-          <span class="dco-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg></span>
-          <div>
-            <div class="dco-card-name">أوردرات جاهزة للشحن</div>
-            <!-- 🔴 **كود الحالة بالحرف تحت الاسم** (طلب أحمد 17-09-2026) —
-                 `Ready` هي القيمة اللي في `custom.manual_status` على
-                 شوبيفاي بالظبط، وهي اللي الموظف بيدوّر عليها هناك.
-                 الجملة الشارحة القديمة اتشالت لصالحها.
-                 ⚠️ **والخط `--font-mono` ومكبّر عن قصد** — دي **قيمة
-                    حرفية** مش وصف، ونفس بنط الوصف كان بيخلّيها تتقري
-                    كلمة إنجليزي وسط جملة عربي. -->
-            <div class="dco-card-code" dir="ltr">Ready</div>
-          </div>
-        </div>
-        <div class="dco-row-num">
-          <span class="dco-count pending" id="cntReady">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
-        </div>
-        <div class="dco-row-mid">
-          <div class="dco-chips" id="chipsReady"></div>
-          <div class="home-money-row" id="moneyReady"></div>
-          <div class="dco-fail" id="failReady" style="display:none"></div>
-        </div>
-        <div class="dco-row-act">
-          <div class="dco-agebox">
-            <div class="dco-agebox-top"><span class="dco-agebox-lbl">آخر تحديث منذ:</span><span class="dco-agebox-time" id="stampReady">—</span></div>
-            <div class="dco-agebox-val" id="agoReady">—</div>
-            <div class="dco-agebar" aria-hidden="true"><i></i></div>
-          </div>
-          <button class="dco-qref" id="btnReady" type="button"
-                  onclick="event.preventDefault();event.stopPropagation();loadQueue('ready', false)">
-            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
-          </button>
-        </div>
-      </a>
-
-    <!-- ══ صف ② — «أوردرات تحت التوصيل» (Shipped) ════════════════
-         🔴 **الرقم بيعدّ الأوردرات اللي حالتها `Shipped`** في أي من
-            الماكينتين — يعني خرجت **ومحدش سجّل لها نتيجة نهائية**
-            (`Delivered` / `Returned`) لسه. الطابور ده **بيتراكم بطبيعته**:
-            الصف اللي قاعد فيه من أسبوع هو اللي نسي حد يقفله.
-         ⚠️ **`In-Return` مش هنا** — القاعدة ١٢ في `ecommoda-order-lifecycle`
-            بتعتبرها `Shipped` في العدّ، بس المواصفات المتفق عليها بتقول
-            `Shipped` بالحرف. البند مفتوح في `CLAUDE.md` ومستني قرار —
-            والعنوان بيقول اللي بيتعرض بالظبط، فالغياب **معلوم مش خفي**. -->
-      <a class="dco-row dco-qrow id-shipped age-none" id="rowShipped" href="Shipped-Orders.html">
-        <div class="dco-row-id">
-          <span class="dco-card-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h11v10H2zM13 10h5l3 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg></span>
-          <div>
-            <div class="dco-card-name">أوردرات تحت التوصيل</div>
-            <div class="dco-card-code" dir="ltr">Shipped</div>
-          </div>
-        </div>
-        <div class="dco-row-num">
-          <span class="dco-count pending" id="cntShipped">—</span><span class="dco-count-spin" aria-hidden="true">↻</span>
-        </div>
-        <div class="dco-row-mid">
-          <div class="dco-chips" id="chipsShipped"></div>
-          <div class="home-money-row" id="moneyShipped"></div>
-          <div class="dco-fail" id="failShipped" style="display:none"></div>
-        </div>
-        <div class="dco-row-act">
-          <div class="dco-agebox">
-            <div class="dco-agebox-top"><span class="dco-agebox-lbl">آخر تحديث منذ:</span><span class="dco-agebox-time" id="stampShipped">—</span></div>
-            <div class="dco-agebox-val" id="agoShipped">—</div>
-            <div class="dco-agebar" aria-hidden="true"><i></i></div>
-          </div>
-          <button class="dco-qref" id="btnShipped" type="button"
-                  onclick="event.preventDefault();event.stopPropagation();loadQueue('shipped', false)">
-            <span class="dco-qref-ico" aria-hidden="true">↻</span><span class="dco-qref-tx">تحديث</span>
-          </button>
-        </div>
-      </a>
-
-  </div></div></div>
-  </section>
-
-  <!-- ══ قسم «أدوات» ══════════════════════════════════════════
-       🔴 **بلا عدّاد عن قصد** — والكلام ده مكتوب في `shared/shell.css`
-          §DCO-HOME من قبل ما الأدوات تدخل: عدّاد حيّ معناه **جلب تقيل
-          عند كل دخول**، وماياخدهوش إلا اللي عنده طابور
-          حقيقي وجلبه رخيص. التلاتة دول **أدوات فعل** مش طوابير: مفيش
-          «رقم» يوصفهم أصلاً.
-       🔴 **والكروت بتفتح صفحة في نفس التاب** (مش رابط خارجي بـ`target`)
-          — التلاتة بقوا **جوّه الهب** (`Order-Status-Updater.html` ·
-          `COD-Payment-Center.html` · `Partial-Delivery.html`) وبيقروا نفس
-          الجلسة. رابط خارجي كان معناه دخول تاني وسر تاني.
-          ⚠️ **والتسليم الجزئي (v1.10.0) مختلف عن التلاتة**: الريبو
-          المستقل بتاعه (`Partial-Delivery`) بقى **Worker وبس** — مفيش
-          نسخة تانية شغّالة في مكان تاني أصلاً (عكس التاتين التانيين
-          اللي روابطهم القديمة لسه شغّالة في ريبوهم).
-       ⚠️ **والتلاتة دول أدوات كتابة** — مش عرض بحت زي الطابورين فوق:
-          `update_status` بتكتب حالة على شوبيفاي، و`pay`/`refund` بيسجّلوا
-          فلوس، و`remove_items` بتشيل منتج من أوردر. الوصف تحت كل واحدة
-          بيقول كده بالنص عشان الموظف يعرف إنه داخل على فعل. -->
-  <section class="dco-home-sec sec-tools" id="secTools">
-    <div class="dco-home-sec-hd" role="button" tabindex="0" aria-expanded="true" aria-controls="secBodyTools" data-sec-toggle>
-      <i class="dco-sec-sp" aria-hidden="true"></i><i class="dco-sec-ln" aria-hidden="true"></i>
-      <div class="dco-sec-mid">
-        <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></span>
-        <div class="dco-sec-tx">
-          <div class="dco-home-sec-title">أدوات العمليات</div>
-          <div class="dco-home-sec-sub">أدوات بتكتب على الأوردرات</div>
-        </div>
-      </div>
-      <i class="dco-sec-ln" aria-hidden="true"></i>
-      <span class="dco-sec-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>
-    </div>
-    <div class="dco-sec-body" id="secBodyTools"><div class="dco-sec-in">
-    <div class="dco-tools-grid">
-
-      <a class="dco-tool" href="Order-Status-Updater.html">
-        <span class="dco-card-ico ico-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.5M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.5 4.5M20 20v-4h-4"/><path d="M12 7.5l4 2v5l-4 2-4-2v-5z"/><path d="M8 9.5l4 2 4-2M12 11.5v5"/></svg></span>
-        <div class="dco-card-name">تحديث حالة الأوردرات</div>
-      </a>
-
-      <a class="dco-tool" href="COD-Payment-Center.html">
-        <span class="dco-card-ico ico-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14M7 2h10"/><rect x="2" y="8" width="20" height="12" rx="2"/><circle cx="12" cy="14" r="2.5"/></svg></span>
-        <div class="dco-card-name">تحصيل الأوردرات COD</div>
-      </a>
-
-      <a class="dco-tool" href="Partial-Delivery.html">
-        <span class="dco-card-ico ico-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5L4 5v6.5l6 2.5z"/><path d="M14 2.5l6 2.5v6.5l-6 2.5z"/><path d="M12 15.5V17M12 17l-4.5 4.5M12 17l4.5 4.5M7.5 18v3.5H11M16.5 18v3.5H13"/></svg></span>
-        <div class="dco-card-name">التسليم الجزئي</div>
-      </a>
-
-    </div>
-  </div></div>
-  </section>
-
-  <!-- ══ قسم «أدوات أخرى» (v1.30.0 · طلب أحمد 05-10-2026) ═════════
-       🔴 **تحت «قسم أدوات العمليات» مباشرةً — قسم لوحده مش كارت جواه.**
-          أدوات العمليات بتتصرّف على **أوردرات** (حالة · تحصيل · حذف منتج)؛
-          «أسماء المناديب» بتعدّل **قايمة الاختيار نفسها** (`custom.courier`)
-          اللي كل الأوردرات بتختار منها — نوع تاني من الفعل، فقسم تاني.
-       ⚠️ **وبلا عدّاد** زي قسم الأدوات (فعل مش طابور). -->
-  <section class="dco-home-sec sec-tools" id="secOther">
-    <div class="dco-home-sec-hd" role="button" tabindex="0" aria-expanded="true" aria-controls="secBodyOther" data-sec-toggle>
-      <i class="dco-sec-sp" aria-hidden="true"></i><i class="dco-sec-ln" aria-hidden="true"></i>
-      <div class="dco-sec-mid">
-        <span class="dco-home-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg></span>
-        <div class="dco-sec-tx">
-          <div class="dco-home-sec-title">أدوات أخرى</div>
-          <div class="dco-home-sec-sub">قوائم مساعدة</div>
-        </div>
-      </div>
-      <i class="dco-sec-ln" aria-hidden="true"></i>
-      <span class="dco-sec-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>
-    </div>
-    <div class="dco-sec-body" id="secBodyOther"><div class="dco-sec-in">
-    <div class="dco-tools-grid">
-
-      <a class="dco-tool" href="Courier-Names.html">
-        <span class="dco-card-ico ico-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M9 17h6M15 17l-2-8h-3M13 9h3l2 4"/></svg></span>
-        <div class="dco-card-name">أسماء المناديب</div>
-      </a>
-
-    </div>
-  </div></div>
-  </section>
+  <div id="homeRoot"></div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -580,7 +248,18 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.48.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.49.0</span>
+          <span class="cl-ver-date">22-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🎨 <b>الأقسام: الخطين على الجانبين بلون العنوان</b> (أغمق من قبل)، و<b>القسم المطوي له إطار بنفس لون العنوان</b>.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🎨 <b>مفيش حافة ملوّنة على يمين الصف</b> — لون العمر على الخلفية ومربع «آخر تحديث» وزرار التحديث بس.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🧩 <b>الكود المشترك بين هبّي المخزن والشحن</b> اتفصل في ملفات متطابقة (<code>core.js</code> · <code>core.css</code> · <code>home.js</code>) وإعداد صغير لكل هب — بدون تغيير في أي رقم أو قاعدة.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.48.0</span>
           <span class="cl-ver-date">21-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -656,7 +335,7 @@
         </div>
         <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>📮 <b>«مستقبل حالة شحنات بوسطة» بقى صف رابع في «قسم الحالات الانتقالية»</b> (طلب أحمد) بنفس تصميم وسلوك الصفوف التلاتة: رقم كبير = <b>أرقام التتبع تحت التوصيل</b> · مربعات المحاولات + 🔁 In-Return · «آخر تحديث منذ:» · زرار تحديث يدوي · كاش ١٠ دقايق. والكارت اتشال من «أدوات أخرى».</span></li>
-          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 الرقم من <code>queue_summary</code> الجديد في الـ Worker (عدّ مجمّع بـ SQL — مش سحب آلاف الأحداث)، فـ<b>Worker «مستقبل حالة بوسطة» لازم يكون <code>1.9.0</code> فأعلى</b> (<code>DCO_WORKERS.bostaWebhook.min</code>). وصفحة الأداة بتكتب نفس الكاش عند كل تحميل.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 الرقم من <code>queue_summary</code> الجديد في الـ Worker (عدّ مجمّع بـ SQL — مش سحب آلاف الأحداث)، فـ<b>Worker «مستقبل حالة بوسطة» لازم يكون <code>1.9.0</code> فأعلى</b> (<code>ECO_WORKERS.bostaWebhook.min</code>). وصفحة الأداة بتكتب نفس الكاش عند كل تحميل.</span></li>
         </ul>
       </div>
       <div class="cl-version-block">
@@ -971,8 +650,12 @@
 <div id="sharedMount"></div>
 
 <!-- 🔴 نسخة واحدة مضمّنة — ممنوع محتوى الملف ده يتنسخ هنا -->
-<script src="shared/shell.js"></script>
-<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script src="shared/home.js"></script>
+<script src="shared/home-config.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 <script>
 // ══════════════════════════════════════════════════════════════
 // §PAGE — index.html
@@ -982,7 +665,7 @@
 //    باقي الصفحات بتنادي الحارس في أول سطر عندها.
 
 // الدخول على Worker الهب نفسه — عايش في **نفس الريبو** (`index.js`)
-const { apiGet, apiPost } = dcoApi(DCO_WORKERS.auth);
+const { apiGet, apiPost } = ecoApi(ECO_WORKERS.auth);
 
 // ⚠️ القايمة دي بتغذّي **حارس النسخة و🩺 فحص النظام** كمان — Worker مش
 //    فيها بيختفي من الفحص خالص. والفحص من الشاشة الرئيسية هو الفحص الشامل.
@@ -1189,176 +872,16 @@ async function finishLogin(username, displayName, logged) {
 // ══════════════════════════════════════════════════════════════
 // §HOME-JS — الشاشة الرئيسية
 // ══════════════════════════════════════════════════════════════
-//
-// 🔴 **مفيش تحديث تلقائي** (v1.38.0 · قرار أحمد 14-10-2026 — كان كل ١٥
-//    دقيقة). الهدف تخفيف الضغط على الـ Workers (وحد استعلامات شوبيفاي اللي
-//    وراهم). الرقم بيتجدّد في تلات حالات بس:
-//    ① **الموظف داس «تحديث»** على الصف.
-//    ② **فتح الرئيسية والكاش أقدم من `DCO_CACHE_TTL_MS` (١٠ دقايق)** أو
-//       مش موجود — والأحدث من كده بيترسم من الكاش **بصفر نداء**. من غير ده
-//       الرجوع بـ 🏠 من أي أداة كان بيعمل ٥ نداءات كل مرة (الهب reload كامل).
-//    ③ **صفحة الطابور جابت** — بتكتب نفس الكاش، فالرئيسية بتاخد رقمها ببلاش.
-//    ⛔ **وممنوع يرجع تايمر ولا جلب عند الرجوع للتاب** (`visibilitychange`) —
-//       اتعرض واترفض بقرار (الشكل نفسه بيقول إن الرقم قديم).
-//
-// 🔴 **وعشان مفيش تحديث تلقائي، الصف لازم يقول عمره من بعيد** — النبضة (٣٠
-//    ثانية، **بلا أي نداء شبكة**) بتحدّث لون الصف والحافة والشريط ومدة «آخر
-//    تحديث منذ:» ولون زرار التحديث. السلّم من `agoInfo` في الـ shell.
-//
-// ⚠️ حالة **لكل طابور لوحده** — Workers مستقلين، وواحد ممكن يقع والتاني ينجح.
-const DCO_TICK_MS = 30 * 1000;
-
-// تعريف كل طابور: الـ IDs بتاعته + إزاي بيتجاب + إزاي بيتقري من الكاش.
-// 🔴 **الاشتقاق كله من `shared/shell.js` §QUEUE-RULES** — `dcoQueueRows`
-//    و`dcoChips` و`dcoCod`. الصفحة بتنادي **نفس** الدوال على **نفس** الرد،
-//    فمستحيل الرقم هنا يخالف القايمة هناك (درس R1).
-//    ⛔ ممنوع أي `filter` أو `map` بقاعدة أهلية في الملف ده.
-// ⚠️ `derive` واحدة للجلب وللكاش — نسختين كانوا هيخلّوا الرقم من الكاش
-//    يخالف الرقم من الشبكة لنفس الرد.
-function deriveQueue(data, status, kind) {
-  const rows = dcoQueueRows(data.orders || [], status, kind);
-  return { total: rows.length, chips: dcoChips(rows), truncated: !!data.truncated };
-}
-// 🔴 الكاش بيتقري **بس لو عمره أقل من `DCO_CACHE_TTL_MS`** — أقدم من كده =
-//    جلب جديد. ⚠️ وعمر سالب (ساعة الجهاز اترجعت) = مش موثوق = جلب.
-const cacheFresh = c => !!c && c.ageMs >= 0 && c.ageMs < DCO_CACHE_TTL_MS;
-
-const BOSTA_MODES = [
-  { key: 's1',       label: '🚚 شحن عادي', cls: 'qc-job-s1' },
-  { key: 'return',   label: '↩️ استرجاع',  cls: 'qc-job-return' },
-  { key: 'exchange', label: '🔄 استبدال',  cls: 'qc-job-exchange' },
-];
-function deriveBosta(counts) {
-  const chips = BOSTA_MODES.map(m => ({ cls: m.cls, label: m.label, n: counts[m.key] }));
-  return { total: chips.reduce((a, c) => a + c.n, 0), chips };
-}
-
-const HOME_QUEUES = {
-  ready: {
-    err: 'تعذّر جلب قسم الجاهز للشحن',
-    ids: { row:'rowReady', count:'cntReady', chips:'chipsReady', money:'moneyReady', fail:'failReady',
-           ago:'agoReady', stamp:'stampReady', btn:'btnReady' },
-    async fetch() {
-      const data = await dcoApi(DCO_WORKERS.ready).apiGet('get_ready_queue');
-      // ⚠️ الكاش بيتكتب بالرد **الخام** زي ما جه — الصفحة بتشتق منه
-      //    بنفسها بنفس الدوال. كاش مشتق كان هيخلّي أي تعديل في القاعدة
-      //    يسيب بيانات قديمة بشكل قديم في الجلسة.
-      cacheSet(DCO_CACHE_READY, data);
-      return deriveQueue(data, 'Ready', 'ready');
-    },
-    fromCache() {
-      const c = cacheGet(DCO_CACHE_READY);
-      if (!cacheFresh(c) || !Array.isArray(c.data.orders)) return null;
-      return { at: new Date(c.at), r: deriveQueue(c.data, 'Ready', 'ready') };
-    },
-  },
-  shipped: {
-    err: 'تعذّر جلب طابور المشحون',
-    ids: { row:'rowShipped', count:'cntShipped', chips:'chipsShipped', money:'moneyShipped', fail:'failShipped',
-           ago:'agoShipped', stamp:'stampShipped', btn:'btnShipped' },
-    async fetch() {
-      const data = await dcoApi(DCO_WORKERS.shipped).apiGet('get_shipped_queue');
-      cacheSet(DCO_CACHE_SHIPPED, data);
-      return deriveQueue(data, 'Shipped', 'shipped');
-    },
-    fromCache() {
-      const c = cacheGet(DCO_CACHE_SHIPPED);
-      if (!cacheFresh(c) || !Array.isArray(c.data.orders)) return null;
-      return { at: new Date(c.at), r: deriveQueue(c.data, 'Shipped', 'shipped') };
-    },
-  },
-  // 🔴 «رفع بوسطة» — التلات أوضاع بالتوازي على نفس الـ Worker، والعدّ بنفس
-  //    شرط تاب «الرفع» جوّه الأداة (`!alreadyUploaded`). ⚠️ لو أي وضع فشل
-  //    الصف كله بيقول فشل (بيسمّي الوضع) — رقم إجمالي ناقص وضع شكله سليم
-  //    وهو أقل من الحقيقة (قاعدة ٤: الفشل مش صفر).
-  // 🔴 **والكاش عدّادات بس** (`bostaCacheSet` في الـ shell) — وصفحة الأداة
-  //    بتكتب فيه هي كمان مع كل جلب لأي وضع.
-  bosta: {
-    err: 'تعذّر جلب أوردرات رفع بوسطة',
-    ids: { row:'rowBosta', count:'cntBosta', chips:'chipsBosta', money:'moneyBosta', fail:'failBosta',
-           ago:'agoBosta', stamp:'stampBosta', btn:'btnBosta' },
-    async fetch() {
-      const api = dcoApi(DCO_WORKERS.bostaUpload);
-      const s = getSession();
-      const get = {
-        s1:       () => api.apiGet('get_orders'),
-        return:   () => api.apiPost('fetch_candidates', { jobType: 'return',   employee: s?.username || null }),
-        exchange: () => api.apiPost('fetch_candidates', { jobType: 'exchange', employee: s?.username || null }),
-      };
-      const res = await Promise.allSettled(BOSTA_MODES.map(m => get[m.key]()));
-      const failed = BOSTA_MODES.filter((m, i) => res[i].status === 'rejected');
-      // ⚠️ الوضع اللي نجح بيتكتب في الكاش حتى لو غيره فشل — رقمه صح.
-      const counts = {};
-      BOSTA_MODES.forEach((m, i) => {
-        if (res[i].status !== 'fulfilled') return;
-        counts[m.key] = (res[i].value.rows || []).filter(r => !r.alreadyUploaded).length;
-        bostaCacheSet(m.key, counts[m.key]);
-      });
-      if (failed.length) {
-        const first = res.find(r => r.status === 'rejected').reason;
-        throw new Error(`تعذّر جلب ${failed.map(m => m.label).join(' · ')} — ${first?.message || 'خطأ غير معروف'}`);
-      }
-      return deriveBosta(counts);
-    },
-    fromCache() {
-      const c = bostaCacheGet();
-      if (!cacheFresh(c)) return null;
-      return { at: new Date(c.at), r: deriveBosta(c.counts) };
-    },
-  },
-  // 🔴 «مستقبل حالة بوسطة» — `queue_summary` (عدّ مجمّع في الـ Worker v1.9.0). الكاش بيتخزّن بالرد
-  //    **الخام** و`dcoWebhookDerive` (الـ shell) بتشتق منه — وصفحة الأداة بتكتب **نفس الشكل**
-  //    في نفس المفتاح بعد كل تحميل، فالرئيسية بتاخد رقمها ببلاش.
-  webhook: {
-    err: 'تعذّر جلب ملخّص متابعة شحنات بوسطة',
-    unit: 'شحنة',
-    ids: { row:'rowWebhook', count:'cntWebhook', chips:'chipsWebhook', money:'moneyWebhook', fail:'failWebhook',
-           ago:'agoWebhook', stamp:'stampWebhook', btn:'btnWebhook' },
-    async fetch() {
-      const data = await dcoApi(DCO_WORKERS.bostaWebhook).apiGet('queue_summary');
-      cacheSet(DCO_CACHE_WEBHOOK, data);
-      return dcoWebhookDerive(data);
-    },
-    fromCache() {
-      const c = cacheGet(DCO_CACHE_WEBHOOK);
-      if (!cacheFresh(c) || !c.data.main) return null;
-      return { at: new Date(c.at), r: dcoWebhookDerive(c.data) };
-    },
-  },
-  // 🔴 «متابعة التأجيلات» — `queue_summary` من `bosta-delivery-follow-up-worker`. الكاش بالرد **الخام**
-  //    و`dcoFollowUpDerive` (الـ shell) بتشتق منه — وصفحة الأداة بتكتب نفس الشكل بعد كل تحميل.
-  followUp: {
-    err: 'تعذّر جلب ملخّص متابعة التأجيلات',
-    unit: 'شحنة',
-    ids: { row:'rowFollowUp', count:'cntFollowUp', chips:'chipsFollowUp', money:'moneyFollowUp', fail:'failFollowUp',
-           ago:'agoFollowUp', stamp:'stampFollowUp', btn:'btnFollowUp' },
-    async fetch() {
-      const data = await dcoApi(DCO_WORKERS.deliveryFollowUp).apiGet('queue_summary');
-      cacheSet(DCO_CACHE_FOLLOWUP, data);
-      return dcoFollowUpDerive(data);
-    },
-    fromCache() {
-      const c = cacheGet(DCO_CACHE_FOLLOWUP);
-      if (!cacheFresh(c) || typeof c.data.unsent !== 'number') return null;
-      return { at: new Date(c.at), r: dcoFollowUpDerive(c.data) };
-    },
-  },
-};
-
-const homeQ = {
-  ready:   { at: null, loading: false },
-  shipped: { at: null, loading: false },
-  bosta:   { at: null, loading: false },
-  webhook: { at: null, loading: false },
-  followUp: { at: null, loading: false },
-};
-let homeTickTimer = null;
+// 🔴 **البناء والجلب والكاش وعمر الرقم وطي الأقسام في `shared/home.js`** (متطابق بالبايت في الهبّين)،
+//    **والأقسام والصفوف والأدوات في `shared/home-config.js`** (`ECO_HOME`). مفيش تحديث تلقائي
+//    (قرار أحمد 14-10-2026): الجلب عند «تحديث» أو فتح الرئيسية والكاش أقدم من ١٠ دقايق.
+// ⚠️ اللي فضل هنا خاص بالصفحة: شاشة الدخول و`showHome` (الهيدر والتوست) و`renderAboutWorkers`.
 
 function showHome() {
   const s = getSession();
   if (!s) return;
   document.getElementById('loginOverlay').classList.add('hidden');
-  document.getElementById('headerMount').innerHTML = dcoHeader({
+  document.getElementById('headerMount').innerHTML = ecoHeader({
     icon: '🚚', title: 'مركز عمليات الشحن والتحصيل', subtitle: 'EcomModa — محطة الشحن',
     home: false,          // ⚠️ إحنا **في** الشاشة الرئيسية
     session: s,
@@ -1367,197 +890,21 @@ function showHome() {
   renderVersionUI();
   renderAboutWorkers();
   showToast(`أهلاً ${s.displayName} 👋`, 'success');
+  ecoHomeMount();
   loadCounts();
 }
 
-function loadCounts() {
-  startHomeTicker();
-  // 🔴 **القايمة بتتبني من `homeQ` نفسه — مش مكتوبة بالإيد.** القايمة
-  //    اليدوية هي اللي بتنسى طابور جديد **في صمت**: الصف بيترسم والعدّاد
-  //    بيفضل `—` للأبد ومفيش أي خطأ في الكونسول. ده حصل فعلاً في هب
-  //    المخزن وقت إضافة الطابور الرابع، واتمسك في **فحص المتصفح** مش في
-  //    مراجعة كود.
-  // 🔴 **الكاش الأول** — طابور كاشه أحدث من ١٠ دقايق بيترسم منه بصفر نداء،
-  //    والباقي بس هو اللي بيتجاب. ⚠️ والختم بيبقى **وقت الكاش** مش وقت
-  //    الفتح — «منذ ٨ دقايق» هي الحقيقة.
-  // ⚠️ و`allSettled` مش `all` — فشل طابور **مايخفيش** التاني.
-  const toFetch = Object.keys(homeQ).filter(k => {
-    const c = HOME_QUEUES[k].fromCache();
-    if (!c) return true;
-    setCount(k, c.r);
-    homeQ[k].at = c.at;
-    return false;
-  });
-  renderFreshness();
-  Promise.allSettled(toFetch.map(k => loadQueue(k)));
-}
-
-// المسار الوحيد للجلب من الشبكة — الفتح والضغطة اليدوية الاتنين بيعدّوا منه.
-async function loadQueue(key, silent = true) {
-  const q = homeQ[key], def = HOME_QUEUES[key];
-  if (q.loading) return;              // ضغطتين ورا بعض
-  q.loading = true;
-  setRefreshing(key, true);
-  renderFreshness();
-  try {
-    const r = await def.fetch();
-    clearFail(def.ids.fail);
-    setCount(key, r);
-    // ⚠️ الختم بيتسجّل **حتى لو الطابور رجع فاضي** — «اتحدّث ورجع صفر»
-    //    معلومة، و«ما اتحدّثش» معلومة تانية خالص.
-    q.at = new Date();
-  } catch (err) {
-    // ⚠️ الختم **مايتغيّرش** في الفشل — ما نقولش للموظف إن القايمة دي
-    //    جديدة وهي مش جديدة، والصف بيفضل بلون عمره الحقيقي. والدخول
-    //    للصفحة **لسه شغّال**.
-    setFail(key, err.message || def.err);
-    if (!silent) showToast(err.message || def.err, 'error', 5000);
-  } finally {
-    q.loading = false;
-    setRefreshing(key, false);
-    renderFreshness();
-  }
-}
-
-function setCount(key, r) {
-  const ids = HOME_QUEUES[key].ids;
-  homeQ[key].total = r.total;     // للملخّص وهو مطوي
-  const c = document.getElementById(ids.count);
-  c.textContent = String(r.total);
-  c.setAttribute('aria-label', `${r.total} ${HOME_QUEUES[key].unit || 'أوردر'}`);
-  c.classList.remove('pending', 'failed');
-  // 🔴 `ch.row` (اختياري) بيحط المربع في سطر لوحده — «In-Return» تحت مربعات المحاولات. من غيره
-  //    كل المربعات في سطر واحد بيلفّ لوحده (زي الصفوف التانية).
-  const chipHtml = ch => `<span class="dco-chip ${esc(ch.cls)}">${esc(ch.label)} <b>${ch.n}</b></span>`;
-  const chipRows = {};
-  (r.chips || []).forEach(ch => (chipRows[ch.row || 0] = chipRows[ch.row || 0] || []).push(ch));
-  const rowKeys = Object.keys(chipRows).sort((a, b) => a - b);
-  document.getElementById(ids.chips).innerHTML = rowKeys.length > 1
-    ? rowKeys.map(k => `<div class="dco-chips-line">${chipRows[k].map(chipHtml).join('')}</div>`).join('')
-    : (r.chips || []).map(chipHtml).join('');
-
-  // 🔴 **مفيش «مستحق التحصيل» في الرئيسية** (طلب أحمد 14-10-2026) — اتشال من الصفوف كلها؛ الرقم لسه
-  //    موجود في صفحة كل طابور. وبالتالي «مدفوع مقدمًا» و«حالة مالية مش معروفة» اتشالوا معاه (كانوا بيشرحوا
-  //    استبعاد من رقم الفلوس ده). ⚠️ وتحذير «القايمة مقطوعة» فضل — ده عن الطابور مش عن الفلوس.
-  document.getElementById(ids.money).innerHTML = r.truncated
-    ? `<span class="dco-chip qc-flag">⚠️ القايمة مقطوعة — فيه أكتر من المعروض</span>` : '';
-}
-
-function setFail(key, msg) {
-  const ids = HOME_QUEUES[key].ids;
-  const f = document.getElementById(ids.fail);
-  f.style.display = '';
-  f.textContent = `⚠️ ${msg}`;
-  // ⚠️ «تعذّر الاستعلام» ≠ «مفيش شغل» — فالعدد **عمره ما يبقى صفر** هنا.
-  //    ولو فيه جلب ناجح قبل كده، الرقم القديم **بيفضل** والصف بلونه
-  //    بيقول عمره — ده أصدق من مسحه.
-  if (!homeQ[key].at) {
-    const c = document.getElementById(ids.count);
-    c.textContent = 'تعذّر';
-    c.classList.remove('pending');
-    c.classList.add('failed');
-  }
-}
-function clearFail(failId) {
-  const f = document.getElementById(failId);
-  f.style.display = 'none';
-  f.textContent = '';
-}
-
-// وقت التحديث: الزرار أبيض بإطار متقطّع والأيقونة بتلف، والرقم الكبير
-// بيتبدّل بـ ↻ بتلف (CSS على `.is-loading`)، والشريط بيتحرك رايح جاي.
-function setRefreshing(key, on) {
-  const ids = HOME_QUEUES[key].ids;
-  const btn = document.getElementById(ids.btn);
-  document.getElementById(ids.row)?.classList.toggle('is-loading', on);
-  if (!btn) return;
-  btn.disabled = on;
-  btn.querySelector('.dco-qref-tx').textContent = on ? 'جاري' : 'تحديث';   // الزرار نحيف (48px) — «جاري التحديث» بتتقال في مربع العمر
-  btn.setAttribute('aria-busy', String(on));
-}
-
-// ─── عمر الرقم على الصف ───
-// ⚠️ ثقة الموظف في الرقم بتتبني على المربع ده — ومن غير تحديث تلقائي هو
-//    **الحاجة الوحيدة** اللي بتقول إن الرقم قدم.
-// ⚠️ المرحلة (اللون) من `agoInfo` في `shared/shell.js` §HELPERS — **ممنوع
-//    سلّم تاني هنا**. اللي بيتحسب هنا هو **الدقايق** (للنص الكبير والشريط).
-const DCO_CLOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
-function ageValueHtml(mins) {
-  if (mins < 1)  return '<b>لحظات</b>';
-  if (mins < 60) return `<b>${mins}</b>${mins >= 3 && mins <= 10 ? 'دقايق' : 'دقيقة'}`;
-  const h = Math.floor(mins / 60);
-  return h <= 2 ? `<b>${esc(arHour(h))}</b>` : `<b>${h}</b>${h <= 10 ? 'ساعات' : 'ساعة'}`;
-}
-// 🎨 ملخّص القسم وهو مطوي (v1.47.0 · طلب أحمد 21-10-2026) — اسم كل صف ورقمه، وتحته المدة
-//    بلون عمره ("4 دقيقة"). ⚠️ **نفس `homeQ` ونفس `agoInfo`** — مفيش سلّم تاني ولا نداء شبكة.
-//    ⚠️ الصف اللي ما اتجابش `—` مش `0`، والفاشل «تعذّر» (قاعدة ٣ و٤). الاسم ولون الهوية بيتقروا من
-//    الصف نفسه (مصدر واحد). ⛔ الشارة «أقدم رقم» اتشالت بقرار أحمد — الملخّص بيقول عمر كل صف لوحده.
-const HOME_SECS = { sumBosta: ['bosta', 'webhook', 'followUp'], sumFlow: ['ready', 'shipped'] };
-function sumAgeText(mins) {
-  if (mins < 1) return 'لحظات';
-  return mins < 60 ? mins + ' دقيقة' : Math.floor(mins / 60) + ' ساعة';
-}
-function renderSummary(now) {
-  Object.keys(HOME_SECS).forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.innerHTML = HOME_SECS[id].map(key => {
-      const q = homeQ[key], row = document.getElementById(HOME_QUEUES[key].ids.row);
-      if (!row) return '';
-      const name = row.querySelector('.dco-card-name').textContent.trim();
-      const idCls = [...row.classList].find(c => c.startsWith('id-')) || '';
-      const lvl = q.at ? agoInfo(q.at, now).cls.replace('ago-', '') : 'none';
-      const mins = q.at ? Math.max(0, Math.floor((now - q.at.getTime()) / 60000)) : 0;
-      const failed = !!row.querySelector('.dco-count.failed');
-      const n = failed ? 'تعذّر' : typeof q.total === 'number' ? String(q.total) : '—';
-      const cap = q.loading ? 'جاري التحديث…' : q.at ? sumAgeText(mins) : 'لسه ما اتحدّثش';
-      return `<span class="dco-smw"><span class="dco-sm ${idCls}"><span class="dco-sm-n">${esc(name)}</span><em>${esc(n)}</em></span><i class="dco-smcap age-${lvl}">${esc(cap)}</i></span>`;
-    }).join('');
-  });
-}
-function renderFreshness(now = Date.now()) {
-  Object.keys(homeQ).forEach(key => {
-    const q = homeQ[key], ids = HOME_QUEUES[key].ids;
-    const row = document.getElementById(ids.row);
-    if (!row) return;
-    const info = agoInfo(q.at, now);
-    const lvl  = q.at ? info.cls.replace('ago-', '') : 'none';
-    const mins = q.at ? Math.max(0, Math.floor((now - q.at.getTime()) / 60000)) : 0;
-    row.classList.remove('age-none', 'age-fresh', 'age-ok', 'age-warn', 'age-stale');
-    row.classList.add('age-' + lvl);
-    // `--fill` = الدقايق ÷ ٦٠ (بيقف عند ساعة) — خلفية الصف والشريط بيتملوا تدريجيًا
-    row.style.setProperty('--fill', String(q.at ? Math.min(mins / 60, 1) : 0));
-    document.getElementById(ids.ago).innerHTML = q.loading
-      ? '<span>جاري التحديث…</span>'
-      : q.at ? '<span>' + ageValueHtml(mins) + '</span>' : '<span>لسه ما اتحدّثش</span>';
-    // 🕐 الساعة بس جنب العنوان (صباحاً/مساءً) — التاريخ اتشال (طلب أحمد): الكاش عمره ١٠ دقايق والخروج
-    //    التلقائي بعد ساعة، فالتاريخ هو النهارده دايمًا. وبيفضل في `title` الصندوق لو احتاجه حد.
-    const iso = q.at ? q.at.toISOString() : null;
-    const p = iso ? cairoParts(iso) : null;
-    const stampEl = document.getElementById(ids.stamp);
-    stampEl.innerHTML = p ? DCO_CLOCK_SVG + esc(_ampm(p)) : '—';
-    stampEl.closest('.dco-agebox').title = p ? `آخر تحديث ${formatDate(iso)} ${_ampm(p)}` : '';
-  });
-  renderSummary(now);
-}
-
-// ─── النبضة — أرقام محسوبة محليًا، **صفر نداء شبكة** ───
-function startHomeTicker() {
-  if (homeTickTimer) return;
-  homeTickTimer = setInterval(() => renderFreshness(), DCO_TICK_MS);
-}
-
-// ⚠️ الحلقة دي مكرّرة في التلات صفحات **عن قصد**: `DCO_WORKERS` و`cmpVersion`
+// ⚠️ الحلقة دي مكرّرة في التلات صفحات **عن قصد**: `ECO_WORKERS` و`cmpVersion`
 //    في الـ shell، بس فحص Step 9 بيطلب وجود الاسمين في كل صفحة، والقايمة
 //    نفسها (`PAGE_WORKERS`) بتفرق من صفحة للتانية.
 async function renderAboutWorkers() {
   const box = document.getElementById('aboutWorkers');
   if (!box) return;
   const rows = await Promise.all(PAGE_WORKERS.map(async k => {
-    const w = DCO_WORKERS[k];
+    const w = ECO_WORKERS[k];
     let got = '—', mark = '⏳';
     try {
-      const cfg = await dcoApi(w).apiGet('get_config');
+      const cfg = await ecoApi(w).apiGet('get_config');
       got = cfg.version || cfg.WORKER_VERSION || '—';
       mark = cmpVersion(got, w.min) < 0 ? '⚠️' : '✅';
     } catch { mark = '❌'; got = 'تعذّر الوصول'; }
@@ -1568,24 +915,6 @@ async function renderAboutWorkers() {
      <p>نسخة الواجهة (الهب كله): <code>${esc(TOOL_VERSION)}</code></p>`;
 }
 
-
-// ─── طي الأقسام (v1.47.0 · طلب أحمد 21-10-2026) ───
-// ⚠️ **كله مفتوح عند الفتح** (قرار أحمد) و**الحالة مابتتخزّنش** — الريفريش بيرجّعها مفتوحة. والصفوف
-//    المخفية `visibility:hidden` بعد الحركة (CSS)، فمابتاخدش تاب ولا قارئ شاشة وهي مطوية.
-function toggleHomeSec(h) {
-  const sec = h.closest('.dco-home-sec');
-  const c = !sec.classList.contains('is-collapsed');
-  sec.classList.toggle('is-collapsed', c);
-  h.setAttribute('aria-expanded', String(!c));
-}
-document.addEventListener('click', e => {
-  const h = e.target.closest && e.target.closest('[data-sec-toggle]');
-  if (h) toggleHomeSec(h);
-});
-document.addEventListener('keydown', e => {
-  const h = e.target.closest && e.target.closest('[data-sec-toggle]');
-  if (h && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleHomeSec(h); }
-});
 
 // ══════════════════════════════════════════════════════════════
 // §INIT

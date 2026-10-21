@@ -153,13 +153,13 @@ class Port:
             print("   " + l)
 
 
-# 🔴 **الـ ids اللي الـ shell بيحقنها وقت التشغيل** (`dcoHeader()` ·
-#    `dcoSharedModals()`) — مش موجودة في ماركب الصفحة، والصفحة بتنده
+# 🔴 **الـ ids اللي الـ shell بيحقنها وقت التشغيل** (`ecoHeader()` ·
+#    `ecoSharedModals()`) — مش موجودة في ماركب الصفحة، والصفحة بتنده
 #    عليها بحق. بتتقرا من `shared/shell.js` **نفسه** مش مكتوبة هنا: قايمة
 #    يدوية بتقدم من غير ما حد يلاحظ، وساعتها الحارس يطلّع تحذير كاذب على
 #    عنصر موجود فعلاً.
 def shell_ids():
-    js = io.open(os.path.join(HUB, 'shared', 'shell.js'), encoding='utf-8').read()
+    js = io.open(os.path.join(HUB, 'shared', 'core.js'), encoding='utf-8').read()
     return set(re.findall(r'\bid="([^"]+)"', js))
 
 
@@ -214,7 +214,8 @@ def build_order_status():
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
-  <link rel="stylesheet" href="shared/shell.css">
+  <link rel="stylesheet" href="shared/core.css">
+  <link rel="stylesheet" href="shared/hub.css">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 </head>
@@ -268,14 +269,14 @@ def build_order_status():
         '<div class="app-header">',
         '<!-- Settings Modal -->',
         '<div id="headerMount"></div>\n\n',
-        'الهيدر → dcoHeader')
+        'الهيدر → ecoHeader')
 
-    # ── مودال الإعدادات → `dcoSharedModals()` ───────────────────
+    # ── مودال الإعدادات → `ecoSharedModals()` ───────────────────
     p.swap(
         '<div class="settings-overlay" id="settingsOverlay" onclick="closeSettingsOnBackdrop(event)">',
         '<!-- Confirm Dialog (generic — irreversible actions) -->',
         '',
-        'مودال الإعدادات → dcoSharedModals')
+        'مودال الإعدادات → ecoSharedModals')
 
     # ── حاوية التوست + شاشة الدخول ──────────────────────────────
     p.swap(
@@ -290,7 +291,7 @@ def build_order_status():
 
     # ── تحميل الـ shell قبل سكربت الصفحة ────────────────────────
     p.sub('\n\n<script>\n// ══════════════════════════════════════════════════════════════\n// §CONFIG — LS keys',
-          '\n\n<script src="shared/shell.js"></script>\n<script>document.getElementById(\'sharedMount\').innerHTML = dcoSharedModals();</script>\n\n<script>\n// ══════════════════════════════════════════════════════════════\n// §CONFIG — LS keys',
+          '\n\n<script src="shared/hub-config.js"></script>\n<script src="shared/core.js"></script>\n<script src="shared/dco-rules.js"></script>\n<script>document.getElementById(\'sharedMount\').innerHTML = ecoSharedModals();</script>\n\n<script>\n// ══════════════════════════════════════════════════════════════\n// §CONFIG — LS keys',
           'تحميل shared/shell.js قبل سكربت الصفحة')
 
     # ── سجل التحديثات — بادج الهب فوق، ونسخة الواجهة الأصلية تحته ──
@@ -336,19 +337,19 @@ def build_order_status():
 //    قصد لو مفيش جلسة: من غير الرمي باقي السكربت بيكمّل تنفيذ وبينادي
 //    الـ Worker وبيرسم جدول **أثناء** ما التحويل لشاشة الدخول شغّال —
 //    نداءات ضايعة ووميض شاشة.
-const dcoSession = requireSession();
+const ecoSession = requireSession();
 
 // 🔴 **الرابط والسر بقوا من الـ shell.** `WORKER_URL` و`LS_SECRET`
 //    (`order_status_worker_secret`) **اتشالوا**: الأداة بقت جوّه المركز،
 //    والسر قيمة واحدة لمجموعة `delivery_cod_ops`.
 //    ⚠️ **وده شرطه مذكور بالاسم:** الـ Worker ده لازم يكون **اتضمّ
 //       للمجموعة** (`WORKER_SECRET` اتدوّر لقيمتها من داشبورد كلاودفلير).
-//       قبل الضم كل نداء هنا بيرجّع **401**، و`dcoApi` بيسمّي الأداة في
+//       قبل الضم كل نداء هنا بيرجّع **401**، و`ecoApi` بيسمّي الأداة في
 //       الرسالة فالموظف مايدوّرش.
-// ⚠️ و`dcoApi` بيجيب معاه حاجة النسخة الأصلية ماكانتش عندها: **مهلة
+// ⚠️ و`ecoApi` بيجيب معاه حاجة النسخة الأصلية ماكانتش عندها: **مهلة
 //    صريحة (٩٠ ثانية)**. من غيرها الـ Worker الواقف كان بيسيب الزرار
 //    معطّل والـ spinner بيلف للأبد، والموظف بيفتكر إن الأداة اتعلّقت.
-const { apiGet, apiPost } = dcoApi(DCO_WORKERS.orderStatus);
+const { apiGet, apiPost } = ecoApi(ECO_WORKERS.orderStatus);
 
 // الفحص الذاتي وحارس النسخة بيمشوا على الـ Worker ده بس — الصفحة
 // مابتنادیش غيره (⛔ ومفيش `ADMIN_WORKER_URL` هنا: شاشة الدخول اتشالت،
@@ -384,8 +385,8 @@ function orderLink(orderNumber, orderId) {
 //    و`MIN_WORKER_VERSION` و`cmpVersion` و`checkWorkerVersion`
 //    و`showWorkerStale` و`renderVersionUI` · مودال الإعدادات
 //    (`openSettings`/`saveSettings`/`updateSettingsBtn`) · الفحص الذاتي
-//    (`runDiag` → `dcoRunDiag`) · `openAbout`/`openChangelog`.
-// 🔴 **و«أقل نسخة Worker» بقت في `DCO_WORKERS.orderStatus.min`** —
+//    (`runDiag` → `ecoRunDiag`) · `openAbout`/`openChangelog`.
+// 🔴 **و«أقل نسخة Worker» بقت في `ECO_WORKERS.orderStatus.min`** —
 //    `4.7.0`، والرقم ده **بيمنع ضرر مش بيدّي تحذير**: Worker `4.6.0`
 //    بيرجّع **نفس اسم الحقل** (`cod`) بقيمة محسوبة بالصيغة القديمة
 //    الغلط، فورقة المانفيست بتخرج من الطابعة بأرقام فلوس غلط و**صفر خطأ
@@ -449,7 +450,7 @@ function orderLink(orderNumber, orderId) {
 
 // العقد اللي باقي كود الأداة بيقرا منه (`employee` مع كل
 // `update_status`) — مصدره بقى الجلسة بدل شاشة الدخول.
-let currentEmployee = { username: dcoSession.username, displayName: dcoSession.displayName };
+let currentEmployee = { username: ecoSession.username, displayName: ecoSession.displayName };
 
 // ══════════════════════════════════════════════════════════════
 ''',
@@ -502,11 +503,11 @@ let currentEmployee = { username: dcoSession.username, displayName: dcoSession.d
     p.swap(
         'renderVersionUI();\nrenderStep1Body();',
         '\n</script>\n\n</body>',
-        '''document.getElementById('headerMount').innerHTML = dcoHeader({
+        '''document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '📦',
   title:    'تحديث حالة الأوردرات',
   subtitle: 'تحديث حالة الأوردرات بالسكانر أو يدوياً — S1/S2 تلقائي',
-  session:  dcoSession,
+  session:  ecoSession,
 });
 
 renderVersionUI();
@@ -576,7 +577,7 @@ checkWorkerVersion(PAGE_WORKERS);
           'عن الأداة — بند السر')
 
     p.sub('<li><code>WORKER_URL</code> / <code>ADMIN_WORKER_URL</code> — (v4.4.0) constants ثابتة في <code>§CONFIG</code>.',
-          '<li><code>DCO_WORKERS.orderStatus.url</code> (في <code>shared/shell.js</code> §CONFIG) — '
+          '<li><code>ECO_WORKERS.orderStatus.url</code> (في <code>shared/shell.js</code> §CONFIG) — '
           'بدل <code>WORKER_URL</code> المحلي. و<code>ADMIN_WORKER_URL</code> <strong>اتشال خالص</strong>: '
           'مستهلكه الوحيد كان شاشة الدخول. الرابطين مش سر —',
           'عن الأداة — بند الروابط')
@@ -619,7 +620,8 @@ def build_cod_payment():
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
-<link rel="stylesheet" href="shared/shell.css">
+<link rel="stylesheet" href="shared/core.css">
+<link rel="stylesheet" href="shared/hub.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 </head>
@@ -684,19 +686,19 @@ def build_cod_payment():
 
     # ── الهيدر → mount ────────────────────────────────────────
     p.swap('  <div class="app-header">', '  <div class="main-tabs-bar">',
-           '  <div id="headerMount"></div>\n\n', 'الهيدر → dcoHeader')
+           '  <div id="headerMount"></div>\n\n', 'الهيدر → ecoHeader')
 
-    # ── مودال الإعدادات → dcoSharedModals ─────────────────────
+    # ── مودال الإعدادات → ecoSharedModals ─────────────────────
     p.swap('<div class="settings-overlay" id="settingsOverlay" onclick="closeSettingsOnBackdrop(event)">',
-           '<div class="eco-overlay" id="changelogOverlay"', '', 'مودال الإعدادات → dcoSharedModals')
+           '<div class="eco-overlay" id="changelogOverlay"', '', 'مودال الإعدادات → ecoSharedModals')
 
     # ── حقن الـ shell قبل سكربت الصفحة ────────────────────────
     p.sub('</body>\n</html>\n<script>\n// ══════════════════════════════════════════════════════════════\n// §CONFIG',
           '<!-- مودال الإعدادات + حاوية التوست — بيتحقنوا من الـ shell -->\n'
           '<div id="sharedMount"></div>\n\n'
           '</body>\n</html>\n'
-          '<script src="shared/shell.js"></script>\n'
-          "<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>\n"
+          '<script src="shared/hub-config.js"></script>\n<script src="shared/core.js"></script>\n<script src="shared/dco-rules.js"></script>\n'
+          "<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>\n"
           '<script>\n// ══════════════════════════════════════════════════════════════\n// §CONFIG',
           'حقن sharedMount و shared/shell.js')
 
@@ -708,7 +710,7 @@ def build_cod_payment():
 //    قصد لو مفيش جلسة: من غير الرمي باقي السكربت بيكمّل تنفيذ وبينادي
 //    الـ Worker **أثناء** ما التحويل لشاشة الدخول شغّال. وفي أداة فلوس
 //    النداء الضايع ده مش مجرد ضوضاء.
-const dcoSession = requireSession();
+const ecoSession = requireSession();
 
 const SHOP_DOMAIN = '6c7e1a-53.myshopify.com';''',
           'بوابة الجلسة في أول السكربت')
@@ -732,18 +734,18 @@ const SHOP_DOMAIN = '6c7e1a-53.myshopify.com';''',
 // ⚠️ **و`apiPostRoot` هي `apiPostLegacy` القديمة بالحرف** — الراوتينج
 //    المختلط بتاع الـ Worker ده (GET + `?action=` للأوث والسجل · POST +
 //    `action` في **الجسم** لـ`pay`/`refund`/`preview`/`getCourierOrders`)
-//    **ما اتغيّرش ولا حرف**. اللي اتغيّر إنها بقت جوّه `dcoApi` فبقى ليها
+//    **ما اتغيّرش ولا حرف**. اللي اتغيّر إنها بقت جوّه `ecoApi` فبقى ليها
 //    **مهلة صريحة (٩٠ ثانية)** ورسايل فشل بتسمّي الأداة.
 //    ⛔ وممنوع «نتوحّد» بتحويل نداء منها لـ`apiPost` — الـ Worker بيقرا
 //       `action` من الجسم في المسار ده، والتحويل بيرجّع «action غير
 //       معروف» على **فعل مالي**.
-const { apiGet, apiPost, apiPostRoot: apiPostLegacy } = dcoApi(DCO_WORKERS.codPayment);
+const { apiGet, apiPost, apiPostRoot: apiPostLegacy } = ecoApi(ECO_WORKERS.codPayment);
 
 // الفحص الذاتي وحارس النسخة بيمشوا على الـ Worker ده بس.
 const PAGE_WORKERS = ['codPayment'];
 
 ''',
-        '§CONFIG — dcoApi بدل السر والرابط المحليين')
+        '§CONFIG — ecoApi بدل السر والرابط المحليين')
 
     # ── الشِل المكرر ───────────────────────────────────────────
     p.swap(
@@ -753,10 +755,10 @@ const PAGE_WORKERS = ['codPayment'];
 // ══════════════════════════════════════════════════════════════
 //
 // ⛔ **اتشال من هنا ودلوقتي في `shared/shell.js`:** `TOOL_VERSION` ·
-//    `MIN_WORKER_VERSION` (بقت `DCO_WORKERS.codPayment.min` = `3.6.0`) ·
+//    `MIN_WORKER_VERSION` (بقت `ECO_WORKERS.codPayment.min` = `3.6.0`) ·
 //    `cmpVersion` · `checkWorkerVersion` · `showWorkerStale` ·
 //    `renderVersionUI` · مودال الإعدادات (`openSettings`/`saveSettings`/
-//    `updateSettingsBtn`) · `diagRows`/`runDiag` (→ `dcoRunDiag`) ·
+//    `updateSettingsBtn`) · `diagRows`/`runDiag` (→ `ecoRunDiag`) ·
 //    `openAbout`/`openChangelog` · `showToast`.
 // ⚠️ **واللي فضل تحت مقصود:** بانر «الأداة غير مضبوطة». الـ shell
 //    مالوش واحد (صفحاته بتفتح شاشة الإعدادات لوحدها عند أول نداء بلا
@@ -841,7 +843,7 @@ function addDays(dateStr, n) {
         '// ── API Helpers ───────────────────────────────────────────────',
         '// §SHELL-JS — Main Tabs',
         '''// ⛔ `apiRequest`/`apiPost`/`apiGet`/`apiPostLegacy` اتشالوا — بقوا من
-//    `dcoApi` فوق. الفرق الوحيد في السلوك إنهم بقى ليهم **مهلة صريحة**
+//    `ecoApi` فوق. الفرق الوحيد في السلوك إنهم بقى ليهم **مهلة صريحة**
 //    ورسايل فشل بتسمّي الأداة؛ نفس الأشكال التلاتة بنفس المسارات بالحرف.
 </script>
 <script>
@@ -863,7 +865,7 @@ function addDays(dateStr, n) {
 //    النوعين الوحيدين اللي الصفحة دي بتناديهم.)
 
 // العقد اللي باقي كود الأداة بيقرا منه (`employee` مع كل `pay`/`refund`).
-let currentEmployee = { username: dcoSession.username, displayName: dcoSession.displayName };
+let currentEmployee = { username: ecoSession.username, displayName: ecoSession.displayName };
 
 // ══════════════════════════════════════════════════════════════
 ''',
@@ -878,11 +880,11 @@ let currentEmployee = { username: dcoSession.username, displayName: dcoSession.d
         'initLogTypeFilter();      // قايمة ثابتة — مفيش نداء شبكة\n'
         'loadLogCourierFilter();   // محميّ جوّاه\n'
         'loadLogEmployeeFilter();  // محميّ جوّاه',
-        '''document.getElementById('headerMount').innerHTML = dcoHeader({
+        '''document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '💳',
   title:    'تحصيل الأوردرات COD',
   subtitle: 'تحصيل واسترداد مدفوعات الدفع عند الاستلام',
-  session:  dcoSession,
+  session:  ecoSession,
 });
 
 renderVersionUI();

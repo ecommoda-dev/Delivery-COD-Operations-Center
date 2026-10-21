@@ -7,7 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
-<link rel="stylesheet" href="shared/shell.css">
+<link rel="stylesheet" href="shared/core.css">
+<link rel="stylesheet" href="shared/hub.css">
 
 <style>
 /* ══════════════════════════════════════════════════════
@@ -200,7 +201,7 @@
         <summary>🔧 تشريح الكود</summary>
         <div class="about-sec-body">
           <ul>
-            <li>§CONFIG — <code>DCO_WORKERS.couriers</code> (في <code>shared/shell.js</code>) · الجلسة والسر من الـ shell.</li>
+            <li>§CONFIG — <code>ECO_WORKERS.couriers</code> (في <code>shared/shell.js</code>) · الجلسة والسر من الـ shell.</li>
             <li>§LIST — عرض القايمة · السحب · الأسهم · «حفظ الترتيب».</li>
             <li>§ACTIONS — <code>add_courier</code> · <code>remove_courier</code> (بعد <code>courier_usage</code>) · <code>reorder_couriers</code>.</li>
             <li>§LOG — <code>get_logs</code> (آخر ٣٠ تعديل).</li>
@@ -228,18 +229,20 @@
   </div>
 </div>
 
-<script src="shared/shell.js"></script>
-<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 <script>
 // ══════════════════════════════════════════════════════
 // §CONFIG — بوابة الجلسة + نداءات الـ shell
 // ══════════════════════════════════════════════════════
 // 🔴 أول سطر — بوابة الجلسة (بترمي عن قصد لو مفيش جلسة).
-const dcoSession = requireSession();
+const ecoSession = requireSession();
 
 // 🔴 `courier-names-worker` لازم يكون **اتضمّ لمجموعة `delivery_cod_ops`**
 //    (WORKER_SECRET = قيمة المجموعة) — قبلها كل نداء `401`.
-const { apiGet, apiPost } = dcoApi(DCO_WORKERS.couriers);
+const { apiGet, apiPost } = ecoApi(ECO_WORKERS.couriers);
 const PAGE_WORKERS = ['couriers'];
 
 // ⛔ كل أسماء الصفحة بادئتها `cn` — الـ shell و`<script>` الصفحة في نفس النطاق
@@ -446,7 +449,7 @@ async function cnAdd() {
   });
   if (!ok) return;
   await cnRun(async () => {
-    const d = await apiPost('add_courier', { employee: dcoSession.username, name });
+    const d = await apiPost('add_courier', { employee: ecoSession.username, name });
     if (d.status === 'success' || d.status === 'warning' || d.status === 'already') input.value = '';
     input.classList.remove('has-value');
     return d;
@@ -486,7 +489,7 @@ async function cnRemove(i) {
     lines, okLabel: `تأكيد — احذف «${name}»`, cls: 'btn-red',
   });
   if (!ok) return;
-  await cnRun(() => apiPost('remove_courier', { employee: dcoSession.username, name }), 'حذف مندوب');
+  await cnRun(() => apiPost('remove_courier', { employee: ecoSession.username, name }), 'حذف مندوب');
 }
 
 async function cnSaveOrder() {
@@ -498,7 +501,7 @@ async function cnSaveOrder() {
     okLabel: 'حفظ الترتيب', cls: 'btn-primary',
   });
   if (!ok) return;
-  await cnRun(() => apiPost('reorder_couriers', { employee: dcoSession.username, couriers: cnLocal }), 'حفظ الترتيب');
+  await cnRun(() => apiPost('reorder_couriers', { employee: ecoSession.username, couriers: cnLocal }), 'حفظ الترتيب');
 }
 
 // ══════════════════════════════════════════════════════
@@ -550,11 +553,11 @@ document.addEventListener('keydown', (e) => {
 // ══════════════════════════════════════════════════════
 // §INIT
 // ══════════════════════════════════════════════════════
-document.getElementById('headerMount').innerHTML = dcoHeader({
+document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '🛵',
   title:    'أسماء المناديب',
   subtitle: 'قايمة الاختيار custom.courier — إضافة · حذف · ترتيب',
-  session:  dcoSession,
+  session:  ecoSession,
 });
 
 renderVersionUI();

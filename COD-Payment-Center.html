@@ -8,7 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
-<link rel="stylesheet" href="shared/shell.css">
+<link rel="stylesheet" href="shared/core.css">
+<link rel="stylesheet" href="shared/hub.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 </head>
@@ -1242,8 +1243,10 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
 
 </body>
 </html>
-<script src="shared/shell.js"></script>
-<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 <script>
 // ══════════════════════════════════════════════════════════════
 // §CONFIG
@@ -1252,7 +1255,7 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
 //    قصد لو مفيش جلسة: من غير الرمي باقي السكربت بيكمّل تنفيذ وبينادي
 //    الـ Worker **أثناء** ما التحويل لشاشة الدخول شغّال. وفي أداة فلوس
 //    النداء الضايع ده مش مجرد ضوضاء.
-const dcoSession = requireSession();
+const ecoSession = requireSession();
 
 const SHOP_DOMAIN = '6c7e1a-53.myshopify.com';
 function shopifyOrderUrl(orderId) {
@@ -1285,12 +1288,12 @@ function orderLink(orderNumber, orderId) {
 // ⚠️ **و`apiPostRoot` هي `apiPostLegacy` القديمة بالحرف** — الراوتينج
 //    المختلط بتاع الـ Worker ده (GET + `?action=` للأوث والسجل · POST +
 //    `action` في **الجسم** لـ`pay`/`refund`/`preview`/`getCourierOrders`)
-//    **ما اتغيّرش ولا حرف**. اللي اتغيّر إنها بقت جوّه `dcoApi` فبقى ليها
+//    **ما اتغيّرش ولا حرف**. اللي اتغيّر إنها بقت جوّه `ecoApi` فبقى ليها
 //    **مهلة صريحة (٩٠ ثانية)** ورسايل فشل بتسمّي الأداة.
 //    ⛔ وممنوع «نتوحّد» بتحويل نداء منها لـ`apiPost` — الـ Worker بيقرا
 //       `action` من الجسم في المسار ده، والتحويل بيرجّع «action غير
 //       معروف» على **فعل مالي**.
-const { apiGet, apiPost, apiPostRoot: apiPostLegacy } = dcoApi(DCO_WORKERS.codPayment);
+const { apiGet, apiPost, apiPostRoot: apiPostLegacy } = ecoApi(ECO_WORKERS.codPayment);
 
 // الفحص الذاتي وحارس النسخة بيمشوا على الـ Worker ده بس.
 const PAGE_WORKERS = ['codPayment'];
@@ -1302,10 +1305,10 @@ const $ = id => document.getElementById(id);
 // ══════════════════════════════════════════════════════════════
 //
 // ⛔ **اتشال من هنا ودلوقتي في `shared/shell.js`:** `TOOL_VERSION` ·
-//    `MIN_WORKER_VERSION` (بقت `DCO_WORKERS.codPayment.min` = `3.6.0`) ·
+//    `MIN_WORKER_VERSION` (بقت `ECO_WORKERS.codPayment.min` = `3.6.0`) ·
 //    `cmpVersion` · `checkWorkerVersion` · `showWorkerStale` ·
 //    `renderVersionUI` · مودال الإعدادات (`openSettings`/`saveSettings`/
-//    `updateSettingsBtn`) · `diagRows`/`runDiag` (→ `dcoRunDiag`) ·
+//    `updateSettingsBtn`) · `diagRows`/`runDiag` (→ `ecoRunDiag`) ·
 //    `openAbout`/`openChangelog` · `showToast`.
 // ⚠️ **واللي فضل تحت مقصود:** بانر «الأداة غير مضبوطة». الـ shell
 //    مالوش واحد (صفحاته بتفتح شاشة الإعدادات لوحدها عند أول نداء بلا
@@ -1375,7 +1378,7 @@ function fmt(n){ return Number(n).toLocaleString('en-US',{minimumFractionDigits:
 function fmtSigned(n){ const v=Number(n); return (v<0?'−':'')+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
 
 // ⛔ `apiRequest`/`apiPost`/`apiGet`/`apiPostLegacy` اتشالوا — بقوا من
-//    `dcoApi` فوق. الفرق الوحيد في السلوك إنهم بقى ليهم **مهلة صريحة**
+//    `ecoApi` فوق. الفرق الوحيد في السلوك إنهم بقى ليهم **مهلة صريحة**
 //    ورسايل فشل بتسمّي الأداة؛ نفس الأشكال التلاتة بنفس المسارات بالحرف.
 </script>
 <script>
@@ -1397,7 +1400,7 @@ function fmtSigned(n){ const v=Number(n); return (v<0?'−':'')+Math.abs(v).toLo
 //    النوعين الوحيدين اللي الصفحة دي بتناديهم.)
 
 // العقد اللي باقي كود الأداة بيقرا منه (`employee` مع كل `pay`/`refund`).
-let currentEmployee = { username: dcoSession.username, displayName: dcoSession.displayName };
+let currentEmployee = { username: ecoSession.username, displayName: ecoSession.displayName };
 
 // ══════════════════════════════════════════════════════════════
 // §SHELL-JS — Main Tabs
@@ -3620,11 +3623,11 @@ async function exportXLSX(selectedOnly) {
 // ══════════════════════════════════════════════════════════════
 // ⚠️ كل نداء شبكة هنا لازم يبقى محميّ بـ isConfigured() — أي نداء غير محميّ
 //    بيفتح مودال الإعدادات لوحده فوق شاشة الدخول على أي جهاز جديد.
-document.getElementById('headerMount').innerHTML = dcoHeader({
+document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '💳',
   title:    'تحصيل الأوردرات COD',
   subtitle: 'تحصيل واسترداد مدفوعات الدفع عند الاستلام',
-  session:  dcoSession,
+  session:  ecoSession,
 });
 
 renderVersionUI();

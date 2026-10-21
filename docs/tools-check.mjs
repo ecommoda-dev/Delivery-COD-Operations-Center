@@ -36,9 +36,9 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 
 // نسخة الهب — مصدر واحد (#24)
-const SHELL_JS = read('shared/shell.js');
+const SHELL_JS = ['hub-config.js', 'core.js', 'dco-rules.js'].map(f => read('shared/' + f)).join('\n');
 const HUB_VERSION = (SHELL_JS.match(/const TOOL_VERSION\s*=\s*'([^']+)'/) || [])[1];
-if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION من shared/shell.js'); process.exit(1); }
+if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION من shared/hub-config.js'); process.exit(1); }
 
 // 🔴 **الأداتين والعقد المتوقّع لكل واحدة.** القايمة دي هي اللي البنود
 //    بتمشي عليها — إضافة أداة تالتة للمركز معناها سطر هنا، مش نسخ كتلة.
@@ -338,7 +338,7 @@ for (const t of TOOLS) {
   // مودال الإعدادات والتوست **بيتحقنوا من الـ shell** — نسخة تانية في
   // الصفحة معناها مودالين بنفس الـ id، والتاني بيفوز في صمت.
   is(await page.$$eval('#settingsOverlay', n => n.length) === 1,
-     `${t.page}: مودال إعدادات **واحد** — متحقون من \`dcoSharedModals()\``);
+     `${t.page}: مودال إعدادات **واحد** — متحقون من \`ecoSharedModals()\``);
   is(await page.$$eval('#toastContainer', n => n.length) === 1,
      `${t.page}: وحاوية توست واحدة`);
   is((await page.textContent('#settingsOverlay')).includes('delivery_cod_ops'),
@@ -383,18 +383,18 @@ sec('④ الشاشة الرئيسية — قسم «أدوات»');
   await mockWorker(page, []);
   await page.goto(`${BASE}/index.html`);
   await page.waitForTimeout(1200);
-  const cards = await page.$$eval('.dco-tools-grid .dco-tool',
+  const cards = await page.$$eval('.eco-tools-grid .eco-tool',
     els => els.map(e => ({ href: e.getAttribute('href'),
-                           name: e.querySelector('.dco-card-name')?.textContent.trim(),
-                           hasCount: !!e.querySelector('.dco-count, .dco-num'),
+                           name: e.querySelector('.eco-card-name')?.textContent.trim(),
+                           hasCount: !!e.querySelector('.eco-count, .eco-num'),
                            target: e.getAttribute('target') })));
   const gridTools = TOOLS.filter(t => !t.homeRow);
   is(cards.length === gridTools.length, `قسم «أدوات» فيه ${gridTools.length} كارت`, JSON.stringify(cards));
   // 🔴 v1.39.0 — «مستقبل حالة بوسطة» صف في «قسم الحالات الانتقالية» مش كارت: بيفتح نفس الصفحة
   //    وبنفس الاسم، ومالوش كارت مكرّر في قسم الأدوات.
   for (const t of TOOLS.filter(t => t.homeRow)) {
-    const r = await page.$$eval('.dco-qrow', (els, href) => els.filter(e => e.getAttribute('href') === href)
-      .map(e => ({ name: e.querySelector('.dco-card-name')?.textContent.trim(), hasCount: !!e.querySelector('.dco-count') })), t.page);
+    const r = await page.$$eval('.eco-qrow', (els, href) => els.filter(e => e.getAttribute('href') === href)
+      .map(e => ({ name: e.querySelector('.eco-card-name')?.textContent.trim(), hasCount: !!e.querySelector('.eco-count') })), t.page);
     is(r.length === 1 && r[0].name === t.title && r[0].hasCount, `صف «${t.title}» في الحالات الانتقالية بيفتح \`${t.page}\` وفيه عدّاد`, JSON.stringify(r));
     is(!cards.some(x => x.href === t.page), `⛔ ومالوش كارت مكرّر في «قسم الأدوات»`);
   }
@@ -540,10 +540,10 @@ for (const t of TOOLS) {
 // 🔴 رسالة المهلة (٩٠ث): «راجع السجل قبل ما تعيد» — مش «جرّب تاني». الأدوات بتكتب، و«ما ردّش» ≠ «ما اتنفّذش».
 //    (المهلة نفسها طويلة على الاختبار، فالبند بيقرا نص الـ shell — الرسالة بتتولّد في مكان واحد.)
 {
-  const shellSrc = read('shared/shell.js');
+  const shellSrc = read('shared/core.js');
   const m = shellSrc.match(/ما ردّش خلال[^`]*`/);
   is(!!m && m[0].includes('راجع السجل قبل ما تعيد المحاولة') && !m[0].includes('جرّب تاني'),
-     'رسالة مهلة dcoApi بتقول «راجع السجل قبل ما تعيد المحاولة» ومش «جرّب تاني»', m && m[0]);
+     'رسالة مهلة ecoApi بتقول «راجع السجل قبل ما تعيد المحاولة» ومش «جرّب تاني»', m && m[0]);
 }
 
 // ══════════════════════════════════════════════════════════════

@@ -18,7 +18,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
-  <link rel="stylesheet" href="shared/shell.css">
+  <link rel="stylesheet" href="shared/core.css">
+  <link rel="stylesheet" href="shared/hub.css">
 
 <style>
 /* ══════════════════════════════════════════════════════════════
@@ -354,7 +355,7 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
 .type-text.type-s1 { color: var(--accent-dark); }
 .type-text.type-s2 { color: var(--purple-dark); }
 
-/* بادج الوقت — الدرجة بتيجي من `dcoDayLevel` في الـ shell فمستحيل تفترق
+/* بادج الوقت — الدرجة بتيجي من `ecoDayLevel` في الـ shell فمستحيل تفترق
    بين الصفحتين؛ **اللون هو اللي مكرّر** هنا. */
 .time-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 800; white-space: nowrap; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-secondary); }
 .time-badge.tb-d0 { background: var(--green-light);  color: var(--green-dark);  border-color: var(--green-border); }
@@ -447,7 +448,7 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
   <!-- ══ صندوق العدّ ══════════════════════════════════════════
        🔴 **الرقم الكبير = عدد الصفوف اللي رجعت من الطابور بالحرف**، وهو
           **نفس** رقم الصف على الشاشة الرئيسية لأن الاتنين بيعدّوا من
-          `dcoQueueRows` في الـ shell على نفس الرد.
+          `ecoQueueRows` في الـ shell على نفس الرد.
           ⛔ رقمان مختلفان على شاشتين للموظف الواحد = الرقم بيفقد معناه
              (باج v1.11.0 في هب المخزن · درس R1).
        ⚠️ وقبل أول جلب ناجح الرقم **`—` مش `0`** — «ما اتحدّثش» ≠ «مفيش شغل». -->
@@ -486,16 +487,16 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
       <div class="cb-money" id="qMoney"></div>
     </div>
     <div class="cb-act">
-      <div class="dco-fresh">
-        <div class="dco-fresh-row">
-          <span class="dco-fresh-lbl">آخر تحديث</span>
-          <span class="dco-ago" id="qAgo">لسه ما اتحدّثش</span>
+      <div class="eco-fresh">
+        <div class="eco-fresh-row">
+          <span class="eco-fresh-lbl">آخر تحديث</span>
+          <span class="eco-ago" id="qAgo">لسه ما اتحدّثش</span>
         </div>
-        <div class="dco-fresh-row" id="qStamp"><span class="dco-stamp-chip">—</span></div>
+        <div class="eco-fresh-row" id="qStamp"><span class="eco-stamp-chip">—</span></div>
       </div>
-      <button class="dco-rbtn" id="qBtn" type="button" onclick="qLoad(false)">
-        <span class="dco-rbtn-ico">↺</span><span>تحديث</span>
-        <span class="dco-rbtn-badge" id="qBadge">—</span>
+      <button class="eco-rbtn" id="qBtn" type="button" onclick="qLoad(false)">
+        <span class="eco-rbtn-ico">↺</span><span>تحديث</span>
+        <span class="eco-rbtn-badge" id="qBadge">—</span>
       </button>
     </div>
   </div>
@@ -799,8 +800,10 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
 <div id="sharedMount"></div>
 
 <!-- 🔴 نسخة واحدة مضمّنة — ممنوع محتوى الملف ده يتنسخ هنا -->
-<script src="shared/shell.js"></script>
-<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 <script>
 // ══════════════════════════════════════════════════════════════
 // §INIT — الجلسة أولاً، قبل أي حاجة تانية
@@ -810,7 +813,7 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
 //    التحويل لشاشة الدخول شغّال.
 const session = requireSession();
 
-const { apiGet } = dcoApi(DCO_WORKERS.shipped);
+const { apiGet } = ecoApi(ECO_WORKERS.shipped);
 const PAGE_WORKERS = ['shipped'];
 
 // ══════════════════════════════════════════════════════════════
@@ -1569,7 +1572,7 @@ function qSortValue(o, key) {
 // 🔴 `[...rows].sort()` مش `rows.sort()` — التانية بتعدّل المصفوفة الأصلية،
 //    فحالة «بلا ترتيب» ماكانتش هترجع للترتيب الافتراضي أبدًا.
 function qApplySort(rows) {
-  if (!qSortState.key) return rows;   // الافتراضي: الأقدم فوق — من `dcoQueueRows`
+  if (!qSortState.key) return rows;   // الافتراضي: الأقدم فوق — من `ecoQueueRows`
   const cfg = Q_SORT_CONFIG[qSortState.key];
   const dir = qSortState.dir === 'asc' ? 1 : -1;
   return [...rows].sort((a, b) => {
@@ -1593,14 +1596,14 @@ function qSetFresh() {
   const info  = agoInfo(qState.at, Date.now());
   const agoEl = document.getElementById('qAgo');
   const btn   = document.getElementById('qBtn');
-  if (agoEl) { agoEl.className = 'dco-ago ' + info.cls; agoEl.textContent = info.text; }
+  if (agoEl) { agoEl.className = 'eco-ago ' + info.cls; agoEl.textContent = info.text; }
   if (btn)   btn.classList.toggle('is-stale', info.stale);
   const stamp = document.getElementById('qStamp');
   if (stamp) {
     stamp.innerHTML = qState.at
-      ? `<span class="dco-stamp-chip">${esc(formatDate(qState.at.toISOString()))}</span>` +
-        `<span class="dco-stamp-chip">${esc(formatTimeOnly(qState.at.toISOString()))}</span>`
-      : '<span class="dco-stamp-chip">—</span>';
+      ? `<span class="eco-stamp-chip">${esc(formatDate(qState.at.toISOString()))}</span>` +
+        `<span class="eco-stamp-chip">${esc(formatTimeOnly(qState.at.toISOString()))}</span>`
+      : '<span class="eco-stamp-chip">—</span>';
   }
 }
 
@@ -1610,10 +1613,10 @@ function qSetFresh() {
 function qRenderChips() {
   const box = document.getElementById('qChips');
   if (!box) return;
-  const chips = dcoChips(qState.rows);
+  const chips = ecoChips(qState.rows);
   box.innerHTML = chips.map(ch => {
     const key = ch.cls === 'qc-flag' ? 'flag'
-      : (DCO_COURIER_GROUPS.find(g => g.cls === ch.cls)?.key || '');
+      : (ECO_COURIER_GROUPS.find(g => g.cls === ch.cls)?.key || '');
     const on = qChipActive(key);
     // ⚠️ علامة ✕ بتتحط من CSS (`.zchip.on::after`) مش من هنا — زي
     //    `pack.html` بالحرف. عنصر زيادة في الماركب كان بيدخل في
@@ -1627,9 +1630,9 @@ function qRenderChips() {
   //    اللي فلتر على «بوسطة» عايز يعرف بوسطة عليها كام، مش المتجر كله.
   //    والفرق ده لازم يبان، فالليبل بيقول «(مفلتر)» لما الفلتر شغّال.
   const shown = qVisible();
-  const cod = dcoCod(shown);
+  const cod = ecoCod(shown);
   const filtered = qAnyFilterActive() ? ' <span style="opacity:.7">(مفلتر)</span>' : '';
-  const parts = [`<span class="dco-money${cod.due ? '' : ' is-zero'}">💰 مستحق التحصيل <b>${esc(dcoMoney(cod.due, cod.currency))}</b>`
+  const parts = [`<span class="eco-money${cod.due ? '' : ' is-zero'}">💰 مستحق التحصيل <b>${esc(ecoMoney(cod.due, cod.currency))}</b>`
                + ` <span style="opacity:.7">(${cod.dueCount} أوردر)</span>${filtered}</span>`];
   if (cod.prepaidCount) parts.push(`<span class="fchip" style="cursor:default">مدفوع مقدمًا <b>${cod.prepaidCount}</b></span>`);
   if (cod.unknownCount) parts.push(`<span class="fchip qc-flag" style="cursor:default">حالة مالية مش معروفة <b>${cod.unknownCount}</b></span>`);
@@ -1671,10 +1674,10 @@ function qVisible() {
 // المربع مولّع لما **كل** قيم مجموعته مختارة — نفس منطق `pack.html`.
 function qChipValues(key) {
   if (key === 'flag') return ['محتاجة مراجعة'];
-  const g = DCO_COURIER_GROUPS.find(x => x.key === key);
+  const g = ECO_COURIER_GROUPS.find(x => x.key === key);
   if (!g) return [];
   return qMsState.courier.items.map(i => i.value)
-    .filter(v => dcoCourierGroup(v === '— بلا مندوب' ? null : v) === key);
+    .filter(v => ecoCourierGroup(v === '— بلا مندوب' ? null : v) === key);
 }
 function qChipFilterKey(key) { return key === 'flag' ? 'flag' : 'courier'; }
 function qChipActive(key) {
@@ -1697,7 +1700,7 @@ function qChipClick(key) {
 // ⚠️ **`financeCell` اتشالت** مع عمود «الإجمالي» (طلب أحمد 16-09-2026) —
 //    دالة بلا مستهلك = كود ميت، مش «احتياط».
 //    🔴 **والفلوس ما ضاعتش**: «مستحق التحصيل» فوق الطابور لسه بيتحسب من
-//       `dcoCod` على **نفس** `o.total`/`o.financial`، وبيقول المدفوع
+//       `ecoCod` على **نفس** `o.total`/`o.financial`، وبيقول المدفوع
 //       مقدمًا والحالة المالية المجهولة بعددهم. اللي اتشال هو **العمود**
 //       — الرقم اللي المحطة بتشتغل عليه لسه معروض.
 // 🔴 **عمود «العميل» — سطران بالكتير** (v1.9.0 · طلب أحمد 17-09-2026).
@@ -1816,7 +1819,7 @@ function qRender0() {
     //    محايد بيقول نفس اللي التاريخ الفاضي جنبه بيقوله**، وبادج بلا
     //    درجة وسط عمود كله بادجات ملوّنة بيسحب العين لأقل صف أهمية.
     //    ⚠️ والمعلومة ما ضاعتش: الخلية كلها بقت `—`.
-    const since = o.packedAt ? dcoWaiting(o.packedAt, now) : null;
+    const since = o.packedAt ? ecoWaiting(o.packedAt, now) : null;
     // ⚠️ **اسم المندوب زي ما هو من غير سطر المجموعة تحته** (طلب أحمد
     //    16-09-2026). المجموعة (بوسطة/شو روم/مناديب) بقت معروضة في
     //    **مربعات الفلتر فوق الطابور** بعددها، وتكرارها تحت كل اسم كان
@@ -1878,13 +1881,13 @@ async function qLoad(silent) {
   try {
     const data = await apiGet('get_shipped_queue');
     // 🔴 **المصدر الوحيد للاشتقاق** — الـ shell، مش الصفحة.
-    qState.rows      = dcoQueueRows(data.orders || [], Q_STATUS, Q_KIND);
+    qState.rows      = ecoQueueRows(data.orders || [], Q_STATUS, Q_KIND);
     qState.at        = new Date();
     qState.failed    = false;
     qState.truncated = !!data.truncated;
     // ⚠️ **من الرد مباشرةً** — والكاش بيتخزّن خام فالقيمة بترجع معاه.
     qState.minDay    = data.minCreatedDay || null;
-    cacheSet(DCO_CACHE_SHIPPED, data);
+    cacheSet(ECO_CACHE_SHIPPED, data);
     // 🔴 **بنود الفلاتر بتتبني من الطابور الجديد بعد كل جلب** — بناؤها مرة
     //    واحدة عند التحميل كان هيخلّي مندوب جديد يدخل الطابور **ومايظهرش
     //    في الفلتر أبدًا**، ومفيش أي خطأ يقول كده.
@@ -1941,14 +1944,14 @@ setInterval(() => {
   document.querySelectorAll('#qBody [data-q-age]').forEach(el => {
     const iso = el.dataset.qAge;
     if (!iso) return;
-    const age = dcoOrderAge(iso, now);
+    const age = ecoOrderAge(iso, now);
     el.className = `time-badge age-badge ${age.cls}`;
     el.textContent = age.text;
   });
   document.querySelectorAll('#qBody [data-q-pack]').forEach(el => {
     const iso = el.dataset.qPack;
     if (!iso) return;
-    const s = dcoWaiting(iso, now);
+    const s = ecoWaiting(iso, now);
     el.className = `time-badge ${s.cls}`;
     el.textContent = s.text;
   });
@@ -1960,10 +1963,10 @@ async function renderAboutWorkers() {
   const box = document.getElementById('aboutWorkers');
   if (!box) return;
   const rows = await Promise.all(PAGE_WORKERS.map(async k => {
-    const w = DCO_WORKERS[k];
+    const w = ECO_WORKERS[k];
     let got = '—', mark = '⏳';
     try {
-      const cfg = await dcoApi(w).apiGet('get_config');
+      const cfg = await ecoApi(w).apiGet('get_config');
       got = cfg.version || cfg.WORKER_VERSION || '—';
       mark = cmpVersion(got, w.min) < 0 ? '⚠️' : '✅';
     } catch { mark = '❌'; got = 'تعذّر الوصول'; }
@@ -1978,7 +1981,7 @@ async function renderAboutWorkers() {
 // ══════════════════════════════════════════════════════════════
 // §INIT — التحميل (الجلسة اتأكدت فوق)
 // ══════════════════════════════════════════════════════════════
-document.getElementById('headerMount').innerHTML = dcoHeader({
+document.getElementById('headerMount').innerHTML = ecoHeader({
   icon: '🚚', title: 'طابور المشحون', subtitle: 'مركز عمليات الشحن والتحصيل', session,
 });
 renderVersionUI();                 // بعد ما الهيدر يتحقن — زرار النسخة جوّاه
@@ -1988,9 +1991,9 @@ renderAboutWorkers();
 // ⚠️ **الكاش بيترسم قبل الجلب** — الشاشة الفاضية أسوأ من شاشة قديمة
 //    **مختومة بوقتها**. والختم بيقول عمرها الحقيقي، فالموظف عارف إنها قديمة.
 (function drawFromCache() {
-  const c = cacheGet(DCO_CACHE_SHIPPED);
+  const c = cacheGet(ECO_CACHE_SHIPPED);
   if (!c || !c.data || !Array.isArray(c.data.orders)) return;
-  qState.rows      = dcoQueueRows(c.data.orders, Q_STATUS, Q_KIND);
+  qState.rows      = ecoQueueRows(c.data.orders, Q_STATUS, Q_KIND);
   qState.at        = new Date(c.at);
   qState.truncated = !!c.data.truncated;
   qState.minDay    = c.data.minCreatedDay || null;
