@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center (`Delivery-COD-Operations-Center`)
 
-![version](https://img.shields.io/badge/version-v1.50.0-blue)
+![version](https://img.shields.io/badge/version-v1.53.0-blue)
 
 **بتعمل إيه:** هب واحد لمحطة الشحن والتحصيل. الموظف بيدخل **مرة واحدة**،
 وبيشوف طوابير الشحن: اللي **جاهز يخرج**، واللي **خرج ولسه بلا نتيجة** —
@@ -11,7 +11,7 @@
 و**تحصيل الأوردرات COD** (v1.5.0)، و**التسليم الجزئي** (v1.10.0)، و**رفع
 بوسطة** (v1.13.0).
 **مين بيستخدمها:** الشحن والتحصيل
-**الإصدار:** `v1.50.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/hub-config.js`)
+**الإصدار:** `v1.53.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/hub-config.js`)
 
 > 🔴 **الريبو ده فيه النُصّين: الواجهة + Worker الدخول** (`index.js` ·
 > `wrangler.toml`). وده **الشكل القياسي** مش استثناء — قرار ٨ في
@@ -96,6 +96,14 @@
 - 🔴 **Worker الدخول:** `index.js` متطابق خارج كتلة `HUB_CONFIG` (`§HUB-CONFIG-BEGIN/END`)، و`bash docs/auth-worker-twin-check.sh` بيقارن.
 - ⚠️ **مولّدات هب الشحن** (`docs/build-pages.py` · `docs/port-standalone.py`) بتولّد الصفحات بالأسماء الجديدة؛ `port-standalone.py` محتاج `/home/user/sib` فيه `Delivery-COD-Operations-Center` + `Order-Status-Updater` + `COD-Payment-Center` (symlinks) وبيتشغّل بالمسار الكامل. **أي تعديل في صفحة متولّدة بيتعمل في ريبوها الأصلي الأول** — وبعد أي تعديل في المولّد شغّل المولّدين وتأكد إن `git diff` على الصفحات المتولّدة هو اللي اتوقّعته بس.
 - الفحوصات: WOC browser · sku-barcode · pack · scanners · office · warehouse · audit · home · idle · **table** — DCO queues · tools · rules · idle · followup · bosta-webhook · bosta-table — والاتنين `css-check` و`core-twin-check` و`auth-worker-twin-check`.
+
+## 📤 تمريرة v1.53.0 — صفحة «رفع بوسطة» بقت نسخة متطابقة بالبايت مع هب المخزن (طلب أحمد 22-10-2026)
+
+- 🔴 **`Bosta-Orders-Upload.html` موجودة بنفس البايتات في `Warehouse-Operations-Center`** (أول صف في «قسم تجهيز الأوردر» هناك). `bash docs/bosta-upload-twin-check.sh` بيقارن ومابينسخش — **أي تعديل في الصفحة بيتعمل في الريبوهين في نفس التمريرة**. السلوك هنا ما اتغيّرش.
+- ✂️ **اتشالت من الصفحة كل النصوص الخاصة بهب الشحن** (العنوان · شرح «عن الأداة» · سجل التحديثات · التعليقات)، واتصلحت جمل قديمة («الرابط القديم لسه شغّال» — غلط من v1.18.0). عنوان التاب بقى من **`ECO_HUB.name`** (`hub-config.js`).
+- 🔴 **`bostaCacheSet`/`bostaCacheGet` اتنقلوا من `dco-rules.js` لـ`core.js`** (§BOSTA-UPLOAD-CACHE · نسخة متطابقة في الهبّين)، والمفتاح `ECO_CACHE_BOSTA` اتسمّى **`ECO_CACHE_BOSTA_UPLOAD`** (نفس القيمة `dco_queue_bosta`). والصفحة **مابقتش بتحمّل `dco-rules.js`** (مش موجود في المخزن بنفس الاسم).
+- ⚠️ **الـ Worker بقى بيقبل سرّين** (`WORKER_SECRET` = `delivery_cod_ops` · `WORKER_SECRET_WAREHOUSE` = `warehouse_ops`) و`extra.via` بيقول الرفع جه من أنهي هب — v2.23.0 في ريبو `Bosta-Orders-Upload`. تدوير أي مجموعة لازم يشمله.
+- ⚠️ عروض الأعمدة (`dco_col_widths_v1_Bosta-Orders-Upload.html_…`) مشتركة بين الهبّين (نفس الـ origin واسم الملف).
 
 ## 🎨 تمريرة v1.52.0 — الأقسام المطوية: بلاطات موصولة (§HOME-TILES · طلب أحمد 22-10-2026)
 
