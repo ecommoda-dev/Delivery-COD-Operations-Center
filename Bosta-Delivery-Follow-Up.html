@@ -15,7 +15,7 @@
    §STYLES — الصفحة دي بس.
    🔴 **الصفحة دي مش متولّدة بسكربت** — النسخة الوحيدة. الريبو `Bosta-Delivery-Follow-Up`
       Worker وبس (نفس نمط Courier-Names / Partial-Delivery).
-   🔴 **مفيش كتلة توكنز هنا ولا --container-max** — 12 عمود = Tier L (1400) وهو الافتراضي في shared/shell.css.
+   🔴 **مفيش كتلة توكنز هنا ولا --container-max** — 12 عمود = Tier L (1400) وهو الافتراضي في shared/core.css.
    ⚠️ v1.45.0: الجدول (فلاتر رأس العمود · عناوين ثابتة · سحب عرض الأعمدة) نسخة من نمط
       `Bosta-Webhook-Status-Receiver.html` — **الفكرة مش الأعمدة**. أي تعديل في نمط الجدول
       هناك لازم يتقاس هنا (درس R1: نسختين بيفترقوا).
@@ -329,7 +329,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
         <summary>🔧 تشريح الكود</summary>
         <div class="about-sec-body">
           <ul>
-            <li>§CONFIG — <code>ECO_WORKERS.deliveryFollowUp</code> (<code>shared/shell.js</code>) · الجلسة والسر من الـ shell.</li>
+            <li>§CONFIG — <code>ECO_WORKERS.deliveryFollowUp</code> (<code>shared/hub-config.js</code>) · الجلسة والسر من الـ shell.</li>
             <li>§MESSAGE — <code>FU_TPL_POSTPONED</code> · <code>FU_TPL_ATTEMPT</code> (ثوابت سهلة التعديل) · <code>fuBuildMessage</code> · <code>fuMaskName</code> · <code>fuNormPhone</code> · <code>fuWaUrl</code>.</li>
             <li>§TABLE — <code>FU_COLS</code> · فلاتر رأس العمود (<code>fuOpenPop</code>) · ترتيب 3 حالات · عرض الأعمدة بالسحب (<code>dco_col_widths_v1_Bosta-Delivery-Follow-Up.html</code>) — نمط <code>Bosta-Webhook-Status-Receiver.html</code>.</li>
             <li>§COMPOSE — نافذة الإرسال · <code>record</code> بـ <code>items[]</code> لمجموعة التليفون الواحد · <code>get_sends</code> للسجل.</li>

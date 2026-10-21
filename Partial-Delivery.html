@@ -18,7 +18,7 @@
       الريبو المستقل (Partial-Delivery) بقى Worker وبس، فمفيش index.html
       تاني يتولّد منه الملف ده. أي تعديل على منطق الأداة بيتعمل هنا
       مباشرة، وأي تعديل على الـ Worker بيتعمل في ريبو Partial-Delivery.
-   🔴 **مفيش كتلة توكنز هنا — كلها في shared/shell.css.** الكتلة اللي
+   🔴 **مفيش كتلة توكنز هنا — كلها في shared/core.css.** الكتلة اللي
       كانت في النسخة المستقلة (~٤٠ متغيّر) اتشالت بالكامل: معظمها نفس
       القيمة بالحرف في الـ shell، و`--border-light` اتوصّلت لأقرب توكن
       شكله قريب (`var(--border)`)، والباقي (`--radius`/`--radius-sm`/
@@ -329,10 +329,10 @@
           <h4>KEY VARIABLES</h4>
           <ul>
             <li><code>ECO_WORKERS.partialDelivery.url</code> + <code>.min</code> (في
-                <code>shared/shell.js</code> §CONFIG) — بدل <code>WORKER_URL</code>/
+                <code>shared/hub-config.js</code> §CONFIG) — بدل <code>WORKER_URL</code>/
                 <code>MIN_WORKER_VERSION</code> المحليين اللي كانت في الصفحة المستقلة</li>
             <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في
-                <code>shared/shell.js</code>) — سر مجموعة <code>delivery_cod_ops</code>
+                <code>shared/core.js</code>) — سر مجموعة <code>delivery_cod_ops</code>
                 المشترك، بدل <code>partial_delivery_worker_secret</code> المستقل</li>
           </ul>
           <h4>NOTES / QUIRKS</h4>
@@ -395,7 +395,7 @@ let currentEmployee = { username: ecoSession.username, displayName: ecoSession.d
 //    `showToast` · `playBeep` · `cmpVersion`/`checkWorkerVersion`/
 //    `showWorkerStale` · `openAbout`/`openChangelog` · `runDiag` ·
 //    §AUTH-JS كلها (قايمة الموظفين · شاشة الـ PIN · `verify_employee` ·
-//    `finishLogin` · `doLogout`) — اتشالوا، بقوا من `shared/shell.js`.
+//    `finishLogin` · `doLogout`) — اتشالوا، بقوا من `shared/core.js`.
 //    ⚠️ **الحذف مش اختياري** — بعضهم `const`/`let` (`CAIRO_TZ` ·
 //       `_cairoFmt`) كانت هترمي «Identifier has already been declared»
 //       وتقتل سكربت الصفحة كله لو فضلت مع نسخة الـ shell.

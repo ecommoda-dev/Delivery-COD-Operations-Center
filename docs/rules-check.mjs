@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════════════
-// docs/rules-check.mjs — فحص منطق `shared/shell.js` §QUEUE-RULES و§HELPERS
+// docs/rules-check.mjs — فحص منطق `shared/dco-rules.js` §QUEUE-RULES و§HELPERS
 //
 // 🔴 **ليه ملف تاني غير فحص المتصفح؟** الاتنين بيمسكوا عيلتين مختلفتين:
 //    · `queues-check.mjs` بيشغّل الصفحة على **بيانات كاملة سليمة** — بيمسك

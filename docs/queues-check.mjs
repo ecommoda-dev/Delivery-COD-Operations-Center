@@ -4,7 +4,7 @@
 //
 // 🔴 **ليه ملف واحد للتلاتة هنا؟** عكس قرار هب المخزن (خمس ملفات) — وده
 //    مقصود: التلات صفحات دي بيقروا **نفس شكل الرد بالحرف** (طابور أوردرات
-//    خام بنفس المفاتيح)، وبيشتقّوا منه بـ**نفس الدوال** في `shared/shell.js`.
+//    خام بنفس المفاتيح)، وبيشتقّوا منه بـ**نفس الدوال** في `shared/dco-rules.js`.
 //    Worker وهمي واحد هنا مش تبسيط — هو **جزء من البند نفسه**: البند الأهم
 //    في الملف ده إن **الرقم في الرئيسية == عدد صفوف الصفحة**، ومستحيل
 //    تقيسه لو كل صفحة بتشوف بيانات مختلفة.
@@ -43,7 +43,7 @@ async function hsearch(page, v) {
   await page.keyboard.press('Enter');
 }
 
-// 🔴 نسخة الهب — **مصدر واحد** (`TOOL_VERSION` في `shared/shell.js`، #24).
+// 🔴 نسخة الهب — **مصدر واحد** (`TOOL_VERSION` في `shared/hub-config.js`، #24).
 const HUB_VERSION = (fs.readFileSync(new URL('../shared/hub-config.js', import.meta.url), 'utf8')
   .match(/const TOOL_VERSION\s*=\s*'([^']+)'/) || [])[1];
 if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION من shared/hub-config.js'); process.exit(1); }
@@ -318,7 +318,7 @@ console.log('\n══ ① الجلسة والهيدر ══');
      'زرار الموظف عليه aria-label="تسجيل الخروج" (الـ ✕ لوحده مايتقريش)');
   const ver = (await page.textContent('#verBtn')).trim();
   const cl  = (await page.textContent('#clLatestVerBadge')).trim();
-  // 🔴 **الرقم بيتقرا من `shared/shell.js` مش مكتوب هنا.** كان مكتوب
+  // 🔴 **الرقم بيتقرا من `shared/hub-config.js` مش مكتوب هنا.** كان مكتوب
   //    حرفيًا، فأي ترفيع نسخة مشروع كان بيفشّل بندين — والبند اللي بيفشل
   //    لسبب مالوش علاقة باللي بيقيسه بيتعلّم الواحد يتجاهله.
   is(ver.startsWith(HUB_VERSION), 'زرار النسخة بيقول نسخة الهب', `${ver} ≠ ${HUB_VERSION}`);

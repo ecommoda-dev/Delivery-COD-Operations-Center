@@ -155,7 +155,7 @@ class Port:
 
 # 🔴 **الـ ids اللي الـ shell بيحقنها وقت التشغيل** (`ecoHeader()` ·
 #    `ecoSharedModals()`) — مش موجودة في ماركب الصفحة، والصفحة بتنده
-#    عليها بحق. بتتقرا من `shared/shell.js` **نفسه** مش مكتوبة هنا: قايمة
+#    عليها بحق. بتتقرا من `shared/core.js` **نفسه** مش مكتوبة هنا: قايمة
 #    يدوية بتقدم من غير ما حد يلاحظ، وساعتها الحارس يطلّع تحذير كاذب على
 #    عنصر موجود فعلاً.
 def shell_ids():
@@ -206,7 +206,7 @@ def banner(src_repo, worker_key, worker_repo):
 def build_order_status():
     p = Port('Order-Status-Updater.html', read_source('Order-Status-Updater/index.html'))
 
-    # ── الرأس — shell.css أولاً، وستايل الصفحة بعده وبيغلب ──────
+    # ── الرأس — core.css أولاً، وستايل الصفحة بعده وبيغلب ──────
     p.swap(
         '  <title>Order Status Updater — EcomModa</title>',
         '</head>\n<body>\n',
@@ -221,7 +221,7 @@ def build_order_status():
 </head>
 <body>
 ''' + banner('Order-Status-Updater', 'order-status-updater-worker', 'Order-Status-Updater'),
-        'الرأس — حقن shell.css وتغيير العنوان وبانر «الملف متولّد»')
+        'الرأس — حقن core.css وتغيير العنوان وبانر «الملف متولّد»')
 
     # ── CSS — الكتلتين اللي الـ shell بيملكهم ───────────────────
     # ⚠️ «Confirm Dialog» **بيفضل في الصفحة**: الـ shell مالوش نافذة تأكيد
@@ -232,7 +232,7 @@ def build_order_status():
         '/* ── Confirm Dialog ────────────────────────────────────────── */',
         '''/* ══════════════════════════════════════════════════════════════
    §STYLES — الصفحة دي بس.
-   🔴 **مفيش كتلة توكنز هنا — كلها في `shared/shell.css`.** الكتلة اللي
+   🔴 **مفيش كتلة توكنز هنا — كلها في `shared/core.css`.** الكتلة اللي
       كانت في النسخة الأصلية (٤٧ متغيّر) **اتشالت بالكامل**، وقيمها كانت
       متطابقة مع الـ shell ما عدا `--container-max` (تحت).
    ✂️ واللي اتشال كمان لأن الـ shell بيملكه: الـ reset و`body`
@@ -292,7 +292,7 @@ def build_order_status():
     # ── تحميل الـ shell قبل سكربت الصفحة ────────────────────────
     p.sub('\n\n<script>\n// ══════════════════════════════════════════════════════════════\n// §CONFIG — LS keys',
           '\n\n<script src="shared/hub-config.js"></script>\n<script src="shared/core.js"></script>\n<script src="shared/dco-rules.js"></script>\n<script>document.getElementById(\'sharedMount\').innerHTML = ecoSharedModals();</script>\n\n<script>\n// ══════════════════════════════════════════════════════════════\n// §CONFIG — LS keys',
-          'تحميل shared/shell.js قبل سكربت الصفحة')
+          'تحميل shared/core.js قبل سكربت الصفحة')
 
     # ── سجل التحديثات — بادج الهب فوق، ونسخة الواجهة الأصلية تحته ──
     # 🔴 `renderVersionUI()` في الـ shell بتملا `#clLatestVerBadge` بـ
@@ -381,7 +381,7 @@ function orderLink(orderNumber, orderId) {
     p.swap(
         '// ─── §SHELL-JS::version — مصدر واحد لرقم النسخة (v3.7.0) ───',
         '// ── Confirm dialog — clone + addEventListener (avoids listener accumulation) ──',
-        '''// ⛔ **اتشال من هنا ودلوقتي في `shared/shell.js`:** `TOOL_VERSION`
+        '''// ⛔ **اتشال من هنا ودلوقتي في `shared/hub-config.js`:** `TOOL_VERSION`
 //    و`MIN_WORKER_VERSION` و`cmpVersion` و`checkWorkerVersion`
 //    و`showWorkerStale` و`renderVersionUI` · مودال الإعدادات
 //    (`openSettings`/`saveSettings`/`updateSettingsBtn`) · الفحص الذاتي
@@ -493,7 +493,7 @@ let currentEmployee = { username: ecoSession.username, displayName: ecoSession.d
         "  //    بترمي، فتقطع كل دالة بتنادي `focusScan()` — وأخطرها\n"
         "  //    `selectTargetLabel()` اللي كانت بتقع **قبل سطر واحد** من\n"
         "  //    `ensureReasonValues()`، فقوايم الأسباب ما بتتحمّلش أبدًا.\n"
-        "  //    بوابة الدخول بقت `requireSession()` في `shared/shell.js`،\n"
+        "  //    بوابة الدخول بقت `requireSession()` في `shared/core.js`،\n"
         "  //    وهي بتحوّل الصفحة قبل أي سطر هنا.\n"
         "  scanInput.focus();\n"
         "}",
@@ -565,19 +565,19 @@ checkWorkerVersion(PAGE_WORKERS);
     p.sub('<li><code>Login (PIN)</code> — HTML §AUTH-JS — <code>verify_employee</code></li>',
           '<li><code>Login (PIN)</code> — <strong>اتشال من الصفحة دي</strong> — بقى في '
           '<code>index.html</code> بتاع المركز (<code>requireSession()</code> في '
-          '<code>shared/shell.js</code> §SESSION)</li>',
+          '<code>shared/core.js</code> §SESSION)</li>',
           'عن الأداة — بند الدخول في تشريح الكود')
 
     p.sub('<li><code>LS_SECRET = \'order_status_worker_secret\'</code> — <strong>مفتاح الـ localStorage الوحيد الباقي</strong></li>',
           '<li><code>LS_SECRET = \'delivery_cod_ops_worker_secret\'</code> (في '
-          '<code>shared/shell.js</code>) — <strong>مفتاح الـ localStorage الوحيد</strong>، '
+          '<code>shared/hub-config.js</code>) — <strong>مفتاح الـ localStorage الوحيد</strong>، '
           'وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك بين أدوات المركز. '
           '⚠️ المفتاح القديم <code>order_status_worker_secret</code> <strong>ما اتمسحش</strong> '
           'من متصفحات الموظفين — بقى مهمل بس، والصفحة دي مابتقراهوش.</li>',
           'عن الأداة — بند السر')
 
     p.sub('<li><code>WORKER_URL</code> / <code>ADMIN_WORKER_URL</code> — (v4.4.0) constants ثابتة في <code>§CONFIG</code>.',
-          '<li><code>ECO_WORKERS.orderStatus.url</code> (في <code>shared/shell.js</code> §CONFIG) — '
+          '<li><code>ECO_WORKERS.orderStatus.url</code> (في <code>shared/hub-config.js</code> §CONFIG) — '
           'بدل <code>WORKER_URL</code> المحلي. و<code>ADMIN_WORKER_URL</code> <strong>اتشال خالص</strong>: '
           'مستهلكه الوحيد كان شاشة الدخول. الرابطين مش سر —',
           'عن الأداة — بند الروابط')
@@ -628,7 +628,7 @@ def build_cod_payment():
 <style>
 /* ══════════════════════════════════════════════════════════════
    §STYLES — الصفحة دي بس.
-   🔴 **مفيش كتلة توكنز هنا — كلها في `shared/shell.css`.** كتلة الـ ٥٦
+   🔴 **مفيش كتلة توكنز هنا — كلها في `shared/core.css`.** كتلة الـ ٥٦
       متغيّر اتشالت: معظمهم كانوا **نفس القيمة بالحرف** في الـ shell،
       و١١ اتضافوا للـ shell (عيلة cyan/rose)، والباقي اتوصّل لتوكن موجود
       بنفس القيمة بالظبط (`--neutral-tint` → `--surface-hover` ·
@@ -658,7 +658,7 @@ def build_cod_payment():
    (`#tabBadgeCount` · `#tabBadgeLog`) بيترسموا **نص عاري** بلا خلفية ولا
    إطار، وصفر خطأ في أي مكان.
    ⚠️ **ومكانها الصفحة مش الـ shell** — البادج ده مستهلكه **صفحة واحدة**
-      (`Order-Status-Updater.html` مابتستخدمهوش أصلاً)، والقاعدة بتقول «`shell.css`
+      (`Order-Status-Updater.html` مابتستخدمهوش أصلاً)، والقاعدة بتقول «`core.css`
       فيه الـ chrome بس، وأي CSS خاص بأداة بيفضل في صفحته». وحطّها في الـ
       shell كان هيفتح كمان التزام «أي تعديل على الـ chrome يتعمل في
       الهبين في نفس التمريرة». */
@@ -700,7 +700,7 @@ def build_cod_payment():
           '<script src="shared/hub-config.js"></script>\n<script src="shared/core.js"></script>\n<script src="shared/dco-rules.js"></script>\n'
           "<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>\n"
           '<script>\n// ══════════════════════════════════════════════════════════════\n// §CONFIG',
-          'حقن sharedMount و shared/shell.js')
+          'حقن sharedMount و shared/core.js')
 
     # ══════════════════════════════════════════════════════════
     # §CONFIG — بوابة الجلسة + نداءات الـ shell
@@ -754,7 +754,7 @@ const PAGE_WORKERS = ['codPayment'];
         '''// §SHELL-JS — اللي فضل بعد ما الـ shell خد الباقي
 // ══════════════════════════════════════════════════════════════
 //
-// ⛔ **اتشال من هنا ودلوقتي في `shared/shell.js`:** `TOOL_VERSION` ·
+// ⛔ **اتشال من هنا ودلوقتي في `shared/hub-config.js`:** `TOOL_VERSION` ·
 //    `MIN_WORKER_VERSION` (بقت `ECO_WORKERS.codPayment.min` = `3.6.0`) ·
 //    `cmpVersion` · `checkWorkerVersion` · `showWorkerStale` ·
 //    `renderVersionUI` · مودال الإعدادات (`openSettings`/`saveSettings`/
@@ -793,7 +793,7 @@ function onSettingsSaved() {
 // حدود «فترة سريعة»، وكل حساب «اليوم/أمس» بيغلط **بساعة** — والأداة
 // **مابتشتكيش**. الكومنت اللي كان فوق الثابت بيقول حرفيًا «change to 2»،
 // يعني الإصلاح كان **خطوة يدوية متعلّمة على تاريخ**.
-// ✅ دلوقتي محسوب بـ`Intl` على `Africa/Cairo` من `shared/shell.js` —
+// ✅ دلوقتي محسوب بـ`Intl` على `Africa/Cairo` من `shared/core.js` —
 //    الصفحة دي **خرجت من نطاق بند 29-10-2026** خالص.
 //
 // ⚠️ **و`toCairo` لسه بترجّع `Date` مزحزحة عمدًا** عشان `cairoDateStr`
@@ -983,7 +983,7 @@ loadLogEmployeeFilter();  // محميّ جوّاه
 
     p.sub("<li><code>LS_SECRET = 'cod_payment_center_worker_secret'</code> — المفتاح الوحيد في localStorage. المفتاح القديم <code>..._worker_url</code> اتساب في مكانه ومابيتقراش</li>",
           "<li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في "
-          "<code>shared/shell.js</code>) — <strong>المفتاح الوحيد في localStorage</strong>، "
+          "<code>shared/hub-config.js</code>) — <strong>المفتاح الوحيد في localStorage</strong>، "
           "وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك بين أدوات المركز. "
           "⚠️ المفتاح القديم <code>cod_payment_center_worker_secret</code> "
           "<strong>ما اتمسحش</strong> من متصفحات الموظفين — بقى مهمل بس.</li>",

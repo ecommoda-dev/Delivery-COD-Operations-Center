@@ -11,7 +11,7 @@
 // ══════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════
-// shared/shell.js — مركز عمليات الشحن والتحصيل (Delivery-COD-Operations-Center)
+// shared/hub-config.js — إعداد هب الشحن والتحصيل (Delivery-COD-Operations-Center) — كان جزء من shell.js قبل v1.49.0
 // skills: html-builder v6.6.0 · worker-builder v3.3.0 · constants v2.6.0
 //         · order-lifecycle v1.8.0 — 15-09-2026
 // ══════════════════════════════════════════════════════════════

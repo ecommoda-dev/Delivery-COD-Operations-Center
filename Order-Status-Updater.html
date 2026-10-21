@@ -41,7 +41,7 @@
 
 /* ══════════════════════════════════════════════════════════════
    §STYLES — الصفحة دي بس.
-   🔴 **مفيش كتلة توكنز هنا — كلها في `shared/shell.css`.** الكتلة اللي
+   🔴 **مفيش كتلة توكنز هنا — كلها في `shared/core.css`.** الكتلة اللي
       كانت في النسخة الأصلية (٤٧ متغيّر) **اتشالت بالكامل**، وقيمها كانت
       متطابقة مع الـ shell ما عدا `--container-max` (تحت).
    ✂️ واللي اتشال كمان لأن الـ shell بيملكه: الـ reset و`body`
@@ -1009,7 +1009,7 @@
         <div class="about-sec-body">
           <h4>FEATURE MAP</h4>
           <ul>
-            <li><code>Login (PIN)</code> — <strong>اتشال من الصفحة دي</strong> — بقى في <code>index.html</code> بتاع المركز (<code>requireSession()</code> في <code>shared/shell.js</code> §SESSION)</li>
+            <li><code>Login (PIN)</code> — <strong>اتشال من الصفحة دي</strong> — بقى في <code>index.html</code> بتاع المركز (<code>requireSession()</code> في <code>shared/core.js</code> §SESSION)</li>
             <li><code>اختيار الحالة المستهدفة (خطوة 1، خلفية القسم بلون الحالة + بادج/زرار بنفس تصميم v3.3.0)</code> — HTML §TOOL-JS — <code>selectTargetLabel()</code> / <code>renderStep1Body()</code> / <code>reopenStep1()</code></li>
             <li><code>Scanner gun input</code> — HTML §SCAN — <code>handleScan()</code></li>
             <li><code>إضافة يدوية</code> — HTML §TOOL-JS — <code>addManualOrder()</code> → <code>resolve_by_name</code></li>
@@ -1045,8 +1045,8 @@
             <li><code>effectiveReasonFor(id)</code> — (v4.3.0) <code>orderReasons[id] || existingReasonFor(id)</code> — السبب الفعّال للصف، أيًا كان مصدره.</li>
             <li><code>orderReasonMissing(id)</code> — (v4.3.0) <strong>الحاجز الوحيد</strong> اللي بيمنع التحديث: <code>orderNeedsReason(id) && !effectiveReasonFor(id)</code>. اتجمّع في دالة واحدة عشان التلات مواضع اللي كانت بتكرّر الشرط (<code>updateActionState()</code> / <code>applyAutoCollapseRule()</code> / <code>startUpdate()</code>) يفضلوا متفقين — أي واحدة تفضل بالشرط القديم هتقفل الزرار أو تفتح الجدول بالغلط على أوردر السبب بتاعه موجود فعلاً.</li>
             <li><code>summaryState</code> — <code>{ printableIds, courier, targetLabel }</code> لآخر دفعة — بيغذّي زرار الطباعة في نافذة الملخص</li>
-            <li><code>ECO_WORKERS.orderStatus.url</code> (في <code>shared/shell.js</code> §CONFIG) — بدل <code>WORKER_URL</code> المحلي. و<code>ADMIN_WORKER_URL</code> <strong>اتشال خالص</strong>: مستهلكه الوحيد كان شاشة الدخول. الرابطين مش سر — اتشالوا من شاشة الإعدادات ومن <code>localStorage</code> (Standards #28): الرابطين مش سر — الحماية في <code>WORKER_SECRET</code> + CORS allowlist. ده اللي قفل فخ «الموظف لازم يدخل الإعدادات أول مرة». قيمة <code>ADMIN_WORKER_URL</code> من <code>ecommoda-constants</code> §5b.</li>
-            <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في <code>shared/shell.js</code>) — <strong>مفتاح الـ localStorage الوحيد</strong>، وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك بين أدوات المركز. ⚠️ المفتاح القديم <code>order_status_worker_secret</code> <strong>ما اتمسحش</strong> من متصفحات الموظفين — بقى مهمل بس، والصفحة دي مابتقراهوش.</li>
+            <li><code>ECO_WORKERS.orderStatus.url</code> (في <code>shared/hub-config.js</code> §CONFIG) — بدل <code>WORKER_URL</code> المحلي. و<code>ADMIN_WORKER_URL</code> <strong>اتشال خالص</strong>: مستهلكه الوحيد كان شاشة الدخول. الرابطين مش سر — اتشالوا من شاشة الإعدادات ومن <code>localStorage</code> (Standards #28): الرابطين مش سر — الحماية في <code>WORKER_SECRET</code> + CORS allowlist. ده اللي قفل فخ «الموظف لازم يدخل الإعدادات أول مرة». قيمة <code>ADMIN_WORKER_URL</code> من <code>ecommoda-constants</code> §5b.</li>
+            <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في <code>shared/hub-config.js</code>) — <strong>مفتاح الـ localStorage الوحيد</strong>، وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك بين أدوات المركز. ⚠️ المفتاح القديم <code>order_status_worker_secret</code> <strong>ما اتمسحش</strong> من متصفحات الموظفين — بقى مهمل بس، والصفحة دي مابتقراهوش.</li>
             <li><code>MIN_WORKER_VERSION</code> (في <code>§CONFIG</code>) — أقل نسخة Worker الواجهة بتشتغل معاها. ⚠️ رقم <strong>يدوي</strong> وفحص Step 9 مابيتأكدش إنه صح — أي حقل جديد الصفحة بتقراه لازم يرفعه لنسخة الـ Worker اللي ضافته، في نفس التسليم (اتعتّق فعليًا في v4.4.0). <code>checkWorkerVersion()</code> بتقارن رقميًا بـ <code>cmpVersion()</code> وبتولّع <code>#verStaleBtn</code> بس لو الـ Worker <strong>أقدم</strong> — مش عند أي اختلاف. مالهاش علاقة بـ <code>TOOL_VERSION</code>.</li>
             <li><code>UPDATE_CHUNK = 20</code> (orders per update_status call)</li>
             <li><code>LOG_PAGE_SIZE = 100</code></li>
@@ -1520,7 +1520,7 @@ function orderLink(orderNumber, orderId) {
 // §SHELL-JS — settings, changelog, about, confirm, toast, date utils, sounds
 // ══════════════════════════════════════════════════════════════
 
-// ⛔ **اتشال من هنا ودلوقتي في `shared/shell.js`:** `TOOL_VERSION`
+// ⛔ **اتشال من هنا ودلوقتي في `shared/hub-config.js`:** `TOOL_VERSION`
 //    و`MIN_WORKER_VERSION` و`cmpVersion` و`checkWorkerVersion`
 //    و`showWorkerStale` و`renderVersionUI` · مودال الإعدادات
 //    (`openSettings`/`saveSettings`/`updateSettingsBtn`) · الفحص الذاتي
@@ -2266,7 +2266,7 @@ function focusScan() {
   //    بترمي، فتقطع كل دالة بتنادي `focusScan()` — وأخطرها
   //    `selectTargetLabel()` اللي كانت بتقع **قبل سطر واحد** من
   //    `ensureReasonValues()`، فقوايم الأسباب ما بتتحمّلش أبدًا.
-  //    بوابة الدخول بقت `requireSession()` في `shared/shell.js`،
+  //    بوابة الدخول بقت `requireSession()` في `shared/core.js`،
   //    وهي بتحوّل الصفحة قبل أي سطر هنا.
   scanInput.focus();
 }
