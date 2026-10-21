@@ -44,9 +44,9 @@ async function hsearch(page, v) {
 }
 
 // 🔴 نسخة الهب — **مصدر واحد** (`TOOL_VERSION` في `shared/shell.js`، #24).
-const HUB_VERSION = (fs.readFileSync(new URL('../shared/shell.js', import.meta.url), 'utf8')
+const HUB_VERSION = (fs.readFileSync(new URL('../shared/hub-config.js', import.meta.url), 'utf8')
   .match(/const TOOL_VERSION\s*=\s*'([^']+)'/) || [])[1];
-if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION من shared/shell.js'); process.exit(1); }
+if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION من shared/hub-config.js'); process.exit(1); }
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const MIME = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8' };
@@ -1237,8 +1237,8 @@ console.log('\n══ ⑪ الرئيسية: الكاش الأول · بلا تا
      'كاش «الجاهز» عمره ١١ دقيقة ← اتجاب لوحده، و«المشحون» لسه من الكاش', state.calls.join(','));
 
   // ④ مفيش تايمر ولا جلب عند الرجوع للتاب
-  is(await page.evaluate(() => typeof armAuto === 'undefined' && typeof DCO_AUTO_REFRESH_MS === 'undefined'),
-     '🔴 مفيش تحديث تلقائي في الرئيسية (`armAuto`/`DCO_AUTO_REFRESH_MS` اتشالوا)');
+  is(await page.evaluate(() => typeof armAuto === 'undefined' && typeof ECO_AUTO_REFRESH_MS === 'undefined'),
+     '🔴 مفيش تحديث تلقائي في الرئيسية (`armAuto`/`ECO_AUTO_REFRESH_MS` اتشالوا)');
   state.calls.length = 0;
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await page.waitForTimeout(500);
@@ -1444,7 +1444,7 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   await page.goto(`${BASE}/index.html`);
   await page.waitForTimeout(1400);
   await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important}' });
-  if (process.env.DCO_SHOT) await page.screenshot({ path: process.env.DCO_SHOT, fullPage: true });
+  if (process.env.ECO_SHOT) await page.screenshot({ path: process.env.ECO_SHOT, fullPage: true });
 
   // ① الحاويات
   const secs = await page.evaluate(() => [...document.querySelectorAll('.dco-home-sec')].map(sec => {
@@ -1577,7 +1577,7 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   await page.click('#secFlow .dco-home-sec-hd');
   await page.waitForTimeout(450);
   const cf = await readSec('secFlow', ['rowReady', 'rowShipped']);
-  if (process.env.DCO_SHOT2) await page.screenshot({ path: process.env.DCO_SHOT2, fullPage: true });
+  if (process.env.ECO_SHOT2) await page.screenshot({ path: process.env.ECO_SHOT2, fullPage: true });
   is(cf.pills.map(p => p.cap).join('|') === '1 ساعة|4 دقيقة' && cf.pills[0].capCol === cf.red && cf.pills[1].capCol === cf.green,
      'القسم التاني: ٧٥ د ← «1 ساعة» بالأحمر · ٤ د ← «4 دقيقة» بالأخضر', cf.pills.map(p => p.cap + ':' + p.capCol).join(' | '));
   await page.click('#secTools .dco-home-sec-hd');

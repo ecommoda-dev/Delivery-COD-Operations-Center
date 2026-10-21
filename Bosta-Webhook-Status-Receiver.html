@@ -376,7 +376,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
           </ul>
           <h4>KEY VARIABLES</h4>
           <ul>
-            <li><code>DCO_WORKERS.bostaWebhook</code> (في <code>shared/shell.js</code>) — رابط الـ Worker والحد الأدنى للنسخة · <code>dcoSession</code> — الجلسة · <code>dcoApi()</code> — نداءات الـ Worker بسر المجموعة</li>
+            <li><code>ECO_WORKERS.bostaWebhook</code> (في <code>shared/shell.js</code>) — رابط الـ Worker والحد الأدنى للنسخة · <code>ecoSession</code> — الجلسة · <code>ecoApi()</code> — نداءات الـ Worker بسر المجموعة</li>
             <li><code>rawEvents</code> — كل الأحداث من <code>list_events</code> (سحب واحد بلا فلاتر، على موجات بالتوازي (<code>FULL_FETCH_CONCURRENCY</code> × <code>LOAD_PAGE_SIZE</code> = 1000) لحد ما تنتهي الصفحات) — كل تاب بيفلترها بـ <code>tabPartition()</code> وبعدين بفلاتره الخاصة</li>
           </ul>
           <h4>NOTES</h4>
@@ -396,20 +396,22 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
 </div>
 
 
-<script src="shared/shell.js"></script>
-<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 <script>
 // ══════════════════════════════════════════════════════
 // §CONFIG — بوابة الجلسة + نداءات الـ shell
 // ══════════════════════════════════════════════════════
 // 🔴 أول سطر — بوابة الجلسة (بترمي عن قصد لو مفيش جلسة).
-const dcoSession = requireSession();
+const ecoSession = requireSession();
 
 // 🔴 `bosta-webhook-status-receiver-worker` لازم يكون **اتضمّ لمجموعة
 //    `delivery_cod_ops`** (WORKER_SECRET = قيمة المجموعة) — قبلها كل نداء `401`.
-//    الحد الأدنى للنسخة في `DCO_WORKERS.bostaWebhook.min` (shared/shell.js)،
+//    الحد الأدنى للنسخة في `ECO_WORKERS.bostaWebhook.min` (shared/shell.js)،
 //    وأسباب كل رقم نسخة (1.2.0 · 1.3.1 · 1.5.0 · 1.6.0 · 1.7.0) متوثّقة هناك.
-const { apiGet, apiPost } = dcoApi(DCO_WORKERS.bostaWebhook);
+const { apiGet, apiPost } = ecoApi(ECO_WORKERS.bostaWebhook);
 const PAGE_WORKERS = ['bostaWebhook'];
 
 // ⛔ الـ shell و`<script>` الصفحة في نفس النطاق العام — أي `const`/`let` بنفس اسم
@@ -1334,9 +1336,9 @@ async function loadEvents({ full = false } = {}) {
     if (changed || first) renderAllTabs();
     // 🔴 v1.39.0 — الرئيسية بتعرض ملخّص «تحت التوصيل» من نفس الكاش (`dco_queue_webhook`) — بنكتبه
     //    بعد كل تحميل ناجح (حتى لو مفيش تغيير: الختم = وقت آخر مزامنة فعلية). نفس الشكل الخام بتاع
-    //    `queue_summary`، والاشتقاق من `dcoWebhookDerive` في الـ shell. ⚠️ بعد `renderAllTabs` عشان
+    //    `queue_summary`، والاشتقاق من `ecoWebhookDerive` في الـ shell. ⚠️ بعد `renderAllTabs` عشان
     //    `tabRows` تكون متحسبة.
-    cacheSet(DCO_CACHE_WEBHOOK, dcoWebhookSummaryFromRows(tabPartition('main'), tabPartition('inreturn')));
+    cacheSet(ECO_CACHE_WEBHOOK, ecoWebhookSummaryFromRows(tabPartition('main'), tabPartition('inreturn')));
     hasLoadedEvents = true;
     lastLoadAt = Date.now();
     refreshFailStreak = 0;
@@ -1420,11 +1422,11 @@ async function refreshDiagBanners() {
 // ══════════════════════════════════════════════════════
 TABS.forEach(t => { const r = document.getElementById(`tabRoot-${t.key}`); r.dataset.tab = t.key; r.innerHTML = buildTabPanelHtml(t.key); });
 ensureWidths();   // لو فيه عرض محفوظ بيتطبّق فورًا؛ غير كده بيتقاس عند أول عرض بيانات
-document.getElementById('headerMount').innerHTML = dcoHeader({
+document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '📮',
   title:    'متابعة شحنات بوسطة',
   subtitle: 'أحداث الويبهوك · المطابقة على الأوردر · الكتابة على شوبيفاي',
-  session:  dcoSession,
+  session:  ecoSession,
   extras:   '<button class="hbtn" id="refreshBtn" onclick="doRefresh()"><span class="ico">↺</span> تحديث</button>',
 });
 

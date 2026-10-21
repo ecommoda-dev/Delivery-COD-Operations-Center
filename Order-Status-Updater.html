@@ -1044,7 +1044,7 @@
             <li><code>effectiveReasonFor(id)</code> — (v4.3.0) <code>orderReasons[id] || existingReasonFor(id)</code> — السبب الفعّال للصف، أيًا كان مصدره.</li>
             <li><code>orderReasonMissing(id)</code> — (v4.3.0) <strong>الحاجز الوحيد</strong> اللي بيمنع التحديث: <code>orderNeedsReason(id) && !effectiveReasonFor(id)</code>. اتجمّع في دالة واحدة عشان التلات مواضع اللي كانت بتكرّر الشرط (<code>updateActionState()</code> / <code>applyAutoCollapseRule()</code> / <code>startUpdate()</code>) يفضلوا متفقين — أي واحدة تفضل بالشرط القديم هتقفل الزرار أو تفتح الجدول بالغلط على أوردر السبب بتاعه موجود فعلاً.</li>
             <li><code>summaryState</code> — <code>{ printableIds, courier, targetLabel }</code> لآخر دفعة — بيغذّي زرار الطباعة في نافذة الملخص</li>
-            <li><code>DCO_WORKERS.orderStatus.url</code> (في <code>shared/shell.js</code> §CONFIG) — بدل <code>WORKER_URL</code> المحلي. و<code>ADMIN_WORKER_URL</code> <strong>اتشال خالص</strong>: مستهلكه الوحيد كان شاشة الدخول. الرابطين مش سر — اتشالوا من شاشة الإعدادات ومن <code>localStorage</code> (Standards #28): الرابطين مش سر — الحماية في <code>WORKER_SECRET</code> + CORS allowlist. ده اللي قفل فخ «الموظف لازم يدخل الإعدادات أول مرة». قيمة <code>ADMIN_WORKER_URL</code> من <code>ecommoda-constants</code> §5b.</li>
+            <li><code>ECO_WORKERS.orderStatus.url</code> (في <code>shared/shell.js</code> §CONFIG) — بدل <code>WORKER_URL</code> المحلي. و<code>ADMIN_WORKER_URL</code> <strong>اتشال خالص</strong>: مستهلكه الوحيد كان شاشة الدخول. الرابطين مش سر — اتشالوا من شاشة الإعدادات ومن <code>localStorage</code> (Standards #28): الرابطين مش سر — الحماية في <code>WORKER_SECRET</code> + CORS allowlist. ده اللي قفل فخ «الموظف لازم يدخل الإعدادات أول مرة». قيمة <code>ADMIN_WORKER_URL</code> من <code>ecommoda-constants</code> §5b.</li>
             <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في <code>shared/shell.js</code>) — <strong>مفتاح الـ localStorage الوحيد</strong>، وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك بين أدوات المركز. ⚠️ المفتاح القديم <code>order_status_worker_secret</code> <strong>ما اتمسحش</strong> من متصفحات الموظفين — بقى مهمل بس، والصفحة دي مابتقراهوش.</li>
             <li><code>MIN_WORKER_VERSION</code> (في <code>§CONFIG</code>) — أقل نسخة Worker الواجهة بتشتغل معاها. ⚠️ رقم <strong>يدوي</strong> وفحص Step 9 مابيتأكدش إنه صح — أي حقل جديد الصفحة بتقراه لازم يرفعه لنسخة الـ Worker اللي ضافته، في نفس التسليم (اتعتّق فعليًا في v4.4.0). <code>checkWorkerVersion()</code> بتقارن رقميًا بـ <code>cmpVersion()</code> وبتولّع <code>#verStaleBtn</code> بس لو الـ Worker <strong>أقدم</strong> — مش عند أي اختلاف. مالهاش علاقة بـ <code>TOOL_VERSION</code>.</li>
             <li><code>UPDATE_CHUNK = 20</code> (orders per update_status call)</li>
@@ -1465,8 +1465,10 @@
 <div id="sharedMount"></div>
 
 
-<script src="shared/shell.js"></script>
-<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -1477,19 +1479,19 @@
 //    قصد لو مفيش جلسة: من غير الرمي باقي السكربت بيكمّل تنفيذ وبينادي
 //    الـ Worker وبيرسم جدول **أثناء** ما التحويل لشاشة الدخول شغّال —
 //    نداءات ضايعة ووميض شاشة.
-const dcoSession = requireSession();
+const ecoSession = requireSession();
 
 // 🔴 **الرابط والسر بقوا من الـ shell.** `WORKER_URL` و`LS_SECRET`
 //    (`order_status_worker_secret`) **اتشالوا**: الأداة بقت جوّه المركز،
 //    والسر قيمة واحدة لمجموعة `delivery_cod_ops`.
 //    ⚠️ **وده شرطه مذكور بالاسم:** الـ Worker ده لازم يكون **اتضمّ
 //       للمجموعة** (`WORKER_SECRET` اتدوّر لقيمتها من داشبورد كلاودفلير).
-//       قبل الضم كل نداء هنا بيرجّع **401**، و`dcoApi` بيسمّي الأداة في
+//       قبل الضم كل نداء هنا بيرجّع **401**، و`ecoApi` بيسمّي الأداة في
 //       الرسالة فالموظف مايدوّرش.
-// ⚠️ و`dcoApi` بيجيب معاه حاجة النسخة الأصلية ماكانتش عندها: **مهلة
+// ⚠️ و`ecoApi` بيجيب معاه حاجة النسخة الأصلية ماكانتش عندها: **مهلة
 //    صريحة (٩٠ ثانية)**. من غيرها الـ Worker الواقف كان بيسيب الزرار
 //    معطّل والـ spinner بيلف للأبد، والموظف بيفتكر إن الأداة اتعلّقت.
-const { apiGet, apiPost } = dcoApi(DCO_WORKERS.orderStatus);
+const { apiGet, apiPost } = ecoApi(ECO_WORKERS.orderStatus);
 
 // الفحص الذاتي وحارس النسخة بيمشوا على الـ Worker ده بس — الصفحة
 // مابتنادیش غيره (⛔ ومفيش `ADMIN_WORKER_URL` هنا: شاشة الدخول اتشالت،
@@ -1521,8 +1523,8 @@ function orderLink(orderNumber, orderId) {
 //    و`MIN_WORKER_VERSION` و`cmpVersion` و`checkWorkerVersion`
 //    و`showWorkerStale` و`renderVersionUI` · مودال الإعدادات
 //    (`openSettings`/`saveSettings`/`updateSettingsBtn`) · الفحص الذاتي
-//    (`runDiag` → `dcoRunDiag`) · `openAbout`/`openChangelog`.
-// 🔴 **و«أقل نسخة Worker» بقت في `DCO_WORKERS.orderStatus.min`** —
+//    (`runDiag` → `ecoRunDiag`) · `openAbout`/`openChangelog`.
+// 🔴 **و«أقل نسخة Worker» بقت في `ECO_WORKERS.orderStatus.min`** —
 //    `4.7.0`، والرقم ده **بيمنع ضرر مش بيدّي تحذير**: Worker `4.6.0`
 //    بيرجّع **نفس اسم الحقل** (`cod`) بقيمة محسوبة بالصيغة القديمة
 //    الغلط، فورقة المانفيست بتخرج من الطابعة بأرقام فلوس غلط و**صفر خطأ
@@ -1619,7 +1621,7 @@ function addDays(dateStr, n) {
 
 // العقد اللي باقي كود الأداة بيقرا منه (`employee` مع كل
 // `update_status`) — مصدره بقى الجلسة بدل شاشة الدخول.
-let currentEmployee = { username: dcoSession.username, displayName: dcoSession.displayName };
+let currentEmployee = { username: ecoSession.username, displayName: ecoSession.displayName };
 
 // ══════════════════════════════════════════════════════════════
 // §TOOL-JS — business logic
@@ -3859,11 +3861,11 @@ async function exportSelectedLogXLSX() {
 // ══════════════════════════════════════════════════════════════
 // Init
 // ══════════════════════════════════════════════════════════════
-document.getElementById('headerMount').innerHTML = dcoHeader({
+document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '📦',
   title:    'تحديث حالة الأوردرات',
   subtitle: 'تحديث حالة الأوردرات بالسكانر أو يدوياً — S1/S2 تلقائي',
-  session:  dcoSession,
+  session:  ecoSession,
 });
 
 renderVersionUI();

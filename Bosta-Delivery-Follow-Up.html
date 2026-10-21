@@ -328,7 +328,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
         <summary>🔧 تشريح الكود</summary>
         <div class="about-sec-body">
           <ul>
-            <li>§CONFIG — <code>DCO_WORKERS.deliveryFollowUp</code> (<code>shared/shell.js</code>) · الجلسة والسر من الـ shell.</li>
+            <li>§CONFIG — <code>ECO_WORKERS.deliveryFollowUp</code> (<code>shared/shell.js</code>) · الجلسة والسر من الـ shell.</li>
             <li>§MESSAGE — <code>FU_TPL_POSTPONED</code> · <code>FU_TPL_ATTEMPT</code> (ثوابت سهلة التعديل) · <code>fuBuildMessage</code> · <code>fuMaskName</code> · <code>fuNormPhone</code> · <code>fuWaUrl</code>.</li>
             <li>§TABLE — <code>FU_COLS</code> · فلاتر رأس العمود (<code>fuOpenPop</code>) · ترتيب 3 حالات · عرض الأعمدة بالسحب (<code>dco_col_widths_v1_Bosta-Delivery-Follow-Up.html</code>) — نمط <code>Bosta-Webhook-Status-Receiver.html</code>.</li>
             <li>§COMPOSE — نافذة الإرسال · <code>record</code> بـ <code>items[]</code> لمجموعة التليفون الواحد · <code>get_sends</code> للسجل.</li>
@@ -342,17 +342,19 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
   </div>
 </div>
 
-<script src="shared/shell.js"></script>
-<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 <script>
 // ══════════════════════════════════════════════════════
 // §CONFIG — بوابة الجلسة + نداءات الـ shell
 // ══════════════════════════════════════════════════════
 // 🔴 أول سطر — بوابة الجلسة (بترمي عن قصد لو مفيش جلسة).
-const dcoSession = requireSession();
+const ecoSession = requireSession();
 
 // 🔴 `bosta-delivery-follow-up-worker` لازم يكون اتضمّ لمجموعة `delivery_cod_ops` — قبلها كل نداء `401`.
-const { apiGet, apiPost } = dcoApi(DCO_WORKERS.deliveryFollowUp);
+const { apiGet, apiPost } = ecoApi(ECO_WORKERS.deliveryFollowUp);
 const PAGE_WORKERS = ['deliveryFollowUp'];
 
 // ⛔ كل أسماء الصفحة بادئتها `fu`/`FU_` — الـ shell و`<script>` الصفحة في نفس النطاق العام،
@@ -593,7 +595,7 @@ function fuSetLastUpdated(failed) {
 function fuWriteCache() {
   if (fuMeta.truncated) return;
   const sent = fuRows.filter(r => fuSendsOf(r) > 0).length;
-  cacheSet(DCO_CACHE_FOLLOWUP, { ok: true, windowDays: fuMeta.windowDays, total: fuRows.length, unsent: fuRows.length - sent, sent });
+  cacheSet(ECO_CACHE_FOLLOWUP, { ok: true, windowDays: fuMeta.windowDays, total: fuRows.length, unsent: fuRows.length - sent, sent });
 }
 
 // مجموعات نفس التليفون الأساسي — من القايمة الكاملة مش المفلترة (الرسالة بتشمل كل شحنات العميل)
@@ -1130,13 +1132,13 @@ async function fuDoSend(phone) {
   fuSendBusy = true;
   fuEl('fuSendBody').querySelectorAll('button').forEach(b => { b.disabled = true; });
   try {
-    const d = await apiPost('record', { employee: dcoSession.username, items: rows.map(r => ({ trackingNumber: r.trackingNumber })), message: fuMaskName(text, rows) });
+    const d = await apiPost('record', { employee: ecoSession.username, items: rows.map(r => ({ trackingNumber: r.trackingNumber })), message: fuMaskName(text, rows) });
     const results = d.results || [];
     const now = new Date().toISOString();
     rows.forEach((r, i) => {
       const res = results[i];
       if (!res?.ok) return;
-      r.sends = { count: res.count, lastBy: dcoSession.username, lastAt: res.deduped ? (r.sends?.lastAt || now) : now };
+      r.sends = { count: res.count, lastBy: ecoSession.username, lastAt: res.deduped ? (r.sends?.lastAt || now) : now };
     });
     const failed = results.filter(r => !r.ok);
     if (failed.length) showToast(`الواتساب اتفتح لكن التسجيل فشل: ${failed[0].error || 'خطأ'}`, 'error', 6000);
@@ -1285,11 +1287,11 @@ async function fuRefresh() { await fuLoad(); }
 // ══════════════════════════════════════════════════════
 fuEl('fuTableRoot').innerHTML = fuBuildPanelHtml();
 fuEnsureWidths();   // لو فيه عرض محفوظ بيتطبّق فورًا؛ غير كده بيتقاس عند أول عرض بيانات
-fuEl('headerMount').innerHTML = dcoHeader({
+fuEl('headerMount').innerHTML = ecoHeader({
   icon:     '📲',
   title:    'متابعة التأجيلات',
   subtitle: 'شحنات بوسطة تحت التوصيل بمحاولة توصيل أو أكتر — رسالة واتساب يدوية',
-  session:  dcoSession,
+  session:  ecoSession,
   extras:   '<button class="hbtn" id="refreshBtn" onclick="fuRefresh()"><span class="ico">↺</span> تحديث</button>',
 });
 

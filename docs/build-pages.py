@@ -339,7 +339,7 @@ AUDIT_VIEW  = r'''
         <!-- 🔴 **العنوان بيقول النطاق بنفسه** (طلب أحمد 16-09-2026):
              «جرد أوردرات (مناديب ٧٢ + شو روم ١٥)». السطر الشارح القديم
              اتشال بطلب أحمد، والعنوان ده هو اللي بقى بيحمل المعلومة —
-             ⚠️ وهو **مشتق من اللقطة نفسها** (`dcoCourierCounts` على
+             ⚠️ وهو **مشتق من اللقطة نفسها** (`ecoCourierCounts` على
              `audState.scope` بعد البدء)، فلو الموظف بدأ على فلتر، العنوان
              بيقول مجموعاته هو مش مجموعات الطابور كله.
              ⚠️ والفلتر الكامل بالنص **لسه مكتوب في شيت «الملخص»** جوّه
@@ -476,9 +476,9 @@ AUDIT_JS    = r'''
 // §AUDIT — جرد المكتب (v1.3.0 · طلب أحمد 16-09-2026)
 // ══════════════════════════════════════════════════════════════
 //
-// 🔴 **صفر قاعدة اشتقاق هنا.** التطبيع (`dcoScanParse`) والمطابقة
-//    (`dcoScanFind`) والتلات أقسام (`dcoAuditBuckets`) والسبب
-//    (`dcoAuditReason`) كلهم في `shared/shell.js` §AUDIT-RULES — عشان
+// 🔴 **صفر قاعدة اشتقاق هنا.** التطبيع (`ecoScanParse`) والمطابقة
+//    (`ecoScanFind`) والتلات أقسام (`ecoAuditBuckets`) والسبب
+//    (`ecoAuditReason`) كلهم في `shared/shell.js` §AUDIT-RULES — عشان
 //    `docs/rules-check.mjs` يقدر يدّيهم **مدخلات باظة**: كود بحروف بس ·
 //    صف بلا `orderId` · نفس الأوردر مرتين بصيغتين. الحالات دي مستحيل
 //    تتزرع في بيانات وهمية معقولة، وهي بالظبط اللي بتنتج رقم غلط شكله سليم.
@@ -486,7 +486,7 @@ AUDIT_JS    = r'''
 // 🔴 **الجرد مابيكتبش أي حاجة** — لا على شوبيفاي ولا في D1. النتيجة على
 //    الشاشة + XLSX. أي كتابة (سجل جرد مثلاً) محتاجة تسجيل `tool`/`type`
 //    في `ecommoda-constants` §7 **قبل** أول `writeLog` (Rule 7).
-const AUD_KEY     = DCO_AUDIT_READY;
+const AUD_KEY     = ECO_AUDIT_READY;
 
 // حارس معقولية — السكانر اللي بيقطع القراءة بيدّي جزء من الكود، والجزء
 // ده ممكن يطابق أوردر تاني بالغلط. أقل من ٤ أرقام **مابيتحسبش سكانة**.
@@ -507,7 +507,7 @@ let audSecFocus = null;
 
 const audState = { phase: 'idle', startedAt: null, endedAt: null,
                    scopeLabel: '', scope: [], scans: [] };
-let audResult = dcoAuditBuckets([], []);
+let audResult = ecoAuditBuckets([], []);
 
 // ── التابات — 🔴 في الصفحة مش في الـ shell (القايمة السودا) ──
 function switchMainTab(tab) {
@@ -539,11 +539,11 @@ function audFocus() {
 // 🔴 **والمندوب هنا مجموعة مش اسم** (طلب أحمد): مناديب · بوسطة · شو روم.
 //    جرد المكتب بيتعمل على **رفّ**، والرف مقسوم بالمجموعة مش باسم المندوب —
 //    وقايمة بـ٤٠ اسم مندوب كانت هتخلّي الخطوة الأولى أطول من الجرد نفسه.
-//    ⚠️ والتجميع من `dcoCourierGroup` في الـ shell — **نفس** الدالة اللي
+//    ⚠️ والتجميع من `ecoCourierGroup` في الـ shell — **نفس** الدالة اللي
 //       مربعات الطابور وعنوان الجرد بيعدّوا منها، فمستحيل الرقمين يفترقوا.
 const AUD_FILTERS = [
   { key: 'cgroup', label: 'المندوب',
-    of: o => (DCO_COURIER_GROUPS.find(g => g.key === dcoCourierGroup(o.courier)) || {}).label },
+    of: o => (ECO_COURIER_GROUPS.find(g => g.key === ecoCourierGroup(o.courier)) || {}).label },
   { key: 'where',  label: 'موقع الشحنة', of: o => o.whereabouts || WA_NONE, labelOf: waFilterLabel },
 ];
 const audMsState = msInit('aud', AUD_FILTERS,
@@ -570,13 +570,13 @@ function audFilterDesc() {
 }
 
 // 🔴 **عنوان الجرد = «جرد أوردرات (مناديب N + شو روم M)»** (طلب أحمد
-//    16-09-2026). العدّ من `dcoCourierCounts` في الـ shell — **نفس** الدالة
+//    16-09-2026). العدّ من `ecoCourierCounts` في الـ shell — **نفس** الدالة
 //    اللي مربعات الطابور بتعدّ منها، فالرقمين مايقدروش يفترقوا.
 // ⚠️ **والمجموعة الفاضية مابتتكتبش** — «بوسطة 0» في العنوان بتخلّي الموظف
 //    يدوّر على طرود بوسطة مش موجودة في النطاق أصلاً.
 function audScopeTitle(rows) {
-  const cn = dcoCourierCounts(rows || []);
-  const parts = DCO_COURIER_GROUPS.filter(g => cn[g.key] > 0)
+  const cn = ecoCourierCounts(rows || []);
+  const parts = ECO_COURIER_GROUPS.filter(g => cn[g.key] > 0)
     .map(g => `${g.label} ${cn[g.key].toLocaleString('en-US')}`);
   return parts.length ? `جرد أوردرات (${parts.join(' + ')})` : 'جرد أوردرات';
 }
@@ -690,7 +690,7 @@ function audScan() {
     return;
   }
 
-  const parsed = dcoScanParse(raw);
+  const parsed = ecoScanParse(raw);
   if (!parsed) {
     playBeep('fail');
     audSetLast('extra', `«${esc(raw)}» — مش كود أوردر. اعمل سكان تاني.`);
@@ -700,10 +700,10 @@ function audScan() {
   // 🔴 **النطاق الأول، وبعده الطابور الكامل.** الفرق بين «بره الفلتر» و
   //    «مش في القسم خالص» هو الفرق بين «الطرد مكانه صح» و«الطرد غلط» —
   //    ودمجهم في سبب واحد كان بيدّي الموظف حكم غلط على طرد سليم.
-  const inScope = dcoScanFind(audState.scope, parsed);
-  const row     = inScope || dcoScanFind(qState.rows, parsed);
+  const inScope = ecoScanFind(audState.scope, parsed);
+  const row     = inScope || ecoScanFind(qState.rows, parsed);
   const orderId = row ? String(row.orderId) : null;
-  const key     = dcoScanKey(parsed);
+  const key     = ecoScanKey(parsed);
 
   // ⚠️ التفريد على `orderId` لما نعرفه، وعلى المفتاح لما مانعرفوش — نفس
   //    الأوردر ممكن يتعمله سكان بالاسم مرة وبالـ ID مرة، والعدّ مرتين
@@ -743,7 +743,7 @@ function audSetLast(cls, html) {
 
 // ── الرسم ────────────────────────────────────────────────────
 function audRender() {
-  audResult = dcoAuditBuckets(audState.scope, audState.scans);
+  audResult = ecoAuditBuckets(audState.scope, audState.scans);
   const c        = audResult.counts;
   const idle     = audState.phase === 'idle';
   const running  = audState.phase === 'running';
@@ -822,13 +822,13 @@ function audRender() {
 
 // 🔴 **خلايا صف الجرد == خلايا صف الطابور بالحرف** (طلب أحمد 16-09-2026)
 //    — نفس الأعمدة بنفس الترتيب وبنفس الدوال (`addressCell` ·
-//    `whereaboutsCell` · `dcoWaiting`). نسخة تانية من منطق الخلية كانت
+//    `whereaboutsCell` · `ecoWaiting`). نسخة تانية من منطق الخلية كانت
 //    هتخلّي الصف يتقري بشكلين في تابين من نفس الصفحة.
 // ⚠️ و`note` بتتلزق جنب رقم الأوردر — قسم «موجودة خطأ» بيستخدمها لعدد
 //    السكانات، والباقي بيبعتها فاضية.
 function audCells(o, note) {
   const isS2  = o.machine === 's2';
-  const since = o.packedAt ? dcoWaiting(o.packedAt, new Date()) : null;
+  const since = o.packedAt ? ecoWaiting(o.packedAt, new Date()) : null;
   // ⚠️ الصف اللي جاي من `lookup_orders` مالوش `age` — الحقول هناك أقل من
   //    الطابور عن قصد، والحارس ده بيخلّي الخلية تقول `—` بدل ما ترمي.
   const age = o.age || null;
@@ -864,7 +864,7 @@ function audRowHtml(o, tag, i) {
 // ⚠️ **والكود اللي مالوش أوردر بياخد نفس الصف بخانات `—`** — صف بشكل تاني
 //    وسط الجدول بيتقري «ده مش من نفس القايمة».
 function audExtraRowHtml(s, i) {
-  const r    = dcoAuditReason(s);
+  const r    = ecoAuditReason(s);
   const o    = s.row || null;
   const lo   = (s.lookup && s.lookup.order) || null;
   const code = (s.parsed && s.parsed.display) || s.key;
@@ -1081,7 +1081,7 @@ async function audExport() {
                'رقم الأوردر', 'S1', 'S2']);
     wx.getRow(1).font = { bold: true };
     audResult.extra.forEach(s => {
-      const r = dcoAuditReason(s);
+      const r = ecoAuditReason(s);
       const o = (s.row || (s.lookup && s.lookup.order)) || {};
       wx.addRow([s.parsed && s.parsed.display || s.key, s.count || 1,
                  r.label, r.detail, r.action,
@@ -1286,12 +1286,12 @@ SHIPPED_ABOUT_COLS = '''            <li><b>رقم التتبع</b> — الجد�
 PAGES = [
   dict(
     file='Ready-Orders.html', key='ready', status='Ready', action='get_ready_queue',
-    worker='ready', cache='DCO_CACHE_READY',
+    worker='ready', cache='ECO_CACHE_READY',
     # 🔴 «قسم» مش «طابور» (طلب أحمد 16-09-2026) — يطابق تسمية المحطة
     #    التانية («قسم التغليف» · «قسم الطباعة» · «قسم تسليمات بوسطة»)،
     #    والموظف بيتنقّل بين الهبين طول اليوم.
     #    ⚠️ والاسم ده **في تلات أماكن لازم يفضلوا متطابقين**: هنا ·
-    #       `DCO_WORKERS.ready.label` في `shared/shell.js` (حارس النسخة
+    #       `ECO_WORKERS.ready.label` في `shared/shell.js` (حارس النسخة
     #       بيسمّي الأداة بيه) · وصف الشاشة الرئيسية في `index.html`.
     icon='📦', title='قسم الجاهز للشحن', subtitle='مركز عمليات الشحن والتحصيل',
     emptyOk='مفيش أوردرات جاهزة للشحن دلوقتي',
@@ -1352,7 +1352,7 @@ PAGES = [
   ),
   dict(
     file='Shipped-Orders.html', key='shipped', status='Shipped', action='get_shipped_queue',
-    worker='shipped', cache='DCO_CACHE_SHIPPED',
+    worker='shipped', cache='ECO_CACHE_SHIPPED',
     icon='🚚', title='طابور المشحون', subtitle='مركز عمليات الشحن والتحصيل',
     emptyOk='مفيش شحنات مفتوحة دلوقتي',
     packCol='تاريخ التغليف',
@@ -1737,7 +1737,7 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
 .type-text.type-s1 { color: var(--accent-dark); }
 .type-text.type-s2 { color: var(--purple-dark); }
 
-/* بادج الوقت — الدرجة بتيجي من `dcoDayLevel` في الـ shell فمستحيل تفترق
+/* بادج الوقت — الدرجة بتيجي من `ecoDayLevel` في الـ shell فمستحيل تفترق
    بين الصفحتين؛ **اللون هو اللي مكرّر** هنا. */
 .time-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 800; white-space: nowrap; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-secondary); }
 .time-badge.tb-d0 { background: var(--green-light);  color: var(--green-dark);  border-color: var(--green-border); }
@@ -1830,7 +1830,7 @@ __AUDIT_TABS__
   <!-- ══ صندوق العدّ ══════════════════════════════════════════
        🔴 **الرقم الكبير = عدد الصفوف اللي رجعت من الطابور بالحرف**، وهو
           **نفس** رقم الصف على الشاشة الرئيسية لأن الاتنين بيعدّوا من
-          `dcoQueueRows` في الـ shell على نفس الرد.
+          `ecoQueueRows` في الـ shell على نفس الرد.
           ⛔ رقمان مختلفان على شاشتين للموظف الواحد = الرقم بيفقد معناه
              (باج v1.11.0 في هب المخزن · درس R1).
        ⚠️ وقبل أول جلب ناجح الرقم **`—` مش `0`** — «ما اتحدّثش» ≠ «مفيش شغل». -->
@@ -2169,8 +2169,10 @@ __CL_PREV__        </ul>
 <div id="sharedMount"></div>
 
 <!-- 🔴 نسخة واحدة مضمّنة — ممنوع محتوى الملف ده يتنسخ هنا -->
-<script src="shared/shell.js"></script>
-<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 <script>
 // ══════════════════════════════════════════════════════════════
 // §INIT — الجلسة أولاً، قبل أي حاجة تانية
@@ -2180,7 +2182,7 @@ __CL_PREV__        </ul>
 //    التحويل لشاشة الدخول شغّال.
 const session = requireSession();
 
-const { __API_FNS__ } = dcoApi(DCO_WORKERS.__WORKER__);
+const { __API_FNS__ } = ecoApi(ECO_WORKERS.__WORKER__);
 const PAGE_WORKERS = ['__WORKER__'];
 
 // ══════════════════════════════════════════════════════════════
@@ -2939,7 +2941,7 @@ function qSortValue(o, key) {
 // 🔴 `[...rows].sort()` مش `rows.sort()` — التانية بتعدّل المصفوفة الأصلية،
 //    فحالة «بلا ترتيب» ماكانتش هترجع للترتيب الافتراضي أبدًا.
 function qApplySort(rows) {
-  if (!qSortState.key) return rows;   // الافتراضي: الأقدم فوق — من `dcoQueueRows`
+  if (!qSortState.key) return rows;   // الافتراضي: الأقدم فوق — من `ecoQueueRows`
   const cfg = Q_SORT_CONFIG[qSortState.key];
   const dir = qSortState.dir === 'asc' ? 1 : -1;
   return [...rows].sort((a, b) => {
@@ -2980,10 +2982,10 @@ function qSetFresh() {
 function qRenderChips() {
   const box = document.getElementById('qChips');
   if (!box) return;
-  const chips = dcoChips(qState.rows);
+  const chips = ecoChips(qState.rows);
   box.innerHTML = chips.map(ch => {
     const key = ch.cls === 'qc-flag' ? 'flag'
-      : (DCO_COURIER_GROUPS.find(g => g.cls === ch.cls)?.key || '');
+      : (ECO_COURIER_GROUPS.find(g => g.cls === ch.cls)?.key || '');
     const on = qChipActive(key);
     // ⚠️ علامة ✕ بتتحط من CSS (`.zchip.on::after`) مش من هنا — زي
     //    `pack.html` بالحرف. عنصر زيادة في الماركب كان بيدخل في
@@ -2997,9 +2999,9 @@ __WA_CHIPS_CALL__
   //    اللي فلتر على «بوسطة» عايز يعرف بوسطة عليها كام، مش المتجر كله.
   //    والفرق ده لازم يبان، فالليبل بيقول «(مفلتر)» لما الفلتر شغّال.
   const shown = qVisible();
-  const cod = dcoCod(shown);
+  const cod = ecoCod(shown);
   const filtered = qAnyFilterActive() ? ' <span style="opacity:.7">(مفلتر)</span>' : '';
-  const parts = [`<span class="dco-money${cod.due ? '' : ' is-zero'}">💰 مستحق التحصيل <b>${esc(dcoMoney(cod.due, cod.currency))}</b>`
+  const parts = [`<span class="dco-money${cod.due ? '' : ' is-zero'}">💰 مستحق التحصيل <b>${esc(ecoMoney(cod.due, cod.currency))}</b>`
                + ` <span style="opacity:.7">(${cod.dueCount} أوردر)</span>${filtered}</span>`];
   if (cod.prepaidCount) parts.push(`<span class="fchip" style="cursor:default">مدفوع مقدمًا <b>${cod.prepaidCount}</b></span>`);
   if (cod.unknownCount) parts.push(`<span class="fchip qc-flag" style="cursor:default">حالة مالية مش معروفة <b>${cod.unknownCount}</b></span>`);
@@ -3041,10 +3043,10 @@ function qVisible() {
 // المربع مولّع لما **كل** قيم مجموعته مختارة — نفس منطق `pack.html`.
 function qChipValues(key) {
   if (key === 'flag') return ['محتاجة مراجعة'];
-  const g = DCO_COURIER_GROUPS.find(x => x.key === key);
+  const g = ECO_COURIER_GROUPS.find(x => x.key === key);
   if (!g) return [];
   return qMsState.courier.items.map(i => i.value)
-    .filter(v => dcoCourierGroup(v === '— بلا مندوب' ? null : v) === key);
+    .filter(v => ecoCourierGroup(v === '— بلا مندوب' ? null : v) === key);
 }
 function qChipFilterKey(key) { return key === 'flag' ? 'flag' : 'courier'; }
 function qChipActive(key) {
@@ -3067,7 +3069,7 @@ function qChipClick(key) {
 // ⚠️ **`financeCell` اتشالت** مع عمود «الإجمالي» (طلب أحمد 16-09-2026) —
 //    دالة بلا مستهلك = كود ميت، مش «احتياط».
 //    🔴 **والفلوس ما ضاعتش**: «مستحق التحصيل» فوق الطابور لسه بيتحسب من
-//       `dcoCod` على **نفس** `o.total`/`o.financial`، وبيقول المدفوع
+//       `ecoCod` على **نفس** `o.total`/`o.financial`، وبيقول المدفوع
 //       مقدمًا والحالة المالية المجهولة بعددهم. اللي اتشال هو **العمود**
 //       — الرقم اللي المحطة بتشتغل عليه لسه معروض.
 // 🔴 **عمود «العميل» — سطران بالكتير** (v1.9.0 · طلب أحمد 17-09-2026).
@@ -3179,7 +3181,7 @@ function qRender0() {
     //    محايد بيقول نفس اللي التاريخ الفاضي جنبه بيقوله**، وبادج بلا
     //    درجة وسط عمود كله بادجات ملوّنة بيسحب العين لأقل صف أهمية.
     //    ⚠️ والمعلومة ما ضاعتش: الخلية كلها بقت `—`.
-    const since = o.packedAt ? dcoWaiting(o.packedAt, now) : null;
+    const since = o.packedAt ? ecoWaiting(o.packedAt, now) : null;
     // ⚠️ **اسم المندوب زي ما هو من غير سطر المجموعة تحته** (طلب أحمد
     //    16-09-2026). المجموعة (بوسطة/شو روم/مناديب) بقت معروضة في
     //    **مربعات الفلتر فوق الطابور** بعددها، وتكرارها تحت كل اسم كان
@@ -3240,7 +3242,7 @@ async function qLoad(silent) {
   try {
     const data = await apiGet('__ACTION__');
     // 🔴 **المصدر الوحيد للاشتقاق** — الـ shell، مش الصفحة.
-    qState.rows      = dcoQueueRows(data.orders || [], Q_STATUS, Q_KIND);
+    qState.rows      = ecoQueueRows(data.orders || [], Q_STATUS, Q_KIND);
     qState.at        = new Date();
     qState.failed    = false;
     qState.truncated = !!data.truncated;
@@ -3303,14 +3305,14 @@ setInterval(() => {
   document.querySelectorAll('#qBody [data-q-age]').forEach(el => {
     const iso = el.dataset.qAge;
     if (!iso) return;
-    const age = dcoOrderAge(iso, now);
+    const age = ecoOrderAge(iso, now);
     el.className = `time-badge age-badge ${age.cls}`;
     el.textContent = age.text;
   });
   document.querySelectorAll('#qBody [data-q-pack]').forEach(el => {
     const iso = el.dataset.qPack;
     if (!iso) return;
-    const s = dcoWaiting(iso, now);
+    const s = ecoWaiting(iso, now);
     el.className = `time-badge ${s.cls}`;
     el.textContent = s.text;
   });
@@ -3322,10 +3324,10 @@ async function renderAboutWorkers() {
   const box = document.getElementById('aboutWorkers');
   if (!box) return;
   const rows = await Promise.all(PAGE_WORKERS.map(async k => {
-    const w = DCO_WORKERS[k];
+    const w = ECO_WORKERS[k];
     let got = '—', mark = '⏳';
     try {
-      const cfg = await dcoApi(w).apiGet('get_config');
+      const cfg = await ecoApi(w).apiGet('get_config');
       got = cfg.version || cfg.WORKER_VERSION || '—';
       mark = cmpVersion(got, w.min) < 0 ? '⚠️' : '✅';
     } catch { mark = '❌'; got = 'تعذّر الوصول'; }
@@ -3340,7 +3342,7 @@ __AUDIT_JS__
 // ══════════════════════════════════════════════════════════════
 // §INIT — التحميل (الجلسة اتأكدت فوق)
 // ══════════════════════════════════════════════════════════════
-document.getElementById('headerMount').innerHTML = dcoHeader({
+document.getElementById('headerMount').innerHTML = ecoHeader({
   icon: '__ICON__', title: '__TITLE__', subtitle: '__SUBTITLE__', session,
 });
 renderVersionUI();                 // بعد ما الهيدر يتحقن — زرار النسخة جوّاه
@@ -3352,7 +3354,7 @@ renderAboutWorkers();
 (function drawFromCache() {
   const c = cacheGet(__CACHE__);
   if (!c || !c.data || !Array.isArray(c.data.orders)) return;
-  qState.rows      = dcoQueueRows(c.data.orders, Q_STATUS, Q_KIND);
+  qState.rows      = ecoQueueRows(c.data.orders, Q_STATUS, Q_KIND);
   qState.at        = new Date(c.at);
   qState.truncated = !!c.data.truncated;
   qState.minDay    = c.data.minCreatedDay || null;

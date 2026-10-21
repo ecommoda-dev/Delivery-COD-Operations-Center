@@ -298,7 +298,7 @@
          🔴 **الرقم بيعدّ الأوردرات اللي حالتها `Ready`** في أي من
             الماكينتين: الشحنة الأصلية (`custom.manual_status`) أو دورة
             الاستبدال/الاسترجاع (`custom.status_2_r_e`).
-         🔴 **والعدّ بيعدّي على `dcoQueueRows` في `shared/shell.js`
+         🔴 **والعدّ بيعدّي على `ecoQueueRows` في `shared/shell.js`
             §QUEUE-RULES** — **نفس** الدالة اللي `Ready-Orders.html` بتبني
             بيها القايمة، على **نفس** رد الـ endpoint. ⛔ ممنوع أي حساب
             هنا: نسخة تانية من القاعدة = الرقم هنا يخالف القايمة هناك،
@@ -656,7 +656,7 @@
         </div>
         <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>📮 <b>«مستقبل حالة شحنات بوسطة» بقى صف رابع في «قسم الحالات الانتقالية»</b> (طلب أحمد) بنفس تصميم وسلوك الصفوف التلاتة: رقم كبير = <b>أرقام التتبع تحت التوصيل</b> · مربعات المحاولات + 🔁 In-Return · «آخر تحديث منذ:» · زرار تحديث يدوي · كاش ١٠ دقايق. والكارت اتشال من «أدوات أخرى».</span></li>
-          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 الرقم من <code>queue_summary</code> الجديد في الـ Worker (عدّ مجمّع بـ SQL — مش سحب آلاف الأحداث)، فـ<b>Worker «مستقبل حالة بوسطة» لازم يكون <code>1.9.0</code> فأعلى</b> (<code>DCO_WORKERS.bostaWebhook.min</code>). وصفحة الأداة بتكتب نفس الكاش عند كل تحميل.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>🔴 الرقم من <code>queue_summary</code> الجديد في الـ Worker (عدّ مجمّع بـ SQL — مش سحب آلاف الأحداث)، فـ<b>Worker «مستقبل حالة بوسطة» لازم يكون <code>1.9.0</code> فأعلى</b> (<code>ECO_WORKERS.bostaWebhook.min</code>). وصفحة الأداة بتكتب نفس الكاش عند كل تحميل.</span></li>
         </ul>
       </div>
       <div class="cl-version-block">
@@ -971,8 +971,10 @@
 <div id="sharedMount"></div>
 
 <!-- 🔴 نسخة واحدة مضمّنة — ممنوع محتوى الملف ده يتنسخ هنا -->
-<script src="shared/shell.js"></script>
-<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 <script>
 // ══════════════════════════════════════════════════════════════
 // §PAGE — index.html
@@ -982,7 +984,7 @@
 //    باقي الصفحات بتنادي الحارس في أول سطر عندها.
 
 // الدخول على Worker الهب نفسه — عايش في **نفس الريبو** (`index.js`)
-const { apiGet, apiPost } = dcoApi(DCO_WORKERS.auth);
+const { apiGet, apiPost } = ecoApi(ECO_WORKERS.auth);
 
 // ⚠️ القايمة دي بتغذّي **حارس النسخة و🩺 فحص النظام** كمان — Worker مش
 //    فيها بيختفي من الفحص خالص. والفحص من الشاشة الرئيسية هو الفحص الشامل.
@@ -1194,7 +1196,7 @@ async function finishLogin(username, displayName, logged) {
 //    دقيقة). الهدف تخفيف الضغط على الـ Workers (وحد استعلامات شوبيفاي اللي
 //    وراهم). الرقم بيتجدّد في تلات حالات بس:
 //    ① **الموظف داس «تحديث»** على الصف.
-//    ② **فتح الرئيسية والكاش أقدم من `DCO_CACHE_TTL_MS` (١٠ دقايق)** أو
+//    ② **فتح الرئيسية والكاش أقدم من `ECO_CACHE_TTL_MS` (١٠ دقايق)** أو
 //       مش موجود — والأحدث من كده بيترسم من الكاش **بصفر نداء**. من غير ده
 //       الرجوع بـ 🏠 من أي أداة كان بيعمل ٥ نداءات كل مرة (الهب reload كامل).
 //    ③ **صفحة الطابور جابت** — بتكتب نفس الكاش، فالرئيسية بتاخد رقمها ببلاش.
@@ -1206,22 +1208,22 @@ async function finishLogin(username, displayName, logged) {
 //    تحديث منذ:» ولون زرار التحديث. السلّم من `agoInfo` في الـ shell.
 //
 // ⚠️ حالة **لكل طابور لوحده** — Workers مستقلين، وواحد ممكن يقع والتاني ينجح.
-const DCO_TICK_MS = 30 * 1000;
+const ECO_TICK_MS = 30 * 1000;
 
 // تعريف كل طابور: الـ IDs بتاعته + إزاي بيتجاب + إزاي بيتقري من الكاش.
-// 🔴 **الاشتقاق كله من `shared/shell.js` §QUEUE-RULES** — `dcoQueueRows`
-//    و`dcoChips` و`dcoCod`. الصفحة بتنادي **نفس** الدوال على **نفس** الرد،
+// 🔴 **الاشتقاق كله من `shared/shell.js` §QUEUE-RULES** — `ecoQueueRows`
+//    و`ecoChips` و`ecoCod`. الصفحة بتنادي **نفس** الدوال على **نفس** الرد،
 //    فمستحيل الرقم هنا يخالف القايمة هناك (درس R1).
 //    ⛔ ممنوع أي `filter` أو `map` بقاعدة أهلية في الملف ده.
 // ⚠️ `derive` واحدة للجلب وللكاش — نسختين كانوا هيخلّوا الرقم من الكاش
 //    يخالف الرقم من الشبكة لنفس الرد.
 function deriveQueue(data, status, kind) {
-  const rows = dcoQueueRows(data.orders || [], status, kind);
-  return { total: rows.length, chips: dcoChips(rows), truncated: !!data.truncated };
+  const rows = ecoQueueRows(data.orders || [], status, kind);
+  return { total: rows.length, chips: ecoChips(rows), truncated: !!data.truncated };
 }
-// 🔴 الكاش بيتقري **بس لو عمره أقل من `DCO_CACHE_TTL_MS`** — أقدم من كده =
+// 🔴 الكاش بيتقري **بس لو عمره أقل من `ECO_CACHE_TTL_MS`** — أقدم من كده =
 //    جلب جديد. ⚠️ وعمر سالب (ساعة الجهاز اترجعت) = مش موثوق = جلب.
-const cacheFresh = c => !!c && c.ageMs >= 0 && c.ageMs < DCO_CACHE_TTL_MS;
+const cacheFresh = c => !!c && c.ageMs >= 0 && c.ageMs < ECO_CACHE_TTL_MS;
 
 const BOSTA_MODES = [
   { key: 's1',       label: '🚚 شحن عادي', cls: 'qc-job-s1' },
@@ -1239,15 +1241,15 @@ const HOME_QUEUES = {
     ids: { row:'rowReady', count:'cntReady', chips:'chipsReady', money:'moneyReady', fail:'failReady',
            ago:'agoReady', stamp:'stampReady', btn:'btnReady' },
     async fetch() {
-      const data = await dcoApi(DCO_WORKERS.ready).apiGet('get_ready_queue');
+      const data = await ecoApi(ECO_WORKERS.ready).apiGet('get_ready_queue');
       // ⚠️ الكاش بيتكتب بالرد **الخام** زي ما جه — الصفحة بتشتق منه
       //    بنفسها بنفس الدوال. كاش مشتق كان هيخلّي أي تعديل في القاعدة
       //    يسيب بيانات قديمة بشكل قديم في الجلسة.
-      cacheSet(DCO_CACHE_READY, data);
+      cacheSet(ECO_CACHE_READY, data);
       return deriveQueue(data, 'Ready', 'ready');
     },
     fromCache() {
-      const c = cacheGet(DCO_CACHE_READY);
+      const c = cacheGet(ECO_CACHE_READY);
       if (!cacheFresh(c) || !Array.isArray(c.data.orders)) return null;
       return { at: new Date(c.at), r: deriveQueue(c.data, 'Ready', 'ready') };
     },
@@ -1257,12 +1259,12 @@ const HOME_QUEUES = {
     ids: { row:'rowShipped', count:'cntShipped', chips:'chipsShipped', money:'moneyShipped', fail:'failShipped',
            ago:'agoShipped', stamp:'stampShipped', btn:'btnShipped' },
     async fetch() {
-      const data = await dcoApi(DCO_WORKERS.shipped).apiGet('get_shipped_queue');
-      cacheSet(DCO_CACHE_SHIPPED, data);
+      const data = await ecoApi(ECO_WORKERS.shipped).apiGet('get_shipped_queue');
+      cacheSet(ECO_CACHE_SHIPPED, data);
       return deriveQueue(data, 'Shipped', 'shipped');
     },
     fromCache() {
-      const c = cacheGet(DCO_CACHE_SHIPPED);
+      const c = cacheGet(ECO_CACHE_SHIPPED);
       if (!cacheFresh(c) || !Array.isArray(c.data.orders)) return null;
       return { at: new Date(c.at), r: deriveQueue(c.data, 'Shipped', 'shipped') };
     },
@@ -1278,7 +1280,7 @@ const HOME_QUEUES = {
     ids: { row:'rowBosta', count:'cntBosta', chips:'chipsBosta', money:'moneyBosta', fail:'failBosta',
            ago:'agoBosta', stamp:'stampBosta', btn:'btnBosta' },
     async fetch() {
-      const api = dcoApi(DCO_WORKERS.bostaUpload);
+      const api = ecoApi(ECO_WORKERS.bostaUpload);
       const s = getSession();
       const get = {
         s1:       () => api.apiGet('get_orders'),
@@ -1307,7 +1309,7 @@ const HOME_QUEUES = {
     },
   },
   // 🔴 «مستقبل حالة بوسطة» — `queue_summary` (عدّ مجمّع في الـ Worker v1.9.0). الكاش بيتخزّن بالرد
-  //    **الخام** و`dcoWebhookDerive` (الـ shell) بتشتق منه — وصفحة الأداة بتكتب **نفس الشكل**
+  //    **الخام** و`ecoWebhookDerive` (الـ shell) بتشتق منه — وصفحة الأداة بتكتب **نفس الشكل**
   //    في نفس المفتاح بعد كل تحميل، فالرئيسية بتاخد رقمها ببلاش.
   webhook: {
     err: 'تعذّر جلب ملخّص متابعة شحنات بوسطة',
@@ -1315,32 +1317,32 @@ const HOME_QUEUES = {
     ids: { row:'rowWebhook', count:'cntWebhook', chips:'chipsWebhook', money:'moneyWebhook', fail:'failWebhook',
            ago:'agoWebhook', stamp:'stampWebhook', btn:'btnWebhook' },
     async fetch() {
-      const data = await dcoApi(DCO_WORKERS.bostaWebhook).apiGet('queue_summary');
-      cacheSet(DCO_CACHE_WEBHOOK, data);
-      return dcoWebhookDerive(data);
+      const data = await ecoApi(ECO_WORKERS.bostaWebhook).apiGet('queue_summary');
+      cacheSet(ECO_CACHE_WEBHOOK, data);
+      return ecoWebhookDerive(data);
     },
     fromCache() {
-      const c = cacheGet(DCO_CACHE_WEBHOOK);
+      const c = cacheGet(ECO_CACHE_WEBHOOK);
       if (!cacheFresh(c) || !c.data.main) return null;
-      return { at: new Date(c.at), r: dcoWebhookDerive(c.data) };
+      return { at: new Date(c.at), r: ecoWebhookDerive(c.data) };
     },
   },
   // 🔴 «متابعة التأجيلات» — `queue_summary` من `bosta-delivery-follow-up-worker`. الكاش بالرد **الخام**
-  //    و`dcoFollowUpDerive` (الـ shell) بتشتق منه — وصفحة الأداة بتكتب نفس الشكل بعد كل تحميل.
+  //    و`ecoFollowUpDerive` (الـ shell) بتشتق منه — وصفحة الأداة بتكتب نفس الشكل بعد كل تحميل.
   followUp: {
     err: 'تعذّر جلب ملخّص متابعة التأجيلات',
     unit: 'شحنة',
     ids: { row:'rowFollowUp', count:'cntFollowUp', chips:'chipsFollowUp', money:'moneyFollowUp', fail:'failFollowUp',
            ago:'agoFollowUp', stamp:'stampFollowUp', btn:'btnFollowUp' },
     async fetch() {
-      const data = await dcoApi(DCO_WORKERS.deliveryFollowUp).apiGet('queue_summary');
-      cacheSet(DCO_CACHE_FOLLOWUP, data);
-      return dcoFollowUpDerive(data);
+      const data = await ecoApi(ECO_WORKERS.deliveryFollowUp).apiGet('queue_summary');
+      cacheSet(ECO_CACHE_FOLLOWUP, data);
+      return ecoFollowUpDerive(data);
     },
     fromCache() {
-      const c = cacheGet(DCO_CACHE_FOLLOWUP);
+      const c = cacheGet(ECO_CACHE_FOLLOWUP);
       if (!cacheFresh(c) || typeof c.data.unsent !== 'number') return null;
-      return { at: new Date(c.at), r: dcoFollowUpDerive(c.data) };
+      return { at: new Date(c.at), r: ecoFollowUpDerive(c.data) };
     },
   },
 };
@@ -1358,7 +1360,7 @@ function showHome() {
   const s = getSession();
   if (!s) return;
   document.getElementById('loginOverlay').classList.add('hidden');
-  document.getElementById('headerMount').innerHTML = dcoHeader({
+  document.getElementById('headerMount').innerHTML = ecoHeader({
     icon: '🚚', title: 'مركز عمليات الشحن والتحصيل', subtitle: 'EcomModa — محطة الشحن',
     home: false,          // ⚠️ إحنا **في** الشاشة الرئيسية
     session: s,
@@ -1481,7 +1483,7 @@ function setRefreshing(key, on) {
 //    **الحاجة الوحيدة** اللي بتقول إن الرقم قدم.
 // ⚠️ المرحلة (اللون) من `agoInfo` في `shared/shell.js` §HELPERS — **ممنوع
 //    سلّم تاني هنا**. اللي بيتحسب هنا هو **الدقايق** (للنص الكبير والشريط).
-const DCO_CLOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const ECO_CLOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
 function ageValueHtml(mins) {
   if (mins < 1)  return '<b>لحظات</b>';
   if (mins < 60) return `<b>${mins}</b>${mins >= 3 && mins <= 10 ? 'دقايق' : 'دقيقة'}`;
@@ -1535,7 +1537,7 @@ function renderFreshness(now = Date.now()) {
     const iso = q.at ? q.at.toISOString() : null;
     const p = iso ? cairoParts(iso) : null;
     const stampEl = document.getElementById(ids.stamp);
-    stampEl.innerHTML = p ? DCO_CLOCK_SVG + esc(_ampm(p)) : '—';
+    stampEl.innerHTML = p ? ECO_CLOCK_SVG + esc(_ampm(p)) : '—';
     stampEl.closest('.dco-agebox').title = p ? `آخر تحديث ${formatDate(iso)} ${_ampm(p)}` : '';
   });
   renderSummary(now);
@@ -1544,20 +1546,20 @@ function renderFreshness(now = Date.now()) {
 // ─── النبضة — أرقام محسوبة محليًا، **صفر نداء شبكة** ───
 function startHomeTicker() {
   if (homeTickTimer) return;
-  homeTickTimer = setInterval(() => renderFreshness(), DCO_TICK_MS);
+  homeTickTimer = setInterval(() => renderFreshness(), ECO_TICK_MS);
 }
 
-// ⚠️ الحلقة دي مكرّرة في التلات صفحات **عن قصد**: `DCO_WORKERS` و`cmpVersion`
+// ⚠️ الحلقة دي مكرّرة في التلات صفحات **عن قصد**: `ECO_WORKERS` و`cmpVersion`
 //    في الـ shell، بس فحص Step 9 بيطلب وجود الاسمين في كل صفحة، والقايمة
 //    نفسها (`PAGE_WORKERS`) بتفرق من صفحة للتانية.
 async function renderAboutWorkers() {
   const box = document.getElementById('aboutWorkers');
   if (!box) return;
   const rows = await Promise.all(PAGE_WORKERS.map(async k => {
-    const w = DCO_WORKERS[k];
+    const w = ECO_WORKERS[k];
     let got = '—', mark = '⏳';
     try {
-      const cfg = await dcoApi(w).apiGet('get_config');
+      const cfg = await ecoApi(w).apiGet('get_config');
       got = cfg.version || cfg.WORKER_VERSION || '—';
       mark = cmpVersion(got, w.min) < 0 ? '⚠️' : '✅';
     } catch { mark = '❌'; got = 'تعذّر الوصول'; }

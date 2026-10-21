@@ -1625,7 +1625,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
         <div class="about-sec-body">
           <h4>FEATURE MAP</h4>
           <ul>
-            <li><code>§CONFIG</code> — <code>DCO_WORKERS.bostaUpload</code> (بدل <code>WORKER_URL</code> المحلي) · <code>apiGet</code>/<code>apiPost</code>/<code>apiRequest</code> (المهلة الصفرية على الرفع لسه زي ما هي) · <code>orderLink()</code> · <code>trackingLink()</code> (رقم التتبع → داشبورد بوسطة، مصدر واحد للتلات شاشات)</li>
+            <li><code>§CONFIG</code> — <code>ECO_WORKERS.bostaUpload</code> (بدل <code>WORKER_URL</code> المحلي) · <code>apiGet</code>/<code>apiPost</code>/<code>apiRequest</code> (المهلة الصفرية على الرفع لسه زي ما هي) · <code>orderLink()</code> · <code>trackingLink()</code> (رقم التتبع → داشبورد بوسطة، مصدر واحد للتلات شاشات)</li>
             <li><code>§SHELL-JS</code> — <strong>اتشالت غالبيتها لصالح <code>shared/shell.js</code></strong> (الإعدادات · النسخة · التوست · الفورماترز · حارس نسخة الـ Worker · الفحص الذاتي). اللي فضل هنا لأنه خاص بالصفحة دي بس: <strong>Freeze on Scroll</strong> (چيب التابات وقت التمرير) و<code>toCairo</code>/<code>cairoOffsetMinutes</code> (فلتر «فترة سريعة» — مالهمش مقابل في الـ shell).</li>
             <li><code>§AUTH-JS</code> — <strong>اتشالت من الصفحة دي بالكامل</strong> — بقى في <code>index.html</code> بتاع المركز (<code>requireSession()</code> في <code>shared/shell.js</code> §SESSION)</li>
             <li><code>§TOOL-JS::filters</code> — سجل الـ multi-select الموحّد للجدولين (<code>owner</code> بيوجّه التغيير للجدول الصح)</li>
@@ -1642,7 +1642,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
           <ul>
             <li><code>currentEmployee</code> — <code>{ username, displayName }</code> في الذاكرة فقط، مش في التخزين</li>
             <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في <code>shared/shell.js</code>) — <strong>مفتاح الـ localStorage الوحيد اللي فيه بيانات حسّاسة</strong> (جنبه عروض الأعمدة — تفضيل شاشة، شوف تحت)، وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك. ⚠️ المفتاح القديم <code>bosta_orders_upload_worker_secret</code> <strong>لسه مستخدم</strong> — الرابط القديم في ريبو <code>Bosta-Orders-Upload</code> لسه شغّال بشاشة دخوله وسرّه المستقل، فمحدش يفتكر إنه اتهجر.</li>
-            <li><code>DCO_WORKERS.bostaUpload.min</code> (في <code>shared/shell.js</code>) — بدل <code>MIN_WORKER_VERSION</code>/<code>TOOL_VERSION</code> المحليين؛ نسخة الواجهة بقت نسخة الهب (#24)</li>
+            <li><code>ECO_WORKERS.bostaUpload.min</code> (في <code>shared/shell.js</code>) — بدل <code>MIN_WORKER_VERSION</code>/<code>TOOL_VERSION</code> المحليين؛ نسخة الواجهة بقت نسخة الهب (#24)</li>
             <li><code>UPLOAD_CHUNK = 10</code> — حجم الدفعة من الواجهة (الـ Worker سقفه ٢٥)</li>
             <li><code>allRows</code> · <code>selected</code> · <code>districtOverride</code> — بيانات الجدول والتحديد والاختيار اليدوي</li>
           </ul>
@@ -2338,8 +2338,10 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 <!-- مودال الإعدادات + حاوية التوست — بيتحقنوا من الـ shell -->
 <div id="sharedMount"></div>
 
-<script src="shared/shell.js"></script>
-<script>document.getElementById('sharedMount').innerHTML = dcoSharedModals();</script>
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -2348,15 +2350,15 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 // 🔴 أول سطر — بوابة الجلسة. requireSession() بترمي عن قصد لو مفيش جلسة:
 //    من غير الرمي باقي السكربت بيكمّل تنفيذ وبينادي الـ Worker أثناء ما
 //    التحويل شغّال. (نفس نمط باقي أدوات المركز.)
-const dcoSession = requireSession();
+const ecoSession = requireSession();
 
 // ⛔ TOOL_VERSION · WORKER_URL · LS_SECRET اتشالوا — بقوا:
-//    TOOL_VERSION  → DCO_WORKERS.bostaUpload.min (شرح أسباب 2.11.0 في shared/shell.js)
-//    WORKER_URL    → DCO_WORKERS.bostaUpload.url
+//    TOOL_VERSION  → ECO_WORKERS.bostaUpload.min (شرح أسباب 2.11.0 في shared/shell.js)
+//    WORKER_URL    → ECO_WORKERS.bostaUpload.url
 //    LS_SECRET     → سر مجموعة delivery_cod_ops المشترك (getSecret()/isConfigured() من الـ shell)
 //    وشرطه مذكور بالاسم: bosta-orders-upload-worker لازم يكون اتضمّ للمجموعة
 //    (WORKER_SECRET اتدوّر لقيمة المجموعة من داشبورد كلاودفلير) — قبل الضم
-//    كل نداء هنا بيرجّع 401، ورسالة dcoApi بتسمّي الأداة فالموظف مايدوّرش.
+//    كل نداء هنا بيرجّع 401، ورسالة ecoApi بتسمّي الأداة فالموظف مايدوّرش.
 const SHOP_DOMAIN        = '6c7e1a-53.myshopify.com';
 
 // الفحص الذاتي وحارس النسخة بيمشوا على الـ Worker ده بس.
@@ -2469,7 +2471,7 @@ const NO_TIMEOUT_ACTIONS = new Set(['upload', 'upload_re', 'confirm_upload']);
 
 async function apiPost(action, body = {}) {
   if (!isConfigured()) { openSettings(); throw new Error('الإعدادات غير مكتملة'); }
-  return apiRequest(`${DCO_WORKERS.bostaUpload.url.replace(/\/$/, '')}?action=${action}`, {
+  return apiRequest(`${ECO_WORKERS.bostaUpload.url.replace(/\/$/, '')}?action=${action}`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getSecret()}` },
     body:    JSON.stringify(body),
@@ -2478,7 +2480,7 @@ async function apiPost(action, body = {}) {
 async function apiGet(action, params = {}) {
   if (!isConfigured()) { openSettings(); throw new Error('الإعدادات غير مكتملة'); }
   const qs = new URLSearchParams({ action, ...params });
-  return apiRequest(`${DCO_WORKERS.bostaUpload.url.replace(/\/$/, '')}?${qs}`, {
+  return apiRequest(`${ECO_WORKERS.bostaUpload.url.replace(/\/$/, '')}?${qs}`, {
     headers: { 'Authorization': `Bearer ${getSecret()}` },
   });
 }
@@ -2796,7 +2798,7 @@ document.addEventListener('click', (e) => {
 //    sessionStorage تحت dco_session. صف الدخول بقى بيتكتب باسم المركز
 //    (delivery_cod_ops_center) مش bosta_orders_upload — لكن صفوف الرفع
 //    (uploaded/upload_re_*/…) لسه فيها اسم الموظف زي ما هو.
-let currentEmployee = { username: dcoSession.username, displayName: dcoSession.displayName };
+let currentEmployee = { username: ecoSession.username, displayName: ecoSession.displayName };
 
 // ══════════════════════════════════════════════════════════════
 // §TOOL-JS
@@ -6697,11 +6699,11 @@ async function loadEmployeeFilterOptions() {
 // ══════════════════════════════════════════════════════════════
 // Init
 // ══════════════════════════════════════════════════════════════
-document.getElementById('headerMount').innerHTML = dcoHeader({
+document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '🚚',
   title:    'رفع بوسطة',
   subtitle: 'شحن · استرجاع · استبدال — كل شحنات بوسطة من مكان واحد',
-  session:  dcoSession,
+  session:  ecoSession,
   extras: `
     <div class="active-tab-chip" id="activeTabChip" onclick="toggleTabChipMenu(event)">
       <span id="activeTabChipLabel">🚚 الرفع</span><span class="chip-arrow">▾</span>
@@ -6729,7 +6731,7 @@ measureSticky();
 checkWorkerVersion(PAGE_WORKERS);
 
 // ⛔ loadEmployeesList() اتشالت مع شاشة الدخول — الجلسة جاهزة من أول
-//    سطر (dcoSession)، فالتحميل بيبدأ على طول بدل ما يستنى اختيار موظف.
+//    سطر (ecoSession)، فالتحميل بيبدأ على طول بدل ما يستنى اختيار موظف.
 loadEmployeeFilterOptions();
 // 🔴 عدّادَي الوضعين التانيين بيتجابوا في الخلفية بعد ما الوضع الافتراضي
 //    (شحن عادي) يخلص تحميله — بلا ما يأخّروا أول رسم للجدول (طلب أحمد

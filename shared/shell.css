@@ -591,8 +591,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary)
 .dco-agebox-time svg{width:11px;height:11px;opacity:.7}
 .dco-agebox-val>span{white-space:nowrap}
 /* وقت التحديث: الشريط بيتحرك رايح جاي بالأزرق، والمربع بيكمّل بلونه */
-.dco-qrow.is-loading .dco-agebar i{width:35%;background:var(--accent);animation:dcoIndet 1.1s ease-in-out infinite}
-@keyframes dcoIndet{from{margin-inline-start:-35%}to{margin-inline-start:100%}}
+.dco-qrow.is-loading .dco-agebar i{width:35%;background:var(--accent);animation:ecoIndet 1.1s ease-in-out infinite}
+@keyframes ecoIndet{from{margin-inline-start:-35%}to{margin-inline-start:100%}}
 
 /* زرار التحديث — أيقونة كبيرة وتحتها الكلمة، **بلون مرحلة العمر**، ومن
    غير بادج الرقم (كان تكرار للرقم الكبير جنبه). */

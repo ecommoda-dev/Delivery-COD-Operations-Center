@@ -36,9 +36,9 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 
 // نسخة الهب — مصدر واحد (#24)
-const SHELL_JS = read('shared/shell.js');
+const SHELL_JS = ['hub-config.js', 'core.js', 'dco-rules.js'].map(f => read('shared/' + f)).join('\n');
 const HUB_VERSION = (SHELL_JS.match(/const TOOL_VERSION\s*=\s*'([^']+)'/) || [])[1];
-if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION من shared/shell.js'); process.exit(1); }
+if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION من shared/hub-config.js'); process.exit(1); }
 
 // 🔴 **الأداتين والعقد المتوقّع لكل واحدة.** القايمة دي هي اللي البنود
 //    بتمشي عليها — إضافة أداة تالتة للمركز معناها سطر هنا، مش نسخ كتلة.
@@ -338,7 +338,7 @@ for (const t of TOOLS) {
   // مودال الإعدادات والتوست **بيتحقنوا من الـ shell** — نسخة تانية في
   // الصفحة معناها مودالين بنفس الـ id، والتاني بيفوز في صمت.
   is(await page.$$eval('#settingsOverlay', n => n.length) === 1,
-     `${t.page}: مودال إعدادات **واحد** — متحقون من \`dcoSharedModals()\``);
+     `${t.page}: مودال إعدادات **واحد** — متحقون من \`ecoSharedModals()\``);
   is(await page.$$eval('#toastContainer', n => n.length) === 1,
      `${t.page}: وحاوية توست واحدة`);
   is((await page.textContent('#settingsOverlay')).includes('delivery_cod_ops'),
@@ -540,10 +540,10 @@ for (const t of TOOLS) {
 // 🔴 رسالة المهلة (٩٠ث): «راجع السجل قبل ما تعيد» — مش «جرّب تاني». الأدوات بتكتب، و«ما ردّش» ≠ «ما اتنفّذش».
 //    (المهلة نفسها طويلة على الاختبار، فالبند بيقرا نص الـ shell — الرسالة بتتولّد في مكان واحد.)
 {
-  const shellSrc = read('shared/shell.js');
+  const shellSrc = read('shared/core.js');
   const m = shellSrc.match(/ما ردّش خلال[^`]*`/);
   is(!!m && m[0].includes('راجع السجل قبل ما تعيد المحاولة') && !m[0].includes('جرّب تاني'),
-     'رسالة مهلة dcoApi بتقول «راجع السجل قبل ما تعيد المحاولة» ومش «جرّب تاني»', m && m[0]);
+     'رسالة مهلة ecoApi بتقول «راجع السجل قبل ما تعيد المحاولة» ومش «جرّب تاني»', m && m[0]);
 }
 
 // ══════════════════════════════════════════════════════════════
