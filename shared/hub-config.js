@@ -208,7 +208,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.52.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.53.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -266,19 +266,20 @@ const SHOP_HANDLE  = '6c7e1a-53';
 const ECO_SESSION_KEY   = 'dco_session';
 const ECO_CACHE_READY   = 'dco_queue_ready';
 const ECO_CACHE_SHIPPED = 'dco_queue_shipped';
-const ECO_CACHE_BOSTA   = 'dco_queue_bosta';    // عدّادات «رفع بوسطة» التلاتة (v1.38.0)
+const ECO_CACHE_BOSTA_UPLOAD = 'dco_queue_bosta';    // عدّادات «رفع بوسطة» التلاتة (v1.38.0)
 const ECO_CACHE_WEBHOOK = 'dco_queue_webhook';  // ملخّص «مستقبل حالة بوسطة» — رد `queue_summary` خام (v1.39.0)
 const ECO_CACHE_FOLLOWUP = 'dco_queue_followup'; // ملخّص «متابعة التأجيلات» — رد `queue_summary` خام (v1.44.0)
 const ECO_IDLE_KEY      = 'dco_last_activity';  // §IDLE — آخر نشاط (sessionStorage، لكل تاب لوحده)
 
 // 🔴 إعداد الـ core لهب الشحن والتحصيل — الحقول دي هي كل اللي الـ core بيقراه عن الهب.
 const ECO_HUB = {
+  name: 'مركز عمليات الشحن والتحصيل',   // بيتكتب في عنوان تاب الصفحات المتطابقة بين الهبّين (Bosta-Orders-Upload.html)
   icon: '🚚',                       // الأيقونة الافتراضية للهيدر
   // مفاتيح sessionStorage اللي بتتمسح مع الخروج (الجلسة وآخر نشاط بيتمسحوا في الـ core)
   // ⚠️ `dco_audit_ready` (حالة جرد المكتب) **مش** هنا عن قصد — مش بيانات حساسة،
   //    وبتتحمّل ساعات شغل (Standards #52 · multi-page-hub § ٩).
   clearKeys: [
-    ECO_CACHE_READY, ECO_CACHE_SHIPPED, ECO_CACHE_BOSTA, ECO_CACHE_WEBHOOK, ECO_CACHE_FOLLOWUP,
+    ECO_CACHE_READY, ECO_CACHE_SHIPPED, ECO_CACHE_BOSTA_UPLOAD, ECO_CACHE_WEBHOOK, ECO_CACHE_FOLLOWUP,
   ],
   // الأدوات المدموجة (متولّدة/منقولة) علم الدفعة عندها اسمه معروف، فبنقراه بالاسم —
   // `let` على مستوى السكربت بيتشاف من هنا (نفس النطاق العام).

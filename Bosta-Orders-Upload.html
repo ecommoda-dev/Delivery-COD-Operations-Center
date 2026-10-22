@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>رفع بوسطة — مركز عمليات الشحن والتحصيل</title>
+<title>رفع بوسطة</title>
 <!-- skills: html-builder v8.3.1 (الجدولين فقط: #47 · #49 · #50 · #51) · constants v1.10.0 · order-lifecycle v1.3.0 · bosta-api-helper v1.1.0 — 11-10-2026 (منطق الأداة ما اتراجعش هنا — التمريرة على الجدولين بس) -->
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -13,15 +13,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <!-- ══════════════════════════════════════════════════════════════
-     🔴 الأداة دي بقت متاحة كمان جوّه هنا — منقولة من ريبو Bosta-Orders-Upload
-        المستقل (v2.22.0)، بنفس نمط دمج Order-Status-Updater.html/
-        COD-Payment-Center.html (v1.5.0) مش نمط Partial-Delivery.html
-        (v1.10.0): الرابط القديم في الريبو المستقل لسه شغّال بشاشة دخوله
-        وسرّه (السبب: ١٦ ملف اختبار هناك بتحمّل index.html بتاعه مباشرة).
-        دخول واحد من هنا (dco_session) وسر واحد لمجموعة delivery_cod_ops
-        (بقت سبعة Workers) وشِل واحد. منطق الرفع (شحن/استرجاع/استبدال)
-        ومطابقة العنوان والـ Worker نفسهم ما اتلمسوش ولا سطر — اللي اتغيّر
-        الإطار بس.
+     🔴 الصفحة دي موجودة **بنسخة متطابقة بالبايت** في هبّين: مركز عمليات الشحن
+        والتحصيل ومركز عمليات المخزن (`bash docs/bosta-upload-twin-check.sh`).
+        مفيش نص خاص بهب في الملف ده — اللي بيختلف بين الهبّين (السر · الجلسة ·
+        الكاش · اسم الهب) جاي من `shared/hub-config.js` و`shared/core.js`.
+        ⛔ أي تعديل هنا بيتعمل في الريبوهين في نفس التمريرة. منطق الرفع ومطابقة
+        العنوان والـ Worker (`bosta-orders-upload-worker`) واحد للاتنين.
      ══════════════════════════════════════════════════════════════ -->
 </head>
 <body>
@@ -1072,8 +1069,8 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
           <span class="cl-ver-date">26-09-2026</span>
         </div>
         <ul class="cl-items">
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>الأداة دي بقت متاحة كمان جوّه مركز عمليات الشحن والتحصيل</strong> (قسم أدوات العمليات). الدخول من هنا بقى <strong>مرة واحدة</strong> من الشاشة الرئيسية للمركز، والسر بقى <strong>قيمة واحدة</strong> لكل أدوات المركز (مجموعة <code>delivery_cod_ops</code>، بقت سبعة Workers). وفيه زرار <strong>🏠 الرئيسية</strong> في الهيدر بيرجّعك للمركز.</span></li>
-          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>⚠️ <strong>الرابط القديم لسه شغّال</strong> بشاشة دخوله وسرّه المستقل — نفس نمط دمج «تحديث حالة الأوردرات»/«تحصيل الأوردرات COD» (v1.5.0)، مش نمط «التسليم الجزئي» (v1.10.0): مجموعة الاختبارات الكبيرة (١٦ ملف) في الريبو المستقل بتحمّل <code>index.html</code> بتاعه مباشرة، فمسحه كان هيسيب الاختبارات بلا ملف.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>الأداة دي بقت متاحة جوّه مراكز العمليات</strong> (الشحن والتحصيل · المخزن). الدخول مرة واحدة من الشاشة الرئيسية للمركز، والسر قيمة واحدة لكل أدوات المركز، وفيه زرار <strong>🏠 الرئيسية</strong> في الهيدر.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>الرابط المستقل القديم (ريبو <code>Bosta-Orders-Upload</code>) اتشال من v1.18.0 — الريبو ده بقى Worker وبس، والواجهة موجودة في المراكز بس.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>منطق الأداة ما اتلمسش ولا سطر.</strong> نفس الـ Worker (<code>bosta-orders-upload-worker</code>) ونفس التلات أوضاع (🚚 شحن · ↩️ استرجاع · 🔄 استبدال) ونفس محرك مطابقة العنوان ونفس السجل بالظبط — اللي اتغيّر هو <strong>الإطار</strong> بس.</span></li>
         </ul>
       </div>
@@ -1519,33 +1516,15 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
     <div class="eco-modal-body">
 
       <details class="about-sec" open>
-        <summary>🏠 الأداة دي جوّه مركز الشحن والتحصيل</summary>
+        <summary>🏠 الأداة دي جوّه مراكز العمليات</summary>
         <div class="about-sec-body">
-          <p><strong>الأداة دي بقت صفحة كمان جوّه مركز عمليات الشحن والتحصيل</strong> — بنفس نمط
-             دمج «تحديث حالة الأوردرات»/«تحصيل الأوردرات COD» (v1.5.0)، مش نمط «التسليم الجزئي»
-             (v1.10.0). اللي اتغيّر بالظبط:</p>
+          <p><strong>الأداة موجودة كصفحة في مركز عمليات الشحن والتحصيل ومركز عمليات المخزن</strong> — نفس الصفحة بالبايت ونفس الـ Worker. اللي بيتشارك وبيختلف:</p>
           <ul>
-            <li><strong>الدخول من هنا مرة واحدة</strong> من الشاشة الرئيسية للمركز. الجلسة في
-                <code>sessionStorage</code> تحت <code>dco_session</code>، وبتموت بقفل التاب
-                أو بالخروج. ⚠️ ومعنى كده إن <strong>صف الدخول في D1 بيتكتب باسم المركز</strong>
-                (<code>delivery_cod_ops_center</code>) مش باسم <code>bosta_orders_upload</code> —
-                لكن كل صف رفع (<code>uploaded</code>/<code>upload_re_return</code>/…) لسه فيه اسم
-                الموظف زي ما هو.</li>
-            <li><strong>سر واحد للمركز كله</strong> (مجموعة <code>delivery_cod_ops</code>، بقت
-                <strong>سبعة</strong> Workers) بدل سر مستقل خاص بالأداة دي، وبيتلزق <strong>مرة واحدة
-                على كل جهاز</strong>.</li>
+            <li><strong>الدخول مرة واحدة</strong> من الشاشة الرئيسية للمركز. الجلسة في <code>sessionStorage</code> وبتموت بقفل التاب أو بالخروج. ⚠️ صف الدخول في D1 بيتكتب باسم المركز اللي دخلت منه — لكن كل صف رفع (<code>uploaded</code>/<code>upload_re_return</code>/…) فيه اسم الموظف، و<code>extra.via</code> بيقول الرفع جه من أنهي مركز.</li>
+            <li><strong>سر واحد للمركز كله</strong> (مجموعة سر المركز) بيتلزق مرة واحدة على كل جهاز. الـ Worker بيقبل سر كل مركز لوحده.</li>
             <li><strong>🏠 الرئيسية</strong> في الهيدر بترجّعك للمركز.</li>
-            <li>🔴 <strong>ومنطق الرفع ما اتلمسش ولا سطر</strong> — نفس الـ Worker
-                (<code>bosta-orders-upload-worker</code>) ونفس التلات أوضاع (شحن · استرجاع ·
-                استبدال) ونفس محرك مطابقة العنوان ونفس السجل بالظبط.</li>
+            <li>🔴 <strong>منطق الرفع واحد للمركزين</strong> — نفس التلات أوضاع (شحن · استرجاع · استبدال) ونفس محرك مطابقة العنوان ونفس السجل. أي فعل من أي مركز بيتسجّل في نفس السجل.</li>
           </ul>
-          <p>⚠️ <strong>والرابط القديم في ريبو <code>Bosta-Orders-Upload</code> لسه شغّال</strong>
-             بشاشة دخوله وسرّه القديم — عكس «التسليم الجزئي» وزي «تحديث حالة الأوردرات»/«تحصيل
-             الأوردرات COD» بالظبط. السبب هنا مختلف عن ليه هما فضلوا: الريبو المستقل معاه
-             <strong>مجموعة اختبارات كبيرة (١٦ ملف)</strong> بتحمّل <code>index.html</code> بتاعه
-             مباشرة (مطابقة العنوان · فلاتر الجدول · الأسماء الثنائية اللغة …)، ومسحه كان
-             هيسيب الاختبارات دي بلا ملف تقرا منه. النسختين بينادوا <strong>نفس الـ Worker</strong>،
-             فأي فعل من أي نسخة بيتسجّل في نفس السجل.</p>
         </div>
       </details>
 
@@ -1642,7 +1621,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
           <h4>KEY VARIABLES</h4>
           <ul>
             <li><code>currentEmployee</code> — <code>{ username, displayName }</code> في الذاكرة فقط، مش في التخزين</li>
-            <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في <code>shared/hub-config.js</code>) — <strong>مفتاح الـ localStorage الوحيد اللي فيه بيانات حسّاسة</strong> (جنبه عروض الأعمدة — تفضيل شاشة، شوف تحت)، وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك. ⚠️ المفتاح القديم <code>bosta_orders_upload_worker_secret</code> <strong>لسه مستخدم</strong> — الرابط القديم في ريبو <code>Bosta-Orders-Upload</code> لسه شغّال بشاشة دخوله وسرّه المستقل، فمحدش يفتكر إنه اتهجر.</li>
+            <li><code>LS_SECRET</code> (في <code>shared/hub-config.js</code> بتاع كل مركز) — <strong>مفتاح الـ localStorage الوحيد اللي فيه بيانات حسّاسة</strong> (جنبه عروض الأعمدة — تفضيل شاشة، شوف تحت)، وقيمته سر مجموعة المركز المشترك.</li>
             <li><code>ECO_WORKERS.bostaUpload.min</code> (في <code>shared/hub-config.js</code>) — بدل <code>MIN_WORKER_VERSION</code>/<code>TOOL_VERSION</code> المحليين؛ نسخة الواجهة بقت نسخة الهب (#24)</li>
             <li><code>UPLOAD_CHUNK = 10</code> — حجم الدفعة من الواجهة (الـ Worker سقفه ٢٥)</li>
             <li><code>allRows</code> · <code>selected</code> · <code>districtOverride</code> — بيانات الجدول والتحديد والاختيار اليدوي</li>
@@ -2341,7 +2320,6 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 
 <script src="shared/hub-config.js"></script>
 <script src="shared/core.js"></script>
-<script src="shared/dco-rules.js"></script>
 <script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
 
 <script>
@@ -2354,12 +2332,11 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 const ecoSession = requireSession();
 
 // ⛔ TOOL_VERSION · WORKER_URL · LS_SECRET اتشالوا — بقوا:
-//    TOOL_VERSION  → ECO_WORKERS.bostaUpload.min (شرح أسباب 2.11.0 في shared/hub-config.js)
+//    TOOL_VERSION  → ECO_WORKERS.bostaUpload.min (في shared/hub-config.js بتاع كل مركز)
 //    WORKER_URL    → ECO_WORKERS.bostaUpload.url
-//    LS_SECRET     → سر مجموعة delivery_cod_ops المشترك (getSecret()/isConfigured() من الـ shell)
-//    وشرطه مذكور بالاسم: bosta-orders-upload-worker لازم يكون اتضمّ للمجموعة
-//    (WORKER_SECRET اتدوّر لقيمة المجموعة من داشبورد كلاودفلير) — قبل الضم
-//    كل نداء هنا بيرجّع 401، ورسالة ecoApi بتسمّي الأداة فالموظف مايدوّرش.
+//    LS_SECRET     → سر مجموعة المركز المشترك (getSecret()/isConfigured() من الـ core)
+//    وشرطه: bosta-orders-upload-worker لازم يقبل سر المركز (WORKER_SECRET أو
+//    WORKER_SECRET_WAREHOUSE) — من غيره كل نداء بيرجّع 401 ورسالة ecoApi بتسمّي الأداة.
 const SHOP_DOMAIN        = '6c7e1a-53.myshopify.com';
 
 // الفحص الذاتي وحارس النسخة بيمشوا على الـ Worker ده بس.
@@ -2796,9 +2773,8 @@ document.addEventListener('click', (e) => {
 // ⛔ §AUTH-JS كلها اتشالت (قايمة الموظفين · شاشة الـ PIN · register_pin ·
 //    verify_employee · finishLogin · doLogout · updateLoginSettingsBtn) —
 //    الموظف بيدخل مرة واحدة في index.html بتاع المركز، والجلسة في
-//    sessionStorage تحت dco_session. صف الدخول بقى بيتكتب باسم المركز
-//    (delivery_cod_ops_center) مش bosta_orders_upload — لكن صفوف الرفع
-//    (uploaded/upload_re_*/…) لسه فيها اسم الموظف زي ما هو.
+//    sessionStorage. صف الدخول بقى بيتكتب باسم المركز مش bosta_orders_upload —
+//    لكن صفوف الرفع (uploaded/upload_re_*/…) لسه فيها اسم الموظف زي ما هو.
 let currentEmployee = { username: ecoSession.username, displayName: ecoSession.displayName };
 
 // ══════════════════════════════════════════════════════════════
@@ -6700,6 +6676,7 @@ async function loadEmployeeFilterOptions() {
 // ══════════════════════════════════════════════════════════════
 // Init
 // ══════════════════════════════════════════════════════════════
+document.title = 'رفع بوسطة' + (ECO_HUB.name ? ' — ' + ECO_HUB.name : '');   // اسم المركز من hub-config (الصفحة متطابقة في المركزين)
 document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '🚚',
   title:    'رفع بوسطة',
