@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تحويل الشحنة إلى بوسطة — مركز عمليات الشحن والتحصيل</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- 🔴 قاعدة الأسبقية: الـ shell أولاً، وستايل الصفحة بعده وبيغلب -->
+<link rel="stylesheet" href="shared/core.css">
+<link rel="stylesheet" href="shared/hub.css">
+
+<style>
+/* ══════════════════════════════════════════════════════
+   §STYLES — الصفحة دي بس.
+   🔴 **الصفحة دي مش متولّدة بسكربت** — الريبو المستقل (Re-Assign-Package-Zone-BOSTA)
+      Worker وبس (نفس نمط Partial-Delivery وCourier-Names). أي تعديل على الشاشة
+      بيتعمل هنا، وأي تعديل على المنطق (الأهلية · الكتابة) في الـ Worker.
+   🔴 **مفيش كتلة توكنز هنا** — كلها في shared/core.css.
+   ══════════════════════════════════════════════════════ */
+
+/* 🔴 تاب واحد بس (مفيش تاب سجل كامل) — Tier M. السطر الواحد ده هو الاستثناء المسموح. */
+:root { --container-max: 1200px; }
+
+.card h3 { margin: 0 0 12px; font-size: 15px; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.rb-sub { font-size: 12.5px; color: var(--text-secondary); margin: -6px 0 12px; }
+
+/* ── البحث / السكانر ── */
+.rb-search { display: flex; gap: 10px; }
+.rb-search input {
+  flex: 1; padding: 13px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+  font-size: 17px; font-family: var(--font-mono); direction: ltr; text-align: left;
+}
+.rb-search input:focus { outline: none; border-color: var(--accent); }
+.rb-search input.has-value { border-color: var(--accent-border); background: var(--accent-light); }
+
+/* ── بيانات الأوردر ── */
+.rb-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.rb-num { font-size: 22px; font-weight: 800; }
+.rb-num .order-link, .rb-num .order-num { font-size: 22px; }
+.rb-meta { font-size: 13px; color: var(--text-secondary); display: flex; gap: 14px; flex-wrap: wrap; }
+.rb-meta b { color: var(--text-primary, inherit); }
+.rb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.rb-cell { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; background: var(--surface); }
+.rb-cell .k { font-size: 11.5px; color: var(--text-secondary); font-weight: 600; margin-bottom: 3px; }
+.rb-cell .v { font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+.rb-cell .v.none { color: var(--text-muted); font-weight: 500; }
+.rb-cell.hl { border-color: var(--accent-border); background: var(--accent-light); }
+.rb-items { font-size: 12.5px; }
+.rb-items summary { cursor: pointer; font-weight: 700; margin-bottom: 6px; }
+.rb-items ul { margin: 0; padding-inline-start: 18px; }
+
+/* ── حكم الأهلية ── */
+.rb-verdict { border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px; border: 1px solid; }
+.rb-verdict .t { font-weight: 800; font-size: 14.5px; margin-bottom: 4px; }
+.rb-verdict ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: 13px; }
+.rb-verdict.ok  { background: var(--green-light); border-color: var(--green); }
+.rb-verdict.ok .t { color: var(--green-dark); }
+.rb-verdict.no  { background: var(--red-light); border-color: var(--red); }
+.rb-verdict.no .t { color: var(--red-dark); }
+.rb-verdict.already { background: var(--surface-2); border-color: var(--border-strong); }
+.rb-verdict.already .t { color: var(--neutral-dark); }
+
+.rb-plan { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; background: var(--surface); border-radius: 8px; overflow: hidden; }
+.rb-plan th, .rb-plan td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: right; }
+.rb-plan th { background: var(--surface-2); font-weight: 700; }
+.rb-plan td.from { color: var(--text-secondary); font-family: var(--font-mono); direction: ltr; }
+.rb-plan td.to   { font-weight: 800; font-family: var(--font-mono); direction: ltr; color: var(--green-dark); }
+.rb-note { margin-top: 8px; font-size: 12.5px; font-weight: 600; color: var(--amber-dark); }
+
+.rb-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.rb-go { padding: 12px 22px; font-size: 15px; }
+.rb-go:disabled { background: var(--border-strong); color: var(--text-secondary); opacity: 1; }
+.rb-why { font-size: 12.5px; color: var(--text-secondary); }
+
+/* ── نتيجة العملية — أربع حالات + مرفوض ── */
+.rb-result { padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 13.5px; }
+.rb-result .badge { font-weight: 800; display: block; margin-bottom: 4px; }
+.rb-result.success { background: var(--green-light); border: 1px solid var(--green); }
+.rb-result.success .badge { color: var(--green-dark); }
+.rb-result.warning { background: var(--amber-light); border: 1px solid var(--amber); }
+.rb-result.warning .badge { color: var(--amber-dark); }
+.rb-result.error { background: var(--red-light); border: 1px solid var(--red); }
+.rb-result.error .badge { color: var(--red-dark); }
+.rb-result.already, .rb-result.rejected { background: var(--surface-2); border: 1px solid var(--border-strong); }
+.rb-result.already .badge, .rb-result.rejected .badge { color: var(--neutral-dark); }
+.rb-result ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: 12.5px; }
+
+.rb-banner { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 12px;
+  background: var(--red-light); border: 1px solid var(--red); color: var(--red-dark); }
+.rb-empty { text-align: center; padding: 22px; color: var(--text-secondary); }
+
+/* ── جدول آخر التحويلات ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.data-table th, .data-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: right; vertical-align: top; }
+.data-table th { background: var(--surface-2); font-weight: 700; border-bottom: 2px solid var(--border); }
+.result-chip { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.result-chip.success { background: var(--green-light); color: var(--green-dark); }
+.result-chip.warning { background: var(--amber-light); color: var(--amber-dark); }
+.result-chip.error   { background: var(--red-light); color: var(--red-dark); }
+.result-chip.rejected, .result-chip.already { background: var(--surface-2); color: var(--neutral-dark); }
+.q-empty { text-align: center; padding: 24px; color: var(--text-secondary); }
+
+/* ── محتوى نافذة التأكيد — الـ shell مالوش نافذة تأكيد خالص ── */
+.confirm-lines { text-align: right; margin: 10px 0; padding: 0; list-style: none; }
+.confirm-lines li { padding: 6px 10px; border-radius: 7px; background: var(--surface-2); margin-bottom: 6px; font-size: 13px; }
+.confirm-lines li.soft { color: var(--text-secondary); }
+.confirm-lines li.warn { background: var(--amber-light); color: var(--amber-dark); font-weight: 600; }
+.confirm-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-start; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     🔴 تحويل الشحنة إلى بوسطة — صفحة جوّه المركز (قسم «أدوات أخرى»). الريبو
+        المستقل (Re-Assign-Package-Zone-BOSTA) Worker وبس. تفاصيل الأداة في
+        CLAUDE.md بتاع ريبو الأداة.
+     ══════════════════════════════════════════════════════ -->
+<div id="headerMount"></div>
+
+<div class="container">
+
+  <div id="rbResult"></div>
+
+  <div class="card">
+    <h3>🔎 ابحث عن الأوردر</h3>
+    <div class="rb-sub">اكتب رقم الأوردر أو اعمل سكان للباركود (Order ID) واضغط <b>Enter</b>.</div>
+    <div class="rb-search">
+      <input type="text" id="rbInput" inputmode="numeric" autocomplete="off" spellcheck="false" autofocus aria-label="رقم الأوردر أو باركود Order ID">
+      <button class="btn btn-primary" id="rbSearchBtn">بحث</button>
+    </div>
+  </div>
+
+  <div id="rbOrder"></div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+      <h3 style="margin:0;">🧾 آخر التحويلات</h3>
+      <button class="btn btn-outline btn-sm" id="rbLogReload">↺ تحديث</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="data-table">
+        <thead><tr><th>الوقت</th><th>الأوردر</th><th>النتيجة</th><th>الموظف</th><th>تفاصيل</th></tr></thead>
+        <tbody id="rbLogBody"><tr><td colspan="5" class="q-empty">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- مودال الإعدادات + حاوية التوست — بيتحقنوا من الـ shell -->
+<div id="sharedMount"></div>
+
+<!-- ══════════════ §CHANGELOG ══════════════ -->
+<div class="eco-overlay" id="changelogOverlay">
+  <div class="eco-modal" style="max-width:560px;">
+    <div class="eco-modal-hdr"><h3>📋 سجل الإصدارات</h3><button class="modal-close-x" onclick="closeChangelog()">✕</button></div>
+    <div class="eco-modal-body">
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.54.0</span>
+          <span class="cl-ver-date">24-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>الإطلاق الأول: بحث برقم الأوردر أو سكان Order ID، وعرض بياناته، وزرار <b>«تحويل الشحنة إلى بوسطة»</b> — شغّال بس لو الأوردر مؤهل، ولو مش مؤهل بيظهر السبب والزرار بيفضل مقفول.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 التحويل بيكتب <b>أربع ميتافيلدز في نداء واحد ذرّي</b>: الحالة (S1 ← <code>Confirmed</code> · S2 ← <code>Confirmed + EXCHANGE</code>) · <code>zone</code> ← <code>Other_Regions</code> · <code>courier</code> ← <code>Bosta</code> · <code>package_shipping_re_assign</code> ← <code>Bosta</code>.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⛔ <b>الريبو <code>Re-Assign-Package-Zone-BOSTA</code> Worker وبس</b> (<code>re-assign-package-zone-bosta-worker</code>) — الواجهة هنا هي النسخة الوحيدة.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ §ABOUT ══════════════ -->
+<div class="eco-overlay" id="aboutOverlay">
+  <div class="eco-modal">
+    <div class="eco-modal-hdr"><h3>ℹ️ عن الأداة — تحويل الشحنة إلى بوسطة</h3><button class="modal-close-x" onclick="closeAbout()">✕</button></div>
+    <div class="eco-modal-body">
+      <details class="about-sec" open>
+        <summary>📋 بتعمل إيه</summary>
+        <div class="about-sec-body">
+          <p>أوردر كان مجهّز يخرج مع مندوب (أو يتسلّمه العميل من الشو روم) وقرّرت تشحنه
+             بوسطة بدل كده. بتبحث عنه برقمه أو بسكان الباركود، وبضغطة واحدة الأداة
+             بتكتب على شوبيفاي:</p>
+          <ul>
+            <li><b>الحالة</b>: S1 من <code>Ready</code> إلى <code>Confirmed</code> — أو S2 من <code>Ready</code> إلى <code>Confirmed + EXCHANGE</code>.</li>
+            <li><b>الزون</b>: من <code>Show_Room</code> أو <code>Cairo+Giza</code> إلى <code>Other_Regions</code>.</li>
+            <li><b>المندوب</b>: <code>Bosta</code>.</li>
+            <li><b>علامة التحويل</b>: <code>custom.package_shipping_re_assign</code> = <code>Bosta</code>.</li>
+          </ul>
+          <p>الأربعة بيتكتبوا <b>في نداء واحد ذرّي</b> — كلهم أو ولا واحد. بعدها الأوردر بيظهر
+             في أدوات رفع بوسطة زي أي أوردر <code>Confirmed</code> على <code>Other_Regions</code>.</p>
+        </div>
+      </details>
+      <details class="about-sec">
+        <summary>✅ مين المؤهل</summary>
+        <div class="about-sec-body">
+          <ul>
+            <li>حالة الأوردر <code>Ready</code> — S1 <b>أو</b> S2.</li>
+            <li>والزون <code>Show_Room</code> أو <code>Cairo+Giza</code>.</li>
+            <li>والأوردر مش ملغي.</li>
+          </ul>
+          <p>أي حاجة تانية = <b>غير مؤهل</b>: بيظهر السبب بقيمته الحرفية والزرار بيفضل مقفول.
+             وأوردر اتحوّل قبل كده بيتقال «اتحوّل لبوسطة قبل كده» بلون محايد (مش فشل).</p>
+        </div>
+      </details>
+      <details class="about-sec">
+        <summary>⚠️ لازم تعرف</summary>
+        <div class="about-sec-body">
+          <ul>
+            <li><b>الأداة مالهاش «تراجع».</b> الأوردر بعد التحويل <code>Confirmed</code> على <code>Other_Regions</code> — لو التحويل غلط لازم يتعدّل يدويًا من شوبيفاي.</li>
+            <li><b>S2 بيتكتب دايمًا <code>Confirmed + EXCHANGE</code></b> حتى لو الدورة الأصلية كانت <code>Confirmed + RETURN</code> — أداة رفع بوسطة هتعمله شحنة استبدال.</li>
+            <li>الفحص بيتعاد <b>على قراءة جديدة</b> لحظة الضغط — لو حد غيّر الأوردر بعد ما شفته، الأداة بترفض ومابتكتبش حاجة.</li>
+            <li>أوردر S1 مضبوط <code>Ready</code> بيرجع <code>Confirmed</code> — ده انتقال <b>مش موجود في جدول الانتقالات العام</b>، وبقرار صريح لأداة واحدة بنطاق مقفول.</li>
+            <li>بعد الكتابة بنعيد قراءة الأوردر ونتأكد. لو ما قدرناش نتأكد، النتيجة بتبقى «⚠ مش مؤكَّد» — افتح الأوردر على شوبيفاي قبل ما تعيد المحاولة.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="about-sec">
+        <summary>🔧 تشريح الكود</summary>
+        <div class="about-sec-body">
+          <ul>
+            <li>§CONFIG — <code>ECO_WORKERS.reassignBosta</code> (في <code>shared/hub-config.js</code>) · الجلسة والسر من الـ shell.</li>
+            <li>§LOOKUP — <code>get_order</code> (بحث بالاسم أو الـ ID) · الأهلية بتتحسب في الـ Worker والصفحة بترسم رده.</li>
+            <li>§CONVERT — <code>reassign_to_bosta</code> بعد نافذة التأكيد.</li>
+            <li>§LOG — <code>get_logs</code> (آخر ٣٠ عملية).</li>
+          </ul>
+          <p>الـ Worker: <code>re-assign-package-zone-bosta-worker</code> في ريبو
+             <code>Re-Assign-Package-Zone-BOSTA</code> — Worker وبس، والصفحة دي هي النسخة الوحيدة.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ §CONFIRM ══════════════ -->
+<div class="eco-overlay" id="confirmOverlay">
+  <div class="eco-modal" style="max-width:480px;">
+    <div class="eco-modal-hdr"><h3 id="confirmHdr">⚠️ تأكيد</h3><button class="modal-close-x" onclick="closeConfirm(false)">✕</button></div>
+    <div class="eco-modal-body">
+      <p id="confirmLead"></p>
+      <ul class="confirm-lines" id="confirmLines"></ul>
+      <div class="confirm-actions">
+        <button class="btn btn-primary" id="confirmOkBtn" onclick="closeConfirm(true)"></button>
+        <button class="btn btn-ghost" onclick="closeConfirm(false)">إلغاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="shared/hub-config.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/dco-rules.js"></script>
+<script>document.getElementById('sharedMount').innerHTML = ecoSharedModals();</script>
+<script>
+// ══════════════════════════════════════════════════════
+// §CONFIG — بوابة الجلسة + نداءات الـ shell
+// ══════════════════════════════════════════════════════
+// 🔴 أول سطر — بوابة الجلسة (بترمي عن قصد لو مفيش جلسة).
+const ecoSession = requireSession();
+
+// 🔴 `re-assign-package-zone-bosta-worker` لازم يكون **اتضمّ لمجموعة `delivery_cod_ops`**
+//    (WORKER_SECRET = قيمة المجموعة) — قبلها كل نداء `401`.
+const { apiGet, apiPost } = ecoApi(ECO_WORKERS.reassignBosta);
+const PAGE_WORKERS = ['reassignBosta'];
+
+// ⛔ كل أسماء الصفحة بادئتها `rb` — الـ shell و`<script>` الصفحة في نفس النطاق
+//    العام، وإعادة تعريف `const`/`let` بنفس الاسم بتقتل سكربت الصفحة كله.
+
+let rbOrder = null;        // الأوردر المعروض (من رد الـ Worker)
+let rbElig  = null;        // حكم الأهلية — من الـ Worker، مش بيتحسب هنا
+let rbBusy  = false;       // تحويل شغّال
+let rbSeq   = 0;           // رقم آخر بحث — رد قديم مايدهسش جديد
+
+// 🔴 دفعة شغّالة = الخروج التلقائي واليدوي موقوفين (الـ shell بيسأل الدالة دي)
+window.shellIsBusy = () => rbBusy;
+
+const RB_INPUT = document.getElementById('rbInput');
+
+// ══════════════════════════════════════════════════════
+// §LOOKUP
+// ══════════════════════════════════════════════════════
+// الأهلية بتتحسب في الـ Worker (`evaluateEligibility`) — الصفحة بترسم رده بس، فمستحيل
+// الشاشة تقول «مؤهل» والـ Worker يرفض (درس R1).
+async function rbSearch(raw, { keepResult = false } = {}) {
+  const p = ecoScanParse(raw);
+  if (!p) {
+    rbSetOrderHTML('<div class="rb-banner">الكود مش صالح — اكتب رقم الأوردر أو اعمل سكان للباركود</div>');
+    playBeep('warn');
+    return;
+  }
+  // رقم طويل = Order ID من الباركود، والقصير = اسم الأوردر (الـ Worker بيجرّب الاتنين برضه)
+  const q = p.kind === 'id' && p.id ? p.id : p.name;
+  const seq = ++rbSeq;
+  if (!keepResult) document.getElementById('rbResult').innerHTML = '';
+  rbSetOrderHTML(`<div class="card"><div class="rb-empty">⏳ جاري البحث عن ${esc(p.display)}...</div></div>`);
+  let d;
+  try {
+    d = await apiGet('get_order', { q });
+  } catch (e) {
+    if (seq !== rbSeq) return;
+    rbOrder = null; rbElig = null;
+    // ⚠️ فشل البحث مش «الأوردر مش موجود» — رسالتين مختلفتين
+    rbSetOrderHTML(`<div class="rb-banner">تعذّر البحث: ${esc(e.message)}</div>`);
+    playBeep('error');
+    return;
+  }
+  if (seq !== rbSeq) return;                    // رد قديم — بحث أحدث ماشي
+  if (!d.found) {
+    rbOrder = null; rbElig = null;
+    rbSetOrderHTML(`<div class="card"><div class="rb-empty">مفيش أوردر بالرقم <b>${esc(p.display)}</b> على شوبيفاي</div></div>`);
+    playBeep('warn');
+    return;
+  }
+  rbOrder = d.order; rbElig = d.eligibility;
+  rbRender();
+  if (!keepResult) playBeep(rbElig.eligible ? 'scan' : 'warn');
+}
+
+function rbSetOrderHTML(html) { document.getElementById('rbOrder').innerHTML = html; }
+
+const rbVal = (v) => v ? `<div class="v">${esc(v)}</div>` : '<div class="v none">—</div>';
+
+function rbRender() {
+  const o = rbOrder, ev = rbElig;
+  if (!o || !ev) return;
+  const cells = [
+    ['الحالة S1', o.s1, ev.machine === 's1'],
+    ['الحالة S2', o.s2, ev.machine === 's2'],
+    ['الزون', o.zone, false],
+    ['المندوب', o.courier, false],
+    ['موقع الشحنة S1', o.whereS1, false],
+    ['موقع الشحنة S2', o.whereS2, false],
+    ['رقم تتبع بوسطة S1', o.trackS1, false],
+    ['رقم تتبع بوسطة S2', o.trackS2, false],
+    ['علامة التحويل', o.marker, false],
+  ].filter(([k, v]) => v || /^(الحالة|الزون|المندوب)/.test(k));
+
+  const money = o.total !== null && o.total !== undefined
+    ? `${Number(o.total).toLocaleString('en-US')} ${esc(o.currency || '')}` : '—';
+
+  let verdict;
+  if (ev.already) {
+    verdict = `<div class="rb-verdict already"><div class="t">ℹ️ اتحوّل لبوسطة قبل كده</div>${esc(ev.reasons[0].text)}</div>`;
+  } else if (!ev.eligible) {
+    verdict = `<div class="rb-verdict no"><div class="t">⛔ الأوردر غير مؤهل للتحويل</div>
+      <ul>${ev.reasons.map(r => `<li>${esc(r.text)}</li>`).join('')}</ul></div>`;
+  } else {
+    verdict = `<div class="rb-verdict ok"><div class="t">✅ الأوردر مؤهل للتحويل (${ev.machine === 's1' ? 'S1' : 'S2'})</div>
+      هيتكتب على شوبيفاي في نداء واحد:
+      <table class="rb-plan"><thead><tr><th>الحقل</th><th>الحالي</th><th>الجديد</th></tr></thead><tbody>
+        ${ev.plan.changes.map(c => `<tr><td>${esc(c.label)}</td><td class="from">${esc(c.from ?? '—')}</td><td class="to">${esc(c.to)}</td></tr>`).join('')}
+      </tbody></table>
+      ${ev.machine === 's2' ? '<div class="rb-note">⚠️ S2 بيتكتب دايمًا «Confirmed + EXCHANGE» — حتى لو الدورة الأصلية كانت استرجاع.</div>' : ''}
+    </div>`;
+  }
+
+  const items = (o.items || []);
+  document.getElementById('rbOrder').innerHTML = `
+    <div class="card">
+      <div class="rb-head">
+        <span class="rb-num">${orderLink(o.orderNumber, o.orderId)}</span>
+        <div class="rb-meta">
+          <span>👤 <b>${esc(o.customer || '—')}</b></span>
+          <span>📍 ${esc([o.city, o.province].filter((v, i, a) => v && a.indexOf(v) === i).join(' · ') || '—')}</span>
+          <span>💰 ${money}</span>
+          <span>📅 ${esc(o.createdAt ? formatDateTime(o.createdAt) : '—')}</span>
+        </div>
+      </div>
+      <div class="rb-grid">
+        ${cells.map(([k, v, hl]) => `<div class="rb-cell${hl ? ' hl' : ''}"><div class="k">${esc(k)}</div>${rbVal(v)}</div>`).join('')}
+      </div>
+      ${items.length ? `<details class="rb-items"><summary>🛍 المنتجات (${items.length})</summary><ul>
+        ${items.map(i => `<li>${esc(i.title)}${i.variant ? ` — ${esc(i.variant)}` : ''}${i.qty ? ` × ${esc(i.qty)}` : ''}${i.sku ? ` <span style="color:var(--text-muted);font-family:var(--font-mono)">${esc(i.sku)}</span>` : ''}</li>`).join('')}</ul></details>` : ''}
+    </div>
+    <div class="card">
+      ${verdict}
+      <div class="rb-actions">
+        <button class="btn btn-primary rb-go" id="rbGo" ${ev.eligible && !rbBusy ? '' : 'disabled'}>${rbBusy ? '⏳ جاري التحويل...' : '🚚 تحويل الشحنة إلى بوسطة'}</button>
+        ${ev.eligible ? '' : '<span class="rb-why">الزرار مقفول — السبب فوق</span>'}
+      </div>
+    </div>`;
+  document.getElementById('rbGo').addEventListener('click', rbConvert);
+}
+
+// ══════════════════════════════════════════════════════
+// §CONVERT
+// ══════════════════════════════════════════════════════
+// أربع حالات + مرفوض: success (أخضر) · warning (أصفر) · error (أحمر) · already/rejected (محايد)
+function rbShowResult(d) {
+  const map = {
+    success:  ['success',  '✓ تم التحويل'],
+    warning:  ['warning',  '⚠ تم بس مش مؤكَّد'],
+    error:    ['error',    '✗ فشل'],
+    already:  ['already',  'ℹ️ اتحوّل قبل كده'],
+    rejected: ['rejected', '⛔ مرفوض — مش مؤهل'],
+  };
+  const [cls, label] = map[d.status] || ['error', d.status || 'فشل'];
+  const warns = [...(d.warnings || []), ...((d.status === 'rejected' && d.reasons) ? d.reasons.map(r => r.text) : [])]
+    .map(w => `<li>${esc(w)}</li>`).join('');
+  const changes = (d.status === 'success' || d.status === 'warning') && d.changes
+    ? `<ul>${d.changes.map(c => `<li>${esc(c.label)}: ${esc(c.from ?? '—')} ← <b>${esc(c.to)}</b></li>`).join('')}</ul>` : '';
+  document.getElementById('rbResult').innerHTML = `
+    <div class="rb-result ${cls}">
+      <span class="badge">${label} — ${esc(rbOrder?.orderNumber || '')}</span>
+      ${esc(d.error || d.message || '')}
+      ${changes}${warns ? `<ul>${warns}</ul>` : ''}
+      ${d.logged === false ? '<div style="margin-top:6px;color:var(--amber-dark);">⚠️ العملية تمت لكن ما اتسجّلتش في السجل</div>' : ''}
+    </div>`;
+  playBeep(d.status === 'success' ? 'success' : d.status === 'error' ? 'error' : 'warn');
+}
+
+async function rbConvert() {
+  if (rbBusy || !rbOrder || !rbElig || !rbElig.eligible) return;
+  const o = rbOrder, ev = rbElig;
+  const lines = ev.plan.changes.map(c => ({ text: `${c.label}: ${c.from ?? '—'}  ←  ${c.to}`, soft: true }));
+  if (ev.machine === 's2') lines.push({ text: 'S2 بيتكتب «Confirmed + EXCHANGE» — أداة رفع بوسطة هتعمله شحنة استبدال', warn: true });
+  lines.push({ text: 'مفيش «تراجع» من الأداة دي — التعديل العكسي يدوي من شوبيفاي', soft: true });
+  const ok = await askConfirm({
+    header: '🚚 تأكيد تحويل الشحنة إلى بوسطة',
+    lead: `هتحوّل الأوردر ${o.orderNumber} لبوسطة:`,
+    lines, okLabel: `تأكيد — حوّل ${o.orderNumber}`,
+  });
+  if (!ok) { RB_INPUT.focus(); return; }
+
+  rbBusy = true; rbRender();
+  const number = o.orderNumber;
+  try {
+    const d = await apiPost('reassign_to_bosta', { employee: ecoSession.username, orderId: o.orderId });
+    rbShowResult(d);
+  } catch (e) {
+    // 🔴 فشل شبكة/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل»
+    document.getElementById('rbResult').innerHTML =
+      `<div class="rb-result error"><span class="badge">✗ ما قدرناش نتأكد — ${esc(number)}</span>${esc(e.payload?.error || e.message)}<br>الأوردر اتحدّث تحت — شوف حالته قبل ما تعيد المحاولة.</div>`;
+    playBeep('error');
+  } finally {
+    rbBusy = false;
+  }
+  // الحقيقة بترجع من الـ Worker: بنعيد البحث (والأهلية بتتحسب هناك) ونسيب بانر النتيجة
+  await rbSearch(number, { keepResult: true });
+  rbLoadLog();
+  RB_INPUT.value = ''; RB_INPUT.classList.remove('has-value'); RB_INPUT.focus();
+}
+
+// ══════════════════════════════════════════════════════
+// §INPUT
+// ══════════════════════════════════════════════════════
+function rbSubmit() {
+  const v = RB_INPUT.value.trim();
+  if (!v || rbBusy) return;
+  rbSearch(v);
+  RB_INPUT.select();
+}
+RB_INPUT.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); rbSubmit(); } });
+RB_INPUT.addEventListener('input', () => RB_INPUT.classList.toggle('has-value', !!RB_INPUT.value));
+document.getElementById('rbSearchBtn').addEventListener('click', rbSubmit);
+document.getElementById('rbLogReload').addEventListener('click', rbLoadLog);
+
+// ══════════════════════════════════════════════════════
+// §LOG — آخر ٣٠ عملية
+// ══════════════════════════════════════════════════════
+function rbExtra(e) { try { return e.extra ? JSON.parse(e.extra) : {}; } catch { return {}; } }
+async function rbLoadLog() {
+  const body = document.getElementById('rbLogBody');
+  try {
+    const d = await apiGet('get_logs', { limit: 30 });
+    const rows = d.entries || [];
+    if (!rows.length) { body.innerHTML = '<tr><td colspan="5" class="q-empty">لسه مفيش عمليات</td></tr>'; return; }
+    body.innerHTML = rows.map(e => {
+      const x = rbExtra(e);
+      const chip = x.result ? `<span class="result-chip ${esc(x.result)}">${esc(x.result)}</span>` : '—';
+      return `<tr><td>${esc(formatDateTime(e.timestamp))}</td><td>${orderLink(e.order_name, e.order_id)}</td><td>${chip}</td><td>${esc(e.employee || '—')}</td><td>${esc(e.notes || '—')}</td></tr>`;
+    }).join('');
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan="5" class="q-empty">تعذّر تحميل السجل: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+// ── generic confirm — الـ shell مالوش نافذة تأكيد خالص ──────────
+let _confirmResolve = null;
+function askConfirm({ header, lead, lines, okLabel, cls }) {
+  document.getElementById('confirmHdr').textContent = header;
+  document.getElementById('confirmLead').textContent = lead;
+  document.getElementById('confirmLines').innerHTML = (lines || []).map(l => `<li class="${l.warn ? 'warn' : l.soft ? 'soft' : ''}">${esc(l.text)}</li>`).join('');
+  const ok = document.getElementById('confirmOkBtn');
+  ok.textContent = okLabel;
+  ok.className = `btn ${cls || 'btn-primary'}`;
+  document.getElementById('confirmOverlay').classList.add('open');
+  ok.focus();                                  // Enter بيأكّد — شغل السكانر ما يحتاجش ماوس
+  return new Promise(resolve => { _confirmResolve = resolve; });
+}
+function closeConfirm(result) {
+  document.getElementById('confirmOverlay').classList.remove('open');
+  if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('settingsOverlay')?.classList.contains('open')) closeSettings();
+  document.getElementById('aboutOverlay')?.classList.remove('open');
+  document.getElementById('changelogOverlay')?.classList.remove('open');
+  if (document.getElementById('confirmOverlay')?.classList.contains('open')) closeConfirm(false);
+});
+
+// ══════════════════════════════════════════════════════
+// §INIT
+// ══════════════════════════════════════════════════════
+document.getElementById('headerMount').innerHTML = ecoHeader({
+  icon:     '🚚',
+  title:    'تحويل الشحنة إلى بوسطة',
+  subtitle: 'Ready → Confirmed · Other_Regions · Bosta',
+  session:  ecoSession,
+});
+
+renderVersionUI();
+checkWorkerVersion(PAGE_WORKERS);
+rbLoadLog();
+RB_INPUT.focus();
+</script>
+</body>
+</html>

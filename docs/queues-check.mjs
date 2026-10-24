@@ -1529,19 +1529,20 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
                w: Math.round(a.getBoundingClientRect().width), ico: a.querySelector('.eco-card-ico').getBoundingClientRect().width,
                d: a.querySelector('.eco-card-ico svg').innerHTML.replace(/\s+/g, ' ') })) };
   }));
-  is(tools[0].cols === 3 && tools[0].cards.length === 3 && tools[1].cols === 3 && tools[1].cards.length === 1,
-     '🎨 الأدوات في ٣ أعمدة ثابتة (٣ كروت + كارت «أسماء المناديب»)', JSON.stringify(tools.map(t => t.cols)));
-  is(tools[1].cards[0].w === tools[0].cards[0].w, '🔴 كارت «أسماء المناديب» **بنفس عرض** كروت أدوات العمليات (مش عرض الصف كله)', `${tools[1].cards[0].w} vs ${tools[0].cards[0].w}`);
+  is(tools[0].cols === 3 && tools[0].cards.length === 3 && tools[1].cols === 3 && tools[1].cards.length === 2,
+     '🎨 الأدوات في ٣ أعمدة ثابتة (٣ كروت + كارتَي «أدوات أخرى»: أسماء المناديب · تحويل الشحنة إلى بوسطة)', JSON.stringify(tools.map(t => t.cols)));
+  is(tools[1].cards.every(c => c.w === tools[0].cards[0].w), '🔴 كروت «أدوات أخرى» **بنفس عرض** كروت أدوات العمليات (مش عرض الصف كله)', `${tools[1].cards.map(c => c.w)} vs ${tools[0].cards[0].w}`);
   const allTools = [...tools[0].cards, ...tools[1].cards];
   is(allTools.every(c => c.svg && c.txt === '' && c.ico === 46), 'كل أيقونات الأدوات SVG بمربع ٤٦px (مفيش إيموجي)', JSON.stringify(allTools.map(c => [c.name, c.svg, c.txt, c.ico])));
-  is(new Set(allTools.map(c => c.d)).size === 4, 'أربع أيقونات مختلفة');
+  is(new Set(allTools.map(c => c.d)).size === 5, 'خمس أيقونات مختلفة');
   const [updI, codI, partI] = tools[0].cards.map(c => c.d);
   is(updI.includes('M20 11a8 8 0 0 0-14.5-4.5') && updI.includes('M12 7.5l4 2v5'), '«تحديث حالة الأوردرات»: صندوق جوّه سهمين دائريين (الصندوق ٨px عرض)');
   is(codI.includes('rx="2"') && codI.includes('M5 5h14M7 2h10'), '«تحصيل COD»: رزمة أوراق نقدية');
   is(partI.includes('M10 2.5L4 5v6.5') && partI.includes('M14 2.5l6 2.5v6.5') && partI.includes('M12 17l-4.5 4.5M12 17l4.5 4.5'),
      '«التسليم الجزئي»: صندوق متقسّم نصّين **+ سهم بيتفرّع**');
   is(tools[0].cards.map(c => c.href).join() === 'Order-Status-Updater.html,COD-Payment-Center.html,Partial-Delivery.html'
-     && tools[1].cards[0].href === 'Courier-Names.html', 'روابط الكروت زي ما هي');
+     && tools[1].cards.map(c => c.href).join() === 'Courier-Names.html,Re-Assign-Package-Zone-BOSTA.html', 'روابط الكروت زي ما هي — «تحويل الشحنة إلى بوسطة» جنب «أسماء المناديب»');
+  is(tools[1].cards[1].name.includes('تحويل الشحنة إلى بوسطة') && tools[1].cards[1].d.includes('M14 4l4 4-4 4'), '«تحويل الشحنة إلى بوسطة»: اسم الكارت وأيقونة الأسهم المتبادلة');
 
   // ⑤-ب طي الأقسام (v1.47.0): شريط ملوّن + ملخّص (اسم + رقم + المدة بلون العمر)، وكله مفتوح عند الفتح
   await page.evaluate(() => {

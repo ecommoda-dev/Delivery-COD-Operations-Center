@@ -87,6 +87,16 @@ const TOOLS = [
     tabs:      0,
   },
   {
+    // 🔴 v1.54.0 — «تحويل الشحنة إلى بوسطة» (قسم «أدوات أخرى»). Worker وبس في ريبو
+    //    `Re-Assign-Package-Zone-BOSTA`، مفيش نسخة مستقلة ولا `source` ولا سر قديم. تاب واحد (بلا تاب سجل).
+    page:      'Re-Assign-Package-Zone-BOSTA.html',
+    title:     'تحويل الشحنة إلى بوسطة',
+    workerKey: 'reassignBosta',
+    host:      're-assign-package-zone-bosta-worker.ecommoda-dev.workers.dev',
+    oldSecret: 're_assign_package_zone_bosta_worker_secret',
+    tabs:      0,
+  },
+  {
     // 🔴 v1.35.0 — «مستقبل حالة شحنات بوسطة» (قسم «أدوات أخرى»). Worker وبس،
     //    مفيش نسخة مستقلة ولا `source`. أربع تابات أحداث (مش تاب سجل)، والسر
     //    القديم `bosta_webhook_status_worker_secret` (الواجهة المستقلة).
@@ -532,7 +542,7 @@ for (const t of TOOLS) {
     try { await apiGet('get_config'); return '(ما رماش)'; } catch (e) { return e.message; }
   });
   const label = JSON.parse(JSON.stringify(
-    { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD', partialDelivery: 'التسليم الجزئي', couriers: 'أسماء المناديب', bostaWebhook: 'متابعة شحنات بوسطة', deliveryFollowUp: 'متابعة التأجيلات' }))[t.workerKey];
+    { orderStatus: 'تحديث حالة الأوردرات', codPayment: 'تحصيل الأوردرات COD', partialDelivery: 'التسليم الجزئي', couriers: 'أسماء المناديب', reassignBosta: 'تحويل الشحنة إلى بوسطة', bostaWebhook: 'متابعة شحنات بوسطة', deliveryFollowUp: 'متابعة التأجيلات' }))[t.workerKey];
   is(msg.includes(label), `${t.page}: رسالة الفشل بتسمّي الأداة («${label}»)`, msg);
   await ctx.close();
 }

@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center (`Delivery-COD-Operations-Center`)
 
-![version](https://img.shields.io/badge/version-v1.53.0-blue)
+![version](https://img.shields.io/badge/version-v1.54.0-blue)
 
 **بتعمل إيه:** هب واحد لمحطة الشحن والتحصيل. الموظف بيدخل **مرة واحدة**،
 وبيشوف طوابير الشحن: اللي **جاهز يخرج**، واللي **خرج ولسه بلا نتيجة** —
@@ -11,7 +11,7 @@
 و**تحصيل الأوردرات COD** (v1.5.0)، و**التسليم الجزئي** (v1.10.0)، و**رفع
 بوسطة** (v1.13.0).
 **مين بيستخدمها:** الشحن والتحصيل
-**الإصدار:** `v1.53.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/hub-config.js`)
+**الإصدار:** `v1.54.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/hub-config.js`)
 
 > 🔴 **الريبو ده فيه النُصّين: الواجهة + Worker الدخول** (`index.js` ·
 > `wrangler.toml`). وده **الشكل القياسي** مش استثناء — قرار ٨ في
@@ -96,6 +96,36 @@
 - 🔴 **Worker الدخول:** `index.js` متطابق خارج كتلة `HUB_CONFIG` (`§HUB-CONFIG-BEGIN/END`)، و`bash docs/auth-worker-twin-check.sh` بيقارن.
 - ⚠️ **مولّدات هب الشحن** (`docs/build-pages.py` · `docs/port-standalone.py`) بتولّد الصفحات بالأسماء الجديدة؛ `port-standalone.py` محتاج `/home/user/sib` فيه `Delivery-COD-Operations-Center` + `Order-Status-Updater` + `COD-Payment-Center` (symlinks) وبيتشغّل بالمسار الكامل. **أي تعديل في صفحة متولّدة بيتعمل في ريبوها الأصلي الأول** — وبعد أي تعديل في المولّد شغّل المولّدين وتأكد إن `git diff` على الصفحات المتولّدة هو اللي اتوقّعته بس.
 - الفحوصات: WOC browser · sku-barcode · pack · scanners · office · warehouse · audit · home · idle · **table** — DCO queues · tools · rules · idle · followup · bosta-webhook · bosta-table — والاتنين `css-check` و`core-twin-check` و`auth-worker-twin-check`.
+
+## 🚚 تمريرة v1.54.0 — أداة «تحويل الشحنة إلى بوسطة» (قسم «أدوات أخرى» · طلب أحمد 24-10-2026)
+
+**الفكرة:** أوردر جاهز (`Ready`) على مندوب أو شو روم وقرّرت تشحنه بوسطة. الموظف بيكتب رقم الأوردر أو بيسكن باركود Order ID، بيشوف بياناته، وزرار **«تحويل الشحنة إلى بوسطة»** بيحوّله — **بس لو مؤهل**، ولو مش مؤهل بيظهر السبب والزرار بيفضل مقفول.
+
+| الجزء | فين |
+|---|---|
+| الـ Worker `re-assign-package-zone-bosta-worker` | ريبو **`Re-Assign-Package-Zone-BOSTA`** (`index.js` · `wrangler.toml` · `log-values.json`) — **Worker وبس**. الأهلية + الكتابة + السجل، وتفاصيلها في `CLAUDE.md` بتاعه |
+| الصفحة `Re-Assign-Package-Zone-BOSTA.html` | **هنا** — النسخة الوحيدة (مش متولّدة · اسم الملف = اسم الريبو بالحرف) |
+| `ECO_WORKERS.reassignBosta` (`min: 1.0.0`) | `shared/hub-config.js` |
+| الكارت | `shared/home-config.js` → قسم «أدوات أخرى» جنب «أسماء المناديب» (بلا عدّاد) |
+| الفحص | `docs/reassign-check.mjs` (٤٨ بند · متصفح فعلي) · `tools-check.mjs` (الأداة اتضافت لـ `TOOLS`) · `queues-check.mjs` (كروت «أدوات أخرى» بقت ٢) |
+
+- 🔴 **الأهلية بتتحسب في الـ Worker مش في الصفحة** (`evaluateEligibility`): `S1 = Ready` **أو** `S2 = Ready` — **و** `zone ∈ {Show_Room, Cairo+Giza}` — **و** مش ملغي. الصفحة بترسم رده بس، و`reassign_to_bosta` **بيعيد الفحص على قراءة جديدة** (لقطة قديمة في المتصفح مابتكتبش). كل الأسباب بتتعرض مع بعض بقيمتها الحرفية، و«اتحوّل قبل كده» (`already`) بلون محايد مش أحمر.
+- 🔴 **الكتابة: أربع ميتافيلدز في `metafieldsSet` واحد ذرّي** (كلهم أو ولا واحد) وكل ميتافيلد موجودة بـ`compareDigest` — لو حد غيّرها بين القراءة والكتابة بترجع `STALE_OBJECT` ومفيش حاجة بتتغيّر:
+  `manual_status` (S1) ← `Confirmed` · **أو** `status_2_r_e` (S2) ← `Confirmed + EXCHANGE` · `zone` ← `Other_Regions` · `courier` ← `Bosta` · `package_shipping_re_assign` ← `Bosta`.
+- ⚠️ **S2 دايمًا `Confirmed + EXCHANGE`** (قرار أحمد 24-10-2026) حتى لو الدورة الأصلية `Confirmed + RETURN` — أداة رفع بوسطة هتعملها شحنة استبدال. الصفحة بتقول ده في تنبيه ونافذة التأكيد.
+- 🔴 **انتقال S1 `Ready → Confirmed` مش في جدول الانتقالات المسموحة في `ecommoda-order-lifecycle` §1.4.** ده قرار أحمد صريح **لأداة واحدة بنطاق مقفول** (Ready + Show_Room/Cairo+Giza) — مش قاعدة عامة. ⚠️ **الجدول في المهارة محتاج تحديث** (خارج الريبو ده).
+- 🔴 **نافذة تأكيد قبل الكتابة** (Enter بيأكّد — شغل السكانر) و**حارس الدفعة** (`window.shellIsBusy`): الخروج التلقائي واليدوي موقوفين أثناء التحويل. والنتيجة أربع حالات + مرفوض، وفشل الشبكة بعد الإرسال = «ما قدرناش نتأكد» مش «فشل».
+- 🔴 **السجل:** صف تحت `re_assign_package_zone_bosta` (`reassign_to_bosta` · `rejected`) + صف في **السجل المشترك `metafields_change`/`update`** (`extra.source`) بعد تغيّر الحالة فعلاً. صفر اسم عميل في أي صف.
+
+**قبل ما الأداة تشتغل (خطوات يدوية — خارج الكود):**
+① إنشاء Worker `re-assign-package-zone-bosta-worker` من ريبو `Re-Assign-Package-Zone-BOSTA` (Workers Builds · `main`) + `Build watch paths` = `index.js` و`wrangler.toml` (**chip لكل واحد**) ·
+② الأسرار: `WORKER_SECRET` = **قيمة مجموعة `delivery_cod_ops`** (بقت **أحد عشر Worker**) · `CLIENT_ID` · `CLIENT_SECRET` (صلاحية `write_orders`) → **Promote** ·
+③ تسجيل `tool = re_assign_package_zone_bosta` و`type` ∈ (`reassign_to_bosta` · `rejected`) في `ecommoda-constants` §7 **قبل أول استخدام** (Rule 7) + تسجيل الأداة **كاتب سابع** تحت `metafields_change` + العضوية في `secret-groups.md` ·
+④ تحديث جدول الانتقالات في `ecommoda-order-lifecycle` (`Ready → Confirmed` لهذه الأداة) وتسجيل ميتافيلد `custom.package_shipping_re_assign` (مين بيكتبه ومين بيقراه).
+قبل ①②: الصفحة بتقول «تعذّر» والرسالة بتسمّي «تحويل الشحنة إلى بوسطة»، و🩺 الفحص بيقول السبب.
+
+⚠️ **ما اتجرّبش على شوبيفاي الحقيقية (كتابة).** الـ Worker اتفحص على شوبيفاي وهمية بـ٧٤ بند (في ريبوه: `node docs/worker-check.mjs`)، والصفحة على Worker وهمي (٤٨ بند)، والاستعلام نفسه اتجرّب قراءة على المتجر الحقيقي (الحقول + `compareDigest`). أول تحويل حقيقي بعد النشر هو الاختبار الفعلي — ومعاه `?action=diag` اللي بيتأكد من الصلاحيات وإن القيم المطلوبة موجودة في الـ choice list.
+✅ **الفحص:** `reassign 48 · tools 211 · queues 454 · rules 90 · idle 21 · followup 116 · bosta-webhook 35 · bosta-table 81 · css-check عدّى` — صفر فشل.
 
 ## 📤 تمريرة v1.53.0 — صفحة «رفع بوسطة» بقت نسخة متطابقة بالبايت مع هب المخزن (طلب أحمد 22-10-2026)
 
