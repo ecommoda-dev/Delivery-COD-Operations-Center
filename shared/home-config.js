@@ -55,6 +55,7 @@ const ECO_HOME = {
       title: 'أدوات أخرى', sub: 'قوائم مساعدة',
       tools: [
         { href: 'Courier-Names.html', ico: 'ico-blue', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M9 17h6M15 17l-2-8h-3M13 9h3l2 4"/></svg>`, name: 'أسماء المناديب' },
+        { href: 'Re-Assign-Package-Zone-BOSTA.html', ico: 'ico-amber', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14M14 4l4 4-4 4"/><path d="M20 16H6M10 12l-4 4 4 4"/></svg>`, name: 'تحويل الشحنة إلى بوسطة' },
       ] },
   ],
   queues: {

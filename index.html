@@ -248,7 +248,18 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.53.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.54.0</span>
+          <span class="cl-ver-date">24-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🚚 <b>أداة «تحويل الشحنة إلى بوسطة»</b> في «أدوات أخرى» جنب «أسماء المناديب» — بحث برقم الأوردر أو سكان Order ID، وزرار بيحوّل الشحنة لبوسطة بس لو الأوردر مؤهل (<code>Ready</code> في S1 أو S2 + زون <code>Show_Room</code> أو <code>Cairo+Giza</code>)، ولو مش مؤهل بيظهر السبب والزرار مقفول.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>التحويل بيكتب <b>أربع ميتافيلدز في نداء ذرّي واحد</b>: الحالة (S1 ← <code>Confirmed</code> · S2 ← <code>Confirmed + EXCHANGE</code>) · <code>zone</code> ← <code>Other_Regions</code> · <code>courier</code> ← <code>Bosta</code> · <code>package_shipping_re_assign</code> ← <code>Bosta</code>.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⛔ <b>الريبو <code>Re-Assign-Package-Zone-BOSTA</code> Worker وبس</b> (<code>re-assign-package-zone-bosta-worker</code>) — الواجهة هنا هي النسخة الوحيدة. مجموعة <code>delivery_cod_ops</code> بقت <b>أحد عشر Worker</b>.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.53.0</span>
           <span class="cl-ver-date">22-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -714,7 +725,7 @@ const { apiGet, apiPost } = ecoApi(ECO_WORKERS.auth);
 // ✅ **والفشل هنا مابيولّعش تحذير نسخة كاذب** — `checkWorkerVersion`
 //    بتبلع الاستثناء عن قصد: الـ Worker اللي لسه ما انضمّش لمجموعة السر
 //    بيرجّع `401`، ودي **مش** «نسخة قديمة». اللي بيقولها بالنص هو 🩺.
-const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery', 'bostaUpload', 'couriers', 'bostaWebhook', 'deliveryFollowUp'];
+const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery', 'bostaUpload', 'couriers', 'reassignBosta', 'bostaWebhook', 'deliveryFollowUp'];
 
 // §AUTH-JS — Unified Login UI (منقولة من أداة التغليف)
 // ══════════════════════════════════════════════════════════════
