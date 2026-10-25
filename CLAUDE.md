@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center (`Delivery-COD-Operations-Center`)
 
-![version](https://img.shields.io/badge/version-v1.54.0-blue)
+![version](https://img.shields.io/badge/version-v1.55.0-blue)
 
 **بتعمل إيه:** هب واحد لمحطة الشحن والتحصيل. الموظف بيدخل **مرة واحدة**،
 وبيشوف طوابير الشحن: اللي **جاهز يخرج**، واللي **خرج ولسه بلا نتيجة** —
@@ -11,7 +11,7 @@
 و**تحصيل الأوردرات COD** (v1.5.0)، و**التسليم الجزئي** (v1.10.0)، و**رفع
 بوسطة** (v1.13.0).
 **مين بيستخدمها:** الشحن والتحصيل
-**الإصدار:** `v1.54.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/hub-config.js`)
+**الإصدار:** `v1.55.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/hub-config.js`)
 
 > 🔴 **الريبو ده فيه النُصّين: الواجهة + Worker الدخول** (`index.js` ·
 > `wrangler.toml`). وده **الشكل القياسي** مش استثناء — قرار ٨ في
@@ -96,6 +96,13 @@
 - 🔴 **Worker الدخول:** `index.js` متطابق خارج كتلة `HUB_CONFIG` (`§HUB-CONFIG-BEGIN/END`)، و`bash docs/auth-worker-twin-check.sh` بيقارن.
 - ⚠️ **مولّدات هب الشحن** (`docs/build-pages.py` · `docs/port-standalone.py`) بتولّد الصفحات بالأسماء الجديدة؛ `port-standalone.py` محتاج `/home/user/sib` فيه `Delivery-COD-Operations-Center` + `Order-Status-Updater` + `COD-Payment-Center` (symlinks) وبيتشغّل بالمسار الكامل. **أي تعديل في صفحة متولّدة بيتعمل في ريبوها الأصلي الأول** — وبعد أي تعديل في المولّد شغّل المولّدين وتأكد إن `git diff` على الصفحات المتولّدة هو اللي اتوقّعته بس.
 - الفحوصات: WOC browser · sku-barcode · pack · scanners · office · warehouse · audit · home · idle · **table** — DCO queues · tools · rules · idle · followup · bosta-webhook · bosta-table — والاتنين `css-check` و`core-twin-check` و`auth-worker-twin-check`.
+
+## 🔁 تمريرة v1.55.0 — استبدال بعد الحدث 23 = In-Return + «Out for Return» (طلب أحمد 25-10-2026)
+
+- 🔴 **تعريف «In-Return» بقى: نوعها `RTO`، أو `EXCHANGE` وعليها حدث `state=23`.** (`CUSTOMER_RETURN_PICKUP` برّه — قرار أحمد.) متكرر في **٤ أماكن لازم تتعدّل مع بعض (درس R1):** `computeRtoTrackingNumbers` في `Bosta-Webhook-Status-Receiver.html` · عمود `rto` في `queue_summary` (Worker `Bosta-Webhook-Status-Receiver` ≥ 1.11.0) · كتابة In-Return §4.4 في نفس الـ Worker · `openListCTE()` في `Bosta-Delivery-Follow-Up` (≥ 2.2.0).
+- 🔴 **الوصف:** حدث 41 على شحنة In-Return بيتعرض «Out for Return» في الجدول والفلتر والسجل (`descOf`) وبيتكتب كده في الميتافيلد `bosta_webhook_status_update_*` من الـ Worker. `description` في D1 و`raw_payload` ما اتغيّروش. حدث 41 على EXCHANGE **قبل** 23 بيفضل بوصفه العادي.
+- ⚠️ **مفيش أثر رجعي على الميتافيلد** (قرار أحمد): شحنات الاستبدال اللي وصلها 23 قبل النشر هتتنقل للتاب من الواجهة فورًا وميتافيلدها بيتحدّث من أول حدث جديد.
+- `DCO_WORKERS.bostaWebhook.min` → `1.11.0` — **انشر الـ Worker قبل الصفحة**. ما اتجرّبش على شوبيفاي حقيقية.
 
 ## 🚚 تمريرة v1.54.0 — أداة «تحويل الشحنة إلى بوسطة» (قسم «أدوات أخرى» · طلب أحمد 24-10-2026)
 

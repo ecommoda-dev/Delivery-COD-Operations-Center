@@ -61,6 +61,12 @@ const EVENTS = [
   // T7: RTO ووصلت Returned to business (46) — لازم تروح Returned مش In-Return
   ev({ tracking_number: 'T7', business_reference: '#1007', state: 30, bosta_type: 'RTO', bosta_timestamp: ts(60), received_at: new Date(ts(60)).toISOString() }),
   ev({ tracking_number: 'T7', business_reference: '#1007', state: 46, description: 'Returned to business', bosta_type: 'RTO', bosta_timestamp: ts(9), received_at: new Date(ts(9)).toISOString() }),
+  // T8: استبدال (EXCHANGE) — 41 قبل 23 (خروج عادي) ثم 23 ثم 41 تاني بعد 23 → In-Return و«Out for Return» (v1.55.0)
+  ev({ tracking_number: 'T8', business_reference: '#1008', state: 41, description: 'Out for exchange', bosta_type: 'EXCHANGE', matched_slot: 'S2', bosta_timestamp: ts(80), received_at: new Date(ts(80)).toISOString() }),
+  ev({ tracking_number: 'T8', business_reference: '#1008', state: 23, description: 'Picked up from consignee', bosta_type: 'EXCHANGE', matched_slot: 'S2', bosta_timestamp: ts(40), received_at: new Date(ts(40)).toISOString() }),
+  ev({ tracking_number: 'T8', business_reference: '#1008', state: 41, description: 'Out for exchange', bosta_type: 'EXCHANGE', matched_slot: 'S2', bosta_timestamp: ts(2), received_at: new Date(ts(2)).toISOString() }),
+  // T9: استبدال لسه ماوصلهاش 23 — تفضل في «تحت التوصيل» بوصفها العادي
+  ev({ tracking_number: 'T9', business_reference: '#1009', state: 41, description: 'Out for exchange', bosta_type: 'EXCHANGE', matched_slot: 'S2', bosta_timestamp: ts(4), received_at: new Date(ts(4)).toISOString() }),
   // تاريخ باظ (الحارس): لازم ما يوقّفش رسم الجدول
   ev({ tracking_number: 'T5', business_reference: '#1005', state: 21, delivery_promise_date: '25-09-2026', bosta_timestamp: ts(3), received_at: new Date(ts(3)).toISOString() }),
 ];
@@ -72,7 +78,7 @@ function mockWorker(page, calls) {
     const action = u.searchParams.get('action') || '';
     calls.push({ from: (() => { try { return req.frame().url(); } catch { return ''; } })(), host: u.host, action, auth: req.headers()['authorization'] || '', method: req.method() });
     let body = { ok: true };
-    if (action === 'get_config') body = { version: '1.10.0' };
+    if (action === 'get_config') body = { version: '1.11.0' };
     else if (action === 'list_events') body = { events: EVENTS, maxId: id, updated: [] };   // v1.10.0: بلا raw_payload
     else if (action === 'get_event_payload') body = { id: Number(u.searchParams.get('id')), raw_payload: '{"a":1,"id":' + u.searchParams.get('id') + '}' };
     else if (action === 'diag') body = { checks: [], lastEvent: { business_reference: '#1005', received_at: new Date().toISOString() }, count24h: 7, dup24h: 0, matchFailed24h: 1, eventsTableOk: true, silenceThresholdHours: 3 };
@@ -131,7 +137,7 @@ sec('② المنطق — صف لكل رقم تتبع والحالات النه�
   await page.waitForSelector('#eventsBody-main tr');
   const main = await rowsOf(page, 'main');
   const txt = main.join('\n');
-  is(main.length === 2, 'تحت التوصيل: رقمان بس (T1 · T5) — صف واحد لكل رقم', main.join(' || '));
+  is(main.length === 3, 'تحت التوصيل: T1 · T5 · T9 بس — صف واحد لكل رقم', main.join(' || '));
   is(txt.includes('T1') && txt.includes('T5'), 'T1 وT5 ظاهرين');
   is(!txt.includes('T6') && !txt.includes('T7'), '⛔ T6 (RTO) اتنقلت من «تحت التوصيل» لتاب In-Return')
   is(!txt.includes('T2') && !txt.includes('T3') && !txt.includes('T4'), '⛔ T2 (Delivered) وT3 (Returned) وT4 (Terminated) اتشالوا من «تحت التوصيل»');
@@ -142,7 +148,13 @@ sec('② المنطق — صف لكل رقم تتبع والحالات النه�
   {
     await page.click('#tab-inreturn');
     const r = await rowsOf(page, 'inreturn');
-    is(r.length === 1 && r[0].includes('T6'), '🔁 تاب In-Return: صف واحد T6 (RTO) — وT7 (RTO ووصلت 46) مش هنا', r.join(' || '));
+    is(r.length === 2 && r.some(x => x.includes('T6')) && r.some(x => x.includes('T8')) && !r.some(x => x.includes('T9')), '🔁 تاب In-Return: T6 (RTO) وT8 (استبدال بعد 23) — وT7 (RTO ووصلت 46) وT9 (استبدال قبل 23) مش هنا', r.join(' || '));
+    const t8 = r.find(x => x.includes('T8')) || '';
+    is(t8.includes('Out for Return') && !t8.includes('Out for exchange'), '🔁 T8: آخر حالة 41 بعد 23 بتتعرض «Out for Return» (مش Out for exchange)', t8);
+    await page.click('#tab-main');
+    const m = (await rowsOf(page, 'main')).find(x => x.includes('T9')) || '';
+    is(m.includes('Out for exchange') && !m.includes('Out for Return'), '🔁 T9: 41 على استبدال قبل 23 بيفضل «Out for exchange»', m);
+    await page.click('#tab-inreturn');
   }
   for (const [tab, tn] of [['returned', 'T3'], ['delivered', 'T2'], ['terminated', 'T4']]) {
     await page.click(`#tab-${tab}`);
