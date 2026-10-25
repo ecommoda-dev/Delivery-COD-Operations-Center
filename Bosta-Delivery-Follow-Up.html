@@ -25,8 +25,6 @@
 @keyframes fu-spin { to { transform: rotate(360deg); } }
 .bg-spin { display: none; font-size: 15px; color: var(--accent); line-height: 1; }
 .bg-spin.on { display: inline-block; animation: fu-spin .8s linear infinite; }
-.last-upd { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); direction: ltr; white-space: nowrap; }
-.last-upd.err { color: var(--red); font-weight: 700; }
 
 .fu-warn { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; margin-bottom: 12px;
   background: var(--amber-light); border: 1px solid var(--amber); color: var(--amber-dark); }
@@ -222,6 +220,8 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
      ══════════════════════════════════════════════════════ -->
 <div class="container">
 <div id="headerMount"></div>
+<!-- 🔴 §FRESH-UNIT (طلب أحمد 25-10-2026): «آخر تحديث منذ:» + زرار «تحديث» نفس وحدة الرئيسية — بدل زرار الهيدر -->
+<div class="eco-fresh-bar" id="fuFreshMount"></div>
 
 <div class="fu-warn">⛔ ابعت من <b>رقم متابعة الشحن</b> — مش رقم خدمة العملاء (+20 11 26399000). الإرسال يدوي، رسالة رسالة، وبلا لينكات.</div>
 <div id="fuBanners"></div>
@@ -551,22 +551,45 @@ function fuLabelOf(k, v) {
   return v;
 }
 
-async function fuLoad() {
+// 🔴 §CACHE-ROWS (طلب أحمد 25-10-2026): رد `get_followups` خام في `sessionStorage` (`ECO_CACHE_FOLLOWUP_ROWS`) —
+//    الفتح بيرسم منه لو أحدث من `ECO_CACHE_TTL_MS` (١٠ دقايق) بصفر نداء، والجلب بزرار «تحديث» بس.
+//    ⚠️ فيه أسماء وتليفونات → بيتمسح مع الخروج. وبعد كل «سجّل إرسال» الكاش بيتحدّث بعدّاد الإرسال **بنفس ختمه القديم**
+//    (`fuUpdateRowsCache`) — إعادة كتابته بختم جديد كانت هتخلّي بيانات قديمة تبان طازة.
+function fuApply(d, atMs) {
+  fuRows = Array.isArray(d.rows) ? d.rows : [];
+  fuMeta = { shopifyError: d.shopifyError || null, loadError: null, truncated: !!d.truncated, cap: d.cap || 0,
+             windowDays: d.windowDays || 60, minAttempts: d.minAttempts || 1 };
+  fuLoaded = true;
+  fuLastOkAt = atMs;
+  fuBuildGroups();
+  fuPruneFilters();
+  fuRender();
+  fuSetLastUpdated(false);
+}
+function fuUpdateRowsCache() {
+  try {
+    const raw = JSON.parse(sessionStorage.getItem(ECO_CACHE_FOLLOWUP_ROWS) || 'null');
+    if (!raw?.at || !raw?.data) return;
+    raw.data.rows = fuRows;
+    sessionStorage.setItem(ECO_CACHE_FOLLOWUP_ROWS, JSON.stringify(raw));
+  } catch { /* الكاش تحسين مش شرط */ }
+}
+async function fuLoad(useCache) {
   if (fuLoading) return;
+  if (useCache) {
+    const c = cacheGet(ECO_CACHE_FOLLOWUP_ROWS);
+    if (c && c.data && Array.isArray(c.data.rows) && c.ageMs >= 0 && c.ageMs < ECO_CACHE_TTL_MS) {
+      fuApply(c.data, new Date(c.at).getTime());
+      return;
+    }
+  }
   fuLoading = true;
   fuSetRefreshing(true);
   try {
     const d = await apiGet('get_followups');
-    fuRows = Array.isArray(d.rows) ? d.rows : [];
-    fuMeta = { shopifyError: d.shopifyError || null, loadError: null, truncated: !!d.truncated, cap: d.cap || 0,
-               windowDays: d.windowDays || 60, minAttempts: d.minAttempts || 1 };
-    fuLoaded = true;
-    fuLastOkAt = Date.now();
-    fuBuildGroups();
+    fuApply(d, Date.now());
     fuWriteCache();
-    fuPruneFilters();
-    fuRender();
-    fuSetLastUpdated(false);
+    cacheSet(ECO_CACHE_FOLLOWUP_ROWS, d);
   } catch (e) {
     // الفشل ≠ «مفيش شغل»: لو فيه قايمة قديمة بتفضل، ولو لأ بنقول تعذّر
     fuMeta.loadError = e.message;
@@ -579,17 +602,11 @@ async function fuLoad() {
   }
 }
 function fuSetRefreshing(on) {
-  const btn = fuEl('refreshBtn');
-  if (btn) { btn.disabled = on; btn.classList.toggle('refreshing', on); }
+  ecoFreshUnitLoading('fuFresh', on);
   document.querySelectorAll('.bg-spin').forEach(el => el.classList.toggle('on', on));
 }
-function fuSetLastUpdated(failed) {
-  const t = fuLastOkAt ? new Date(fuLastOkAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Cairo' }) : '';
-  document.querySelectorAll('.last-upd').forEach(el => {
-    el.textContent = failed ? `⚠️ فشل التحديث${t ? ' — آخر بيانات ' + t : ''}` : (t ? `آخر تحديث ${t}` : '');
-    el.classList.toggle('err', !!failed);
-  });
-}
+// الوحدة بتتحدّث بآخر نجاح (`fuLastOkAt`) — فشل التحديث بيبان في البانر (`fuRenderBanners`) والرقم القديم بيفضل بعمره الحقيقي.
+function fuSetLastUpdated() { ecoFreshUnitSet('fuFresh', fuLastOkAt ? new Date(fuLastOkAt) : null); }
 
 // الرئيسية بتقرا نفس الشكل الخام لـ `queue_summary` — بنكتبه من القايمة الكاملة (نفس تعريف الـ Worker).
 // ⚠️ لو القايمة اتقصّت عند السقف الرقم هيكون أقل من الحقيقي — فمابنكتبوش (الرئيسية تجيبه من الـ Worker).
@@ -733,7 +750,6 @@ function fuBuildPanelHtml() {
           <span class="results-label">النتائج:</span>
           <span class="results-count" id="fuCount">—</span>
           <span class="bg-spin" aria-label="جاري التحديث">⟳</span>
-          <span class="last-upd" title="آخر تحديث ناجح"></span>
         </div>
       </div>
       <div class="tbl-bar-left"><button type="button" class="clear-btn inactive" data-clearall>✕ مسح كل الفلاتر</button></div>
@@ -1155,7 +1171,7 @@ async function fuDoSend(phone) {
     fuEl('fuSendBody').querySelectorAll('button').forEach(b => { b.disabled = false; });
   } finally {
     fuSendBusy = false;
-    fuWriteCache(); fuRender();
+    fuWriteCache(); fuUpdateRowsCache(); fuRender();
   }
 }
 
@@ -1281,7 +1297,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-async function fuRefresh() { await fuLoad(); }
+async function fuRefresh() { await fuLoad(false); }
 
 // ══════════════════════════════════════════════════════
 // §INIT
@@ -1293,12 +1309,15 @@ fuEl('headerMount').innerHTML = ecoHeader({
   title:    'متابعة التأجيلات',
   subtitle: 'شحنات بوسطة تحت التوصيل بمحاولة توصيل أو أكتر — رسالة واتساب يدوية',
   session:  ecoSession,
-  extras:   '<button class="hbtn" id="refreshBtn" onclick="fuRefresh()"><span class="ico">↺</span> تحديث</button>',
 });
+
+fuEl('fuFreshMount').innerHTML = ecoFreshUnitHTML({ id: 'fuFresh', onclick: 'fuRefresh()' });
 
 renderVersionUI();
 checkWorkerVersion(PAGE_WORKERS);
-fuLoad();
+fuLoad(true);   // الكاش أحدث من ١٠ دقايق = صفر نداء (§CACHE-ROWS)
+// نبضة عرض بس كل ٣٠ ثانية — «منذ كام» والشريط واللون، **صفر نداء شبكة**
+setInterval(() => ecoFreshUnitSet('fuFresh'), 30000);
 </script>
 </body>
 </html>

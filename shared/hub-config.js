@@ -217,7 +217,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.55.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.56.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -279,6 +279,11 @@ const ECO_CACHE_BOSTA_UPLOAD = 'dco_queue_bosta';    // عدّادات «رفع 
 const ECO_CACHE_WEBHOOK = 'dco_queue_webhook';  // ملخّص «مستقبل حالة بوسطة» — رد `queue_summary` خام (v1.39.0)
 const ECO_CACHE_FOLLOWUP = 'dco_queue_followup'; // ملخّص «متابعة التأجيلات» — رد `queue_summary` خام (v1.44.0)
 const ECO_IDLE_KEY      = 'dco_last_activity';  // §IDLE — آخر نشاط (sessionStorage، لكل تاب لوحده)
+const ECO_FOLD_KEY      = 'dco_home_fold';      // §FOLD — الأقسام المطوية في الرئيسية `{ secId: true }` (sessionStorage · طلب أحمد 25-10-2026)
+// 🔴 كاش **صفوف** الصفحات (مش عدّادات الرئيسية) — الصفحة بترسم منه لو أحدث من ١٠ دقايق بدل جلب جديد عند كل فتح.
+//    فيه أسماء وتليفونات عملاء → بيتمسح مع الخروج (`clearKeys`).
+const ECO_CACHE_UPLOAD_ROWS   = { s1: 'dco_upload_rows_s1', return: 'dco_upload_rows_return', exchange: 'dco_upload_rows_exchange' };  // رد `get_orders`/`fetch_candidates` خام لكل وضع في «رفع بوسطة»
+const ECO_CACHE_FOLLOWUP_ROWS = 'dco_followup_rows';   // رد `get_followups` خام — «متابعة التأجيلات»
 
 // 🔴 إعداد الـ core لهب الشحن والتحصيل — الحقول دي هي كل اللي الـ core بيقراه عن الهب.
 const ECO_HUB = {
@@ -289,6 +294,7 @@ const ECO_HUB = {
   //    وبتتحمّل ساعات شغل (Standards #52 · multi-page-hub § ٩).
   clearKeys: [
     ECO_CACHE_READY, ECO_CACHE_SHIPPED, ECO_CACHE_BOSTA_UPLOAD, ECO_CACHE_WEBHOOK, ECO_CACHE_FOLLOWUP,
+    ...Object.values(ECO_CACHE_UPLOAD_ROWS), ECO_CACHE_FOLLOWUP_ROWS,
   ],
   // الأدوات المدموجة (متولّدة/منقولة) علم الدفعة عندها اسمه معروف، فبنقراه بالاسم —
   // `let` على مستوى السكربت بيتشاف من هنا (نفس النطاق العام).

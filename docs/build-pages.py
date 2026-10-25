@@ -1869,19 +1869,9 @@ __AUDIT_TABS__
         معناه ضغطة مالهاش أثر. -->
 __WA_CHIPS__      <div class="cb-money" id="qMoney"></div>
     </div>
-    <div class="cb-act">
-      <div class="eco-fresh">
-        <div class="eco-fresh-row">
-          <span class="eco-fresh-lbl">آخر تحديث</span>
-          <span class="eco-ago" id="qAgo">لسه ما اتحدّثش</span>
-        </div>
-        <div class="eco-fresh-row" id="qStamp"><span class="eco-stamp-chip">—</span></div>
-      </div>
-      <button class="eco-rbtn" id="qBtn" type="button" onclick="qLoad(false)">
-        <span class="eco-rbtn-ico">↺</span><span>تحديث</span>
-        <span class="eco-rbtn-badge" id="qBadge">—</span>
-      </button>
-    </div>
+    <!-- 🔴 §FRESH-UNIT (طلب أحمد 25-10-2026): «آخر تحديث منذ:» + زرار «تحديث» **نفس وحدة صف الرئيسية بالحرف**
+         (`ecoFreshUnitHTML` في `shared/core.js`) — بلا بادج رقم. بتتبني في الـ JS تحت (مصدر واحد للماركب). -->
+    <div class="cb-act" id="qFreshMount"></div>
   </div>
 
   <!-- ══ القسم الموحّد — فلاتر + جدول في كارت واحد ═══════════════
@@ -1977,7 +1967,6 @@ __WA_CHIPS__      <div class="cb-money" id="qMoney"></div>
              و«مسح كل الفلاتر» بقى هنا (§47) بعد ما هيدر الفلاتر اتشال. -->
         <button class="clear-btn inactive" id="qClearAllBtn" type="button"
           onclick="event.stopPropagation(); qClearAllFilters();">✕ مسح كل الفلاتر</button>
-        <button class="act-btn" type="button" onclick="event.stopPropagation(); qLoad(false);">↺ تحديث</button>
       </div>
     </div>
 
@@ -2962,20 +2951,7 @@ function qApplySort(rows) {
 }
 
 // ─── الرسم ───
-function qSetFresh() {
-  const info  = agoInfo(qState.at, Date.now());
-  const agoEl = document.getElementById('qAgo');
-  const btn   = document.getElementById('qBtn');
-  if (agoEl) { agoEl.className = 'eco-ago ' + info.cls; agoEl.textContent = info.text; }
-  if (btn)   btn.classList.toggle('is-stale', info.stale);
-  const stamp = document.getElementById('qStamp');
-  if (stamp) {
-    stamp.innerHTML = qState.at
-      ? `<span class="eco-stamp-chip">${esc(formatDate(qState.at.toISOString()))}</span>` +
-        `<span class="eco-stamp-chip">${esc(formatTimeOnly(qState.at.toISOString()))}</span>`
-      : '<span class="eco-stamp-chip">—</span>';
-  }
-}
+function qSetFresh() { ecoFreshUnitSet('qFresh', qState.at); }
 
 // 🔴 **المربعات بتعدّ من `qState.rows` الكاملة** — مش من المعروض.
 //    العدّ على المفلتر كان هيصفّر باقي المربعات بعد أول ضغطة، فالموظف
@@ -3121,9 +3097,7 @@ function qRender0() {
   cEl.textContent = total;
   cEl.classList.toggle('pending', !qState.at && !qState.failed);
   cEl.classList.toggle('failed',  !qState.at && qState.failed);
-  // ⚠️ بادج الزرار **مايقولش «تعذّر»** — رقم على زرار بيتقرا وعد بشغل،
-  //    و«تعذّر» على بادج صغير بتتقص. الرقم الكبير هو اللي بيحمل الحالة.
-  document.getElementById('qBadge').textContent = qState.at ? String(qState.rows.length) : '—';
+  // ⛔ بادج الرقم جوّه زرار التحديث اتشال (طلب أحمد 25-10-2026) — الزرار بقى زي زرار الرئيسية بلا رقم.
 
   // 🔴 **أرضية التاريخ** — بتتكتب بس لما الـ Worker يقولها، وبصيغة اليوم
   //    اللي الجدول بيعرض بيها التواريخ بالظبط (`dd/mm/yyyy`): صيغتان
@@ -3237,8 +3211,7 @@ function closeFlags() { document.getElementById('flagsOverlay').classList.remove
 async function qLoad(silent) {
   if (qState.loading) return;
   qState.loading = true;
-  const btn = document.getElementById('qBtn');
-  if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+  ecoFreshUnitLoading('qFresh', true);
 
   try {
     const data = await apiGet('__ACTION__');
@@ -3276,7 +3249,7 @@ async function qLoad(silent) {
     if (!silent) showToast(err.message, 'error', 6000);
   } finally {
     qState.loading = false;
-    if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+    ecoFreshUnitLoading('qFresh', false);
     qRender();
     qSetFresh();
   }
@@ -3352,15 +3325,20 @@ renderAboutWorkers();
 
 // ⚠️ **الكاش بيترسم قبل الجلب** — الشاشة الفاضية أسوأ من شاشة قديمة
 //    **مختومة بوقتها**. والختم بيقول عمرها الحقيقي، فالموظف عارف إنها قديمة.
-(function drawFromCache() {
+// 🔴 **ومن v1.56.0 الكاش بيحدد الجلب كمان** (طلب أحمد 25-10-2026 — نفس قاعدة الرئيسية والطباعة والتغليف):
+//    كاش أحدث من `ECO_CACHE_TTL_MS` (١٠ دقايق) = **صفر نداء** عند الفتح، والأقدم بيترسم ويتجاب في الخلفية.
+//    الدخول والخروج بين الأدوات مابقاش بيعمل نداءات زيادة على الـ Workers. الجلب اليدوي بزرار «تحديث» بس.
+document.getElementById('qFreshMount').innerHTML = ecoFreshUnitHTML({ id: 'qFresh', onclick: 'qLoad(false)' });
+const cacheFresh = (function drawFromCache() {
   const c = cacheGet(__CACHE__);
-  if (!c || !c.data || !Array.isArray(c.data.orders)) return;
+  if (!c || !c.data || !Array.isArray(c.data.orders)) return false;
   qState.rows      = ecoQueueRows(c.data.orders, Q_STATUS, Q_KIND);
   qState.at        = new Date(c.at);
   qState.truncated = !!c.data.truncated;
   qState.minDay    = c.data.minCreatedDay || null;
   qRender();
   qSetFresh();
+  return c.ageMs >= 0 && c.ageMs < ECO_CACHE_TTL_MS;
 })();
 
 // ⚠️ **الترتيب مهم:** صف الفلاتر لازم يتبني **قبل** أول `qLoad` — دوال
@@ -3368,7 +3346,7 @@ renderAboutWorkers();
 //    (`getElementById` بترجّع `null` والدالة بتخرج من غير ما تعمل حاجة).
 qBuildMsRow();
 qUpdateSortHeaderUI();
-qLoad(true);
+if (!cacheFresh) qLoad(true);
 </script>
 </body>
 </html>

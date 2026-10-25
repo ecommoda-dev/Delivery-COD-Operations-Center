@@ -485,7 +485,7 @@ sec('⑧ البانرات · الفشل · الخروج التلقائي');
   const b = await page.textContent('#fuBanners');
   is(b.includes('تعذّر تحميل القايمة') && (await page.textContent('#fuBody')).includes('تعذّر'), '🔴 فشل التحميل = «تعذّر» مش «مفيش شغل»', b);
   state.loadFail = false;
-  await page.click('#refreshBtn');
+  await page.click('#fuFreshBtn');
   await page.waitForSelector('#fuBody tr[data-tn]');
   is((await rowTn(page)).length === 8 && !(await page.textContent('#fuBanners')).includes('تعذّر تحميل'), 'زرار «تحديث» بيجيب القايمة وبيشيل البانر');
   await ctx.close();
@@ -506,6 +506,29 @@ sec('⑧ البانرات · الفشل · الخروج التلقائي');
   await ctx.close();
 }
 
+
+// ── §CACHE-ROWS + §FRESH-UNIT (طلب أحمد 25-10-2026) ──
+console.log('\n── كاش الصفوف (١٠ د) + وحدة «آخر تحديث» الموحّدة ──');
+{
+  resetState();
+  const { page, ctx } = await newPage();
+  await load(page);
+  const n = () => state.calls.filter(c => c.action === 'get_followups').length;
+  is(n() === 1, 'أول فتح: نداء واحد لـ `get_followups`', String(n()));
+  is(await page.$('#refreshBtn') === null, '⛔ زرار «تحديث» اتشال من الهيدر');
+  is(await page.$('#fuFresh .eco-qref') !== null && await page.$('#fuFresh .eco-agebox') !== null, '🔴 زرار التحديث و«آخر تحديث منذ:» بنفس ماركب صف الرئيسية');
+  is(await page.$('.last-upd') === null, '⛔ سطر «آخر تحديث hh:mm» القديم في شريط الجدول اتشال (الوحدة هي المصدر الوحيد)');
+  is((await page.textContent('#fuFreshAgo')).trim() !== 'لسه ما اتحدّثش', 'الوحدة اتملّت بعد الجلب');
+  await page.reload(); await page.waitForSelector('#fuBody tr[data-tn]'); await page.waitForTimeout(500);
+  is(n() === 1, '🔴 الفتح التاني (كاش < ١٠ د) = صفر نداء جديد', String(n()));
+  is((await page.textContent('#fuFreshAgo')).trim() !== 'لسه ما اتحدّثش' && (await rowTn(page)).length === 8, 'القايمة والوحدة اتملّوا من الكاش بختمه الحقيقي');
+  await page.evaluate(() => { const k = ECO_CACHE_FOLLOWUP_ROWS; const c = JSON.parse(sessionStorage.getItem(k)); c.at = new Date(Date.now() - 11 * 60000).toISOString(); sessionStorage.setItem(k, JSON.stringify(c)); });
+  await page.reload(); await page.waitForSelector('#fuBody tr[data-tn]'); await page.waitForTimeout(500);
+  is(n() === 2, 'كاش أقدم من ١٠ دقايق = جلب جديد', String(n()));
+  await page.click('#fuFreshBtn'); await page.waitForTimeout(700);
+  is(n() === 3, 'زرار «تحديث» = جلب', String(n()));
+  await ctx.close();
+}
 console.log(`\n${fail ? '❌' : '✅'} النتيجة: ${pass} عدّى · ${fail} فشل`);
 await browser.close(); server.close();
 process.exit(fail ? 1 : 0);
