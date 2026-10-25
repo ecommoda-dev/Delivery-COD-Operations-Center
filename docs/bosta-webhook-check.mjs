@@ -217,6 +217,25 @@ sec('④ الخروج');
   await ctx.close();
 }
 
+
+{ // ⛔ مفيش polling ولا جلب عند الرجوع للتاب + الوحدة الموحّدة (طلب أحمد 25-10-2026)
+  const { ctx, page, calls } = await open();
+  await page.goto(`${BASE}/${PAGE}`);
+  await page.waitForSelector('#eventsBody-main tr');
+  await page.waitForTimeout(700);
+  const lst = () => calls.filter(c => c.action === 'list_events').length;
+  const n0 = lst();
+  is(await page.evaluate(() => typeof pollTick === 'undefined' && typeof POLL_MS === 'undefined'), '⛔ `pollTick` و`POLL_MS` اتشالوا');
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await page.waitForTimeout(900);
+  is(lst() === n0, '⛔ الرجوع للتاب (`visibilitychange`) مابيجيبش', `${n0} → ${lst()}`);
+  is(await page.$('#refreshBtn') === null && await page.$('.last-upd') === null, '⛔ زرار الهيدر وسطر «آخر تحديث» القديم اتشالوا');
+  is(await page.$('#bwFresh .eco-qref') !== null && await page.$('#bwFresh .eco-agebox') !== null, '🔴 زرار التحديث و«آخر تحديث منذ:» بنفس ماركب صف الرئيسية');
+  is((await page.textContent('#bwFreshAgo')).trim() !== 'لسه ما اتحدّثش', 'الوحدة اتملّت بعد الجلب');
+  await page.click('#bwFreshBtn'); await page.waitForTimeout(1000);
+  is(lst() > n0, 'زرار «تحديث» = جلب', `${n0} → ${lst()}`);
+  await ctx.close();
+}
 await browser.close(); server.close();
 console.log(`\n${fail ? '❌' : '✅'} النتيجة: ${pass} عدّى · ${fail} فشل`);
 process.exit(fail ? 1 : 0);

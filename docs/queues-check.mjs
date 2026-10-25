@@ -342,8 +342,11 @@ console.log('\n══ ② Ready-Orders.html ══');
 
   const cnt = (await page.textContent('#qCount')).trim();
   is(num(cnt) === READY_TOTAL, 'الرقم الكبير == صفوف الجدول', cnt);
-  const badge = (await page.textContent('#qBadge')).trim();
-  is(num(badge) === READY_TOTAL, 'بادج زرار التحديث == الرقم الكبير', badge);
+  is(await page.locator('#qFresh .eco-rbtn-badge, #qBadge').count() === 0, '⛔ بادج الرقم جوّه زرار التحديث اتشال (§FRESH-UNIT — مطابق لزرار الرئيسية)');
+  is(await page.locator('#qFresh .eco-qref').count() === 1 && await page.locator('#qFresh .eco-agebox').count() === 1,
+     'زرار التحديث و«آخر تحديث منذ:» بنفس ماركب صف الرئيسية (`.eco-qref` + `.eco-agebox`)');
+  is(await page.locator('#qFreshBtn').evaluate(b => b.textContent.replace(/\s/g, '')) === '↻تحديث', 'نص الزرار «↻ تحديث» بلا رقم');
+  is(await page.locator('.tbl-bar-left .act-btn', { hasText: 'تحديث' }).count() === 0, '⛔ زرار «↺ تحديث» المكرر في صف النتائج اتشال');
 
   // خلايا الصف == أعمدة الهيدر — صف بخلية ناقصة بيزحلق كل القيم عمود ورا
   // التاني **من غير أي خطأ**
@@ -1053,7 +1056,7 @@ console.log('\n══ ④ الفشل والاقتطاع ══');
   is(await page.isVisible('#qFail'), 'فشل الجلب بيطلّع بانر أحمر');
   is((await page.textContent('#qCount')).includes('تعذّر'),
      'بلا أي جلب ناجح: الرقم «تعذّر» **مش 0** — «ما اتحدّثش» ≠ «مفيش شغل»');
-  is((await page.textContent('#qAgo')).includes('لسه ما اتحدّثش'), 'الختم مابيتغيّرش في الفشل');
+  is((await page.textContent('#qFreshAgo')).includes('لسه ما اتحدّثش'), 'الختم مابيتغيّرش في الفشل');
   await ctx.close();
   state.readyFail = false;
 }
@@ -1610,10 +1613,12 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   const re = await page.evaluate(() => ({ b: document.getElementById('secBosta').classList.contains('is-collapsed'), f: document.getElementById('secFlow').classList.contains('is-collapsed'),
     bh: Math.round(document.querySelector('#secBosta .eco-sec-body').getBoundingClientRect().height), vis: getComputedStyle(document.querySelector('#secBosta .eco-sec-in')).visibility }));
   is(!re.b && !re.f && re.bh > 100 && re.vis === 'visible', 'الضغطة التانية بتفتح القسم · و`Enter` على الهيدر بيفتح كمان', JSON.stringify(re));
+  const foldBefore = await page.evaluate(() => [...document.querySelectorAll('.eco-home-sec')].map(s => s.classList.contains('is-collapsed')).join());
   await page.reload();
   await page.waitForTimeout(1200);
-  is(await page.evaluate(() => document.querySelectorAll('.is-collapsed').length === 0 && document.querySelectorAll('.eco-home-sec-hd[aria-expanded="true"]').length === 4),
-     '🔴 الحالة مابتتخزّنش: الريفريش بيرجّع كل الأقسام **مفتوحة**');
+  is(await page.evaluate((b) => [...document.querySelectorAll('.eco-home-sec')].map(s => s.classList.contains('is-collapsed')).join() === b
+       && [...document.querySelectorAll('.eco-home-sec')].every(s => s.querySelector('[data-sec-toggle]').getAttribute('aria-expanded') === String(!s.classList.contains('is-collapsed'))), foldBefore),
+     '🔴 الريفريش بيرجّع حالة الطي زي ما كانت (v1.56.0 — الحالة بتتحفظ؛ التفاصيل في ⑭)', foldBefore);
 
   // ⑥ موبايل — الحاويات مابتعملش سكرول أفقي والأدوات عمود واحد
   await page.setViewportSize({ width: 390, height: 800 });
@@ -2435,6 +2440,60 @@ console.log('\n══ ⑩-ج الجدول الفاضي · #49 خط وتثبيت 
   await ctx.close();
 }
 
+
+console.log('\n══ ⑭ §FOLD — حفظ حالة الطي (sessionStorage) + «افتح الكل / اقفل الكل» (طلب أحمد 25-10-2026) ══');
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/index.html`);
+  await page.waitForTimeout(1400);
+  await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important}' });
+  const st = () => page.evaluate(() => [...document.querySelectorAll('.eco-home-sec')].map(s => ({ id: s.id, c: s.classList.contains('is-collapsed'), e: s.querySelector('[data-sec-toggle]').getAttribute('aria-expanded') })));
+  const stored = () => page.evaluate((k) => sessionStorage.getItem(k), 'dco_home_fold');
+  const reload = async () => { await page.reload(); await page.waitForTimeout(1300); await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important}' }); };
+  is((await st()).every(x => !x.c && x.e === 'true'), 'أول فتح (بلا حالة محفوظة): كله مفتوح');
+  is(await page.$$eval('.eco-fold-bar .eco-fold-btn', b => b.map(x => x.textContent.trim()).join('|')) === 'افتح الكل|اقفل الكل', 'زرارين «افتح الكل» و«اقفل الكل» فوق الأقسام');
+  await page.click('#secBosta .eco-sec-chev'); await page.waitForTimeout(200);
+  is(JSON.parse(await stored()).Bosta === true, 'طي قسم = بيتحفظ في `sessionStorage` (المطوي بس)', await stored());
+  await reload();
+  let s = await st();
+  is(s.find(x => x.id === 'secBosta').c && s.find(x => x.id === 'secBosta').e === 'false' && s.filter(x => !x.c).length === s.length - 1, '🔴 الريفريش بيرجّع القسم **مطوي** والباقي مفتوح (و`aria-expanded` متظبط)', JSON.stringify(s));
+  is(await page.evaluate(() => getComputedStyle(document.querySelector('#secBosta .eco-sec-in')).visibility) === 'hidden', 'والصفوف المطوية مخفية (مفيش تاب ولا قارئ شاشة)');
+  await page.click('[data-fold-all="close"]'); await page.waitForTimeout(200);
+  is((await st()).every(x => x.c && x.e === 'false'), '«اقفل الكل» بيطوي كل الأقسام');
+  await reload();
+  is((await st()).every(x => x.c), '…والحالة بتتحفظ بعد الريفريش');
+  is(await page.$$eval('#homeRoot .eco-sm', a => a.length) > 0, 'الملخّص المطوي (بلاطات) لسه بيتعرض');
+  await page.click('[data-fold-all="open"]'); await page.waitForTimeout(200);
+  is((await st()).every(x => !x.c && x.e === 'true') && (await stored()) === '{}', '«افتح الكل» بيفتح الكل وبيصفّر المحفوظ');
+  await reload();
+  is((await st()).every(x => !x.c), '…وبعد الريفريش كله مفتوح');
+  // حالة باظت في التخزين = كله مفتوح بلا أخطاء
+  await page.evaluate(() => sessionStorage.setItem('dco_home_fold', '{bad json'));
+  await reload();
+  is((await st()).every(x => !x.c) && errors.length === 0, '🔴 قيمة مخزّنة باظت: كله مفتوح وصفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+console.log('\n══ ⑮ §CACHE-TTL + §FRESH-UNIT — الجاهز والمشحون (طلب أحمد 25-10-2026) ══');
+for (const [page_, action, key] of [['Ready-Orders.html', 'get_ready_queue', 'dco_queue_ready'], ['Shipped-Orders.html', 'get_shipped_queue', 'dco_queue_shipped']]) {
+  const { page, ctx, errors } = await newPage();
+  state.calls.length = 0;
+  const n = () => state.calls.filter(a => a === action).length;
+  await page.goto(`${BASE}/${page_}`); await page.waitForTimeout(1200);
+  is(n() === 1, `${page_}: أول فتح (بلا كاش) = نداء واحد`, String(n()));
+  await page.reload(); await page.waitForTimeout(1200);
+  is(n() === 1, `🔴 ${page_}: الفتح التاني (كاش < ١٠ د) = **صفر** نداء — الدخول والخروج بين الأدوات مابيزوّدش الحمل`, String(n()));
+  is((await page.textContent('#qCount')).trim() !== '—' && (await page.textContent('#qFreshAgo')).trim() !== 'لسه ما اتحدّثش', `${page_}: الرقم والوحدة اترسموا من الكاش بختمه الحقيقي`);
+  await page.evaluate((k) => { const c = JSON.parse(sessionStorage.getItem(k)); c.at = new Date(Date.now() - 11 * 60000).toISOString(); sessionStorage.setItem(k, JSON.stringify(c)); }, key);
+  await page.reload(); await page.waitForTimeout(1200);
+  is(n() === 2, `${page_}: كاش أقدم من ١٠ دقايق = بيترسم ويتجاب`, String(n()));
+  await page.click('#qFreshBtn'); await page.waitForTimeout(900);
+  is(n() === 3, `${page_}: زرار «تحديث» (نفس زرار الرئيسية) = جلب`, String(n()));
+  const geo = await page.evaluate(() => { const b = document.querySelector('#qFresh .eco-qref'), a = document.querySelector('#qFresh .eco-agebox'); return { bw: Math.round(b.getBoundingClientRect().width), bh: Math.round(b.getBoundingClientRect().height), ah: Math.round(a.getBoundingClientRect().height), cls: document.getElementById('qFresh').className }; });
+  is(geo.bw === 48 && Math.abs(geo.bh - geo.ah) <= 1 && /age-(fresh|ok)/.test(geo.cls), `${page_}: الزرار ٤٨px بارتفاع المربع وبلون العمر — زي الرئيسية بالظبط`, JSON.stringify(geo));
+  is(errors.length === 0, `${page_}: صفر خطأ في الكونسول`, errors.join(' | '));
+  await ctx.close();
+}
 await browser.close();
 server.close();
 console.log(`\n${fail ? '❌' : '✅'} النتيجة: ${pass} عدّى · ${fail} فشل`);
