@@ -494,10 +494,36 @@ let finalTrackingNumbers = new Set();
 // ماوصلش لحالة نهائية. بيتشال من «تحت التوصيل» وبيتنقل هنا. نفس الـ Worker ≥ 1.8.0 بيكتب
 // In-Return على ميتافيلد الأوردر (S1 ← manual_status · S2 ← status_2_r_e).
 let rtoTrackingNumbers = new Set();
+// 🔴 25-10-2026 — «In-Return» = نوعها RTO، أو EXCHANGE وعليها حدث 23 (Picked up from consignee).
+// ⚠️ نفس تعريف عمود `rto` في `queue_summary` بالـ Worker (≥ 1.11.0) — أي تعديل ينزل على الاتنين.
+let exchangePickedTs = new Map();   // tracking_number → أقدم bosta_timestamp لحدث EXCHANGE بكود 23
 function computeRtoTrackingNumbers(events) {
   const s = new Set();
-  events.forEach(ev => { if (String(ev.bosta_type || '').toUpperCase() === 'RTO' && ev.tracking_number) s.add(String(ev.tracking_number)); });
+  exchangePickedTs = new Map();
+  events.forEach(ev => {
+    if (!ev.tracking_number) return;
+    const t = String(ev.tracking_number), type = String(ev.bosta_type || '').toUpperCase();
+    if (type === 'RTO') s.add(t);
+    else if (type === 'EXCHANGE' && Number(ev.state) === 23) {
+      s.add(t);
+      const ts = Number(ev.bosta_timestamp) || 0, cur = exchangePickedTs.get(t);
+      if (cur === undefined || ts < cur) exchangePickedTs.set(t, ts);
+    }
+  });
   return s;
+}
+// وصف الحالة المعروض: حدث 41 على شحنة In-Return = «Out for Return» (نفس قاعدة الـ Worker ≥ 1.11.0
+// اللي بتكتبه في الميتافيلد) — العرض بس، description في D1 وraw_payload زي ما هم.
+function descOf(ev) {
+  if (Number(ev.state) === 41) {
+    const type = String(ev.bosta_type || '').toUpperCase();
+    if (type === 'RTO') return 'Out for Return';
+    if (type === 'EXCHANGE') {
+      const p = exchangePickedTs.get(String(ev.tracking_number));
+      if (p !== undefined && (Number(ev.bosta_timestamp) || 0) >= p) return 'Out for Return';
+    }
+  }
+  return ev.description || '—';
 }
 function computeFinalTrackingNumbers(events) {
   const s = new Set();
@@ -631,7 +657,7 @@ const FL = { order: 'رقم الأوردر', tracking: 'رقم التتبع', ty
   attempts: 'عدد المحاولات', date: 'وقت آخر تحديث', slot: 'نوع الأوردر', result: 'تحديث شوبيفاي' };
 const VAL = {
   type:      ev => ev.bosta_type || '—',
-  stateDesc: ev => `${ev.state} · ${ev.description || '—'}`,
+  stateDesc: ev => `${ev.state} · ${descOf(ev)}`,
   reason:    ev => reasonsOf(ev),   // مصفوفة — فلتر «أي سبب» (راجع valsOf)
   slot:      ev => ev.matched_slot || '—',
   result:    ev => ev.write_status || 'processing',
@@ -862,7 +888,7 @@ function eventRowHtml(ev) {
       <td>${bwOrderLink(ev.business_reference, ev.shopify_order_id)}</td>
       <td class="col-num">${trackingLink(ev.tracking_number)}</td>
       <td>${typeHtml(ev)}</td>
-      <td><span class="state-code">${esc(ev.state)}</span> ${esc(ev.description || '—')}</td>
+      <td><span class="state-code">${esc(ev.state)}</span> ${esc(descOf(ev))}</td>
       <td class="td-reason">${reasonsOf(ev).map(r => `<div class="rsn">${esc(r)}</div>`).join('')}</td>
       <td>${ev.delivery_promise_date ? formatDateOnly(ev.delivery_promise_date) : '—'}</td>
       <td>${ev.number_of_attempts == null ? '—' : `<span class="att-chip static ${attemptClass(ev.number_of_attempts)}">${esc(ev.number_of_attempts)}</span>`}</td>
@@ -1139,7 +1165,7 @@ function openHistoryDrawer(tn) {
   const typeLine = first.bosta_type ? `<div class="tl-meta" style="margin-bottom:12px"><span>نوع الشحنة: <b>${typeHtml(first)}</b></span></div>` : '';
   document.getElementById('histBody').innerHTML = typeLine + evs.map((e, i) => `
     <div class="tl-item ${i === 0 ? 'latest' : ''}">
-      <div class="tl-desc">${esc(e.description || '—')} <span style="color:var(--text-secondary);font-weight:400">(${esc(e.state)})</span></div>
+      <div class="tl-desc">${esc(descOf(e))} <span style="color:var(--text-secondary);font-weight:400">(${esc(e.state)})</span></div>
       <div class="tl-meta"><span>${formatDateTime(e.received_at)}</span><span>محاولات: ${e.number_of_attempts ?? '—'}</span>${resultBadge(e.write_status)}</div>
       ${e.exception_reason ? `<div class="tl-meta"><span>سبب فشل التوصيل: <b>${esc(reasonAr(e.exception_reason))}</b></span></div>` : ''}
       <div class="raw-toggle" onclick="toggleRaw(this, ${Number(e.id) || 0})"><span class="arrow">◀</span><span>Raw Payload</span></div>
