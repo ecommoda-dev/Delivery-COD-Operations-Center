@@ -489,8 +489,9 @@ let finalTrackingNumbers = new Set();
 // ماوصلش لحالة نهائية. بيتشال من «تحت التوصيل» وبيتنقل هنا. نفس الـ Worker ≥ 1.8.0 بيكتب
 // In-Return على ميتافيلد الأوردر (S1 ← manual_status · S2 ← status_2_r_e).
 let rtoTrackingNumbers = new Set();
-// 🔴 25-10-2026 — «In-Return» = نوعها RTO، أو EXCHANGE وعليها حدث 23 (Picked up from consignee).
+// 🔴 25-10-2026 — «In-Return» = نوعها RTO، أو EXCHANGE/CUSTOMER_RETURN_PICKUP (26-10-2026) وعليها حدث 23 (Picked up from consignee).
 // ⚠️ نفس تعريف عمود `rto` في `queue_summary` بالـ Worker (≥ 1.11.0) — أي تعديل ينزل على الاتنين.
+const PICKUP_TYPES = new Set(['EXCHANGE', 'CUSTOMER_RETURN_PICKUP']);   // أنواع بتبقى In-Return بعد حدث 23
 let exchangePickedTs = new Map();   // tracking_number → أقدم bosta_timestamp لحدث EXCHANGE بكود 23
 function computeRtoTrackingNumbers(events) {
   const s = new Set();
@@ -499,7 +500,7 @@ function computeRtoTrackingNumbers(events) {
     if (!ev.tracking_number) return;
     const t = String(ev.tracking_number), type = String(ev.bosta_type || '').toUpperCase();
     if (type === 'RTO') s.add(t);
-    else if (type === 'EXCHANGE' && Number(ev.state) === 23) {
+    else if (PICKUP_TYPES.has(type) && Number(ev.state) === 23) {
       s.add(t);
       const ts = Number(ev.bosta_timestamp) || 0, cur = exchangePickedTs.get(t);
       if (cur === undefined || ts < cur) exchangePickedTs.set(t, ts);
@@ -513,7 +514,7 @@ function descOf(ev) {
   if (Number(ev.state) === 41) {
     const type = String(ev.bosta_type || '').toUpperCase();
     if (type === 'RTO') return 'Out for Return';
-    if (type === 'EXCHANGE') {
+    if (PICKUP_TYPES.has(type)) {
       const p = exchangePickedTs.get(String(ev.tracking_number));
       if (p !== undefined && (Number(ev.bosta_timestamp) || 0) >= p) return 'Out for Return';
     }

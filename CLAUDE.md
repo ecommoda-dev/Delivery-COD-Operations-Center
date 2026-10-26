@@ -97,6 +97,12 @@
 - ⚠️ **مولّدات هب الشحن** (`docs/build-pages.py` · `docs/port-standalone.py`) بتولّد الصفحات بالأسماء الجديدة؛ `port-standalone.py` محتاج `/home/user/sib` فيه `Delivery-COD-Operations-Center` + `Order-Status-Updater` + `COD-Payment-Center` (symlinks) وبيتشغّل بالمسار الكامل. **أي تعديل في صفحة متولّدة بيتعمل في ريبوها الأصلي الأول** — وبعد أي تعديل في المولّد شغّل المولّدين وتأكد إن `git diff` على الصفحات المتولّدة هو اللي اتوقّعته بس.
 - الفحوصات: WOC browser · sku-barcode · pack · scanners · office · warehouse · audit · home · idle · **table** — DCO queues · tools · rules · idle · followup · bosta-webhook · bosta-table — والاتنين `css-check` و`core-twin-check` و`auth-worker-twin-check`.
 
+## 🔁 تعديل 26-10-2026 — `CUSTOMER_RETURN_PICKUP` بعد الحدث 23 = In-Return كمان (طلب أحمد)
+
+- تعريف «In-Return» بقى: `RTO`، أو (`EXCHANGE` **أو `CUSTOMER_RETURN_PICKUP`**) وعليها حدث `state=23`. اتعدّل في الأماكن الأربعة (درس R1): `computeRtoTrackingNumbers`/`descOf` في `Bosta-Webhook-Status-Receiver.html` (`PICKUP_TYPES`) · `queue_summary` وكتابة In-Return و«Out for Return» في Worker `Bosta-Webhook-Status-Receiver` **v1.12.0**.
+- ⚠️ **لسه لازم يتعدّل `openListCTE()` في ريبو `Bosta-Delivery-Follow-Up`** (خارج نطاق الجلسة دي) وإلا «تحت التوصيل» هناك هيفضل شايل شحنات CUSTOMER_RETURN_PICKUP.
+- `DCO_WORKERS.bostaWebhook.min` → `1.12.0` — انشر الـ Worker قبل الصفحة. فحص `bosta-webhook-check` 43 · ما اتجرّبش على شوبيفاي حقيقية.
+
 ## 🚚 تمريرة v1.57.0 — «تحويل الشحنة إلى بوسطة»: سكان متعدد + تاب سجل + مراجعة كاملة على معيار الواجهات v8.5.0 (طلب أحمد 26-10-2026)
 
 **الطلب:** الأداة تقبل سكان أكتر من أوردر في نفس الوقت، والأوردرات تظهر في جدول بحالتها (مؤهل/غير مؤهل) وسببها، وتاب للتسجيل وتاب لسجل العمليات، ومراجعة كود الواجهة بالكامل على أحدث إصدار من `ecommoda-html-builder` (**v8.5.0**). `Partial-Delivery.html` **مش مرجع** في التمريرة دي — المرجع المهارة.
