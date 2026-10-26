@@ -88,13 +88,14 @@ const TOOLS = [
   },
   {
     // 🔴 v1.54.0 — «تحويل الشحنة إلى بوسطة» (قسم «أدوات أخرى»). Worker وبس في ريبو
-    //    `Re-Assign-Package-Zone-BOSTA`، مفيش نسخة مستقلة ولا `source` ولا سر قديم. تاب واحد (بلا تاب سجل).
+    //    `Re-Assign-Package-Zone-BOSTA`، مفيش نسخة مستقلة ولا `source` ولا سر قديم.
+    //    v1.57.0: تابين (التحويل + سجل العمليات).
     page:      'Re-Assign-Package-Zone-BOSTA.html',
     title:     'تحويل الشحنة إلى بوسطة',
     workerKey: 'reassignBosta',
     host:      're-assign-package-zone-bosta-worker.ecommoda-dev.workers.dev',
     oldSecret: 're_assign_package_zone_bosta_worker_secret',
-    tabs:      0,
+    tabs:      2,
   },
   {
     // 🔴 v1.35.0 — «مستقبل حالة شحنات بوسطة» (قسم «أدوات أخرى»). Worker وبس،

@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<!-- skills: html-builder v8.5.0 · constants v4.4.0 · order-lifecycle v1.9.0 — 26-10-2026 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>تحويل الشحنة إلى بوسطة — مركز عمليات الشحن والتحصيل</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -10,104 +11,221 @@
 <link rel="stylesheet" href="shared/core.css">
 <link rel="stylesheet" href="shared/hub.css">
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <style>
 /* ══════════════════════════════════════════════════════
    §STYLES — الصفحة دي بس.
    🔴 **الصفحة دي مش متولّدة بسكربت** — الريبو المستقل (Re-Assign-Package-Zone-BOSTA)
-      Worker وبس (نفس نمط Partial-Delivery وCourier-Names). أي تعديل على الشاشة
-      بيتعمل هنا، وأي تعديل على المنطق (الأهلية · الكتابة) في الـ Worker.
-   🔴 **مفيش كتلة توكنز هنا** — كلها في shared/core.css.
+      Worker وبس. أي تعديل على الشاشة بيتعمل هنا، وأي تعديل على الأهلية
+      أو الكتابة أو السجل في الـ Worker.
+   🔴 **مفيش كتلة توكنز هنا** — كلها في shared/core.css. والصفحة Tier L (1400)
+      الافتراضي: جدول فحص بعشر أعمدة + جدول سجل بتسع أعمدة.
    ══════════════════════════════════════════════════════ */
 
-/* 🔴 تاب واحد بس (مفيش تاب سجل كامل) — Tier M. السطر الواحد ده هو الاستثناء المسموح. */
-:root { --container-max: 1200px; }
+/* ── Freeze on Scroll (tabs-and-modals.md § 1b) ── */
+.sticky-header-wrap{position:sticky;top:0;z-index:300;background:var(--bg);padding-top:2px;margin:0 -2px}
+.sticky-header-wrap.stuck{box-shadow:0 6px 18px rgba(0,0,0,.10)}
+.sticky-header-wrap.stuck .app-header{padding:6px 14px;margin-bottom:6px}
+.sticky-header-wrap.stuck .app-icon{font-size:16px}
+.sticky-header-wrap.stuck .app-title-text h1{font-size:12.5px}
+.sticky-header-wrap.stuck .app-title-text span{max-height:0;opacity:0;margin-top:0}
+.sticky-header-wrap.stuck .hbtn{padding:4px 9px;font-size:11px}
+.app-header{transition:padding .18s ease}
+.app-icon{transition:font-size .18s ease}
+.app-title-text h1{transition:font-size .18s ease}
+.app-title-text span{display:block;overflow:hidden;max-height:16px;margin-top:2px;transition:max-height .18s ease,opacity .18s ease,margin-top .18s ease}
+.main-tabs-bar{overflow:hidden;transition:max-height .22s ease,opacity .18s ease,padding .18s ease,margin .18s ease,border-width .18s ease}
+.sticky-header-wrap.stuck .main-tabs-bar{max-height:0!important;opacity:0;padding:0;margin-bottom:0;border-width:0}
+.active-tab-chip{display:none;align-items:center;gap:6px;padding:5px 10px;border:1.5px solid var(--border-strong);border-radius:20px;background:var(--surface-2);font-size:11.5px;font-weight:700;color:var(--text-primary);cursor:pointer;position:relative;white-space:nowrap;transition:border-color .15s,color .15s}
+.active-tab-chip:hover{border-color:var(--accent);color:var(--accent)}
+.active-tab-chip.open{border-color:var(--accent);color:var(--accent-dark);background:var(--accent-light)}
+.sticky-header-wrap.stuck .active-tab-chip{display:flex}
+.chip-arrow{font-size:9px;color:var(--text-muted);transition:transform .2s}
+.active-tab-chip.open .chip-arrow{transform:rotate(180deg)}
+.tab-chip-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:310;min-width:180px;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 28px rgba(0,0,0,.14);display:none;padding:4px}
+.tab-chip-menu.open{display:block}
+.tab-chip-item{display:flex;align-items:center;gap:6px;padding:8px 10px;font-size:12.5px;font-weight:600;border-radius:6px;cursor:pointer;color:var(--text-secondary);white-space:nowrap}
+.tab-chip-item:hover{background:var(--surface-2)}
+.tab-chip-item.active{background:var(--accent-light);color:var(--accent-dark)}
 
-.card h3 { margin: 0 0 12px; font-size: 15px; }
-.btn-sm { padding: 6px 12px; font-size: 12px; }
-.rb-sub { font-size: 12.5px; color: var(--text-secondary); margin: -6px 0 12px; }
+/* ── مربع الإدخال (unified-entry-box.md § 5) — نوع واحد (أوردر) فمفيش chips ── */
+.entry-bar{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 16px 16px;margin-bottom:12px}
+.entry-lbl{font-size:12.5px;font-weight:700;color:var(--text-mid);margin-bottom:8px}
+.entry-row{display:flex;gap:10px;align-items:stretch}
+.entry-row input{flex:1;min-width:0;min-height:52px;padding:0 16px;border-radius:var(--radius-sm);border:2px solid var(--accent);background:var(--surface);font-size:18px;font-weight:700;font-family:var(--font-mono);direction:ltr;text-align:left;color:var(--text-primary)}
+.entry-row input:focus{outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.entry-row input.has-value{background:var(--accent-light)}
+.entry-row input[readonly]{background:var(--surface-2);border-color:var(--border-strong);cursor:not-allowed}
+.entry-add{min-width:96px;font-size:15px}
 
-/* ── البحث / السكانر ── */
-.rb-search { display: flex; gap: 10px; }
-.rb-search input {
-  flex: 1; padding: 13px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
-  font-size: 17px; font-family: var(--font-mono); direction: ltr; text-align: left;
-}
-.rb-search input:focus { outline: none; border-color: var(--accent); }
-.rb-search input.has-value { border-color: var(--accent-border); background: var(--accent-light); }
+/* ── الصندوق الأحمر — الأكواد اللي ما بقتش أوردرات (§ 4) ── */
+.bc-fails{margin-bottom:12px;padding:10px 14px;border-radius:var(--radius-sm);background:var(--red-light);border:1px solid var(--red-border);color:var(--red-dark)}
+.bc-fails[hidden]{display:none}
+.bc-fails-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;font-weight:800;margin-bottom:4px}
+.bc-fail{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;padding:3px 0}
+.bc-fail .lbl{font-family:var(--font-mono);direction:ltr;unicode-bidi:isolate}
+.bc-fail .why{flex:1}
+.bc-fail button,.bc-fails-hd button{border:1px solid var(--red-border);background:var(--surface);color:var(--red);border-radius:6px;font-size:11px;font-weight:800;padding:1px 8px;cursor:pointer;font-family:inherit}
+.bc-fail button:hover,.bc-fails-hd button:hover{background:var(--red);color:var(--on-accent)}
 
-/* ── بيانات الأوردر ── */
-.rb-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-.rb-num { font-size: 22px; font-weight: 800; }
-.rb-num .order-link, .rb-num .order-num { font-size: 22px; }
-.rb-meta { font-size: 13px; color: var(--text-secondary); display: flex; gap: 14px; flex-wrap: wrap; }
-.rb-meta b { color: var(--text-primary, inherit); }
-.rb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-bottom: 14px; }
-.rb-cell { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; background: var(--surface); }
-.rb-cell .k { font-size: 11.5px; color: var(--text-secondary); font-weight: 600; margin-bottom: 3px; }
-.rb-cell .v { font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
-.rb-cell .v.none { color: var(--text-muted); font-weight: 500; }
-.rb-cell.hl { border-color: var(--accent-border); background: var(--accent-light); }
-.rb-items { font-size: 12.5px; }
-.rb-items summary { cursor: pointer; font-weight: 700; margin-bottom: 6px; }
-.rb-items ul { margin: 0; padding-inline-start: 18px; }
+/* ── العدّادات (Step 3C — حالة لكل عدّاد) ── */
+.rb-counters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.rb-cnt{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border-strong);background:var(--surface);font-size:12.5px;font-weight:700;color:var(--text-mid)}
+.rb-cnt b{font-family:var(--font-mono);font-size:16px;font-weight:800;color:var(--text-primary)}
+.rb-cnt.zero{opacity:.55}
+.rb-cnt.ok{border-color:var(--green-border);background:var(--green-light)}
+.rb-cnt.err{border-color:var(--red-border);background:var(--red-light)}
+.rb-cnt.warn{border-color:var(--amber-border);background:var(--amber-light)}
+.rb-cnt.neutral{background:var(--surface-2)}
 
-/* ── حكم الأهلية ── */
-.rb-verdict { border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px; border: 1px solid; }
-.rb-verdict .t { font-weight: 800; font-size: 14.5px; margin-bottom: 4px; }
-.rb-verdict ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: 13px; }
-.rb-verdict.ok  { background: var(--green-light); border-color: var(--green); }
-.rb-verdict.ok .t { color: var(--green-dark); }
-.rb-verdict.no  { background: var(--red-light); border-color: var(--red); }
-.rb-verdict.no .t { color: var(--red-dark); }
-.rb-verdict.already { background: var(--surface-2); border-color: var(--border-strong); }
-.rb-verdict.already .t { color: var(--neutral-dark); }
+/* ── القسم الموحّد (data-table-standard.md § 1) — كارت واحد بدون overflow:hidden ── */
+.unified-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px}
+.section-divider{border-top:1px solid var(--border)}
+.tbl-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--surface-2);border-radius:var(--radius) var(--radius) 0 0;cursor:pointer;user-select:none;flex-wrap:wrap}
+.tbl-bar:hover{background:var(--surface-hover)}
+.tbl-bar-right,.tbl-bar-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tbl-toggle{font-size:13px;color:var(--text-muted);transition:transform .25s}
+.tbl-toggle.open{transform:rotate(180deg)}
+.results-wrap{display:flex;align-items:center;gap:8px}
+.results-label{font-size:14px;font-weight:800;color:var(--text-primary);white-space:nowrap}
+.results-count{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:34px;padding:0 10px;font-family:var(--font-mono);font-size:17px;font-weight:800;color:var(--purple);background:var(--purple-light);border:1.5px solid var(--purple-border);border-radius:var(--radius-sm)}
+.upd{font-size:12px;font-weight:600;color:var(--text-mid)}
+.rb-why{font-size:12px;font-weight:700;color:var(--amber-dark)}
+.act-btn{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--surface);font-family:inherit;font-size:12px;font-weight:700;color:var(--text-mid);cursor:pointer;white-space:nowrap;transition:all .15s}
+.act-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.act-btn:disabled{opacity:.5;cursor:not-allowed}
+.act-go{height:38px;padding:0 18px;font-size:13.5px;background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.act-go:hover:not(:disabled){background:var(--accent-dark);border-color:var(--accent-dark);color:var(--on-accent)}
+.act-go:disabled{background:var(--border-strong);border-color:var(--border-strong);color:var(--text-secondary);opacity:1}
+.clear-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;height:34px;border:1px solid var(--red-border);color:var(--red);background:var(--red-light);font-family:inherit}
+.clear-btn:hover{background:var(--red);color:var(--on-accent);border-color:var(--red)}
+.clear-btn.inactive{border-color:var(--border);color:var(--text-muted);background:var(--surface-2);cursor:not-allowed;opacity:.6}
+.clear-btn.inactive:hover{background:var(--surface-2);color:var(--text-muted);border-color:var(--border)}
+.rb-prog{padding:10px 16px;border-top:1px solid var(--border);font-size:12.5px;font-weight:700;color:var(--text-mid)}
+.rb-prog[hidden]{display:none}
+.rb-prog-track{height:8px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;margin-top:6px}
+.rb-prog-fill{height:100%;width:0;background:var(--accent);transition:width .25s ease}
+.export-warn{margin:0;padding:10px 16px;border-top:1px solid var(--amber-border);background:var(--amber-light);color:var(--amber-dark);font-size:13px;font-weight:600;line-height:1.7}
 
-.rb-plan { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; background: var(--surface); border-radius: 8px; overflow: hidden; }
-.rb-plan th, .rb-plan td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: right; }
-.rb-plan th { background: var(--surface-2); font-weight: 700; }
-.rb-plan td.from { color: var(--text-secondary); font-family: var(--font-mono); direction: ltr; }
-.rb-plan td.to   { font-weight: 800; font-family: var(--font-mono); direction: ltr; color: var(--green-dark); }
-.rb-note { margin-top: 8px; font-size: 12.5px; font-weight: 600; color: var(--amber-dark); }
+/* ── Chips (§ 6) ── */
+.chips-zone{display:flex;flex-direction:column;gap:6px}
+.chips-zone.pad{padding:10px 16px;border-top:1px solid var(--border)}
+.chips-zone:empty{display:none}
+.ms-chips-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chips-label{font-size:11.5px;font-weight:700;color:var(--text-mid);white-space:nowrap}
+.ms-chip{display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);border:1px solid var(--accent-border);color:var(--accent-dark);border-radius:20px;padding:2px 4px 2px 10px;font-size:12px;font-weight:700}
+.ms-chip button{border:none;background:var(--accent-border);color:var(--accent-dark);width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:10px;line-height:1}
+.ms-chip button:hover{background:var(--accent);color:var(--on-accent)}
 
-.rb-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.rb-go { padding: 12px 22px; font-size: 15px; }
-.rb-go:disabled { background: var(--border-strong); color: var(--text-secondary); opacity: 1; }
-.rb-why { font-size: 12.5px; color: var(--text-secondary); }
+/* ── الجدول (§ 7 + § 9ب) ── */
+.tbl-scroll{max-height:68vh;overflow:auto}
+.tbl-body-wrap{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:1fr;transition:grid-template-rows .3s ease}
+.tbl-body-wrap>*{min-height:0}
+.tbl-body-wrap.collapsed{grid-template-rows:0fr;overflow:hidden}
+.tbl-body-wrap.collapsed>*{overflow:hidden}
+.data-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:var(--td-size)}
+.data-table.auto{table-layout:auto}
+.data-table thead th{position:sticky;top:0;z-index:20;background:var(--surface-2);color:var(--th-color);font-weight:var(--th-weight);font-size:var(--th-size);padding:10px 6px;text-align:center;white-space:normal;box-shadow:inset 0 -2px 0 var(--border-strong)}
+.data-table tbody td{text-align:center;padding:9px 6px;border-bottom:1px solid var(--border);white-space:normal;overflow-wrap:anywhere;font-size:var(--td-size);font-weight:var(--td-weight);vertical-align:middle}
+.data-table thead th,.data-table tbody td{border-inline-start:1px solid var(--border)}
+.data-table thead th:first-child,.data-table tbody td:first-child{border-inline-start:none}
+.data-table tbody tr:hover{background:var(--surface-2)}
+.data-table tbody tr.flash{animation:rbFlash 1.3s ease}
+@keyframes rbFlash{0%,60%{background:var(--amber-light)}100%{background:transparent}}
+.col-num{font-family:var(--font-mono);direction:ltr;white-space:nowrap}
+.th-in{display:inline-flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px;max-width:100%}
+.th-label{cursor:pointer;user-select:none;padding:2px 4px;border-radius:5px;transition:background .12s,color .12s}
+.th-label:hover,th.sorted .th-label{background:var(--accent-light);color:var(--accent-dark)}
+.sort-icon{display:inline-block;font-size:10px;color:var(--accent);font-weight:900}
+.sort-icon.active{margin-inline-start:4px}
+.th-flt{min-width:22px;height:22px;padding:0 3px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:800}
+.th-flt svg{width:14px;height:14px}
+.th-flt:hover{background:var(--accent-light);color:var(--accent)}
+th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent)}
+.rb-cb{width:17px;height:17px;cursor:pointer;accent-color:var(--accent)}
+.rb-cb:disabled{cursor:not-allowed;opacity:.45}
+.rb-ordercell{white-space:nowrap}
+.rb-x{margin-inline-start:6px;border:1px solid var(--border-strong);background:var(--surface);color:var(--text-muted);border-radius:6px;width:20px;height:20px;font-size:10px;line-height:1;cursor:pointer;vertical-align:middle}
+.rb-x:hover:not(:disabled){background:var(--red);border-color:var(--red);color:var(--on-accent)}
+.rb-x:disabled{opacity:.4;cursor:not-allowed}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.status-badge.ok{background:var(--green-light);color:var(--green-dark);border:1px solid var(--green-border)}
+.status-badge.warn{background:var(--amber-light);color:var(--amber-dark);border:1px solid var(--amber-border)}
+.status-badge.err{background:var(--red-light);color:var(--red-dark);border:1px solid var(--red-border)}
+.status-badge.neutral{background:var(--surface-2);color:var(--text-mid);border:1px solid var(--border-strong)}
+.sub{font-size:11px;font-weight:600;color:var(--text-mid);margin-top:2px}
+.rb-reasons{margin:0;padding:0;list-style:none;text-align:right;font-size:12px;font-weight:600;line-height:1.7}
+.rb-reasons li{display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline}
+.rb-reasons li+li{margin-top:2px}
+.rb-reasons .lb{color:var(--text-mid)}
+.rb-reasons .ch{font-family:var(--font-mono);direction:ltr;unicode-bidi:isolate}
+.rb-reasons .bad{color:var(--red-dark)}
+.rb-reasons .warnx{color:var(--amber-dark)}
+.rb-retry{margin-top:4px;border:1px solid var(--accent-border);background:var(--accent-light);color:var(--accent-dark);border-radius:6px;font-size:11.5px;font-weight:700;padding:2px 10px;cursor:pointer;font-family:inherit}
+.empty{padding:40px;text-align:center;color:var(--text-mid);font-weight:700}
+.pagination-row{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-top:1px solid var(--border)}
+.pagination-row[hidden]{display:none}
+.page-info{font-size:13px;color:var(--text-secondary);font-family:var(--font-mono);padding:0 8px}
+.page-btn{padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);color:var(--text-primary);transition:background .15s,border-color .15s}
+.page-btn:hover:not(:disabled){background:var(--accent-light);border-color:var(--accent-border);color:var(--accent)}
+.page-btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* ── نتيجة العملية — أربع حالات + مرفوض ── */
-.rb-result { padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 13.5px; }
-.rb-result .badge { font-weight: 800; display: block; margin-bottom: 4px; }
-.rb-result.success { background: var(--green-light); border: 1px solid var(--green); }
-.rb-result.success .badge { color: var(--green-dark); }
-.rb-result.warning { background: var(--amber-light); border: 1px solid var(--amber); }
-.rb-result.warning .badge { color: var(--amber-dark); }
-.rb-result.error { background: var(--red-light); border: 1px solid var(--red); }
-.rb-result.error .badge { color: var(--red-dark); }
-.rb-result.already, .rb-result.rejected { background: var(--surface-2); border: 1px solid var(--border-strong); }
-.rb-result.already .badge, .rb-result.rejected .badge { color: var(--neutral-dark); }
-.rb-result ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: 12.5px; }
+/* ── القوايم العائمة — position:fixed على body (§ 2.2) ── */
+.pop{position:fixed;z-index:200;width:268px;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,.16);max-height:72vh;display:flex;flex-direction:column}
+.pop.wide{width:340px}
+.pop-hd{padding:9px 12px;font-weight:800;font-size:12.5px;border-bottom:1px solid var(--border);background:var(--surface-2);border-radius:var(--radius-sm) var(--radius-sm) 0 0}
+.pop-body{padding:10px 12px;display:flex;flex-direction:column;gap:9px}
+.pop-srch{padding:8px 10px 0}
+.ms-ftr-top{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border)}
+.lnk{border:none;background:none;font-size:12px;font-weight:700;cursor:pointer;color:var(--accent);font-family:inherit}
+.lnk:hover{text-decoration:underline}
+.ms-list{overflow:auto;padding:4px}
+.ms-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12.5px;font-weight:600;user-select:none}
+.ms-item:hover{background:var(--surface-hover)}
+.ms-item .cb{width:16px;height:16px;border:1.5px solid var(--border-strong);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--on-accent);flex-shrink:0}
+.ms-item.on .cb{background:var(--accent);border-color:var(--accent)}
+.ms-item.on .cb::after{content:'✓'}
+.ms-cnt{margin-inline-start:auto;font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--text-mid);background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:0 7px}
+.inp{width:100%;height:36px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:0 11px;font-size:13px;font-weight:600;font-family:inherit;color:var(--text-primary);background:var(--surface);outline:none;transition:border-color .15s,background .15s}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.inp.has-value{border-color:var(--accent);background:var(--accent-light)}
+.search-wrap{position:relative}
+.search-wrap .inp{padding-left:34px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text-muted);pointer-events:none}
+.rng{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rng>div{min-width:0}
+.pop-body label{font-size:11.5px;font-weight:700;color:var(--text-mid);display:block;margin-bottom:3px}
+.inp[type=date]{min-width:0;padding:0 8px;font-size:12.5px}
+.preset-list{display:flex;flex-direction:column;gap:2px}
+.preset-list button:not(.clear-btn){text-align:right;padding:7px 9px;border:none;background:none;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text-primary);font-family:inherit}
+.preset-list button:not(.clear-btn):hover{background:var(--surface-hover)}
+.preset-list button.on:not(.clear-btn){background:var(--accent-light);color:var(--accent-dark);font-weight:800}
+.pop .clear-btn{height:30px;padding:4px 10px;font-size:12px}
+.pop .pop-body>.clear-btn{align-self:flex-start}
+.pop .preset-list>.clear-btn{margin:6px 8px;align-self:flex-start}
+.tip{position:fixed;z-index:210;max-width:300px;background:var(--neutral-dark);color:var(--on-accent);font-size:12px;font-weight:600;line-height:1.7;padding:6px 10px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.2);pointer-events:none;word-break:break-word}
 
-.rb-banner { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; margin-bottom: 12px;
-  background: var(--red-light); border: 1px solid var(--red); color: var(--red-dark); }
-.rb-empty { text-align: center; padding: 22px; color: var(--text-secondary); }
+/* ── عرض الأعمدة بالسحب (§ 9ب) ── */
+.data-table.measuring th,.data-table.measuring td{white-space:nowrap}
+.data-table.measuring .th-in{flex-wrap:nowrap;max-width:none}
+.col-rz{position:absolute;top:0;bottom:0;inset-inline-end:0;width:10px;cursor:col-resize;touch-action:none;z-index:3}
+.col-rz::after{content:'';position:absolute;top:24%;bottom:24%;inset-inline-end:3px;width:2px;border-radius:2px;background:var(--border-strong);transition:background .12s,top .12s,bottom .12s}
+.col-rz:hover::after,.col-rz.active::after{background:var(--accent);top:8%;bottom:8%}
+body.col-resizing,body.col-resizing *{cursor:col-resize!important;user-select:none!important}
+col.hl{background:var(--accent-light)}
+.w-badge{position:fixed;z-index:220;bottom:14px;left:50%;transform:translateX(-50%);background:var(--neutral-dark);color:var(--on-accent);font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:20px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.25)}
 
-/* ── جدول آخر التحويلات ── */
-.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-.data-table th, .data-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: right; vertical-align: top; }
-.data-table th { background: var(--surface-2); font-weight: 700; border-bottom: 2px solid var(--border); }
-.result-chip { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
-.result-chip.success { background: var(--green-light); color: var(--green-dark); }
-.result-chip.warning { background: var(--amber-light); color: var(--amber-dark); }
-.result-chip.error   { background: var(--red-light); color: var(--red-dark); }
-.result-chip.rejected, .result-chip.already { background: var(--surface-2); color: var(--neutral-dark); }
-.q-empty { text-align: center; padding: 24px; color: var(--text-secondary); }
+/* ── التوست «مكرر» (Standards #53 — مش في core.css) ── */
+.toast-dup{background:var(--amber)}
 
-/* ── محتوى نافذة التأكيد — الـ shell مالوش نافذة تأكيد خالص ── */
-.confirm-lines { text-align: right; margin: 10px 0; padding: 0; list-style: none; }
-.confirm-lines li { padding: 6px 10px; border-radius: 7px; background: var(--surface-2); margin-bottom: 6px; font-size: 13px; }
-.confirm-lines li.soft { color: var(--text-secondary); }
-.confirm-lines li.warn { background: var(--amber-light); color: var(--amber-dark); font-weight: 600; }
-.confirm-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-start; }
+/* ── نوافذ التأكيد والملخّص — الـ shell مالوش نافذة تأكيد خالص ── */
+.confirm-lines{text-align:right;margin:10px 0;padding:0;list-style:none}
+.confirm-lines li{padding:6px 10px;border-radius:7px;background:var(--surface-2);margin-bottom:6px;font-size:13px}
+.confirm-lines li.soft{color:var(--text-secondary)}
+.confirm-lines li.warn{background:var(--amber-light);color:var(--amber-dark);font-weight:700}
+.confirm-lines li.bad{background:var(--red-light);color:var(--red-dark);font-weight:700}
+.confirm-lines li.good{background:var(--green-light);color:var(--green-dark);font-weight:700}
+.confirm-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-start}
 </style>
 </head>
 <body>
@@ -117,33 +235,78 @@
         المستقل (Re-Assign-Package-Zone-BOSTA) Worker وبس. تفاصيل الأداة في
         CLAUDE.md بتاع ريبو الأداة.
      ══════════════════════════════════════════════════════ -->
-<div id="headerMount"></div>
-
 <div class="container">
 
-  <div id="rbResult"></div>
-
-  <div class="card">
-    <h3>🔎 ابحث عن الأوردر</h3>
-    <div class="rb-sub">اكتب رقم الأوردر أو اعمل سكان للباركود (Order ID) واضغط <b>Enter</b>.</div>
-    <div class="rb-search">
-      <input type="text" id="rbInput" inputmode="numeric" autocomplete="off" spellcheck="false" autofocus aria-label="رقم الأوردر أو باركود Order ID">
-      <button class="btn btn-primary" id="rbSearchBtn">بحث</button>
+  <!-- ══════════════ §SHELL — الهيدر + شريط التابات (Freeze on Scroll) ══════════════ -->
+  <div class="sticky-header-wrap" id="stickyWrap">
+    <div id="headerMount"></div>
+    <div class="main-tabs-bar" id="mainTabsBar">
+      <button class="main-tab-btn active" id="tabMain" onclick="switchMainTab('main')">🚚 التحويل</button>
+      <button class="main-tab-btn" id="tabLog" onclick="switchMainTab('log')">📜 سجل العمليات</button>
     </div>
   </div>
 
-  <div id="rbOrder"></div>
+  <!-- ══════════════ §TOOL — تاب التحويل ══════════════ -->
+  <div class="tab-panel active" id="panelMain">
 
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-      <h3 style="margin:0;">🧾 آخر التحويلات</h3>
-      <button class="btn btn-outline btn-sm" id="rbLogReload">↺ تحديث</button>
+    <div class="entry-bar" id="rbEntry">
+      <div class="entry-lbl" id="rbEntryLbl">رقم الأوردر أو باركود Order ID — اسكن أكتر من أوردر ورا بعض (Enter بعد كل واحد) أو الصق قايمة أرقام</div>
+      <div class="entry-row">
+        <button class="btn btn-primary entry-add" id="rbAdd" type="button">إضافة</button>
+        <input type="text" id="rbInput" inputmode="numeric" autocomplete="off" spellcheck="false" autofocus aria-labelledby="rbEntryLbl">
+      </div>
     </div>
-    <div style="overflow-x:auto;">
-      <table class="data-table">
-        <thead><tr><th>الوقت</th><th>الأوردر</th><th>النتيجة</th><th>الموظف</th><th>تفاصيل</th></tr></thead>
-        <tbody id="rbLogBody"><tr><td colspan="5" class="q-empty">—</td></tr></tbody>
-      </table>
+
+    <div class="bc-fails" id="rbFails" hidden></div>
+
+    <div class="rb-counters" id="rbCounters"></div>
+
+    <div class="unified-section">
+      <div class="tbl-bar" data-tbar="scan">
+        <div class="tbl-bar-right">
+          <span class="tbl-toggle open" id="tog-scan">▲</span>
+          <div class="results-wrap"><span class="results-label">النتائج:</span><span class="results-count" id="cnt-scan">—</span></div>
+          <span class="rb-why" id="rbWhy"></span>
+        </div>
+        <div class="tbl-bar-left">
+          <button class="act-btn act-go" id="rbGo" type="button" disabled>🚚 تحويل المحدد لبوسطة</button>
+          <button class="act-btn" id="rbClearList" type="button" disabled>🗑 مسح القايمة</button>
+          <button class="clear-btn inactive" data-clearall="scan" type="button">✕ مسح كل الفلاتر</button>
+        </div>
+      </div>
+      <div class="rb-prog" id="rbProg" hidden><span id="rbProgTxt"></span><div class="rb-prog-track"><div class="rb-prog-fill" id="rbProgFill"></div></div></div>
+      <div class="chips-zone pad" id="chips-scan"></div>
+      <div class="tbl-body-wrap" id="wrap-scan"><div><div class="tbl-scroll">
+        <table class="data-table auto measuring" id="tbl-scan"><colgroup id="cg-scan"></colgroup><thead id="th-scan"></thead><tbody id="tb-scan"></tbody></table>
+      </div></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ §LOG — تاب سجل العمليات ══════════════ -->
+  <div class="tab-panel" id="panelLog">
+    <div class="unified-section">
+      <div class="tbl-bar" data-tbar="log">
+        <div class="tbl-bar-right">
+          <span class="tbl-toggle open" id="tog-log">▲</span>
+          <div class="results-wrap"><span class="results-label">النتائج:</span><span class="results-count" id="cnt-log">—</span></div>
+          <span class="upd" id="logUpd"></span>
+        </div>
+        <div class="tbl-bar-left">
+          <button class="act-btn" id="logReload" type="button">↺ تحديث</button>
+          <button class="act-btn" id="logExport" type="button">⬇ تصدير XLSX</button>
+          <button class="clear-btn inactive" data-clearall="log" type="button">✕ مسح كل الفلاتر</button>
+        </div>
+      </div>
+      <div class="chips-zone pad" id="chips-log"></div>
+      <div class="export-warn" id="logExportWarn" hidden></div>
+      <div class="tbl-body-wrap" id="wrap-log"><div><div class="tbl-scroll">
+        <table class="data-table auto measuring" id="tbl-log"><colgroup id="cg-log"></colgroup><thead id="th-log"></thead><tbody id="tb-log"></tbody></table>
+      </div></div></div>
+      <div class="pagination-row" id="paginationRow" hidden>
+        <button class="page-btn" id="btnPrevPage" type="button">→ السابق</button>
+        <span class="page-info" id="pageInfo"></span>
+        <button class="page-btn" id="btnNextPage" type="button">التالي ←</button>
+      </div>
     </div>
   </div>
 </div>
@@ -152,19 +315,31 @@
 <div id="sharedMount"></div>
 
 <!-- ══════════════ §CHANGELOG ══════════════ -->
-<div class="eco-overlay" id="changelogOverlay">
-  <div class="eco-modal" style="max-width:560px;">
-    <div class="eco-modal-hdr"><h3>📋 سجل الإصدارات</h3><button class="modal-close-x" onclick="closeChangelog()">✕</button></div>
+<div class="eco-overlay" id="changelogOverlay" onclick="if(event.target===this)closeChangelog()">
+  <div class="eco-modal">
+    <div class="eco-modal-hdr"><span>📋 سجل التحديثات</span><button class="modal-close-x" onclick="closeChangelog()">✕</button></div>
     <div class="eco-modal-body">
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.54.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.57.0</span>
+          <span class="cl-ver-date">26-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>سكان أكتر من أوردر في نفس الوقت</b> — كل أوردر بيتعمله سكان (أو بيتلصق في المربع) بيظهر في جدول بحالته: <b>مؤهل / غير مؤهل / اتحوّل قبل كده / مش موجود</b> والسبب بقيمته الحرفية. زرار واحد بيحوّل كل الأوردرات المؤهلة المحددة (أوردر ورا أوردر، والتقدّم حقيقي).</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><b>تاب «سجل العمليات»</b> بجدول بفلاتر في رأس كل عمود (الموظف · النوع · النتيجة · رقم الأوردر · الملاحظات · التاريخ) والترتيب والصفحات من السيرفر، وتصدير XLSX بتنبيه لو الملف اتقص.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>الصفحة اتراجعت بالكامل على <b>معيار الواجهات v8.5.0</b>: الجدول الموحّد (عناوين ثابتة · فلاتر رأس العمود · عرض الأعمدة بالسحب) · الهيدر بيتقفل عند السكرول · مربع إدخال بـ <b>Enter فقط</b> (من غير مؤقّت) · الأكواد المرفوضة في صندوق أحمر مش في الجدول · About على قسمين.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><b>نافذة التأكيد بقت بتسمّي الأرقام</b> (كام S1 وكام S2) وزرار الإلغاء هو اللي متركّز — الـ Enter مابقاش بيأكّد، لأن السكانر بيبعت Enter وفيه دفعة ممكن تتنفّذ.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>الـ Worker <code>v1.1.0</code> (<code>DCO_WORKERS.reassignBosta.min</code>): فلتر السجل بالنتيجة ورقم الأوردر والملاحظات + <code>get_log_options</code>. <b>انشر الـ Worker قبل الصفحة.</b></span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.54.0</span>
           <span class="cl-ver-date">24-10-2026</span>
         </div>
         <ul class="cl-items">
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span>الإطلاق الأول: بحث برقم الأوردر أو سكان Order ID، وعرض بياناته، وزرار <b>«تحويل الشحنة إلى بوسطة»</b> — شغّال بس لو الأوردر مؤهل، ولو مش مؤهل بيظهر السبب والزرار بيفضل مقفول.</span></li>
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 التحويل بيكتب <b>أربع ميتافيلدز في نداء واحد ذرّي</b>: الحالة (S1 ← <code>Confirmed</code> · S2 ← <code>Confirmed + EXCHANGE</code>) · <code>zone</code> ← <code>Other_Regions</code> · <code>courier</code> ← <code>Bosta</code> · <code>package_shipping_re_assign</code> ← <code>Bosta</code>.</span></li>
-          <li class="cl-item"><span class="cl-tag change">تعديل</span><span>⛔ <b>الريبو <code>Re-Assign-Package-Zone-BOSTA</code> Worker وبس</b> (<code>re-assign-package-zone-bosta-worker</code>) — الواجهة هنا هي النسخة الوحيدة.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>الإطلاق الأول: بحث برقم الأوردر أو سكان Order ID، وعرض بياناته، وزرار <b>«تحويل الشحنة إلى بوسطة»</b> — شغّال بس لو الأوردر مؤهل. التحويل بيكتب أربع ميتافيلدز في نداء واحد ذرّي (الحالة · الزون · المندوب · علامة التحويل).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>⛔ الريبو <code>Re-Assign-Package-Zone-BOSTA</code> Worker وبس — الواجهة هنا هي النسخة الوحيدة.</span></li>
         </ul>
       </div>
     </div>
@@ -172,78 +347,116 @@
 </div>
 
 <!-- ══════════════ §ABOUT ══════════════ -->
-<div class="eco-overlay" id="aboutOverlay">
+<div class="eco-overlay" id="aboutOverlay" onclick="if(event.target===this)closeAbout()">
   <div class="eco-modal">
-    <div class="eco-modal-hdr"><h3>ℹ️ عن الأداة — تحويل الشحنة إلى بوسطة</h3><button class="modal-close-x" onclick="closeAbout()">✕</button></div>
+    <div class="eco-modal-hdr"><span>ℹ️ عن الأداة — تحويل الشحنة إلى بوسطة</span><button class="modal-close-x" onclick="closeAbout()">✕</button></div>
     <div class="eco-modal-body">
+
       <details class="about-sec" open>
-        <summary>📋 بتعمل إيه</summary>
+        <summary>📋 وصف الأداة</summary>
         <div class="about-sec-body">
-          <p>أوردر كان مجهّز يخرج مع مندوب (أو يتسلّمه العميل من الشو روم) وقرّرت تشحنه
-             بوسطة بدل كده. بتبحث عنه برقمه أو بسكان الباركود، وبضغطة واحدة الأداة
-             بتكتب على شوبيفاي:</p>
+          <p><strong>الهدف:</strong> أوردر كان مجهّز يخرج مع مندوب (أو يتسلّمه العميل من الشو روم) وقرّرت تشحنه بوسطة. الأداة بتفحص كل أوردر، وللمؤهل بتكتب على شوبيفاي الحالة والزون والمندوب وعلامة التحويل في <b>نداء واحد ذرّي</b> (كلهم أو ولا واحد).</p>
+          <p><strong>المستخدمون المستهدفون:</strong> الشحن والتحصيل.</p>
+
+          <h4>كيف تعمل — Workflow</h4>
+          <ol>
+            <li>اسكن باركود Order ID أو اكتب رقم الأوردر واضغط <b>Enter</b> (الإضافة بـ Enter أو زرار «إضافة» بس — مفيش إضافة تلقائية). تقدر تسكن أكتر من أوردر ورا بعض، أو تلصق قايمة أرقام (مفصولة بسطر أو مسافة أو فاصلة).</li>
+            <li>كل أوردر بيظهر في الجدول فورًا وبيتفحص من الـ Worker: <b>مؤهل</b> · <b>غير مؤهل</b> (بالسبب) · <b>اتحوّل قبل كده</b> · <b>مش موجود</b> · <b>تعذّر الفحص</b> (بزرار إعادة الفحص).</li>
+            <li>الأكواد اللي مش أرقام أوردرات (طول مش معروف · حروف · باركودين ملزوقين) بتروح <b>صندوق أحمر</b> فوق الجدول، وزرار التحويل بيفضل مقفول لحد ما الصندوق يتفضّى.</li>
+            <li>المؤهل بيتحدد لوحده — شيل علامة أي أوردر مش عايز تحوّله (أو شيله من القايمة بـ ✕). فلتر الجدول بيساعد تراجع قبل التنفيذ.</li>
+            <li>اضغط <b>«تحويل المحدد لبوسطة»</b> ← نافذة تأكيد بالأرقام (كام S1 وكام S2) ← الأداة بتحوّل أوردر ورا أوردر وبتعرض تقدّم حقيقي، والإدخال مقفول أثناء التنفيذ.</li>
+            <li>في الآخر نافذة ملخّص (تم · تحذير · فشل · اتحوّل قبل كده)، وكل عملية بتتسجّل في تاب «سجل العمليات».</li>
+          </ol>
+
+          <h4>مين المؤهل</h4>
           <ul>
-            <li><b>الحالة</b>: S1 من <code>Ready</code> إلى <code>Confirmed</code> — أو S2 من <code>Ready</code> إلى <code>Confirmed + EXCHANGE</code>.</li>
-            <li><b>الزون</b>: من <code>Show_Room</code> أو <code>Cairo+Giza</code> إلى <code>Other_Regions</code>.</li>
-            <li><b>المندوب</b>: <code>Bosta</code>.</li>
-            <li><b>علامة التحويل</b>: <code>custom.package_shipping_re_assign</code> = <code>Bosta</code>.</li>
-          </ul>
-          <p>الأربعة بيتكتبوا <b>في نداء واحد ذرّي</b> — كلهم أو ولا واحد. بعدها الأوردر بيظهر
-             في أدوات رفع بوسطة زي أي أوردر <code>Confirmed</code> على <code>Other_Regions</code>.</p>
-        </div>
-      </details>
-      <details class="about-sec">
-        <summary>✅ مين المؤهل</summary>
-        <div class="about-sec-body">
-          <ul>
-            <li>حالة الأوردر <code>Ready</code> — S1 <b>أو</b> S2.</li>
+            <li>حالة الأوردر <code>Ready</code> — S1 <b>أو</b> S2 (مش الاتنين مع بعض).</li>
             <li>والزون <code>Show_Room</code> أو <code>Cairo+Giza</code>.</li>
             <li>والأوردر مش ملغي.</li>
           </ul>
-          <p>أي حاجة تانية = <b>غير مؤهل</b>: بيظهر السبب بقيمته الحرفية والزرار بيفضل مقفول.
-             وأوردر اتحوّل قبل كده بيتقال «اتحوّل لبوسطة قبل كده» بلون محايد (مش فشل).</p>
-        </div>
-      </details>
-      <details class="about-sec">
-        <summary>⚠️ لازم تعرف</summary>
-        <div class="about-sec-body">
+          <p>أي حاجة تانية = <b>غير مؤهل</b>: كل الأسباب بتتعرض مع بعض بقيمتها الحرفية. أوردر اتحوّل قبل كده (الحالة بعد التحويل + <code>Other_Regions</code> + <code>Bosta</code>) بيتقال «اتحوّل قبل كده» بلون محايد — مش فشل.</p>
+
+          <h4>⚠️ لازم تعرف</h4>
           <ul>
             <li><b>الأداة مالهاش «تراجع».</b> الأوردر بعد التحويل <code>Confirmed</code> على <code>Other_Regions</code> — لو التحويل غلط لازم يتعدّل يدويًا من شوبيفاي.</li>
             <li><b>S2 بيتكتب دايمًا <code>Confirmed + EXCHANGE</code></b> حتى لو الدورة الأصلية كانت <code>Confirmed + RETURN</code> — أداة رفع بوسطة هتعمله شحنة استبدال.</li>
-            <li>الفحص بيتعاد <b>على قراءة جديدة</b> لحظة الضغط — لو حد غيّر الأوردر بعد ما شفته، الأداة بترفض ومابتكتبش حاجة.</li>
-            <li>أوردر S1 مضبوط <code>Ready</code> بيرجع <code>Confirmed</code> — ده انتقال <b>مش موجود في جدول الانتقالات العام</b>، وبقرار صريح لأداة واحدة بنطاق مقفول.</li>
-            <li>بعد الكتابة بنعيد قراءة الأوردر ونتأكد. لو ما قدرناش نتأكد، النتيجة بتبقى «⚠ مش مؤكَّد» — افتح الأوردر على شوبيفاي قبل ما تعيد المحاولة.</li>
+            <li>الـ Worker <b>بيعيد الفحص على قراءة جديدة</b> لحظة الكتابة لكل أوردر — لو حد غيّره بعد ما شفته، بيرفض ومابيكتبش حاجة.</li>
+            <li>انتقال S1 من <code>Ready</code> إلى <code>Confirmed</code> مش في جدول الانتقالات العام — قرار صريح لأداة واحدة بنطاق مقفول.</li>
+            <li>«ما قدرناش نتأكد» معناها العملية ممكن تكون تمّت — الأداة بتعيد قراءة الأوردر لوحدها، ولو لسه مش واضح افتح الأوردر على شوبيفاي قبل ما تعيد.</li>
           </ul>
+
+          <h4>الـ Endpoints الرئيسية</h4>
+          <table>
+            <tr><th>action</th><th>الوصف</th></tr>
+            <tr><td><code>get_order</code></td><td>بحث بالاسم أو الـ ID + حكم الأهلية (قراءة بحتة) — نداء لكل أوردر</td></tr>
+            <tr><td><code>reassign_to_bosta</code></td><td>التحويل (كتابة ذرّية) — أوردر واحد في النداء، والواجهة بتتابع الدفعة</td></tr>
+            <tr><td><code>get_logs</code> · <code>get_logs_count</code> · <code>get_logs_export</code></td><td>تاب السجل — فلترة وترتيب وصفحات من السيرفر</td></tr>
+            <tr><td><code>get_log_options</code></td><td>قايمة الموظفين لفلتر السجل</td></tr>
+          </table>
+
+          <h4>⚙️ إجراءات كل خيار</h4>
+          <table>
+            <tr><th>الحالة / الخيار</th><th>الإجراءات التي تُنفَّذ</th></tr>
+            <tr><td>أوردر S1 = <code>Ready</code></td><td>الحالة <code>Confirmed</code> ← الزون <code>Other_Regions</code> ← المندوب <code>Bosta</code> ← علامة التحويل <code>Bosta</code> (نداء واحد ذرّي) ← قراءة تحقق ← صف سجل الأداة ← صف السجل المشترك لتغيّر الحالة</td></tr>
+            <tr><td>أوردر S2 = <code>Ready</code></td><td>الحالة <code>Confirmed + EXCHANGE</code> ← الزون <code>Other_Regions</code> ← المندوب <code>Bosta</code> ← علامة التحويل <code>Bosta</code> (نداء واحد ذرّي) ← قراءة تحقق ← صف سجل الأداة ← صف السجل المشترك</td></tr>
+            <tr><td>غير مؤهل / اتحوّل قبل كده</td><td>صفر كتابة على شوبيفاي ← صف سجل بنوع «مرفوض قبل الكتابة»</td></tr>
+          </table>
         </div>
       </details>
+
       <details class="about-sec">
         <summary>🔧 تشريح الكود</summary>
         <div class="about-sec-body">
+          <h4>FEATURE MAP</h4>
           <ul>
-            <li>§CONFIG — <code>ECO_WORKERS.reassignBosta</code> (في <code>shared/hub-config.js</code>) · الجلسة والسر من الـ shell.</li>
-            <li>§LOOKUP — <code>get_order</code> (بحث بالاسم أو الـ ID) · الأهلية بتتحسب في الـ Worker والصفحة بترسم رده.</li>
-            <li>§CONVERT — <code>reassign_to_bosta</code> بعد نافذة التأكيد.</li>
-            <li>§LOG — <code>get_logs</code> (آخر ٣٠ عملية).</li>
+            <li><code>§CONFIG</code> — بوابة الجلسة · <code>ECO_WORKERS.reassignBosta</code> (في <code>shared/hub-config.js</code>) · أطوال الأكواد · قواميس النتيجة.</li>
+            <li><code>§SCAN</code> — تصنيف الكود بالطول · الإضافة بـ Enter · اللصق المتعدد · الصندوق الأحمر · منع التكرار.</li>
+            <li><code>§LOOKUP</code> — طابور فحص (٢ في نفس الوقت) · <code>get_order</code> · رسم الحكم من رد الـ Worker.</li>
+            <li><code>§CONVERT</code> — تأكيد بالأرقام · لقطة + قفل · تحويل متتابع · قراءة تحقق بعد الفشل · نافذة الملخّص.</li>
+            <li><code>§TBL</code> — محرك الجدول الموحّد (فلاتر رأس العمود · ترتيب · chips · عرض الأعمدة) — نسخة واحدة لجدولين.</li>
+            <li><code>§LOG-JS</code> — السجل (فلترة وترتيب وصفحات server-side) · التصدير.</li>
+            <li><code>§SHELL-JS</code> — التابات · Freeze on Scroll · chip التاب الحالي.</li>
           </ul>
-          <p>الـ Worker: <code>re-assign-package-zone-bosta-worker</code> في ريبو
-             <code>Re-Assign-Package-Zone-BOSTA</code> — Worker وبس، والصفحة دي هي النسخة الوحيدة.</p>
+          <h4>KEY VARIABLES</h4>
+          <ul>
+            <li><code>RB</code> — حالة التاب: <code>rows</code> · <code>busy</code> · <code>fails</code> · طابور الفحص.</li>
+            <li><code>CFG</code> — أطوال الأكواد · مدد التوست · حجم صفحة السجل.</li>
+            <li><code>re_assign_bosta_col_widths_v1_scan|log</code> — عرض الأعمدة في <code>localStorage</code> (تفضيل شاشة).</li>
+          </ul>
+          <h4>NOTES</h4>
+          <ul>
+            <li>الأهلية بتتحسب في الـ Worker فقط (<code>evaluateEligibility</code>) — الصفحة بترسم ردّه، فمستحيل الشاشة تقول «مؤهل» والـ Worker يرفض.</li>
+            <li>فلاتر جدول الفحص على الصفوف اللي فيه (client-side). فلاتر السجل على السيرفر، وفلتر التاريخ فيه بيقارن بيوم UTC المخزّن — فرق ٢-٣ ساعات عن توقيت القاهرة وارد قرب منتصف الليل.</li>
+            <li>أصوات «فشل» و«مكرر» من مكتبة الأصوات الجديدة مش في <code>shared/core.js</code> لسه — الصفحة بتستخدم <code>error</code> و<code>warn</code> الموجودين.</li>
+          </ul>
         </div>
       </details>
     </div>
   </div>
 </div>
 
-<!-- ══════════════ §CONFIRM ══════════════ -->
+<!-- ══════════════ §CONFIRM — تأكيد قبل أي فعل مالوش رجعة ══════════════ -->
 <div class="eco-overlay" id="confirmOverlay">
-  <div class="eco-modal" style="max-width:480px;">
-    <div class="eco-modal-hdr"><h3 id="confirmHdr">⚠️ تأكيد</h3><button class="modal-close-x" onclick="closeConfirm(false)">✕</button></div>
+  <div class="eco-modal" style="max-width:520px;">
+    <div class="eco-modal-hdr"><span id="confirmHdr">⚠️ تأكيد</span><button class="modal-close-x" onclick="closeConfirm(false)">✕</button></div>
     <div class="eco-modal-body">
       <p id="confirmLead"></p>
       <ul class="confirm-lines" id="confirmLines"></ul>
       <div class="confirm-actions">
-        <button class="btn btn-primary" id="confirmOkBtn" onclick="closeConfirm(true)"></button>
-        <button class="btn btn-ghost" onclick="closeConfirm(false)">إلغاء</button>
+        <button class="btn btn-red" id="confirmOkBtn" onclick="closeConfirm(true)"></button>
+        <button class="btn btn-ghost" id="confirmCancelBtn" onclick="closeConfirm(false)">إلغاء</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ §SUMMARY — ملخّص إجباري بعد أي دفعة كتابة (Step 3C) ══════════════ -->
+<div class="eco-overlay" id="summaryOverlay">
+  <div class="eco-modal" style="max-width:560px;">
+    <div class="eco-modal-hdr"><span>🧾 ملخّص التحويل</span><button class="modal-close-x" onclick="closeSummary()">✕</button></div>
+    <div class="eco-modal-body">
+      <ul class="confirm-lines" id="summaryLines"></ul>
+      <div class="confirm-actions"><button class="btn btn-primary" id="summaryOkBtn" onclick="closeSummary()">تمام</button></div>
     </div>
   </div>
 </div>
@@ -264,235 +477,1026 @@ const ecoSession = requireSession();
 const { apiGet, apiPost } = ecoApi(ECO_WORKERS.reassignBosta);
 const PAGE_WORKERS = ['reassignBosta'];
 
-// ⛔ كل أسماء الصفحة بادئتها `rb` — الـ shell و`<script>` الصفحة في نفس النطاق
+// ⛔ كل أسماء الصفحة بادئتها `rb`/`tb` — الـ shell و`<script>` الصفحة في نفس النطاق
 //    العام، وإعادة تعريف `const`/`let` بنفس الاسم بتقتل سكربت الصفحة كله.
 
-let rbOrder = null;        // الأوردر المعروض (من رد الـ Worker)
-let rbElig  = null;        // حكم الأهلية — من الـ Worker، مش بيتحسب هنا
-let rbBusy  = false;       // تحويل شغّال
-let rbSeq   = 0;           // رقم آخر بحث — رد قديم مايدهسش جديد
+// أطوال الأكواد (unified-entry-box.md § 2أ) — مصدرها لحد ما تتنقل لـ ecommoda-constants.
+const CFG = {
+  NAME_MAX: 7,                      // رقم الأوردر ١–٧ خانات
+  ID_MIN: 13, ID_MAX: 15,           // باركود فاتورة شوبيفاي (Order ID)
+  CONCURRENCY: 2,                   // فحوصات متوازية — ميزانية شوبيفاي مشتركة بين Workers الستاك
+  MISSING_ENTER_MS: 1500,           // تحذير «الرقم وصل ومفيش Enter» — عمره ما بيضيف
+  TOAST_MS: { success: 2200, dup: 3200, neutral: 3200, warning: 3200, error: 6500 },
+  LOG_PAGE: 100,
+};
+
+// §RESULT::labels — مصدر واحد للجدول وللتصدير (Step 3C)
+const RB_RESULT_LABELS = { success: 'تم', warning: 'تم جزئيًا', error: 'فشل', rejected: 'مرفوض', already: 'اتحوّل قبل كده' };
+const rbResultLabel = (v) => RB_RESULT_LABELS[v] || '—';
+const RB_RESULT_CLS = { success: 'ok', warning: 'warn', error: 'err', rejected: 'neutral', already: 'neutral' };
+const RB_TYPE_LABELS = { reassign_to_bosta: 'تحويل', rejected: 'مرفوض قبل الكتابة' };
+
+// حكم الفحص (من الـ Worker) · وحالة التنفيذ (بعد الضغط على التحويل)
+const RB_VERDICT = {
+  checking:     { t: 'جاري الفحص',     cls: 'neutral', ico: '⏳' },
+  eligible:     { t: 'مؤهل',            cls: 'ok',      ico: '✅' },
+  ineligible:   { t: 'غير مؤهل',       cls: 'err',     ico: '⛔' },
+  already:      { t: 'اتحوّل قبل كده', cls: 'neutral', ico: 'ℹ️' },
+  missing:      { t: 'مش موجود',       cls: 'err',     ico: '❓' },
+  lookup_error: { t: 'تعذّر الفحص',    cls: 'warn',    ico: '⚠' },
+};
+const RB_EXEC = {
+  converting: { t: 'جاري التحويل',        cls: 'neutral', ico: '⏳' },
+  success:    { t: 'تم التحويل',          cls: 'ok',      ico: '✓' },
+  warning:    { t: 'تم بس مش مؤكَّد',     cls: 'warn',    ico: '⚠' },
+  error:      { t: 'فشل',                 cls: 'err',     ico: '✗' },
+  rejected:   { t: 'مرفوض عند التنفيذ',  cls: 'err',     ico: '⛔' },
+  already:    { t: 'اتحوّل قبل كده',      cls: 'neutral', ico: 'ℹ️' },
+  unknown:    { t: 'ما قدرناش نتأكد',    cls: 'warn',    ico: '⚠' },
+};
+
+const RB = {
+  rows: [],            // صفوف جدول الفحص (الأحدث فوق)
+  fails: [],           // الصندوق الأحمر: { id, label, reason }
+  uid: 0, failUid: 0,
+  q: [], active: 0,    // طابور الفحص
+  busy: false,         // تحويل شغّال
+  total: 0, done: 0,
+};
 
 // 🔴 دفعة شغّالة = الخروج التلقائي واليدوي موقوفين (الـ shell بيسأل الدالة دي)
-window.shellIsBusy = () => rbBusy;
+window.shellIsBusy = () => RB.busy;
 
 const RB_INPUT = document.getElementById('rbInput');
 
+// ── مساعدات صغيرة ──
+let rbLastBeep = 0;
+function rbBeep(t) { const n = Date.now(); if (n - rbLastBeep < 120) return; rbLastBeep = n; playBeep(t); }
+const rbToast = (msg, type = 'neutral') => showToast(msg, type, CFG.TOAST_MS[type] || 3200);
+function rbSafeExtra(e) { try { return e && e.extra ? (typeof e.extra === 'string' ? JSON.parse(e.extra) : e.extra) : {}; } catch { return {}; } }
+let rbRaf = null;
+function rbScheduleRender() { if (rbRaf) return; rbRaf = requestAnimationFrame(() => { rbRaf = null; tbRender(TB.scan); rbRenderAux(); }); }
+
 // ══════════════════════════════════════════════════════
-// §LOOKUP
+// §SCAN — تصنيف الكود · الإضافة بـ Enter فقط · اللصق المتعدد · الصندوق الأحمر
 // ══════════════════════════════════════════════════════
-// الأهلية بتتحسب في الـ Worker (`evaluateEligibility`) — الصفحة بترسم رده بس، فمستحيل
-// الشاشة تقول «مؤهل» والـ Worker يرفض (درس R1).
-async function rbSearch(raw, { keepResult = false } = {}) {
-  const p = ecoScanParse(raw);
-  if (!p) {
-    rbSetOrderHTML('<div class="rb-banner">الكود مش صالح — اكتب رقم الأوردر أو اعمل سكان للباركود</div>');
-    playBeep('warn');
-    return;
+// أرقام عربي/فارسي ← إنجليزي + شيل رموز الاتجاه والمسافات غير المرئية
+function rbNormDigits(s) {
+  return String(s ?? '').replace(/[٠-٩۰-۹]/g, c => {
+    const a = '٠١٢٣٤٥٦٧٨٩'.indexOf(c);
+    return String(a >= 0 ? a : '۰۱۲۳۴۵۶۷۸۹'.indexOf(c));
+  }).replace(/[‎‏‪-‮⁦-⁩ ]/g, '');
+}
+const rbSplit = (raw) => String(raw ?? '').split(/[\s,;،]+/).map(s => s.trim()).filter(Boolean);
+
+// → { ok:true, kind, q, display, key } | { ok:false, label, reason }
+function rbClassify(part) {
+  let t = rbNormDigits(part).trim();
+  const gid = t.match(/Order\/(\d+)$/i);
+  if (gid) t = gid[1];
+  t = t.replace(/^#/, '');
+  if (!/^\d+$/.test(t)) return { ok: false, label: String(part).slice(0, 24), reason: 'مش رقم أوردر — لازم أرقام بس' };
+  const n = t.length;
+  if (n <= CFG.NAME_MAX) {
+    const v = t.replace(/^0+/, '');
+    if (!v) return { ok: false, label: t, reason: 'رقم أوردر غير صالح' };
+    return { ok: true, kind: 'name', q: '#' + v, display: '#' + v, key: 'name:' + v };
   }
-  // رقم طويل = Order ID من الباركود، والقصير = اسم الأوردر (الـ Worker بيجرّب الاتنين برضه)
-  const q = p.kind === 'id' && p.id ? p.id : p.name;
-  const seq = ++rbSeq;
-  if (!keepResult) document.getElementById('rbResult').innerHTML = '';
-  rbSetOrderHTML(`<div class="card"><div class="rb-empty">⏳ جاري البحث عن ${esc(p.display)}...</div></div>`);
-  let d;
+  if (n >= CFG.ID_MIN && n <= CFG.ID_MAX) return { ok: true, kind: 'id', q: t, display: t, key: 'id:' + t };
+  return { ok: false, label: t, reason: n > CFG.ID_MAX
+    ? `${n} خانة — غالبًا باركودين ملزوقين، اسكنهم واحد واحد`
+    : `${n} خانة — مش طول معروف (رقم أوردر ١–${CFG.NAME_MAX} أو باركود الفاتورة ${CFG.ID_MIN}–${CFG.ID_MAX})، غالبًا اتقرا ناقص` };
+}
+
+function rbAddFail(label, reason) {
+  if (RB.fails.some(f => f.label === label && f.reason === reason)) return false;   // نفس السطر مابيتكررش
+  RB.fails.push({ id: ++RB.failUid, label, reason });
+  return true;
+}
+function rbRenderFails() {
+  const box = document.getElementById('rbFails');
+  if (!RB.fails.length) { box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  box.innerHTML = (RB.fails.length > 1
+      ? `<div class="bc-fails-hd"><span>${RB.fails.length} حاجة ما اتضافتش للجدول</span><button type="button" data-failclear>🗑 شيل الكل</button></div>` : '')
+    + RB.fails.map(f => `<div class="bc-fail"><span>⚠️</span><span class="lbl">${esc(f.label)}</span><span class="why">— ${esc(f.reason)}</span><button type="button" data-fail="${f.id}" aria-label="شيل">✕</button></div>`).join('');
+}
+
+function rbFlash(row) {
+  row.flash = true; rbScheduleRender();
+  setTimeout(() => { row.flash = false; }, 1400);
+}
+
+function rbAddCodes(parts) {
+  let added = 0, dup = 0, lastAdded = '', lastDup = '';
+  const bads = [];
+  const seen = new Set();
+  for (const p of parts) {
+    const c = rbClassify(p);
+    if (!c.ok) { rbAddFail(c.label, c.reason); bads.push(c); continue; }
+    if (seen.has(c.key)) { dup++; lastDup = c.display; continue; }
+    seen.add(c.key);
+    // 🔴 المقارنة والإضافة من غير await بينهم — مفيش تكرار بسبب سباق
+    const ex = RB.rows.find(r => r.key === c.key);
+    if (ex) { dup++; lastDup = c.display; rbFlash(ex); continue; }
+    const row = { id: ++RB.uid, key: c.key, kind: c.kind, q: c.q, display: c.display, addedAt: new Date().toISOString(),
+      verdict: 'checking', selected: false, exec: null, done: false, order: null, elig: null, reasons: [], msg: '', warns: [], changes: [], flash: false };
+    RB.rows.unshift(row);
+    added++; lastAdded = c.display;
+    RB.q.push(row);
+  }
+  if (dup) { rbToast(dup === 1 ? `${lastDup} موجود في القايمة بالفعل` : `${dup} أوردر موجودين في القايمة بالفعل`, 'dup'); rbBeep('dup'); }
+  if (bads.length) { rbToast(`${bads[0].label} — ${bads[0].reason}${bads.length > 1 ? ` (و${bads.length - 1} كود كمان في الصندوق الأحمر)` : ''}`, 'error'); rbBeep('fail'); }
+  if (added && !bads.length) rbToast(added === 1 ? `اتضاف ${lastAdded}` : `اتضاف ${added} أوردر`, 'success');
+  rbRenderFails(); rbScheduleRender(); rbPump();
+}
+
+// 🔴 القراءة والمسح جوّه الدالة دي مش جوّه الـ listener — ومفيش مؤقّت إضافة أبدًا (الحدث input بيحدّث الشكل بس)
+function rbFire() {
+  if (RB.busy) { rbToast('جاري التحويل — الإدخال مقفول لحد ما يخلص', 'error'); return; }
+  const parts = rbSplit(RB_INPUT.value);
+  RB_INPUT.value = ''; RB_INPUT.classList.remove('has-value'); RB_INPUT.focus();
+  clearTimeout(rbMissT);
+  if (!parts.length) return;
+  rbAddCodes(parts);
+}
+RB_INPUT.addEventListener('keydown', (e) => {
+  if (RB.busy && e.key !== 'Tab') { e.preventDefault(); if (e.key === 'Enter') rbToast('جاري التحويل — الإدخال مقفول لحد ما يخلص', 'error'); return; }
+  if (e.key === 'Enter') { e.preventDefault(); rbFire(); }
+});
+let rbMissT = null;
+RB_INPUT.addEventListener('input', () => {
+  const norm = rbNormDigits(RB_INPUT.value).replace(/#/g, '');
+  if (norm !== RB_INPUT.value) RB_INPUT.value = norm;              // الأرقام العربي بتتحوّل لحظيًا قدام الموظف
+  RB_INPUT.classList.toggle('has-value', !!RB_INPUT.value);
+  clearTimeout(rbMissT);
+  const digits = RB_INPUT.value.replace(/\D/g, '');
+  if (digits.length >= 8 && !RB.busy) {
+    const snap = RB_INPUT.value;
+    rbMissT = setTimeout(() => {
+      if (RB_INPUT.value === snap) rbToast(`الرقم وصل (${digits.length} خانة) ولسه ماتضافش — اضغط Enter أو «إضافة». لو بيتكرر مع السكانر راجع إعداد Enter فيه`, 'error');
+    }, CFG.MISSING_ENTER_MS);
+  }
+});
+// لصق أكتر من رقم: حقل input بيشيل السطور ويلزّق الأرقام في رقم واحد — فبنمسك اللصق ونقسّمه
+RB_INPUT.addEventListener('paste', (e) => {
+  const txt = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+  if (!/[\s,;،]/.test(txt.trim())) return;
+  e.preventDefault();
+  if (RB.busy) { rbToast('جاري التحويل — الإدخال مقفول لحد ما يخلص', 'error'); return; }
+  rbAddCodes(rbSplit(txt));
+});
+document.getElementById('rbAdd').addEventListener('click', rbFire);
+
+// ══════════════════════════════════════════════════════
+// §LOOKUP — طابور فحص (الأهلية بتتحسب في الـ Worker والصفحة بترسم ردّه)
+// ══════════════════════════════════════════════════════
+function rbPump() {
+  while (RB.active < CFG.CONCURRENCY && RB.q.length) {
+    const r = RB.q.shift();
+    if (!RB.rows.includes(r)) continue;                    // اتشال قبل دوره
+    RB.active++;
+    rbLookup(r).catch(() => {}).finally(() => { RB.active--; rbPump(); rbScheduleRender(); });
+  }
+}
+
+function rbApplyElig(r, keepUnselected) {
+  const ev = r.elig;
+  r.reasons = (ev.reasons || []).map(x => x.text);
+  if (ev.already) { r.verdict = 'already'; r.selected = false; }
+  else if (ev.eligible) { r.verdict = 'eligible'; r.selected = !keepUnselected && !r.done; }
+  else { r.verdict = 'ineligible'; r.selected = false; }
+}
+
+// quiet = إعادة قراءة بعد تنفيذ (بدون صوت ولا فحص تكرار)
+async function rbLookup(r, quiet = false) {
+  r.verdict = 'checking';
+  if (!quiet) rbScheduleRender();
   try {
-    d = await apiGet('get_order', { q });
+    const d = await apiGet('get_order', { q: r.q });
+    if (!RB.rows.includes(r)) return;
+    if (!d.found) {
+      r.verdict = 'missing'; r.selected = false; r.order = null; r.elig = null;
+      r.reasons = [r.kind === 'id' ? 'مفيش أوردر بباركود الفاتورة ده على شوبيفاي' : 'مفيش أوردر بالرقم ده على شوبيفاي'];
+      if (!quiet) rbBeep('fail');
+      return;
+    }
+    r.order = d.order; r.elig = d.eligibility;
+    if (!quiet) {
+      // نفس الأوردر اتسكن بالاسم مرة وبالـ ID مرة — الصف التاني بيتشال (التفريد على orderId مش على الكود)
+      const same = RB.rows.find(x => x !== r && x.order && x.order.orderId === r.order.orderId);
+      if (same) {
+        RB.rows = RB.rows.filter(x => x !== r);
+        rbFlash(same); rbToast(`${r.order.orderNumber} موجود في القايمة بالفعل`, 'dup'); rbBeep('dup');
+        return;
+      }
+    }
+    rbApplyElig(r, quiet);
+    if (!quiet) rbBeep(r.verdict === 'eligible' ? 'success' : r.verdict === 'already' ? 'warn' : 'fail');
   } catch (e) {
-    if (seq !== rbSeq) return;
-    rbOrder = null; rbElig = null;
-    // ⚠️ فشل البحث مش «الأوردر مش موجود» — رسالتين مختلفتين
-    rbSetOrderHTML(`<div class="rb-banner">تعذّر البحث: ${esc(e.message)}</div>`);
-    playBeep('error');
-    return;
+    if (!RB.rows.includes(r)) return;
+    // ⚠️ فشل البحث ≠ «الأوردر مش موجود» — رسالتين مختلفتين
+    r.verdict = 'lookup_error'; r.selected = false; r.reasons = [e.message];
+    if (!quiet) rbBeep('fail');
   }
-  if (seq !== rbSeq) return;                    // رد قديم — بحث أحدث ماشي
-  if (!d.found) {
-    rbOrder = null; rbElig = null;
-    rbSetOrderHTML(`<div class="card"><div class="rb-empty">مفيش أوردر بالرقم <b>${esc(p.display)}</b> على شوبيفاي</div></div>`);
-    playBeep('warn');
-    return;
-  }
-  rbOrder = d.order; rbElig = d.eligibility;
-  rbRender();
-  if (!keepResult) playBeep(rbElig.eligible ? 'scan' : 'warn');
-}
-
-function rbSetOrderHTML(html) { document.getElementById('rbOrder').innerHTML = html; }
-
-const rbVal = (v) => v ? `<div class="v">${esc(v)}</div>` : '<div class="v none">—</div>';
-
-function rbRender() {
-  const o = rbOrder, ev = rbElig;
-  if (!o || !ev) return;
-  const cells = [
-    ['الحالة S1', o.s1, ev.machine === 's1'],
-    ['الحالة S2', o.s2, ev.machine === 's2'],
-    ['الزون', o.zone, false],
-    ['المندوب', o.courier, false],
-    ['موقع الشحنة S1', o.whereS1, false],
-    ['موقع الشحنة S2', o.whereS2, false],
-    ['رقم تتبع بوسطة S1', o.trackS1, false],
-    ['رقم تتبع بوسطة S2', o.trackS2, false],
-    ['علامة التحويل', o.marker, false],
-  ].filter(([k, v]) => v || /^(الحالة|الزون|المندوب)/.test(k));
-
-  const money = o.total !== null && o.total !== undefined
-    ? `${Number(o.total).toLocaleString('en-US')} ${esc(o.currency || '')}` : '—';
-
-  let verdict;
-  if (ev.already) {
-    verdict = `<div class="rb-verdict already"><div class="t">ℹ️ اتحوّل لبوسطة قبل كده</div>${esc(ev.reasons[0].text)}</div>`;
-  } else if (!ev.eligible) {
-    verdict = `<div class="rb-verdict no"><div class="t">⛔ الأوردر غير مؤهل للتحويل</div>
-      <ul>${ev.reasons.map(r => `<li>${esc(r.text)}</li>`).join('')}</ul></div>`;
-  } else {
-    verdict = `<div class="rb-verdict ok"><div class="t">✅ الأوردر مؤهل للتحويل (${ev.machine === 's1' ? 'S1' : 'S2'})</div>
-      هيتكتب على شوبيفاي في نداء واحد:
-      <table class="rb-plan"><thead><tr><th>الحقل</th><th>الحالي</th><th>الجديد</th></tr></thead><tbody>
-        ${ev.plan.changes.map(c => `<tr><td>${esc(c.label)}</td><td class="from">${esc(c.from ?? '—')}</td><td class="to">${esc(c.to)}</td></tr>`).join('')}
-      </tbody></table>
-      ${ev.machine === 's2' ? '<div class="rb-note">⚠️ S2 بيتكتب دايمًا «Confirmed + EXCHANGE» — حتى لو الدورة الأصلية كانت استرجاع.</div>' : ''}
-    </div>`;
-  }
-
-  const items = (o.items || []);
-  document.getElementById('rbOrder').innerHTML = `
-    <div class="card">
-      <div class="rb-head">
-        <span class="rb-num">${orderLink(o.orderNumber, o.orderId)}</span>
-        <div class="rb-meta">
-          <span>👤 <b>${esc(o.customer || '—')}</b></span>
-          <span>📍 ${esc([o.city, o.province].filter((v, i, a) => v && a.indexOf(v) === i).join(' · ') || '—')}</span>
-          <span>💰 ${money}</span>
-          <span>📅 ${esc(o.createdAt ? formatDateTime(o.createdAt) : '—')}</span>
-        </div>
-      </div>
-      <div class="rb-grid">
-        ${cells.map(([k, v, hl]) => `<div class="rb-cell${hl ? ' hl' : ''}"><div class="k">${esc(k)}</div>${rbVal(v)}</div>`).join('')}
-      </div>
-      ${items.length ? `<details class="rb-items"><summary>🛍 المنتجات (${items.length})</summary><ul>
-        ${items.map(i => `<li>${esc(i.title)}${i.variant ? ` — ${esc(i.variant)}` : ''}${i.qty ? ` × ${esc(i.qty)}` : ''}${i.sku ? ` <span style="color:var(--text-muted);font-family:var(--font-mono)">${esc(i.sku)}</span>` : ''}</li>`).join('')}</ul></details>` : ''}
-    </div>
-    <div class="card">
-      ${verdict}
-      <div class="rb-actions">
-        <button class="btn btn-primary rb-go" id="rbGo" ${ev.eligible && !rbBusy ? '' : 'disabled'}>${rbBusy ? '⏳ جاري التحويل...' : '🚚 تحويل الشحنة إلى بوسطة'}</button>
-        ${ev.eligible ? '' : '<span class="rb-why">الزرار مقفول — السبب فوق</span>'}
-      </div>
-    </div>`;
-  document.getElementById('rbGo').addEventListener('click', rbConvert);
 }
 
 // ══════════════════════════════════════════════════════
-// §CONVERT
+// §ROWS — الخلايا والعدّادات وحالة الأزرار
 // ══════════════════════════════════════════════════════
-// أربع حالات + مرفوض: success (أخضر) · warning (أصفر) · error (أحمر) · already/rejected (محايد)
-function rbShowResult(d) {
-  const map = {
-    success:  ['success',  '✓ تم التحويل'],
-    warning:  ['warning',  '⚠ تم بس مش مؤكَّد'],
-    error:    ['error',    '✗ فشل'],
-    already:  ['already',  'ℹ️ اتحوّل قبل كده'],
-    rejected: ['rejected', '⛔ مرفوض — مش مؤهل'],
-  };
-  const [cls, label] = map[d.status] || ['error', d.status || 'فشل'];
-  const warns = [...(d.warnings || []), ...((d.status === 'rejected' && d.reasons) ? d.reasons.map(r => r.text) : [])]
-    .map(w => `<li>${esc(w)}</li>`).join('');
-  const changes = (d.status === 'success' || d.status === 'warning') && d.changes
-    ? `<ul>${d.changes.map(c => `<li>${esc(c.label)}: ${esc(c.from ?? '—')} ← <b>${esc(c.to)}</b></li>`).join('')}</ul>` : '';
-  document.getElementById('rbResult').innerHTML = `
-    <div class="rb-result ${cls}">
-      <span class="badge">${label} — ${esc(rbOrder?.orderNumber || '')}</span>
-      ${esc(d.error || d.message || '')}
-      ${changes}${warns ? `<ul>${warns}</ul>` : ''}
-      ${d.logged === false ? '<div style="margin-top:6px;color:var(--amber-dark);">⚠️ العملية تمت لكن ما اتسجّلتش في السجل</div>' : ''}
-    </div>`;
-  playBeep(d.status === 'success' ? 'success' : d.status === 'error' ? 'error' : 'warn');
+const rbStatusOf = (r) => r.exec ? RB_EXEC[r.exec] : RB_VERDICT[r.verdict];
+const rbSelectable = (r) => r.verdict === 'eligible' && !r.done && (!r.exec || r.exec === 'error');
+const rbDash = (v) => (v === null || v === undefined || v === '') ? '—' : String(v);
+const rbMachine = (r) => r.elig && r.elig.machine ? r.elig.machine.toUpperCase() : '';
+
+function rbReasonLines(r) {
+  const L = [];
+  const o = r.order;
+  if (r.exec === 'success' || r.exec === 'warning') {
+    (r.changes || []).forEach(c => L.push(`<li><span class="lb">${esc(c.label)}:</span><span class="ch">${esc(rbDash(c.from))} → ${esc(c.to)}</span></li>`));
+  }
+  if (r.exec && r.exec !== 'converting' && r.exec !== 'success' && r.msg) L.push(`<li class="${r.exec === 'warning' || r.exec === 'unknown' ? 'warnx' : 'bad'}">${esc(r.msg)}</li>`);
+  (r.warns || []).forEach(w => L.push(`<li class="warnx">${esc(w)}</li>`));
+  if (!r.exec || r.exec === 'rejected' || r.exec === 'error' || r.exec === 'already') {
+    if (r.verdict === 'ineligible' || r.verdict === 'already' || r.verdict === 'missing') {
+      r.reasons.forEach(t => { if (t !== r.msg) L.push(`<li class="${r.verdict === 'already' ? '' : 'bad'}">${esc(t)}</li>`); });
+    } else if (r.verdict === 'lookup_error') {
+      r.reasons.forEach(t => L.push(`<li class="warnx">${esc(t)}</li>`));
+    } else if (r.verdict === 'eligible' && r.elig && r.elig.plan) {
+      r.elig.plan.changes.slice(0, 3).forEach(c => L.push(`<li><span class="lb">${esc(c.label)}:</span><span class="ch">${esc(rbDash(c.from))} → ${esc(c.to)}</span></li>`));
+      if (rbMachine(r) === 'S2') L.push('<li class="warnx">⚠️ S2 بيتكتب دايمًا «Confirmed + EXCHANGE»</li>');
+    }
+  }
+  return L;
+}
+const rbReasonText = (r) => rbReasonLines(r).join(' ').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim();
+
+function rbVerdictCell(r) {
+  const s = rbStatusOf(r);
+  const extra = !r.exec && r.verdict === 'eligible' ? ` · ${esc(rbMachine(r))}` : '';
+  return `<span class="status-badge ${s.cls}">${s.ico} ${esc(s.t)}${extra}</span>`;
+}
+
+function rbRowHtml(r) {
+  const o = r.order;
+  const sel = `<input type="checkbox" class="rb-cb" data-sel="${r.id}" ${r.selected ? 'checked' : ''} ${rbSelectable(r) && !RB.busy ? '' : 'disabled'} aria-label="تحديد ${esc(r.display)}">`;
+  const ord = `${o ? orderLink(o.orderNumber, o.orderId) : `<span class="order-num">${esc(r.display)}</span>`}<button type="button" class="rb-x" data-del="${r.id}" ${RB.busy ? 'disabled' : ''} aria-label="شيل ${esc(r.display)} من القايمة">✕</button>`;
+  const lines = rbReasonLines(r);
+  const retry = r.verdict === 'lookup_error' && !r.exec ? `<button type="button" class="rb-retry" data-retry="${r.id}">🔄 إعادة الفحص</button>` : '';
+  return `<tr class="${r.flash ? 'flash' : ''}" data-rid="${r.id}">
+    <td>${sel}</td>
+    <td class="rb-ordercell">${ord}</td>
+    <td class="col-num">${esc(formatTimeOnly(r.addedAt))}</td>
+    <td>${esc(rbDash(o && o.customer))}</td>
+    <td>${esc(rbDash(o && o.zone))}</td>
+    <td>${esc(rbDash(o && o.courier))}</td>
+    <td>${esc(rbDash(o && o.s1))}</td>
+    <td>${esc(rbDash(o && o.s2))}</td>
+    <td>${rbVerdictCell(r)}</td>
+    <td>${lines.length ? `<ul class="rb-reasons">${lines.join('')}</ul>` : '—'}${retry}</td>
+  </tr>`;
+}
+
+const rbOrderNo = (r) => r.order ? r.order.orderNumber : r.display;
+const rbOrderNum = (r) => { const n = parseInt(String(rbOrderNo(r)).replace(/\D/g, ''), 10); return isNaN(n) ? 0 : n; };
+
+function rbCounters() {
+  const c = { total: RB.rows.length, eligible: 0, ineligible: 0, already: 0, missing: 0, err: 0, x_success: 0, x_warning: 0, x_error: 0, x_already: 0 };
+  RB.rows.forEach(r => {
+    if (r.exec === 'success') c.x_success++;
+    else if (r.exec === 'warning' || r.exec === 'unknown') c.x_warning++;
+    else if (r.exec === 'error') c.x_error++;
+    else if (r.exec === 'already') c.x_already++;
+    else if (r.verdict === 'eligible') c.eligible++;
+    else if (r.verdict === 'ineligible' || r.exec === 'rejected') c.ineligible++;
+    else if (r.verdict === 'already') c.already++;
+    else if (r.verdict === 'missing') c.missing++;
+    else if (r.verdict === 'lookup_error') c.err++;
+  });
+  return c;
+}
+function rbRenderCounters() {
+  const c = rbCounters();
+  const item = (n, label, cls, always = true) => (always || n) ? `<span class="rb-cnt ${cls}${n ? '' : ' zero'}">${label} <b>${n.toLocaleString('en-US')}</b></span>` : '';
+  document.getElementById('rbCounters').innerHTML =
+    item(c.total, 'إجمالي', 'neutral') + item(c.eligible, '✅ مؤهل', 'ok') + item(c.ineligible, '⛔ غير مؤهل', 'err')
+    + item(c.already, 'ℹ️ اتحوّل قبل كده', 'neutral') + item(c.missing + c.err, '❓ مش موجود / تعذّر', 'warn')
+    + item(c.x_success, 'تم ✓', 'ok', false) + item(c.x_warning, 'تحذير ⚠', 'warn', false) + item(c.x_error, 'فشل ✗', 'err', false) + item(c.x_already, 'متعمل خلاص ℹ', 'neutral', false);
+}
+
+// تحديد الكل بيشتغل على الصفوف المعروضة (بعد الفلاتر) — اللي مخفي مابيتلمسش
+function rbVisibleSelectable() { return RB.rows.filter(r => rbSelectable(r) && tbPass(TB.scan, r)); }
+function rbSelected() { return RB.rows.filter(r => r.selected && rbSelectable(r)); }
+
+function rbRenderAux() {
+  rbRenderCounters();
+  const go = document.getElementById('rbGo'), why = document.getElementById('rbWhy');
+  const n = rbSelected().length;
+  const pending = RB.rows.some(r => r.verdict === 'checking' && !r.exec);
+  let reason = '';
+  if (RB.busy) reason = 'جاري التحويل…';
+  else if (RB.fails.length) reason = 'فضّي الصندوق الأحمر الأول';
+  else if (pending) reason = 'استنى الفحص يخلص';
+  else if (!n) reason = RB.rows.length ? 'مفيش أوردر مؤهل محدد' : '';
+  go.disabled = !!reason;
+  go.textContent = n ? `🚚 تحويل ${n.toLocaleString('en-US')} أوردر لبوسطة` : '🚚 تحويل المحدد لبوسطة';
+  why.textContent = reason;
+  document.getElementById('rbClearList').disabled = RB.busy || !RB.rows.length;
+  // تحديد الكل
+  const all = document.getElementById('rbSelAll');
+  if (all) {
+    const sel = rbVisibleSelectable();
+    all.disabled = RB.busy || !sel.length;
+    all.checked = !!sel.length && sel.every(r => r.selected);
+    all.indeterminate = sel.some(r => r.selected) && !all.checked;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// §CONVERT — تأكيد بالأرقام · لقطة + قفل · تحويل متتابع · ملخّص
+// ══════════════════════════════════════════════════════
+function rbSetLock(on) {
+  RB.busy = on;
+  RB_INPUT.readOnly = on;
+  document.getElementById('rbAdd').disabled = on;
+  rbScheduleRender();
+}
+
+function rbSetProg(done, total, label) {
+  const p = document.getElementById('rbProg');
+  p.hidden = false;
+  document.getElementById('rbProgTxt').textContent = `جاري التحويل — ${done.toLocaleString('en-US')} من ${total.toLocaleString('en-US')}${label ? ` · ${label}` : ''}`;
+  document.getElementById('rbProgFill').style.width = `${total ? Math.round(done / total * 100) : 0}%`;
+}
+
+function rbApplyExec(r, d) {
+  r.exec = d.status;
+  r.msg = d.error || d.message || '';
+  r.warns = d.warnings || [];
+  r.changes = d.changes || [];
+  if (d.status !== 'error' && d.order && d.order.orderId) r.order = d.order;
+  r.done = d.status !== 'error';
+  r.selected = false;
+  if (d.logged === false) r.warns = [...r.warns, 'العملية تمت لكن ما اتسجّلتش في السجل'];
+  if (d.status === 'rejected') { r.verdict = 'ineligible'; r.reasons = (d.reasons || []).map(x => x.text); }
+  if (d.status === 'already') { r.verdict = 'already'; }
+}
+
+async function rbConvertOne(r) {
+  r.exec = 'converting'; r.msg = ''; r.warns = []; r.changes = []; rbScheduleRender();
+  try {
+    const d = await apiPost('reassign_to_bosta', { employee: ecoSession.username, orderId: r.order.orderId });
+    rbApplyExec(r, d);
+    if (d.status === 'error') { await rbLookup(r, true); r.selected = false; }   // الحقيقة من شوبيفاي: لسه مؤهل ولا اتغيّر
+  } catch (e) {
+    // 🔴 فشل شبكة/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — القراءة هي اللي بتحسم
+    r.exec = 'unknown'; r.done = true; r.selected = false;
+    r.msg = `${e.payload?.error || e.message}`;
+    await rbLookup(r, true); r.selected = false;
+    if (r.verdict === 'already') { r.exec = 'warning'; r.msg = 'التعديل اتنفّذ فعلاً (اتأكدنا من شوبيفاي) لكن رد الـ Worker ما وصلش — راجع السجل'; }
+    else if (r.verdict === 'eligible') { r.exec = 'error'; r.done = false; r.msg = 'ما اتنفّذش — الأوردر لسه زي ما كان، تقدر تعيد المحاولة'; }
+    else { r.msg += ' — افتح الأوردر على شوبيفاي وتأكد قبل ما تعيد'; }
+  }
 }
 
 async function rbConvert() {
-  if (rbBusy || !rbOrder || !rbElig || !rbElig.eligible) return;
-  const o = rbOrder, ev = rbElig;
-  const lines = ev.plan.changes.map(c => ({ text: `${c.label}: ${c.from ?? '—'}  ←  ${c.to}`, soft: true }));
-  if (ev.machine === 's2') lines.push({ text: 'S2 بيتكتب «Confirmed + EXCHANGE» — أداة رفع بوسطة هتعمله شحنة استبدال', warn: true });
-  lines.push({ text: 'مفيش «تراجع» من الأداة دي — التعديل العكسي يدوي من شوبيفاي', soft: true });
-  const ok = await askConfirm({
-    header: '🚚 تأكيد تحويل الشحنة إلى بوسطة',
-    lead: `هتحوّل الأوردر ${o.orderNumber} لبوسطة:`,
-    lines, okLabel: `تأكيد — حوّل ${o.orderNumber}`,
+  if (RB.busy || RB.fails.length) return;
+  const batch = rbSelected();                                   // 🔴 لقطة — اللوب على النسخة دي مش على القايمة الحية
+  if (!batch.length) return;
+  const s1 = batch.filter(r => rbMachine(r) === 'S1').length, s2 = batch.length - s1;
+  const lines = [];
+  if (s1) lines.push({ text: `🔁 ${s1.toLocaleString('en-US')} أوردر S1: الحالة Ready ← Confirmed` });
+  if (s2) lines.push({ text: `🔁 ${s2.toLocaleString('en-US')} أوردر S2: الحالة Ready ← Confirmed + EXCHANGE (دايمًا EXCHANGE — أداة رفع بوسطة هتعملهم شحنة استبدال)`, cls: 'warn' });
+  lines.push({ text: `كل أوردر: الزون ← Other_Regions · المندوب ← Bosta · علامة التحويل ← Bosta`, cls: 'soft' });
+  lines.push({ text: '🚫 مفيش «تراجع» من الأداة دي — التعديل العكسي يدوي من شوبيفاي', cls: 'bad' });
+  const ok = await rbAskConfirm({
+    header: '🚚 تأكيد تحويل الشحنات إلى بوسطة',
+    lead: `هتحوّل ${batch.length.toLocaleString('en-US')} أوردر لبوسطة:`,
+    lines, okLabel: `تأكيد — حوّل ${batch.length.toLocaleString('en-US')} أوردر`,
   });
   if (!ok) { RB_INPUT.focus(); return; }
 
-  rbBusy = true; rbRender();
-  const number = o.orderNumber;
+  rbSetLock(true);
+  const out = { success: 0, warning: 0, error: 0, already: 0, rejected: 0, bad: [] };
   try {
-    const d = await apiPost('reassign_to_bosta', { employee: ecoSession.username, orderId: o.orderId });
-    rbShowResult(d);
-  } catch (e) {
-    // 🔴 فشل شبكة/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل»
-    document.getElementById('rbResult').innerHTML =
-      `<div class="rb-result error"><span class="badge">✗ ما قدرناش نتأكد — ${esc(number)}</span>${esc(e.payload?.error || e.message)}<br>الأوردر اتحدّث تحت — شوف حالته قبل ما تعيد المحاولة.</div>`;
-    playBeep('error');
+    for (let i = 0; i < batch.length; i++) {
+      const r = batch[i];
+      if (!RB.rows.includes(r)) continue;
+      rbSetProg(i, batch.length, rbOrderNo(r));
+      await rbConvertOne(r);
+      const k = r.exec === 'unknown' ? 'warning' : r.exec;
+      out[k] = (out[k] || 0) + 1;
+      if (r.exec !== 'success') out.bad.push(r);
+      rbScheduleRender();
+    }
+    rbSetProg(batch.length, batch.length, '');
   } finally {
-    rbBusy = false;
+    rbSetLock(false);
+    document.getElementById('rbProg').hidden = true;
   }
-  // الحقيقة بترجع من الـ Worker: بنعيد البحث (والأهلية بتتحسب هناك) ونسيب بانر النتيجة
-  await rbSearch(number, { keepResult: true });
-  rbLoadLog();
-  RB_INPUT.value = ''; RB_INPUT.classList.remove('has-value'); RB_INPUT.focus();
+  rbLogStale = true;
+  rbBeep(out.error || out.warning || out.rejected ? 'warn' : 'success');
+  rbShowSummary(batch.length, out);
+  RB_INPUT.focus();
 }
 
-// ══════════════════════════════════════════════════════
-// §INPUT
-// ══════════════════════════════════════════════════════
-function rbSubmit() {
-  const v = RB_INPUT.value.trim();
-  if (!v || rbBusy) return;
-  rbSearch(v);
-  RB_INPUT.select();
+function rbShowSummary(total, out) {
+  const L = [{ text: `اتعالج ${total.toLocaleString('en-US')} أوردر`, cls: 'soft' }];
+  if (out.success) L.push({ text: `✓ تم: ${out.success.toLocaleString('en-US')}`, cls: 'good' });
+  if (out.already) L.push({ text: `ℹ️ اتحوّل قبل كده: ${out.already.toLocaleString('en-US')}`, cls: 'soft' });
+  if (out.warning) L.push({ text: `⚠ تحذير / مش مؤكَّد: ${out.warning.toLocaleString('en-US')}`, cls: 'warn' });
+  if (out.rejected) L.push({ text: `⛔ مرفوض عند التنفيذ (اتغيّر من ساعة ما اتفحص): ${out.rejected.toLocaleString('en-US')}`, cls: 'bad' });
+  if (out.error) L.push({ text: `✗ فشل: ${out.error.toLocaleString('en-US')}`, cls: 'bad' });
+  out.bad.slice(0, 12).forEach(r => L.push({ text: `${rbOrderNo(r)} — ${rbStatusOf(r).t}${r.msg ? `: ${r.msg}` : ''}`, cls: r.exec === 'error' || r.exec === 'rejected' ? 'bad' : 'warn' }));
+  if (out.bad.length > 12) L.push({ text: `… و${out.bad.length - 12} أوردر كمان — التفاصيل في الجدول`, cls: 'soft' });
+  document.getElementById('summaryLines').innerHTML = L.map(l => `<li class="${l.cls || ''}">${esc(l.text)}</li>`).join('');
+  document.getElementById('summaryOverlay').classList.add('open');
+  document.getElementById('summaryOkBtn').focus();
 }
-RB_INPUT.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); rbSubmit(); } });
-RB_INPUT.addEventListener('input', () => RB_INPUT.classList.toggle('has-value', !!RB_INPUT.value));
-document.getElementById('rbSearchBtn').addEventListener('click', rbSubmit);
-document.getElementById('rbLogReload').addEventListener('click', rbLoadLog);
+function closeSummary() { document.getElementById('summaryOverlay').classList.remove('open'); RB_INPUT.focus(); }
 
-// ══════════════════════════════════════════════════════
-// §LOG — آخر ٣٠ عملية
-// ══════════════════════════════════════════════════════
-function rbExtra(e) { try { return e.extra ? JSON.parse(e.extra) : {}; } catch { return {}; } }
-async function rbLoadLog() {
-  const body = document.getElementById('rbLogBody');
-  try {
-    const d = await apiGet('get_logs', { limit: 30 });
-    const rows = d.entries || [];
-    if (!rows.length) { body.innerHTML = '<tr><td colspan="5" class="q-empty">لسه مفيش عمليات</td></tr>'; return; }
-    body.innerHTML = rows.map(e => {
-      const x = rbExtra(e);
-      const chip = x.result ? `<span class="result-chip ${esc(x.result)}">${esc(x.result)}</span>` : '—';
-      return `<tr><td>${esc(formatDateTime(e.timestamp))}</td><td>${orderLink(e.order_name, e.order_id)}</td><td>${chip}</td><td>${esc(e.employee || '—')}</td><td>${esc(e.notes || '—')}</td></tr>`;
-    }).join('');
-  } catch (e) {
-    body.innerHTML = `<tr><td colspan="5" class="q-empty">تعذّر تحميل السجل: ${esc(e.message)}</td></tr>`;
-  }
-}
-
-// ── generic confirm — الـ shell مالوش نافذة تأكيد خالص ──────────
-let _confirmResolve = null;
-function askConfirm({ header, lead, lines, okLabel, cls }) {
+// ── تأكيد عام — الزرار الافتراضي هو «إلغاء» (Enter من السكانر مايأكّدش حاجة بالغلط) ──
+let rbConfirmResolve = null;
+function rbAskConfirm({ header, lead, lines, okLabel }) {
   document.getElementById('confirmHdr').textContent = header;
   document.getElementById('confirmLead').textContent = lead;
-  document.getElementById('confirmLines').innerHTML = (lines || []).map(l => `<li class="${l.warn ? 'warn' : l.soft ? 'soft' : ''}">${esc(l.text)}</li>`).join('');
-  const ok = document.getElementById('confirmOkBtn');
-  ok.textContent = okLabel;
-  ok.className = `btn ${cls || 'btn-primary'}`;
+  document.getElementById('confirmLines').innerHTML = (lines || []).map(l => `<li class="${l.cls || ''}">${esc(l.text)}</li>`).join('');
+  document.getElementById('confirmOkBtn').textContent = okLabel;
   document.getElementById('confirmOverlay').classList.add('open');
-  ok.focus();                                  // Enter بيأكّد — شغل السكانر ما يحتاجش ماوس
-  return new Promise(resolve => { _confirmResolve = resolve; });
+  document.getElementById('confirmCancelBtn').focus();
+  return new Promise(resolve => { rbConfirmResolve = resolve; });
 }
 function closeConfirm(result) {
   document.getElementById('confirmOverlay').classList.remove('open');
-  if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
+  if (rbConfirmResolve) { rbConfirmResolve(result); rbConfirmResolve = null; }
 }
+
+// ── أزرار جدول الفحص (تفويض) ──
+document.getElementById('rbGo').addEventListener('click', (e) => { e.stopPropagation(); rbConvert(); });
+document.getElementById('rbClearList').addEventListener('click', async (e) => {
+  e.stopPropagation();
+  if (RB.busy || !RB.rows.length) return;
+  const pend = rbSelected().length;
+  if (pend) {
+    const ok = await rbAskConfirm({ header: '🗑 مسح القايمة', lead: `القايمة فيها ${pend.toLocaleString('en-US')} أوردر مؤهل ومحدد لسه ما اتحوّلوش:`,
+      lines: [{ text: 'مسح القايمة بيشيلهم من الشاشة بس — مفيش حاجة بتتغيّر على شوبيفاي', cls: 'soft' }], okLabel: 'امسح القايمة' });
+    if (!ok) return;
+  }
+  RB.rows = []; RB.q = []; RB.fails = [];
+  rbRenderFails(); tbRender(TB.scan); rbRenderAux(); RB_INPUT.focus();
+});
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.id === 'rbSelAll') { rbVisibleSelectable().forEach(r => { r.selected = t.checked; }); rbScheduleRender(); return; }
+  if (t.dataset && t.dataset.sel) {
+    const r = RB.rows.find(x => String(x.id) === t.dataset.sel);
+    if (r && rbSelectable(r)) { r.selected = t.checked; rbRenderAux(); }
+  }
+});
+document.addEventListener('click', (e) => {
+  if (!document.contains(e.target)) return;
+  const t = e.target;
+  const del = t.closest && t.closest('[data-del]');
+  if (del) { if (RB.busy) return; RB.rows = RB.rows.filter(r => String(r.id) !== del.dataset.del); rbScheduleRender(); return; }
+  const rt = t.closest && t.closest('[data-retry]');
+  if (rt) { const r = RB.rows.find(x => String(x.id) === rt.dataset.retry); if (r) { r.exec = null; r.msg = ''; RB.q.push(r); rbScheduleRender(); rbPump(); } return; }
+  const fx = t.closest && t.closest('[data-fail]');
+  if (fx) { RB.fails = RB.fails.filter(f => String(f.id) !== fx.dataset.fail); rbRenderFails(); rbRenderAux(); RB_INPUT.focus(); return; }
+  if (t.closest && t.closest('[data-failclear]')) { RB.fails = []; rbRenderFails(); rbRenderAux(); RB_INPUT.focus(); }
+});
+
+// ══════════════════════════════════════════════════════
+// §TBL — محرك الجدول الموحّد (data-table-standard.md) — نسخة واحدة لجدولين
+//   scan = client-side على الصفوف اللي في الذاكرة · log = server-side (فلترة وترتيب وصفحات من الـ Worker)
+// ══════════════════════════════════════════════════════
+const TB = {};
+const TB_FUNNEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></svg>';
+const TB_PRESETS = { today: 'اليوم', yesterday: 'أمس', last7: 'آخر 7 أيام', month: 'الشهر الحالي' };
+const TB_MIN_W = 64, TB_MAX_W = 700, TB_INIT_CAP = 160;
+
+function tbInit(c) {
+  c.st = { ms: {}, q: {}, date: { preset: '', from: '', to: '' }, sort: { key: null, dir: null } };
+  c.cols.forEach(k => { if (k.flt === 'ms') c.st.ms[k.k] = new Set(); if (k.flt === 'text') c.st.q[k.k] = ''; });
+  c.W = {}; c.drag = null; c.wInited = false;
+  TB[c.id] = c;
+  c.cols.forEach(k => { if (k.flt === 'date') c.dateCol = k; });
+  document.getElementById(`cg-${c.id}`).innerHTML = c.cols.map(k => `<col data-c="${k.k}">`).join('');
+  document.getElementById(`th-${c.id}`).innerHTML = '<tr>' + c.cols.map(k =>
+    `<th data-col="${k.k}" ${k.flt ? `data-fk="${k.k}"` : ''}><div class="th-in">` +
+    (k.type === 'sel' ? '<input type="checkbox" class="rb-cb" id="rbSelAll" aria-label="تحديد كل الأوردرات المؤهلة">'
+      : k.sort ? `<span class="th-label" data-t="${c.id}" data-sort="${k.k}">${k.l}<span class="sort-icon"></span></span>` : `<span>${k.l}</span>`) +
+    (k.flt ? `<button type="button" class="th-flt" data-t="${c.id}" data-flt="${k.k}" aria-label="فلتر ${esc(k.l)}">${TB_FUNNEL}<b class="th-cnt"></b></button>` : '') +
+    `</div><span class="col-rz" data-t="${c.id}" data-rz="${k.k}"></span></th>`).join('') + '</tr>';
+}
+
+// ⚠️ باج المعيار القاتل: !!value مش !== null
+function tbActiveCount(c, k) {
+  const col = c.cols.find(x => x.k === k); if (!col) return 0;
+  if (col.flt === 'ms') return c.st.ms[k].size;
+  if (col.flt === 'text') return c.st.q[k].trim() ? 1 : 0;
+  if (col.flt === 'date') return (c.st.date.from || c.st.date.to) ? 1 : 0;
+  return 0;
+}
+function tbAnyActive(c) {
+  return c.cols.some(k => tbActiveCount(c, k.k) > 0);
+}
+function tbPass(c, r) {
+  for (const k of c.cols) {
+    if (k.flt === 'ms') { const s = c.st.ms[k.k]; if (s.size && !s.has(k.val(r))) return false; }
+    else if (k.flt === 'text') { const q = c.st.q[k.k].trim().toLowerCase(); if (q && !String(k.val(r)).toLowerCase().includes(q)) return false; }
+    else if (k.flt === 'date') { const d = k.val(r); if (c.st.date.from && d < c.st.date.from) return false; if (c.st.date.to && d > c.st.date.to) return false; }
+  }
+  return true;
+}
+function tbSortRows(c, rows) {
+  const key = c.st.sort.key; if (!key) return rows;
+  const col = c.cols.find(k => k.k === key), d = c.st.sort.dir === 'asc' ? 1 : -1;
+  return [...rows].sort((a, b) => {                                  // نسخة جديدة — ممنوع تعديل المصفوفة الأصلية
+    const x = col.sv(a), y = col.sv(b);
+    return (typeof x === 'string' ? x.localeCompare(y, 'ar') : x - y) * d;
+  });
+}
+function tbFmtD(v) { if (!v) return '—'; const p = String(v).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : v; }
+
+// الرسم المشترك: chips + حالات الأيقونات + العدّاد
+function tbDecorate(c, count) {
+  const zone = document.getElementById(`chips-${c.id}`), rows = [];
+  const chip = (t, rm) => `<span class="ms-chip">${esc(t)}<button type="button" data-t="${c.id}" data-rm="${esc(rm)}" aria-label="شيل الفلتر">✕</button></span>`;
+  const row = (label, chips) => `<div class="ms-chips-row"><span class="chips-label">${esc(label)}:</span>${chips.join('')}</div>`;
+  c.cols.forEach(k => {
+    if (k.flt === 'ms' && c.st.ms[k.k].size) rows.push(row(k.l, [...c.st.ms[k.k]].map(v => chip(tbLabelOf(c, k, v), `${c.id}:ms:${k.k}:${v}`))));
+    if (k.flt === 'text' && c.st.q[k.k].trim()) rows.push(row(k.l, [chip(c.st.q[k.k].trim(), `${c.id}:q:${k.k}:`)]));
+    if (k.flt === 'date' && (c.st.date.from || c.st.date.to))
+      rows.push(row(k.l, [chip(c.st.date.preset ? TB_PRESETS[c.st.date.preset] : `من 📅 ${tbFmtD(c.st.date.from)} إلى 📅 ${tbFmtD(c.st.date.to)}`, `${c.id}:date::`)]));
+  });
+  zone.innerHTML = rows.join('');
+  const on = tbAnyActive(c);
+  document.querySelectorAll(`[data-clearall="${c.id}"]`).forEach(b => b.classList.toggle('inactive', !on));
+  const head = document.getElementById(`th-${c.id}`);
+  head.querySelectorAll('th[data-fk]').forEach(th => {
+    const n = tbActiveCount(c, th.dataset.fk);
+    th.classList.toggle('flt-on', n > 0);
+    const b = th.querySelector('.th-cnt'); if (b) b.textContent = n > 1 ? n : (n ? '●' : '');
+  });
+  head.querySelectorAll('th[data-col]').forEach(th => {
+    const act = c.st.sort.key === th.dataset.col;
+    th.classList.toggle('sorted', act);
+    const si = th.querySelector('.sort-icon');
+    if (si) { si.textContent = act ? (c.st.sort.dir === 'asc' ? '▲' : '▼') : ''; si.classList.toggle('active', act); }
+  });
+  if (count !== undefined) document.getElementById(`cnt-${c.id}`).textContent = count === null ? '—' : count.toLocaleString('en-US');
+}
+function tbLabelOf(c, k, v) {
+  if (c.mode === 'server' && k.options) { const o = k.options().find(x => x.v === v); if (o) return o.label || o.v; }
+  return v === '' ? '— فاضي —' : v;
+}
+
+// client: يفلتر ويرتّب ويرسم · server: بيطلب من الـ Worker
+function tbRender(c) {
+  if (c.mode === 'server') { tbDecorate(c); return; }
+  tbHideTip();
+  const all = c.getRows(), f = all.filter(r => tbPass(c, r)), s = tbSortRows(c, f);
+  document.getElementById(`tb-${c.id}`).innerHTML = s.length ? s.map(c.rowHtml).join('')
+    : `<tr><td colspan="${c.cols.length}" class="empty">${all.length ? 'مفيش نتايج مطابقة للفلاتر' : c.emptyMsg}</td></tr>`;
+  tbDecorate(c, f.length);
+  if (c.afterRender) c.afterRender();
+}
+function tbChanged(c) { if (c.mode === 'server') { tbDecorate(c); c.onState(); } else tbRender(c); }
+
+function tbToggleSort(c, key) {
+  const s = c.st.sort;
+  if (s.key !== key) c.st.sort = { key, dir: 'asc' };
+  else if (s.dir === 'asc') s.dir = 'desc';
+  else c.st.sort = { key: null, dir: null };                          // الضغطة التالتة = بلا ترتيب
+  tbChanged(c);
+}
+function tbClearAll(c) {
+  c.cols.forEach(k => { if (k.flt === 'ms') c.st.ms[k.k].clear(); if (k.flt === 'text') c.st.q[k.k] = ''; });
+  c.st.date = { preset: '', from: '', to: '' };
+  tbClosePop(); tbChanged(c);
+}
+
+// ── القائمة العائمة ──
+let tbPop = null, tbPopC = null, tbPopK = null, tbPopAnchor = null, tbPopQ = '';
+function tbClosePop() { if (tbPop) tbPop.remove(); tbPop = null; tbPopC = null; tbPopK = null; tbPopAnchor = null; tbPopQ = ''; }
+function tbOpenPop(c, k, anchor) {
+  tbHideTip();
+  if (tbPopK === k && tbPopAnchor === anchor) { tbClosePop(); return; }
+  tbClosePop(); tbPopC = c; tbPopK = k; tbPopAnchor = anchor;
+  tbPop = document.createElement('div'); tbPop.className = 'pop'; document.body.appendChild(tbPop);
+  tbBuildPop(); tbPlace();
+  const f = tbPop.querySelector('[data-autofocus]'); if (f) f.focus();
+}
+function tbPlace() {
+  if (!tbPop || !tbPopAnchor) return;
+  if (!document.contains(tbPopAnchor)) { tbClosePop(); return; }
+  const r = tbPopAnchor.getBoundingClientRect(), w = tbPop.offsetWidth, h = tbPop.offsetHeight;
+  const left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8));
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  tbPop.style.left = left + 'px'; tbPop.style.top = top + 'px';
+}
+function tbMsItems(c, k) {
+  if (c.mode === 'server') return (k.options ? k.options() : []).map(o => ({ v: o.v, label: o.label || o.v, c: o.c }));
+  const m = new Map();
+  c.getRows().forEach(r => { const v = k.val(r); m.set(v, (m.get(v) || 0) + 1); });
+  return [...m.entries()].map(([v, n]) => ({ v, label: v === '' ? '— فاضي —' : v, c: n })).sort((a, b) => String(a.label).localeCompare(String(b.label), 'ar'));
+}
+function tbListHtml(c, k) {
+  const q = tbPopQ.trim().toLowerCase(), sel = c.st.ms[k.k];
+  const its = tbMsItems(c, k).filter(i => !q || String(i.label).toLowerCase().includes(q));
+  return its.map(i => `<div class="ms-item ${sel.has(i.v) ? 'on' : ''}" data-ms="${esc(i.v)}"><span class="cb"></span><span>${esc(i.label)}</span>${i.c !== undefined ? `<span class="ms-cnt">${i.c}</span>` : ''}</div>`).join('')
+    || '<div class="empty" style="padding:14px">لا نتائج</div>';
+}
+function tbBuildPop() {
+  const c = tbPopC, k = c.cols.find(x => x.k === tbPopK); let h = '';
+  if (k.flt === 'ms') {
+    h = `<div class="pop-hd">${esc(k.l)}</div><div class="ms-ftr-top"><button type="button" class="clear-btn" data-act="clear">✕ مسح الاختيار</button><button type="button" class="lnk" data-act="all">تحديد الكل</button></div>`
+      + (tbMsItems(c, k).length > 8 ? '<div class="pop-srch"><input class="inp" data-msq autocomplete="off" aria-label="بحث في القايمة" data-autofocus></div>' : '')
+      + `<div class="ms-list">${tbListHtml(c, k)}</div>`;
+  } else if (k.flt === 'text') {
+    h = `<div class="pop-hd">${esc(k.l)}</div><div class="pop-body"><div class="search-wrap"><input class="inp ${c.st.q[k.k] ? 'has-value' : ''}" data-q="${k.k}" autocomplete="off" aria-label="بحث في ${esc(k.l)}" value="${esc(c.st.q[k.k])}" data-autofocus><span class="search-icon">🔍</span></div><button type="button" class="clear-btn" data-act="qclear">✕ مسح الاختيار</button></div>`;
+  } else if (k.flt === 'date') {
+    const d = c.st.date;
+    h = `<div class="pop-hd">${esc(k.l)}</div><div class="pop-body"><div class="preset-list"><button type="button" class="clear-btn" data-act="dclear">✕ مسح الاختيار</button>`
+      + Object.keys(TB_PRESETS).map(p => `<button type="button" class="${d.preset === p ? 'on' : ''}" data-preset="${p}">${TB_PRESETS[p]}</button>`).join('')
+      + `</div><div class="rng"><div><label>من تاريخ</label><input type="date" class="inp" data-d="from" value="${esc(d.from)}" onclick="this.showPicker&&this.showPicker()"></div><div><label>إلى تاريخ</label><input type="date" class="inp" data-d="to" value="${esc(d.to)}" onclick="this.showPicker&&this.showPicker()"></div></div></div>`;
+  }
+  tbPop.innerHTML = h; tbPop.classList.toggle('wide', k.flt === 'date');
+}
+function tbRenderList() { const l = tbPop && tbPop.querySelector('.ms-list'); if (l) l.innerHTML = tbListHtml(tbPopC, tbPopC.cols.find(x => x.k === tbPopK)); }
+function tbSetPreset(c, p) {
+  const today = cairoDayStr(new Date());
+  c.st.date.preset = p;
+  if (p === 'today') c.st.date.from = c.st.date.to = today;
+  else if (p === 'yesterday') c.st.date.from = c.st.date.to = ecoAddDays(today, -1);
+  else if (p === 'last7') { c.st.date.from = ecoAddDays(today, -6); c.st.date.to = today; }
+  else if (p === 'month') { c.st.date.from = today.slice(0, 8) + '01'; c.st.date.to = today; }
+}
+function tbPopAction(t) {
+  const c = tbPopC, k = c.cols.find(x => x.k === tbPopK);
+  const it = t.closest('.ms-item');
+  if (it) { const s = c.st.ms[k.k], v = it.dataset.ms; s.has(v) ? s.delete(v) : s.add(v); tbRenderList(); tbChanged(c); return; }
+  const pr = t.closest('[data-preset]');
+  if (pr) { tbSetPreset(c, pr.dataset.preset); tbChanged(c); tbBuildPop(); return; }
+  const a = t.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'clear') { c.st.ms[k.k].clear(); tbBuildPop(); tbChanged(c); }
+  else if (act === 'all') { const s = c.st.ms[k.k], q = tbPopQ.trim().toLowerCase(); tbMsItems(c, k).filter(i => !q || String(i.label).toLowerCase().includes(q)).forEach(i => s.add(i.v)); tbRenderList(); tbChanged(c); }
+  else if (act === 'qclear') { c.st.q[k.k] = ''; tbBuildPop(); tbChanged(c); }
+  else if (act === 'dclear') { c.st.date = { preset: '', from: '', to: '' }; tbBuildPop(); tbChanged(c); }
+}
+
+// ── الأحداث: listener واحد على document + حارس المعيار #32 ──
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  if (!document.contains(t)) return;                                  // الهدف اتشال بسبب re-render → مفيش قرار قفل
+  const trg = t.closest('[data-flt]');
+  if (trg) { e.stopPropagation(); tbOpenPop(TB[trg.dataset.t], trg.dataset.flt, trg); return; }
+  if (tbPop && tbPop.contains(t)) { tbPopAction(t); return; }
+  if (tbPop) tbClosePop();
+  const rm = t.closest('[data-rm]');
+  if (rm) {
+    const [tid, type, key, ...rest] = rm.dataset.rm.split(':'), v = rest.join(':'), c = TB[tid];
+    if (type === 'ms') c.st.ms[key].delete(v); else if (type === 'q') c.st.q[key] = ''; else if (type === 'date') c.st.date = { preset: '', from: '', to: '' };
+    tbChanged(c); return;
+  }
+  const ca = t.closest('[data-clearall]');
+  if (ca) { e.stopPropagation(); const c = TB[ca.dataset.clearall]; if (tbAnyActive(c)) tbClearAll(c); return; }
+  const so = t.closest('[data-sort]');
+  if (so) { tbToggleSort(TB[so.dataset.t], so.dataset.sort); return; }
+  const bar = t.closest('[data-tbar]');
+  if (bar && !t.closest('button,input,a')) { const id = bar.dataset.tbar; document.getElementById(`wrap-${id}`).classList.toggle('collapsed'); document.getElementById(`tog-${id}`).classList.toggle('open'); }
+});
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (!tbPopC) return;
+  const c = tbPopC;
+  if (t.dataset.q !== undefined) { c.st.q[t.dataset.q] = t.value; t.classList.toggle('has-value', !!t.value.trim()); clearTimeout(c.qT); c.qT = setTimeout(() => tbChanged(c), c.mode === 'server' ? 400 : 0); }
+  else if (t.dataset.d) { c.st.date[t.dataset.d] = t.value; c.st.date.preset = ''; tbChanged(c); tbPop.querySelectorAll('[data-preset]').forEach(b => b.classList.remove('on')); }
+  else if (t.dataset.msq !== undefined) { tbPopQ = t.value; tbRenderList(); }
+});
+document.addEventListener('scroll', tbPlace, true);
+window.addEventListener('resize', tbPlace);
+// Enter داخل أي حقل في قائمة الفلتر = اقفل القائمة والفلتر يفضل
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { tbClosePop(); return; }
+  if (e.key === 'Enter' && tbPop && tbPop.contains(e.target) && e.target.matches('input[data-q],input[data-d]')) { e.preventDefault(); e.target.blur(); tbClosePop(); }
+});
+
+// ── تولتيب بقيم الفلتر المحددة — مفيش حاجة محددة = مفيش تولتيب ──
+let tbTipEl = null;
+function tbTipText(c, k) {
+  if (!tbActiveCount(c, k)) return '';
+  const col = c.cols.find(x => x.k === k);
+  if (col.flt === 'ms') return [...c.st.ms[k]].map(v => tbLabelOf(c, col, v)).join('، ');
+  if (col.flt === 'text') return c.st.q[k].trim();
+  const r = `من 📅 ${tbFmtD(c.st.date.from)} إلى 📅 ${tbFmtD(c.st.date.to)}`;
+  return c.st.date.preset ? `${TB_PRESETS[c.st.date.preset]}: ${r}` : r;
+}
+function tbHideTip() { if (tbTipEl) tbTipEl.remove(); tbTipEl = null; }
+document.addEventListener('mouseover', (e) => {
+  const b = e.target.closest && e.target.closest('.th-flt');
+  if (!b) { if (tbTipEl) tbHideTip(); return; }
+  tbHideTip();
+  const c = TB[b.dataset.t], t = tbTipText(c, b.dataset.flt);
+  if (!t || tbPopAnchor === b) return;
+  tbTipEl = document.createElement('div'); tbTipEl.className = 'tip'; tbTipEl.textContent = t; document.body.appendChild(tbTipEl);
+  const r = b.getBoundingClientRect(), w = tbTipEl.offsetWidth, h = tbTipEl.offsetHeight;
+  tbTipEl.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + 'px';
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  tbTipEl.style.top = top + 'px';
+});
+document.addEventListener('mouseout', (e) => { if (!e.relatedTarget) tbHideTip(); });
+document.addEventListener('scroll', tbHideTip, true);
+
+// ── عرض الأعمدة بالسحب (§ 9ب) — تفضيل شاشة في localStorage بمفتاح لكل جدول ──
+const tbLsKey = (c) => `re_assign_bosta_col_widths_v1_${c.id}`;
+function tbSaveW(c) { try { localStorage.setItem(tbLsKey(c), JSON.stringify(c.W)); } catch (e) {} }
+function tbLoadW(c) { try { const s = JSON.parse(localStorage.getItem(tbLsKey(c)) || 'null'); return s && c.cols.every(k => s[k.k] >= TB_MIN_W) ? s : null; } catch (e) { return null; } }
+const tbLastK = (c) => c.cols[c.cols.length - 1].k;
+const tbScrollEl = (c) => document.getElementById(`tbl-${c.id}`).closest('.tbl-scroll');
+function tbSlack(c) { let sum = 0; c.cols.forEach(k => sum += c.W[k.k] || 0); return Math.max(0, tbScrollEl(c).clientWidth - sum); }
+function tbApplyW(c) {
+  // آخر عمود بيمتص الفراغ وقت العرض بس — الجدول دايمًا بيملا عرض الكارت، والمحفوظ مايتغيّرش
+  const slack = tbSlack(c), last = tbLastK(c); let sum = 0;
+  document.querySelectorAll(`#cg-${c.id} col`).forEach(col => { const k = col.dataset.c, w = c.W[k] + (k === last ? slack : 0); col.style.width = w + 'px'; sum += w; });
+  document.getElementById(`tbl-${c.id}`).style.width = sum + 'px';
+}
+function tbFreezeW(c) { document.getElementById(`tbl-${c.id}`).classList.remove('auto', 'measuring'); tbApplyW(c); }
+function tbInitW(c) {
+  const t = document.getElementById(`tbl-${c.id}`), sc = tbScrollEl(c);
+  if (!sc.clientWidth) return;                                         // تاب مخفي — القياس بيتأجّل لحد ما يظهر
+  c.wInited = true;
+  const saved = tbLoadW(c);
+  if (saved) { Object.assign(c.W, saved); tbFreezeW(c); return; }
+  // أول فتح: عروض افتراضية مدروسة (dw) — القياس على جدول فاضي كان بيدّي أعمدة ضيّقة. وبعدها المستخدم يسحب ويتحفظ.
+  c.cols.forEach(k => { c.W[k.k] = Math.max(TB_MIN_W, Math.min(TB_MAX_W, k.dw || TB_INIT_CAP)); });
+  tbFreezeW(c);
+}
+let tbWBadge = null;
+function tbShowWBadge(w) { if (!tbWBadge) { tbWBadge = document.createElement('div'); tbWBadge.className = 'w-badge'; document.body.appendChild(tbWBadge); } tbWBadge.textContent = w + ' px'; }
+function tbHideWBadge() { if (tbWBadge) tbWBadge.remove(); tbWBadge = null; }
+document.addEventListener('pointerdown', (e) => {
+  const h = e.target.closest && e.target.closest('[data-rz]'); if (!h) return;
+  if (e.button !== undefined && e.button !== 0) return;
+  e.preventDefault(); e.stopPropagation(); tbClosePop(); tbHideTip();
+  const c = TB[h.dataset.t], k = h.dataset.rz;
+  if (!c.wInited) return;
+  if (k === tbLastK(c)) c.W[k] += tbSlack(c);                          // آخر عمود: ابدأ من العرض المعروض فعلًا
+  c.drag = { k, x: e.clientX, w: c.W[k], sign: getComputedStyle(document.getElementById(`tbl-${c.id}`)).direction === 'rtl' ? -1 : 1, h };
+  try { h.setPointerCapture(e.pointerId); } catch (_) {}
+  h.classList.add('active'); document.body.classList.add('col-resizing');
+  const col = document.querySelector(`#cg-${c.id} col[data-c="${k}"]`); if (col) col.classList.add('hl');
+  tbShowWBadge(c.W[k]);
+});
+document.addEventListener('pointermove', (e) => {
+  const c = Object.values(TB).find(x => x.drag); if (!c) return;
+  const d = c.drag;
+  c.W[d.k] = Math.max(TB_MIN_W, Math.min(TB_MAX_W, Math.round(d.w + d.sign * (e.clientX - d.x))));   // RTL: السحب لليسار = توسيع
+  tbApplyW(c); tbShowWBadge(c.W[d.k]);
+});
+function tbEndDrag() {
+  const c = Object.values(TB).find(x => x.drag); if (!c) return;
+  c.drag.h.classList.remove('active'); document.body.classList.remove('col-resizing');
+  document.querySelectorAll(`#cg-${c.id} col.hl`).forEach(x => x.classList.remove('hl'));
+  c.drag = null; tbHideWBadge(); tbSaveW(c);
+}
+document.addEventListener('pointerup', tbEndDrag);
+document.addEventListener('pointercancel', tbEndDrag);
+// دبل كليك على المقبض = ضبط على أطول محتوى (القياس بـ Range على المحتوى مش على الخلية)
+document.addEventListener('dblclick', (e) => {
+  const h = e.target.closest && e.target.closest('[data-rz]'); if (!h) return;
+  const c = TB[h.dataset.t], k = h.dataset.rz; if (!c.wInited) return;
+  const t = document.getElementById(`tbl-${c.id}`), i = c.cols.findIndex(x => x.k === k);
+  t.classList.add('measuring');
+  let w = t.querySelectorAll('thead th')[i].querySelector('.th-in').getBoundingClientRect().width + 16;
+  t.querySelectorAll('tbody tr').forEach(tr => { const td = tr.children[i]; if (!td || td.classList.contains('empty')) return; const rg = document.createRange(); rg.selectNodeContents(td); w = Math.max(w, rg.getBoundingClientRect().width + 16); });
+  t.classList.remove('measuring');
+  c.W[k] = Math.max(TB_MIN_W, Math.min(TB_MAX_W, Math.ceil(w))); tbApplyW(c); tbSaveW(c);
+});
+window.addEventListener('resize', () => { Object.values(TB).forEach(c => { if (c.wInited) tbApplyW(c); }); });
+
+// ── جدول الفحص (scan) ──
+tbInit({
+  id: 'scan', mode: 'client', emptyMsg: 'لسه ما اتعملش سكان لأي أوردر',
+  getRows: () => RB.rows, rowHtml: rbRowHtml,
+  afterRender: () => { /* العدّادات بتتحدّث من rbRenderAux */ },
+  cols: [
+    { k: 'sel', l: '', type: 'sel', dw: 64 },
+    { k: 'order', l: 'الأوردر', flt: 'text', sort: true, val: rbOrderNo, sv: rbOrderNum, dw: 130 },
+    { k: 'time', l: 'وقت السكان', sort: true, sv: r => Date.parse(r.addedAt), dw: 120 },
+    { k: 'customer', l: 'العميل', flt: 'text', sort: true, dw: 120, val: r => r.order ? (r.order.customer || '') : '', sv: r => r.order ? (r.order.customer || '') : '' },
+    { k: 'zone', l: 'الزون', flt: 'ms', sort: true, dw: 110, val: r => rbDash(r.order && r.order.zone), sv: r => rbDash(r.order && r.order.zone) },
+    { k: 'courier', l: 'المندوب', flt: 'ms', sort: true, dw: 110, val: r => rbDash(r.order && r.order.courier), sv: r => rbDash(r.order && r.order.courier) },
+    { k: 's1', l: 'الحالة S1', flt: 'ms', sort: true, dw: 110, val: r => rbDash(r.order && r.order.s1), sv: r => rbDash(r.order && r.order.s1) },
+    { k: 's2', l: 'الحالة S2', flt: 'ms', sort: true, dw: 110, val: r => rbDash(r.order && r.order.s2), sv: r => rbDash(r.order && r.order.s2) },
+    { k: 'verdict', l: 'الحكم', flt: 'ms', sort: true, dw: 150, val: r => rbStatusOf(r).t, sv: r => rbStatusOf(r).t },
+    { k: 'reason', l: 'السبب / النتيجة', flt: 'text', val: rbReasonText, dw: 300 },
+  ],
+});
+
+// ══════════════════════════════════════════════════════
+// §LOG-JS — سجل العمليات: فلترة وترتيب وصفحات server-side (Step 6)
+// ══════════════════════════════════════════════════════
+let rbLogPage = 1, rbLogTotal = 0, rbLogLoaded = false, rbLogStale = false, rbLogSeq = 0;
+let rbLogEmployees = [];
+
+tbInit({
+  id: 'log', mode: 'server', onState: () => { rbLogPage = 1; rbClearExportWarn(); rbFetchLog(); },
+  cols: [
+    { k: 'date', l: 'التاريخ', flt: 'date', sort: true, sortKey: 'date', dw: 140 },
+    { k: 'time', l: 'الوقت', sort: true, sortKey: 'time', dw: 120 },
+    { k: 'employee', l: 'الموظف', flt: 'ms', sort: true, sortKey: 'employee', dw: 150, options: () => rbLogEmployees },
+    { k: 'order', l: 'الأوردر', flt: 'text', sort: true, sortKey: 'orderName', dw: 120 },
+    { k: 'type', l: 'نوع العملية', flt: 'ms', sort: true, sortKey: 'type', dw: 160, options: () => Object.entries(RB_TYPE_LABELS).map(([v, label]) => ({ v, label })) },
+    { k: 'result', l: 'النتيجة', flt: 'ms', sort: true, sortKey: 'result', dw: 130, options: () => Object.entries(RB_RESULT_LABELS).map(([v, label]) => ({ v, label })) },
+    { k: 'machine', l: 'الماكينة', sort: true, sortKey: 'machine', dw: 100 },
+    { k: 'notes', l: 'التفاصيل', flt: 'text', dw: 320 },
+    { k: 'resNote', l: 'ملاحظة النتيجة' },
+  ],
+});
+
+// مصدر واحد للفلاتر — بتستخدمه التلات نداءات (get_logs · get_logs_count · get_logs_export)
+function rbLogParams() {
+  const c = TB.log, st = c.st, p = {};
+  if (st.ms.employee.size) p.employees = [...st.ms.employee].join(',');
+  if (st.ms.type.size)     p.types     = [...st.ms.type].join(',');
+  if (st.ms.result.size)   p.results   = [...st.ms.result].join(',');
+  if (st.q.order.trim())   p.orderName = st.q.order.trim().replace(/^#/, '');
+  if (st.q.notes.trim())   p.notes     = st.q.notes.trim();
+  if (st.date.from) p.dateFrom = st.date.from;
+  if (st.date.to)   p.dateTo   = st.date.to;
+  return p;
+}
+function rbClearExportWarn() { const w = document.getElementById('logExportWarn'); w.hidden = true; w.innerHTML = ''; }
+
+function rbLogRowHtml(e) {
+  const x = rbSafeExtra(e), cls = RB_RESULT_CLS[x.result] || 'neutral';
+  return `<tr>
+    <td class="col-num">${esc(formatDate(e.timestamp))}</td>
+    <td class="col-num">${esc(formatTimeOnly(e.timestamp))}</td>
+    <td>${esc(e.employee || '—')}</td>
+    <td>${e.order_name || e.order_id ? orderLink(e.order_name || e.order_id, e.order_id) : '—'}</td>
+    <td>${esc(RB_TYPE_LABELS[e.type] || e.type || '—')}</td>
+    <td>${x.result ? `<span class="status-badge ${cls}">${esc(rbResultLabel(x.result))}</span>` : '—'}</td>
+    <td>${x.machine ? esc(String(x.machine).toUpperCase()) : '—'}</td>
+    <td>${esc(e.notes || '—')}</td>
+    <td>${esc(x.error || '—')}</td>
+  </tr>`;
+}
+
+async function rbFetchLog() {
+  const c = TB.log, seq = ++rbLogSeq, base = rbLogParams();
+  const s = c.st.sort;
+  const sortP = s.key ? { sortBy: c.cols.find(k => k.k === s.key).sortKey, sortDir: s.dir } : {};
+  document.getElementById('logReload').disabled = true;
+  try {
+    // نفس الفلاتر بالظبط في النداءين — صفحة + عدّ
+    const [pageData, countData] = await Promise.all([
+      apiGet('get_logs', { ...base, ...sortP, limit: CFG.LOG_PAGE, offset: (rbLogPage - 1) * CFG.LOG_PAGE }),
+      apiGet('get_logs_count', base),
+    ]);
+    if (seq !== rbLogSeq) return;                                       // رد قديم — طلب أحدث ماشي
+    rbLogTotal = countData.total || 0;
+    const entries = pageData.entries || [];
+    document.getElementById('tb-log').innerHTML = entries.length ? entries.map(rbLogRowHtml).join('')
+      : `<tr><td colspan="${c.cols.length}" class="empty">${tbAnyActive(c) ? 'مفيش نتايج مطابقة للفلاتر' : 'لسه مفيش عمليات'}</td></tr>`;
+    tbDecorate(c, rbLogTotal);                                          // «النتائج» = العدّ من السيرفر مش طول الصفحة
+    rbRenderPagination();
+    rbLogLoaded = true; rbLogStale = false;
+    document.getElementById('logUpd').textContent = `آخر تحديث ${formatTimeOnly(new Date().toISOString()).replace('🕐 ', '')}`;
+    if (!c.wInited) tbInitW(c); else tbApplyW(c);
+  } catch (e) {
+    if (seq !== rbLogSeq) return;
+    tbDecorate(c, null);
+    document.getElementById('tb-log').innerHTML = `<tr><td colspan="${c.cols.length}" class="empty">تعذّر تحميل السجل: ${esc(e.message)}</td></tr>`;
+    showToast(`تعذّر تحميل السجل: ${e.message}`, 'error', CFG.TOAST_MS.error);
+  } finally { document.getElementById('logReload').disabled = false; }
+}
+function rbRenderPagination() {
+  const pages = Math.max(1, Math.ceil(rbLogTotal / CFG.LOG_PAGE));
+  document.getElementById('paginationRow').hidden = pages <= 1;
+  document.getElementById('pageInfo').textContent = `صفحة ${rbLogPage} من ${pages}`;
+  document.getElementById('btnPrevPage').disabled = rbLogPage <= 1;
+  document.getElementById('btnNextPage').disabled = rbLogPage >= pages;
+}
+document.getElementById('btnPrevPage').addEventListener('click', () => { if (rbLogPage > 1) { rbLogPage--; rbFetchLog(); } });
+document.getElementById('btnNextPage').addEventListener('click', () => { if (rbLogPage < Math.ceil(rbLogTotal / CFG.LOG_PAGE)) { rbLogPage++; rbFetchLog(); } });
+document.getElementById('logReload').addEventListener('click', (e) => { e.stopPropagation(); rbFetchLog(); });
+async function rbLoadLogOptions() {
+  try { rbLogEmployees = ((await apiGet('get_log_options')).employees || []).map(x => ({ v: x.value, label: x.value, c: x.count })); }
+  catch { /* فلتر الموظف بيفضل فاضي — مش بيوقف السجل */ }
+}
+
+// ── التصدير: get_logs_export مش get_logs + بانر ثابت لو الملف اتقص (Standards #30) ──
+document.getElementById('logExport').addEventListener('click', async (e) => {
+  e.stopPropagation(); rbClearExportWarn();
+  if (typeof ExcelJS === 'undefined') { showToast('مكتبة التصدير ما اتحمّلتش — تأكد إن CDN مش محجوب', 'error', 7000); return; }
+  let data;
+  try { data = await apiGet('get_logs_export', rbLogParams()); }
+  catch (err) { showToast(`تعذّر التصدير: ${err.message}`, 'error', CFG.TOAST_MS.error); return; }
+  const entries = data.entries || [];
+  const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('السجل');
+  ws.views = [{ rightToLeft: true }];
+  ws.columns = [
+    { header: 'التاريخ', key: 'date', width: 13 }, { header: 'الوقت', key: 'time', width: 12 }, { header: 'الموظف', key: 'employee', width: 18 },
+    { header: 'الأوردر', key: 'order', width: 12 }, { header: 'نوع العملية', key: 'type', width: 18 }, { header: 'النتيجة', key: 'result', width: 16 },
+    { header: 'الماكينة', key: 'machine', width: 10 }, { header: 'التفاصيل', key: 'notes', width: 60 }, { header: 'ملاحظة النتيجة', key: 'resNote', width: 40 },
+  ];
+  entries.forEach(en => {
+    const x = rbSafeExtra(en);
+    ws.addRow({ date: formatDateForExport(en.timestamp), time: formatTimeForExport(en.timestamp), employee: en.employee || '', order: en.order_name || en.order_id || '',
+      type: RB_TYPE_LABELS[en.type] || en.type || '', result: x.result ? rbResultLabel(x.result) : '', machine: x.machine ? String(x.machine).toUpperCase() : '',
+      notes: en.notes || '', resNote: x.error || '' });
+  });
+  const buf = await wb.xlsx.writeBuffer();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([buf], { type: 'application/octet-stream' }));
+  a.download = `re-assign-bosta-log-${cairoDayStr(new Date())}.xlsx`;
+  a.click();
+  const truncated = data.truncated === true || (data.cap && entries.length >= data.cap);
+  if (truncated) {
+    const w = document.getElementById('logExportWarn');
+    w.innerHTML = `⚠️ <b>التصدير اتقص</b> — الملف فيه ${entries.length.toLocaleString('en-US')} صف` + (data.total != null ? ` من أصل <b>${data.total.toLocaleString('en-US')}</b> مطابقين للفلاتر` : '') + '. ضيّق الفترة أو الفلاتر وصدّر على دفعات.';
+    w.hidden = false;
+    showToast(`⚠️ التصدير اتقص عند ${entries.length.toLocaleString('en-US')} صف — الملف مش كامل`, 'error', 7000);
+  } else showToast(`تم تصدير ${entries.length.toLocaleString('en-US')} عملية ✓`, 'success');
+});
+
+// ══════════════════════════════════════════════════════
+// §SHELL-JS — التابات · Freeze on Scroll · chip التاب الحالي (tabs-and-modals.md § 1b)
+// ══════════════════════════════════════════════════════
+const TAB_IDS = ['main', 'log'];
+let currentTab = 'main';
+const TAB_BTN = { main: 'tabMain', log: 'tabLog' };
+function switchMainTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabMain').classList.toggle('active', tab === 'main');
+  document.getElementById('tabLog').classList.toggle('active', tab === 'log');
+  document.getElementById('panelMain').classList.toggle('active', tab === 'main');
+  document.getElementById('panelLog').classList.toggle('active', tab === 'log');
+  tbClosePop(); tbHideTip();
+  if (tab === 'log' && (!rbLogLoaded || rbLogStale)) { if (!rbLogLoaded) rbLoadLogOptions(); rbFetchLog(); }   // lazy load
+  if (tab === 'log' && !TB.log.wInited) tbInitW(TB.log);
+  if (tab === 'main' && TB.scan.wInited) tbApplyW(TB.scan);
+  updateTabChip(); closeTabChipMenu();
+  if (tab === 'main') RB_INPUT.focus();
+}
+
+const stickyWrap = document.getElementById('stickyWrap');
+const STICK_OFF = 12;                // تحت الرقم ده يترجع مفتوح
+let STICK_ON = 140;                  // بيتحسب من الارتفاع الفعلي — القيمة دي مبدئية آمنة بس
+let stickyDelta = 0, stickyW = 0, stickyRafPending = false;
+// بيقيس كام بكسل ارتفاع الهيدر بيقلّ لما يتقفل — القياس ده هو اللي بيحدد عرض الـ hysteresis (scroll anchoring)
+function measureSticky() {
+  const wasStuck = stickyWrap.classList.contains('stuck');
+  const nodes = [stickyWrap, ...stickyWrap.querySelectorAll('*')];
+  const prev = nodes.map(n => n.style.transition);
+  nodes.forEach(n => n.style.transition = 'none');
+  stickyWrap.classList.remove('stuck'); const open = stickyWrap.offsetHeight;
+  stickyWrap.classList.add('stuck');    const shut = stickyWrap.offsetHeight;
+  stickyWrap.classList.toggle('stuck', wasStuck);
+  stickyWrap.offsetHeight;
+  nodes.forEach((n, i) => n.style.transition = prev[i]);
+  stickyDelta = Math.max(0, open - shut);
+  STICK_ON = Math.max(40, stickyDelta + STICK_OFF + 24);               // الباند أوسع من الارتداد
+  stickyW = window.innerWidth;
+}
+function onPageScroll() {
+  if (stickyRafPending) return;
+  stickyRafPending = true;
+  requestAnimationFrame(() => {
+    stickyRafPending = false;
+    const y = window.scrollY, isStuck = stickyWrap.classList.contains('stuck');
+    if (!isStuck && y > STICK_ON) stickyWrap.classList.add('stuck');
+    else if (isStuck && y < STICK_OFF) stickyWrap.classList.remove('stuck');
+  });
+}
+window.addEventListener('scroll', onPageScroll, { passive: true });
+let stickyResizeTimer;
+window.addEventListener('resize', () => {
+  if (window.innerWidth === stickyW) return;                           // إعادة القياس على تغيّر العرض بس
+  clearTimeout(stickyResizeTimer); stickyResizeTimer = setTimeout(measureSticky, 150);
+});
+function updateTabChip() {
+  document.getElementById('activeTabChipLabel').textContent = document.getElementById(TAB_BTN[currentTab]).textContent.trim();
+  document.querySelectorAll('#tabChipMenu .tab-chip-item').forEach(el => el.classList.toggle('active', el.dataset.tab === currentTab));
+}
+function buildTabChipMenu() {
+  document.getElementById('tabChipMenu').innerHTML = TAB_IDS.map(id =>
+    `<div class="tab-chip-item ${id === currentTab ? 'active' : ''}" data-tab="${id}" onclick="event.stopPropagation(); switchMainTab('${id}');">${document.getElementById(TAB_BTN[id]).textContent.trim()}</div>`).join('');
+}
+function toggleTabChipMenu(e) {
+  e.stopPropagation();
+  const chip = document.getElementById('activeTabChip'), menu = document.getElementById('tabChipMenu');
+  const open = !menu.classList.contains('open');
+  menu.classList.toggle('open', open); chip.classList.toggle('open', open);
+}
+function closeTabChipMenu() {
+  document.getElementById('tabChipMenu')?.classList.remove('open');
+  document.getElementById('activeTabChip')?.classList.remove('open');
+}
+document.addEventListener('click', (e) => { const chip = document.getElementById('activeTabChip'); if (chip && !chip.contains(e.target)) closeTabChipMenu(); });
 
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
@@ -500,6 +1504,7 @@ document.addEventListener('keydown', (e) => {
   document.getElementById('aboutOverlay')?.classList.remove('open');
   document.getElementById('changelogOverlay')?.classList.remove('open');
   if (document.getElementById('confirmOverlay')?.classList.contains('open')) closeConfirm(false);
+  if (document.getElementById('summaryOverlay')?.classList.contains('open')) closeSummary();
 });
 
 // ══════════════════════════════════════════════════════
@@ -508,13 +1513,27 @@ document.addEventListener('keydown', (e) => {
 document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '🚚',
   title:    'تحويل الشحنة إلى بوسطة',
-  subtitle: 'Ready → Confirmed · Other_Regions · Bosta',
+  subtitle: 'سكان أكتر من أوردر · Ready → Confirmed · Other_Regions · Bosta',
   session:  ecoSession,
+  extras: `
+    <div class="active-tab-chip" id="activeTabChip" onclick="toggleTabChipMenu(event)">
+      <span id="activeTabChipLabel">🚚 التحويل</span><span class="chip-arrow">▾</span>
+      <div class="tab-chip-menu" id="tabChipMenu"></div>
+    </div>`,
 });
 
 renderVersionUI();
+tbRender(TB.scan);
+rbRenderFails();
+rbRenderAux();
+buildTabChipMenu();
+updateTabChip();
+measureSticky();
+// القياس محتاج الخط محمّل — مش initW() مباشرة
+(document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => tbInitW(TB.scan));
+
+// ⚠️ حارس النسخة بياخد مفاتيح الـ Workers اللي الصفحة بتناديها — رسالة «الـ Worker نسخة قديمة» من غير اسم الأداة بتخلّي الموظف يدوّر.
 checkWorkerVersion(PAGE_WORKERS);
-rbLoadLog();
 RB_INPUT.focus();
 </script>
 </body>
