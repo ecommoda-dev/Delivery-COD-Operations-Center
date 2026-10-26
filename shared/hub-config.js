@@ -89,7 +89,9 @@ const ECO_WORKERS = {
   // 🔴 **`1.1.0` من v1.9.0 — نفس الأرضية بالحرف** (الشرح فوق).
   //    ⚠️ وأثرها هنا أكبر: الطابور ده **بيتراكم** بطبيعته، فالفرق بين
   //       Worker قديم وجديد مئات الصفوف مش عشرات.
-  shipped: { url: 'https://shipped-orders-worker.ecommoda-dev.workers.dev', min: '1.1.0', label: 'طابور المشحون' },
+  // 🔴 **`1.2.0` من v1.58.0** — عمود «العنوان» في طابور المشحون بيقرا `address1`/`address2` من الرد.
+  //    على Worker أقدم العمود بيقول «بلا عنوان» على كل صف (الحارس بيسمّي الأداة والنسخة).
+  shipped: { url: 'https://shipped-orders-worker.ecommoda-dev.workers.dev', min: '1.2.0', label: 'طابور المشحون' },
   // 🔴 **Worker الدخول — بتاع الهب نفسه، وعايش في **نفس الريبو**.**
   //    الهب واجهة + Worker دخول = الشكل القياسي (قرار ٨ في
   //    `ecommoda-tool-migration-playbook`). بيخدم: `get_employees` ·
@@ -219,7 +221,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.57.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.58.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +

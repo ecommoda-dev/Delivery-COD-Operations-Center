@@ -1244,6 +1244,10 @@ CL_SHIPPED_PREV = r'''          <li class="cl-item"><span class="cl-tag change">
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔴 <b>عمود «العميل» بقى سطرين بالكتير</b> — بنط أصغر وحشو أضيق، والاسم الطويل بيتقص بـ<code>…</code>، والاسم الكامل بيبان بالوقوف على الخلية والبحث بيدوّر فيه كامل. ⛔ <b>وبلا أي توسيع للعمود</b>.</span></li>
 '''
 
+# v1.58.0 — عمود «العنوان» في طابور المشحون (طلب أحمد 26-10-2026).
+CL_V158_SHIPPED = r'''          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>عمود «العنوان» بعد المندوب</b> — <code>address1</code> و<code>address2</code> مع بعض، والأوردر اللي مالوش عنوان بيقول «بلا عنوان». بيترتّب وبيتبحث فيه زي صفحة «الجاهز». ⚠️ محتاج <code>shipped-orders-worker</code> <b>1.2.0</b>.</span></li>
+'''
+
 # v1.38.0 — نفس البند في الصفحتين (التحديث التلقائي اتلغى في الاتنين).
 CL_V138 = r'''          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>⏸️ <b>التحديث التلقائي كل ١٥ دقيقة اتلغى</b> (طلب أحمد — تخفيف الضغط على الـ Workers). الطابور بيتجاب لما تفتح الصفحة ولما تدوس «تحديث» وبس، ورقم «آخر تحديث» بيفضل يقول عمره. ✅ <b>وكل جلب هنا بيحدّث رقم الشاشة الرئيسية كمان</b> — الرجوع لها بعدها مابيعملش نداء جديد.</span></li>
 '''
@@ -1278,7 +1282,12 @@ READY_ABOUT_COLS = '''            <li><b>العنوان</b> — <code>address1</
                 ⚠️ و<code>—</code> في المربع وفي قايمة الفلتر معناها <b>«محدش
                 سجّل»</b> — مش «المخزن».</li>'''
 
-SHIPPED_ABOUT_COLS = '''            <li><b>رقم التتبع</b> — الجديد أولاً (<code>…_s1</code>/<code>…_s2</code> حسب
+SHIPPED_ABOUT_COLS = '''            <li><b>العنوان</b> — <code>address1</code> و<code>address2</code> مع بعض،
+                <b>بعد المندوب مباشرةً</b> (مش بعد العميل زي صفحة «الجاهز»).
+                الأوردر اللي مالوش عنوان على شوبيفاي بيقول <b>«بلا عنوان»</b> بالنص.
+                ⚠️ محتاج <code>shipped-orders-worker</code> <b>1.2.0</b> — على Worker
+                أقدم العمود بيقول «بلا عنوان» على كل صف، وحارس النسخة بيقول كده بالاسم.</li>
+            <li><b>رقم التتبع</b> — الجديد أولاً (<code>…_s1</code>/<code>…_s2</code> حسب
                 ماكينة الصف)، والقديم بعلامة <b>«من الحقل القديم»</b>. ⚠️ العلامة
                 دي مش تزويق: من غيرها الموظف بيفتكر إن الحقول الجديدة اتملّت وهي
                 لسه فاضية على كل الأوردرات.</li>'''
@@ -1328,6 +1337,7 @@ PAGES = [
     addrHead='<th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort(\'address\')">العنوان<span class="sort-icon" data-q-sort="address"></span></th>',
     addrCell="""      <td class="addr-cell">${addressCell(o)}</td>\n""",
     addrFn=ADDR_FN,
+    addrAfterHead='', addrAfterCell='',
     # 🔴 **عمود «ملحوظات» — صفحة «الجاهز للشحن» بس** (v1.6.0 · طلب أحمد
     #    17-09-2026). مصدره `note` في رد `get_ready_queue`، و
     #    `ready-orders-worker` **v1.3.0** هو اللي بيرجّعه —
@@ -1363,18 +1373,25 @@ PAGES = [
     # ⛔ بلا مربعات «موقع الشحنة» — مفيش فلتر `where` في الصفحة دي أصلاً،
     #    ومربع بيفلتر على فلتر مش موجود = ضغطة مالهاش أثر.
     waChipsBox='', waChipsCall='', waChipsJs='',
-    # ⚠️ بلا عمود عنوان — الـ Worker بتاع الطابور ده مابيرجّعش `address1`.
-    #    ⚠️ وبلا عمود ملحوظات لنفس السبب بالظبط — `note` جه في
-    #       `ready-orders-worker` v1.3.0 وبس.
-    addrHead='', addrCell='', addrFn='',
+    # 🔴 **عمود «العنوان» في «طابور المشحون» — بعد المندوب مش بعد العميل**
+    #    (v1.58.0 · طلب أحمد 26-10-2026). `shipped-orders-worker` **1.2.0**
+    #    بقى بيرجّع `address1`/`address2`. نفس الدالة (`ADDR_FN`) ونفس الخلية
+    #    ونفس الترتيب (`address`) بتاع صفحة «الجاهز» بالحرف — الفرق **مكانه**
+    #    بس: هناك بعد العميل، هنا بعد المندوب (معامل `addrAfter*` بدل `addr*`).
+    # ⚠️ ولو اتشال `address1` من الـ Worker العمود بيقول «بلا عنوان» على كل
+    #    صف — وحارس النسخة (`shipped.min = 1.2.0`) هو اللي بيقول السبب.
+    # ⚠️ وبلا عمود ملحوظات — `note` جه في `ready-orders-worker` v1.3.0 وبس.
+    addrHead='', addrCell='', addrFn=ADDR_FN,
+    addrAfterHead='<th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort(\'address\')">العنوان<span class="sort-icon" data-q-sort="address"></span></th>',
+    addrAfterCell="""      <td class="addr-cell">${addressCell(o)}</td>\n""",
     noteHead='', noteCell='', noteFn='',
     aboutCols=SHIPPED_ABOUT_COLS,
-    cols=8,
+    cols=9,
     # ⛔ بلا جرد — أوردر `Shipped` خرج من المكتب بالتعريف، فجرده سؤال
     #    مالوش معنى (الشرح كامل فوق عند الكتل).
     auditCss='', auditTabs='', auditLib='', auditView='', auditJs='', auditAbout='',
     apiFns='apiGet',
-    clItems=CL_V138, clV133=CL_SHIPPED, clPrev=CL_SHIPPED_PREV,
+    clItems=CL_V158_SHIPPED + CL_V138, clV133=CL_SHIPPED, clPrev=CL_SHIPPED_PREV,
     aboutWhat='''الأوردرات اللي حالتها <code>Shipped</code> — خرجت من المخزن
              و<b>محدش سجّل لها نتيجة نهائية</b> لسه. ⚠️ <code>In-Return</code>
              <b>مش داخلة</b> في الطابور ده (بند مفتوح).''',
@@ -1384,7 +1401,7 @@ PAGES = [
 TPL = r'''<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- skills: html-builder v6.6.0 · worker-builder v3.3.0 · constants v2.6.0 · order-lifecycle v1.8.0 — 15-09-2026 -->
+<!-- skills: html-builder v8.5.0 · worker-builder v3.7.0 · constants v3.1.0 · order-lifecycle v1.8.0 — 26-10-2026 -->
 <!-- ══════════════════════════════════════════════════════════════
      🔴 **الملف ده متولّد من `docs/build-pages.py`.**
      الصفحتان (`Ready-Orders.html` · `Shipped-Orders.html`) **متطابقتان
@@ -1512,6 +1529,9 @@ __AUDIT_LIB__
 .th-flt { min-width: 22px; height: 22px; padding: 0 3px; margin-inline-start: 5px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 2px; font-size: 10px; font-weight: 800; vertical-align: middle; }
 .th-flt svg { width: 14px; height: 14px; }
 .th-flt:hover { background: var(--accent-light); color: var(--accent); }
+/* tooltip القمع (Standards #50) — بقيم الفلتر المفعّل بس؛ مفيش اختيار = مفيش tooltip.
+   z-index 210 زي القالب (فوق القايمة العائمة 200). */
+.tip { position: fixed; z-index: 210; max-width: 300px; background: var(--neutral-dark); color: var(--on-accent); font-size: 12px; font-weight: 600; line-height: 1.7; padding: 6px 10px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.2); pointer-events: none; word-break: break-word; }
 th.flt-on .th-flt { background: var(--accent-light); border-color: var(--accent-border); color: var(--accent); }
 .hpop { position: fixed; z-index: 200; width: 268px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
 .hpop-hd { padding: 9px 12px; font-weight: 800; font-size: 12.5px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
@@ -1991,7 +2011,7 @@ __WA_CHIPS__      <div class="cb-money" id="qMoney"></div>
               <th class="sortable-th" data-q-sort="orderName" onclick="qToggleSort('orderName')">رقم الأوردر<span class="sort-icon" data-q-sort="orderName"></span></th>
               <th class="sortable-th col-cust" data-q-sort="customer"  onclick="qToggleSort('customer')">العميل<span class="sort-icon" data-q-sort="customer"></span></th>
               __ADDR_HEAD____NOTE_HEAD__<th class="sortable-th" data-q-sort="courier" onclick="qToggleSort('courier')">المندوب<span class="sort-icon" data-q-sort="courier"></span></th>
-              __EXTRA_HEAD__
+              __ADDR_AFTER_HEAD____EXTRA_HEAD__
               <th class="sortable-th col-date" data-q-sort="createdAt" onclick="qToggleSort('createdAt')">تاريخ الأوردر<span class="sort-icon" data-q-sort="createdAt"></span></th>
               <!-- ⚠️ الاسم **«تاريخ التغليف»** مش «الوقت منذ التغليف» — الخلية
                    فيها التاريخ **والبادج** مع بعض، بالظبط زي عمود «تاريخ
@@ -2118,7 +2138,7 @@ __AUDIT_ABOUT__
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge">v1.38.0</span>
-          <span class="cl-ver-date">14-10-2026</span>
+          <span class="cl-ver-date">26-10-2026</span>
         </div>
         <ul class="cl-items">
 __CL_ITEMS__        </ul>
@@ -2529,7 +2549,7 @@ function hdrClose() {
 }
 function hdrOpen(key, anchor) {
   if (hKey === key && hAnchor === anchor) { hdrClose(); return; }
-  hdrClose(); hKey = key; hAnchor = anchor;
+  hdrHideTip(); hdrClose(); hKey = key; hAnchor = anchor;
   hPop = document.createElement('div'); hPop.className = 'hpop'; document.body.appendChild(hPop);
   hdrRender(); hdrPlace();
 }
@@ -2581,6 +2601,35 @@ function hdrUpdateStates() {
     const c = th.querySelector('.th-cnt'); if (c) c.textContent = n > 1 ? n : (n ? '●' : '');
   });
 }
+// 🔴 **tooltip القمع بقيم الفلتر المفعّل — ومفيش tooltip لو مفيش اختيار** (Standards #50 ·
+//    `data-table-standard.md` § 2.5). مخصّص مش `title` native (اتأخر وبيتقص).
+//    الليبل بيتقرا من `labelOf` اللي القايمة بتعرضه (مش القيمة الخام) والتاريخ
+//    بنفس نص الـ chip — فالتلاتة (القايمة · الـ chip · الـ tooltip) مستحيل يفترقوا.
+function hdrTipText(fk) {
+  if (fk === 'search') return qSearchTerm.trim();
+  if (fk === 'date') {
+    if (!qDateFilterActive) return '';
+    return qActivePreset ? Q_PRESET_LABELS[qActivePreset]
+      : `من 📅 ${qDayLabel(qDateFrom)} إلى 📅 ${qDayLabel(qDateTo)}`;
+  }
+  const st = MS.q.state[fk];
+  if (!st || !st.selected.size) return '';
+  return st.items.filter(it => st.selected.has(it.value)).map(it => it.label).join('، ');
+}
+let hTip = null;
+function hdrHideTip() { if (hTip) hTip.remove(); hTip = null; }
+function hdrShowTip(btn) {
+  hdrHideTip();
+  const t = hdrTipText(btn.dataset.hflt);
+  if (!t || hAnchor === btn) return;                 // القايمة مفتوحة على نفس القمع = مفيش tooltip
+  hTip = document.createElement('div'); hTip.className = 'tip'; hTip.textContent = t; document.body.appendChild(hTip);
+  const r = btn.getBoundingClientRect(), w = hTip.offsetWidth, h = hTip.offsetHeight;
+  hTip.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + 'px';
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  hTip.style.top = top + 'px';
+}
+document.addEventListener('mouseover', e => { const b = e.target.closest && e.target.closest('.th-flt'); if (b) hdrShowTip(b); else if (hTip) hdrHideTip(); });
+document.addEventListener('mouseout', e => { if (!e.relatedTarget) hdrHideTip(); });
 document.addEventListener('click', e => {
   if (!document.contains(e.target)) return;          // حارس #32
   if (!hPop) return;
@@ -3167,7 +3216,7 @@ function qRender0() {
       <td>${orderLink(o.orderName, o.orderId)}</td>
       <td class="cust-cell">${customerCell(o)}</td>
 __ADDR_CELL____NOTE_CELL__      <td>${esc(o.courier || '—')}</td>
-__EXTRA_CELL__      <td class="date-cell"><span class="cell-date">${esc(formatDate(o.createdAt))}</span><span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
+__ADDR_AFTER_CELL____EXTRA_CELL__      <td class="date-cell"><span class="cell-date">${esc(formatDate(o.createdAt))}</span><span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
       <td class="date-cell">${since
             ? `<span class="cell-date">${esc(formatDate(o.packedAt))}</span><span class="time-badge ${since.cls}" data-q-pack="${esc(o.packedAt)}">${esc(since.text)}</span>`
             : '<span class="flag-ok">—</span>'}</td>
@@ -3364,6 +3413,8 @@ for p in PAGES:
     out = out.replace('__ADDR_HEAD__', p['addrHead'])
     out = out.replace('__ADDR_CELL__', p['addrCell'])
     out = out.replace('__ADDR_FN__', p['addrFn'])
+    out = out.replace('__ADDR_AFTER_HEAD__', p['addrAfterHead'])
+    out = out.replace('__ADDR_AFTER_CELL__', p['addrAfterCell'])
     out = out.replace('__NOTE_HEAD__', p['noteHead'])
     out = out.replace('__NOTE_CELL__', p['noteCell'])
     out = out.replace('__NOTE_FN__', p['noteFn'])
@@ -3392,6 +3443,7 @@ for p in PAGES:
     #    بتفتح عادي والكونسول نضيف.
     left = [t for t in ['__TITLE__','__ICON__','__ACTION__','__CACHE__','__EXTRA_CELL__',
                         '__EXTRA_FN__','__ADDR_HEAD__','__ADDR_CELL__','__ADDR_FN__',
+                        '__ADDR_AFTER_HEAD__','__ADDR_AFTER_CELL__',
                         '__NOTE_HEAD__','__NOTE_CELL__','__NOTE_FN__',
                         '__ABOUT_COLS__','__EXTRA_FILTER__','__AUDIT_CSS__','__AUDIT_TABS__',
                         '__WA_CHIPS__','__WA_CHIPS_CALL__','__WA_CHIPS_JS__',

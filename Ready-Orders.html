@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- skills: html-builder v6.6.0 · worker-builder v3.3.0 · constants v2.6.0 · order-lifecycle v1.8.0 — 15-09-2026 -->
+<!-- skills: html-builder v8.5.0 · worker-builder v3.7.0 · constants v3.1.0 · order-lifecycle v1.8.0 — 26-10-2026 -->
 <!-- ══════════════════════════════════════════════════════════════
      🔴 **الملف ده متولّد من `docs/build-pages.py`.**
      الصفحتان (`Ready-Orders.html` · `Shipped-Orders.html`) **متطابقتان
@@ -136,6 +136,9 @@
 .th-flt { min-width: 22px; height: 22px; padding: 0 3px; margin-inline-start: 5px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 2px; font-size: 10px; font-weight: 800; vertical-align: middle; }
 .th-flt svg { width: 14px; height: 14px; }
 .th-flt:hover { background: var(--accent-light); color: var(--accent); }
+/* tooltip القمع (Standards #50) — بقيم الفلتر المفعّل بس؛ مفيش اختيار = مفيش tooltip.
+   z-index 210 زي القالب (فوق القايمة العائمة 200). */
+.tip { position: fixed; z-index: 210; max-width: 300px; background: var(--neutral-dark); color: var(--on-accent); font-size: 12px; font-weight: 600; line-height: 1.7; padding: 6px 10px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.2); pointer-events: none; word-break: break-word; }
 th.flt-on .th-flt { background: var(--accent-light); border-color: var(--accent-border); color: var(--accent); }
 .hpop { position: fixed; z-index: 200; width: 268px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
 .hpop-hd { padding: 9px 12px; font-weight: 800; font-size: 12.5px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
@@ -1095,7 +1098,7 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge">v1.38.0</span>
-          <span class="cl-ver-date">14-10-2026</span>
+          <span class="cl-ver-date">26-10-2026</span>
         </div>
         <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>⏸️ <b>التحديث التلقائي كل ١٥ دقيقة اتلغى</b> (طلب أحمد — تخفيف الضغط على الـ Workers). الطابور بيتجاب لما تفتح الصفحة ولما تدوس «تحديث» وبس، ورقم «آخر تحديث» بيفضل يقول عمره. ✅ <b>وكل جلب هنا بيحدّث رقم الشاشة الرئيسية كمان</b> — الرجوع لها بعدها مابيعملش نداء جديد.</span></li>
@@ -1515,7 +1518,7 @@ function hdrClose() {
 }
 function hdrOpen(key, anchor) {
   if (hKey === key && hAnchor === anchor) { hdrClose(); return; }
-  hdrClose(); hKey = key; hAnchor = anchor;
+  hdrHideTip(); hdrClose(); hKey = key; hAnchor = anchor;
   hPop = document.createElement('div'); hPop.className = 'hpop'; document.body.appendChild(hPop);
   hdrRender(); hdrPlace();
 }
@@ -1567,6 +1570,35 @@ function hdrUpdateStates() {
     const c = th.querySelector('.th-cnt'); if (c) c.textContent = n > 1 ? n : (n ? '●' : '');
   });
 }
+// 🔴 **tooltip القمع بقيم الفلتر المفعّل — ومفيش tooltip لو مفيش اختيار** (Standards #50 ·
+//    `data-table-standard.md` § 2.5). مخصّص مش `title` native (اتأخر وبيتقص).
+//    الليبل بيتقرا من `labelOf` اللي القايمة بتعرضه (مش القيمة الخام) والتاريخ
+//    بنفس نص الـ chip — فالتلاتة (القايمة · الـ chip · الـ tooltip) مستحيل يفترقوا.
+function hdrTipText(fk) {
+  if (fk === 'search') return qSearchTerm.trim();
+  if (fk === 'date') {
+    if (!qDateFilterActive) return '';
+    return qActivePreset ? Q_PRESET_LABELS[qActivePreset]
+      : `من 📅 ${qDayLabel(qDateFrom)} إلى 📅 ${qDayLabel(qDateTo)}`;
+  }
+  const st = MS.q.state[fk];
+  if (!st || !st.selected.size) return '';
+  return st.items.filter(it => st.selected.has(it.value)).map(it => it.label).join('، ');
+}
+let hTip = null;
+function hdrHideTip() { if (hTip) hTip.remove(); hTip = null; }
+function hdrShowTip(btn) {
+  hdrHideTip();
+  const t = hdrTipText(btn.dataset.hflt);
+  if (!t || hAnchor === btn) return;                 // القايمة مفتوحة على نفس القمع = مفيش tooltip
+  hTip = document.createElement('div'); hTip.className = 'tip'; hTip.textContent = t; document.body.appendChild(hTip);
+  const r = btn.getBoundingClientRect(), w = hTip.offsetWidth, h = hTip.offsetHeight;
+  hTip.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + 'px';
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  hTip.style.top = top + 'px';
+}
+document.addEventListener('mouseover', e => { const b = e.target.closest && e.target.closest('.th-flt'); if (b) hdrShowTip(b); else if (hTip) hdrHideTip(); });
+document.addEventListener('mouseout', e => { if (!e.relatedTarget) hdrHideTip(); });
 document.addEventListener('click', e => {
   if (!document.contains(e.target)) return;          // حارس #32
   if (!hPop) return;
