@@ -605,8 +605,8 @@ function rbAddCodes(parts) {
     added++; lastAdded = c.display;
     RB.q.push(row);
   }
-  if (dup) { rbToast(dup === 1 ? `${lastDup} موجود في القايمة بالفعل` : `${dup} أوردر موجودين في القايمة بالفعل`, 'dup'); rbBeep('warn'); }
-  if (bads.length) { rbToast(`${bads[0].label} — ${bads[0].reason}${bads.length > 1 ? ` (و${bads.length - 1} كود كمان في الصندوق الأحمر)` : ''}`, 'error'); rbBeep('error'); }
+  if (dup) { rbToast(dup === 1 ? `${lastDup} موجود في القايمة بالفعل` : `${dup} أوردر موجودين في القايمة بالفعل`, 'dup'); rbBeep('dup'); }
+  if (bads.length) { rbToast(`${bads[0].label} — ${bads[0].reason}${bads.length > 1 ? ` (و${bads.length - 1} كود كمان في الصندوق الأحمر)` : ''}`, 'error'); rbBeep('fail'); }
   if (added && !bads.length) rbToast(added === 1 ? `اتضاف ${lastAdded}` : `اتضاف ${added} أوردر`, 'success');
   rbRenderFails(); rbScheduleRender(); rbPump();
 }
@@ -678,7 +678,7 @@ async function rbLookup(r, quiet = false) {
     if (!d.found) {
       r.verdict = 'missing'; r.selected = false; r.order = null; r.elig = null;
       r.reasons = [r.kind === 'id' ? 'مفيش أوردر بباركود الفاتورة ده على شوبيفاي' : 'مفيش أوردر بالرقم ده على شوبيفاي'];
-      if (!quiet) rbBeep('error');
+      if (!quiet) rbBeep('fail');
       return;
     }
     r.order = d.order; r.elig = d.eligibility;
@@ -687,17 +687,17 @@ async function rbLookup(r, quiet = false) {
       const same = RB.rows.find(x => x !== r && x.order && x.order.orderId === r.order.orderId);
       if (same) {
         RB.rows = RB.rows.filter(x => x !== r);
-        rbFlash(same); rbToast(`${r.order.orderNumber} موجود في القايمة بالفعل`, 'dup'); rbBeep('warn');
+        rbFlash(same); rbToast(`${r.order.orderNumber} موجود في القايمة بالفعل`, 'dup'); rbBeep('dup');
         return;
       }
     }
     rbApplyElig(r, quiet);
-    if (!quiet) rbBeep(r.verdict === 'eligible' ? 'success' : r.verdict === 'already' ? 'warn' : 'error');
+    if (!quiet) rbBeep(r.verdict === 'eligible' ? 'success' : r.verdict === 'already' ? 'warn' : 'fail');
   } catch (e) {
     if (!RB.rows.includes(r)) return;
     // ⚠️ فشل البحث ≠ «الأوردر مش موجود» — رسالتين مختلفتين
     r.verdict = 'lookup_error'; r.selected = false; r.reasons = [e.message];
-    if (!quiet) rbBeep('error');
+    if (!quiet) rbBeep('fail');
   }
 }
 
