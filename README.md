@@ -20,7 +20,7 @@
 | `COD-Payment-Center.html` 🔗 | **تحصيل الأوردرات COD** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `cod-payment-center-worker` (في ريبوه) |
 | `Partial-Delivery.html` 🔗 | **التسليم الجزئي** — أداة مدموجة (v1.10.0 · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` (في ريبوه) |
 | `Courier-Names.html` 🛵 | **أسماء المناديب** — قسم «أدوات أخرى» (v1.30.0): إضافة / حذف / ترتيب قايمة `custom.courier` | `courier-names-worker` (في ريبو `Courier-Names` — Worker وبس) |
-| `Re-Assign-Package-Zone-BOSTA.html` 🚚 | **تحويل الشحنة إلى بوسطة** — قسم «أدوات أخرى» (v1.54.0): بحث برقم الأوردر/سكان Order ID + زرار تحويل (`Ready` + زون Show_Room/Cairo+Giza ← `Confirmed`/`Other_Regions`/`Bosta`) · **بيكتب على شوبيفاي** | `re-assign-package-zone-bosta-worker` (في ريبو `Re-Assign-Package-Zone-BOSTA` — Worker وبس) |
+| `Re-Assign-Package-Zone-BOSTA.html` 🚚 | **تحويل الشحنة إلى بوسطة** — قسم «أدوات أخرى» (v1.54.0 · v1.57.0): **سكان أكتر من أوردر** + جدول بحكم كل أوردر وسببه + تحويل المؤهل (`Ready` + زون Show_Room/Cairo+Giza ← `Confirmed`/`Other_Regions`/`Bosta`) + **تاب سجل عمليات** · **بيكتب على شوبيفاي** | `re-assign-package-zone-bosta-worker` (في ريبو `Re-Assign-Package-Zone-BOSTA` — Worker وبس) |
 | `Bosta-Webhook-Status-Receiver.html` 📮 | **مستقبل حالة شحنات بوسطة** — قسم «أدوات أخرى» (v1.35.0): أحداث الويبهوك (٥ تابات · v1.36.0: In-Return) · **عرض بحت** | `bosta-webhook-status-receiver-worker` (في ريبو `Bosta-Webhook-Status-Receiver` — Worker وبس) |
 | `Bosta-Delivery-Follow-Up.html` 📲 | **متابعة التأجيلات** — صف في «أوردرات بوسطة» (v1.44.0 · جدول من v1.45.0): كل شحنة تحت التوصيل عليها محاولة توصيل ≥ 1 + رسالة واتساب **يدوية** + عدّ مرات الإرسال وتفاصيلها | `bosta-delivery-follow-up-worker` (في ريبو `Bosta-Delivery-Follow-Up` — Worker وبس) |
 
@@ -55,7 +55,7 @@ docs/port-standalone.py  مولّد صفحتَي الأداتين من ريبو�
 docs/tools-check.mjs  فحص عقد الدمج — ١٦٠ بند
 docs/bosta-webhook-check.mjs  فحص صفحة مستقبل حالة بوسطة — ٢٨ بند (v1.35.0)
 Re-Assign-Package-Zone-BOSTA.html 🚚 تحويل الشحنة إلى بوسطة — عدّل هنا مباشرة (بلا مولّد) · الأهلية والكتابة في الـ Worker
-docs/reassign-check.mjs  فحص صفحة تحويل الشحنة إلى بوسطة — ٤٨ بند (v1.54.0)
+docs/reassign-check.mjs  فحص صفحة تحويل الشحنة إلى بوسطة — ١٦٧ بند (v1.57.0)
 docs/idle-check.mjs   فحص الخروج التلقائي لعدم النشاط — ٢١ بند
 ```
 
@@ -72,7 +72,7 @@ node docs/queues-check.mjs
 node docs/tools-check.mjs
 node docs/bosta-webhook-check.mjs   # مستقبل حالة بوسطة (v1.35.0 · ٢٨ بند)
 node docs/followup-check.mjs        # متابعة التأجيلات (v1.45.0 · ١١٠ بند)
-node docs/reassign-check.mjs        # تحويل الشحنة إلى بوسطة (v1.54.0 · ٤٨ بند)
+node docs/reassign-check.mjs        # تحويل الشحنة إلى بوسطة (v1.57.0 · ١٦٧ بند)
 node docs/idle-check.mjs        # الخروج التلقائي لعدم النشاط (v1.32.0 · ٢١ بند)
 ```
 

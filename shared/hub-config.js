@@ -188,10 +188,12 @@ const ECO_WORKERS = {
   //    أوردر.** الريبو (`Re-Assign-Package-Zone-BOSTA`) **Worker وبس** — الواجهة
   //    `Re-Assign-Package-Zone-BOSTA.html` جوّه الهب هي النسخة الوحيدة (نفس نمط `Partial-Delivery`).
   //    بتكتب أربع ميتافيلدز في نداء ذرّي واحد (الحالة · zone · courier · package_shipping_re_assign).
-  //    `1.0.0` = أول نسخة (مفيش نسخة أقدم)، فالحارس بيمسك «ما اتنشرش/الـ Promote ناقص» بس.
+  //    🎯 min = `1.1.0` (v1.57.0): تاب السجل بيبعت `results`/`orderName`/`notes` وبينادي `get_log_options` —
+  //       على Worker `1.0.0` الفلاتر دي بتتجاهَل **في صمت** (الجدول يرجّع غير المفلتر) و`get_log_options` بـ`404`.
+  //       **انشر الـ Worker قبل الصفحة.**
   //    🔴 **والسر سر الهب** (`delivery_cod_ops`) — الـ Worker لازم يتضم للمجموعة (قبلها كل نداء `401`)،
   //       ومعاه `CLIENT_ID`/`CLIENT_SECRET` بصلاحية `write_orders` (`?action=diag` بيقول).
-  reassignBosta: { url: 'https://re-assign-package-zone-bosta-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'تحويل الشحنة إلى بوسطة' },
+  reassignBosta: { url: 'https://re-assign-package-zone-bosta-worker.ecommoda-dev.workers.dev', min: '1.1.0', label: 'تحويل الشحنة إلى بوسطة' },
 
   // 🔴 **مستقبل حالة شحنات بوسطة (v1.35.0) — تاني أداة في قسم «أدوات أخرى».**
   //    الريبو (`Bosta-Webhook-Status-Receiver`) **Worker وبس** — الواجهة
@@ -217,7 +219,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.56.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.57.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
