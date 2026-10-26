@@ -142,14 +142,14 @@ const READY_COURIER   = { other: 4, bosta: 1, showroom: 1 };
 const SHIPPED_RAW = [
   // ✅ سليم — بوسطة، رقم تتبع S1
   { orderId:'7212000000011', orderName:'#56001', createdAt:'2026-09-05T08:00:00Z', cancelledAt:null,
-    fulfillment:'FULFILLED', financial:'PENDING', customer:'ماهر رشدي', province:'Alexandria',
+    fulfillment:'FULFILLED', financial:'PENDING', customer:'ماهر رشدي', address1:'٥ شارع الجمهورية', address2:'الدور الثاني', province:'Alexandria',
     itemsQty:1, total:'900.00', currency:'EGP', zone:'Other_Regions', courier:'Bosta',
     s1:'Shipped', s2:null, packedAtS1:'2026-09-06T09:00:00Z', packedAtS2:null,
     packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:null, whereaboutsS2:null,
     trackingS1:'1234567', trackingS2:null, trackingLegacy:null },
   // ⚠️ شاذ — `Shipped` و شوبيفاي بتقول `UNFULFILLED`
   { orderId:'7212000000012', orderName:'#56002', createdAt:'2026-09-06T08:00:00Z', cancelledAt:null,
-    fulfillment:'UNFULFILLED', financial:'PENDING', customer:'ريم عادل', province:'Cairo',
+    fulfillment:'UNFULFILLED', financial:'PENDING', customer:'ريم عادل', address1:'١٨ شارع النصر', address2:null, province:'Cairo',
     itemsQty:2, total:'400.00', currency:'EGP', zone:'Cairo+Giza', courier:'Saif',
     s1:'Shipped', s2:null, packedAtS1:'2026-09-07T09:00:00Z', packedAtS2:null,
     packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:null, whereaboutsS2:null,
@@ -157,21 +157,21 @@ const SHIPPED_RAW = [
   // 🔴 **دورة استبدال**: رقم التتبع لازم ييجي من `…_s2` مش `…_s1`.
   //    و`UNFULFILLED` هنا **ما ياخدش علامة** — حارس الفلفلمنت على S1 بس.
   { orderId:'7212000000013', orderName:'#56003', createdAt:'2026-09-04T08:00:00Z', cancelledAt:null,
-    fulfillment:'UNFULFILLED', financial:'PAID', customer:'ليلى حسن', province:'Cairo',
+    fulfillment:'UNFULFILLED', financial:'PAID', customer:'ليلى حسن', address1:'٧ شارع المحطة', address2:'عمارة ٣', province:'Cairo',
     itemsQty:1, total:'1500.00', currency:'EGP', zone:'Cairo+Giza', courier:'Show Room',
     s1:'Delivered', s2:'Shipped', packedAtS1:'2026-09-01T09:00:00Z', packedAtS2:'2026-09-12T09:00:00Z',
     packedByS1:'Abo Selim', packedByS2:'Marwan Mohammed', whereaboutsS1:null, whereaboutsS2:null,
     trackingS1:'1110000', trackingS2:'7654321', trackingLegacy:null },
   // ⚠️ رقم التتبع من **الحقل القديم المتوقّف** — لازم يتقال
   { orderId:'7212000000014', orderName:'#56004', createdAt:'2026-09-03T08:00:00Z', cancelledAt:null,
-    fulfillment:'FULFILLED', financial:'PENDING', customer:'طارق فهمي', province:'Giza',
+    fulfillment:'FULFILLED', financial:'PENDING', customer:'طارق فهمي', address1:null, address2:null, province:'Giza',
     itemsQty:1, total:'600.00', currency:'EGP', zone:'Other_Regions', courier:'Bosta',
     s1:'Shipped', s2:null, packedAtS1:'2026-09-04T09:00:00Z', packedAtS2:null,
     packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:null, whereaboutsS2:null,
     trackingS1:null, trackingS2:null, trackingLegacy:'999888' },
   // ⚠️ شاذ — الماكينتين على `Shipped` مع بعض
   { orderId:'7212000000015', orderName:'#56005', createdAt:'2026-09-07T08:00:00Z', cancelledAt:null,
-    fulfillment:'FULFILLED', financial:'PENDING', customer:'ولاء سعيد', province:'Cairo',
+    fulfillment:'FULFILLED', financial:'PENDING', customer:'ولاء سعيد', address1:'٣٠ شارع الثورة', address2:null, province:'Cairo',
     itemsQty:1, total:'800.00', currency:'EGP', zone:'Cairo+Giza', courier:'Saif',
     s1:'Shipped', s2:'Shipped', packedAtS1:'2026-09-08T09:00:00Z', packedAtS2:null,
     packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:null, whereaboutsS2:null,
@@ -211,7 +211,7 @@ function makeStub() {
     //    نسخة قديمة» على صفحة الجاهز في **كل** بند، فالبنود بتفشل لسبب
     //    مالوش علاقة باللي بتقيسه.
     if (action === 'get_config')
-      body = { ok:true, version: url.host.startsWith('ready-orders') ? '1.4.0' : '1.1.0' };
+      body = { ok:true, version: url.host.startsWith('ready-orders') ? '1.4.0' : url.host.startsWith('shipped-orders') ? '1.2.0' : '1.1.0' };
     else if (action === 'diag')       body = DIAG;
     else if (action === 'get_employees')
       body = { ok:true, employees:[{ username:'tester', display_name:'الموظف التجريبي' }] };
@@ -1089,12 +1089,22 @@ console.log('\n══ ⑤ Shipped-Orders.html ══');
   const td = await page.$$eval('#qBody tr:first-child td', e => e.length);
   is(th === td, `خلايا الصف == أعمدة الهيدر (${th})`, `th=${th} td=${td}`);
 
-  // 🔴 **مفيش عمود عنوان هنا** — `shipped-orders-worker` لسه مابيرجّعش
-  //    `address1`. العمود اللي بيقول `—` على كل صف بيتقري عطل في الشاشة،
-  //    فبيتضاف **في نفس تسليم الـ Worker** مش قبله.
+  // 🔴 **عمود «العنوان» هنا بعد المندوب** (v1.58.0 · طلب أحمد 26-10-2026) —
+  //    `shipped-orders-worker` 1.2.0 بيرجّع `address1`/`address2`. المكان
+  //    مختلف عن صفحة الجاهز (هناك بعد العميل): الموظف طلبه جنب المندوب.
   const shHeads = await page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim()));
-  is(!shHeads.includes('العنوان'),
-     '🔴 طابور المشحون **بلا عمود عنوان** لحد ما الـ Worker بتاعه يرجّعه', JSON.stringify(shHeads));
+  is(shHeads.indexOf('العنوان') === shHeads.indexOf('المندوب') + 1,
+     '🔴 طابور المشحون: عمود «العنوان» **بعد المندوب مباشرةً**', JSON.stringify(shHeads));
+  is(shHeads.indexOf('رقم التتبع') === shHeads.indexOf('العنوان') + 1,
+     'ورقم التتبع بعده (الترتيب: العميل · المندوب · العنوان · رقم التتبع)', JSON.stringify(shHeads));
+  const shAddrIdx = shHeads.indexOf('العنوان');
+  const shAddr = await page.$$eval('#qBody tr', (r, i) => r.map(x => x.children[i].textContent.trim()), shAddrIdx);
+  is(shAddr.some(t => t.includes('٥ شارع الجمهورية') && t.includes('الدور الثاني')),
+     'خلية العنوان فيها `address1` و`address2` مع بعض', JSON.stringify(shAddr));
+  is(shAddr.filter(t => t === 'بلا عنوان').length === 1,
+     '🔴 الأوردر اللي مالوش عنوان بيقول **«بلا عنوان»** بالنص', JSON.stringify(shAddr));
+  is(await page.$$eval('#qBody tr td.addr-cell', e => e.length) === SHIPPED_TOTAL,
+     'والخلية `.addr-cell` (بتلفّ) على كل صف');
   // 🔴 **وبلا عمود «ملحوظات» لنفس السبب بالظبط** — `note` جه في
   //    `ready-orders-worker` v1.3.0، و`shipped-orders-worker` مابيرجّعهوش.
   //    عمود بيقول `—` على كل صف معناه «مفيش ملحوظات في الطابور كله» —
@@ -2491,6 +2501,32 @@ for (const [page_, action, key] of [['Ready-Orders.html', 'get_ready_queue', 'dc
   is(n() === 3, `${page_}: زرار «تحديث» (نفس زرار الرئيسية) = جلب`, String(n()));
   const geo = await page.evaluate(() => { const b = document.querySelector('#qFresh .eco-qref'), a = document.querySelector('#qFresh .eco-agebox'); return { bw: Math.round(b.getBoundingClientRect().width), bh: Math.round(b.getBoundingClientRect().height), ah: Math.round(a.getBoundingClientRect().height), cls: document.getElementById('qFresh').className }; });
   is(geo.bw === 48 && Math.abs(geo.bh - geo.ah) <= 1 && /age-(fresh|ok)/.test(geo.cls), `${page_}: الزرار ٤٨px بارتفاع المربع وبلون العمر — زي الرئيسية بالظبط`, JSON.stringify(geo));
+  is(errors.length === 0, `${page_}: صفر خطأ في الكونسول`, errors.join(' | '));
+  await ctx.close();
+}
+
+// ══ ⑩-ج tooltip القمع (Standards #50) + عمود العنوان في المشحون — الصفحتين ══
+console.log('\n══ ⑩-ج tooltip القمع بقيم الفلتر المفعّل ══');
+for (const page_ of ['Ready-Orders.html', 'Shipped-Orders.html']) {
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/${page_}`);
+  await page.waitForSelector('#qBody tr');
+  const funnel = '#qTableWrap th[data-fk="courier"] .th-flt';
+  await page.hover(funnel); await page.waitForTimeout(120);
+  is(!(await page.$('.tip')), `${page_}: 🔴 مفيش فلتر مفعّل = **مفيش tooltip**`);
+  await page.mouse.move(5, 5);
+  await page.click(funnel); await page.waitForTimeout(120);
+  const first = await page.$eval('.hpop .hpop-item span', e => e.textContent.trim());
+  await (await page.$('.hpop .hpop-item')).click(); await page.waitForTimeout(120);
+  await page.keyboard.press('Escape'); await page.mouse.click(5, 300); await page.waitForTimeout(120);
+  await page.hover(funnel); await page.waitForTimeout(120);
+  const tip = await page.$eval('.tip', e => e.textContent.trim()).catch(() => null);
+  is(tip === first, `${page_}: القمع المفعّل بيعرض القيمة المحددة بالليبل`, JSON.stringify([tip, first]));
+  const ct = await page.$eval('.tip', e => getComputedStyle(e).position + '|' + getComputedStyle(e).zIndex).catch(() => '');
+  is(ct === 'fixed|210', `${page_}: الـ tooltip مخصّص (`+'`position:fixed` · z 210) مش `title` native', ct);
+  is(await page.$eval(funnel, e => !e.hasAttribute('title')), `${page_}: ومفيش \`title\` native على القمع`);
+  await page.mouse.move(5, 5); await page.waitForTimeout(120);
+  is(!(await page.$('.tip')), `${page_}: الـ tooltip بيختفي لما الماوس يمشي`);
   is(errors.length === 0, `${page_}: صفر خطأ في الكونسول`, errors.join(' | '));
   await ctx.close();
 }
