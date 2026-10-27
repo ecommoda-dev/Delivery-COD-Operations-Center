@@ -1352,7 +1352,7 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
   const secs = await page.evaluate(() => [...document.querySelectorAll('.eco-home-sec')].map(sec => ({
     title: sec.querySelector('.eco-home-sec-title')?.textContent.trim(),
     rows: [...sec.querySelectorAll('.eco-qrow')].map(r => r.id) })));
-  is(secs[0].title === 'أوردرات بوسطة' && JSON.stringify(secs[0].rows) === '["rowBosta","rowWebhook","rowFollowUp"]',
+  is(secs[0].title === 'شحنات بوسطة' && JSON.stringify(secs[0].rows) === '["rowBosta","rowWebhook","rowFollowUp"]',
      '🔴 «أوردرات بوسطة» أول قسم وفيه «رفع بوسطة» و«متابعة شحنات بوسطة» و«متابعة التأجيلات»', JSON.stringify(secs));
   is(secs[1].title === 'الحالات الانتقالية' && JSON.stringify(secs[1].rows) === '["rowReady","rowShipped"]',
      'و«الحالات الانتقالية» فيه الجاهز والمشحون بس');
@@ -1466,14 +1466,14 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   const secs = await page.evaluate(() => [...document.querySelectorAll('.eco-home-sec')].map(sec => {
     const cs = getComputedStyle(sec);
     return { cls: [...sec.classList].filter(c => c.startsWith('sec-')).join(), title: sec.querySelector('.eco-home-sec-title')?.textContent.trim(),
-             sub: sec.querySelector('.eco-home-sec-sub')?.textContent.trim(), svg: !!sec.querySelector('.eco-home-sec-ico svg'),
+             sub: !!sec.querySelector('.eco-home-sec-sub'), svg: !!sec.querySelector('.eco-home-sec-ico svg'),
              bg: cs.backgroundColor, bw: parseFloat(cs.borderTopWidth),
              tsize: parseFloat(getComputedStyle(sec.querySelector('.eco-home-sec-title')).fontSize) };
   }));
   is(secs.length === 4 && secs.map(x => x.cls).join('|') === 'sec-bosta|sec-flow|sec-tools|sec-tools',
      '🎨 أربع حاويات: بوسطة · الحالات · أدوات العمليات · أدوات أخرى', JSON.stringify(secs.map(x => x.cls)));
-  is(secs.map(x => x.title).join('|') === 'أوردرات بوسطة|الحالات الانتقالية|أدوات العمليات|أدوات أخرى', 'عناوين الحاويات بالاسم المعتمد', secs.map(x => x.title).join('|'));
-  is(secs.every(x => x.svg && x.sub && x.tsize >= 17), 'كل حاوية: أيقونة SVG + عنوان فرعي + عنوان ١٧px', JSON.stringify(secs));
+  is(secs.map(x => x.title).join('|') === 'شحنات بوسطة|الحالات الانتقالية|أدوات العمليات|أدوات أخرى', 'عناوين الحاويات بالاسم المعتمد', secs.map(x => x.title).join('|'));
+  is(secs.every(x => x.svg && !x.sub && x.tsize >= 17), 'كل حاوية: أيقونة SVG + عنوان ١٧px + بلا عنوان فرعي (v1.60.0)', JSON.stringify(secs));
   // 🎨 v1.59.0: القسم المفتوح بطاقة واحدة (خلفية + إطار 1px) بتغلّف الهيدر والصفوف
   is(secs.every(x => x.bg === 'rgb(255, 255, 255)' && x.bw === 1), '🎨 القسم المفتوح بطاقة واحدة: خلفية بيضاء + إطار ١px', JSON.stringify(secs.map(x => [x.bg, x.bw])));
   const hd = await page.evaluate(() => [...document.querySelectorAll('.eco-home-sec')].map(sec => {
@@ -1497,15 +1497,15 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
     return { id, svg: !!ico.querySelector('svg'), txt: ico.textContent.trim(), img: !!ico.querySelector('img'),
              icoBg: getComputedStyle(ico).backgroundColor, icoSize: ico.getBoundingClientRect().width,
              name: getComputedStyle(row.querySelector('.eco-card-name')).color,
-             code: getComputedStyle(row.querySelector('.eco-card-code')).color,
+             hasCode: !!row.querySelector('.eco-card-code'),
              cnt: getComputedStyle(row.querySelector('.eco-count')).color };
   }), ids);
   is(idv.every(r => r.svg && r.txt === '' && !r.img), '🔴 أيقونات الصفوف الأربعة SVG (مفيش إيموجي ولا صورة)', JSON.stringify(idv.map(r => [r.id, r.svg, r.txt])));
   is(await page.evaluate(() => !document.querySelector('img[src*="bosta-logo"]')), '⛔ لوجو بوسطة اتشال من الرئيسية');
   is(idv.every(r => r.icoSize === 42), 'مربع الأيقونة 42px (كثافة مضغوطة)', idv.map(r => r.icoSize).join());
   is(new Set(idv.map(r => r.icoBg)).size === 4, 'أربع ألوان هوية مختلفة', idv.map(r => r.icoBg).join(' | '));
-  is(idv.every(r => r.icoBg === r.name && r.name === r.code && r.code === r.cnt),
-     'الأيقونة والاسم والكود والرقم بلون الصف نفسه', JSON.stringify(idv.map(r => [r.icoBg, r.name, r.code, r.cnt])));
+  is(idv.every(r => r.icoBg === r.name && r.name === r.cnt && !r.hasCode),
+     'الأيقونة والاسم والرقم بلون الصف نفسه وبلا كود حالة تحت الاسم (v1.60.0)', JSON.stringify(idv.map(r => [r.icoBg, r.name, r.cnt, r.hasCode])));
   const ageCols = await page.evaluate(() => ['--green', '--accent', '--amber', '--red'].map(n => {
     const d = document.createElement('i'); d.style.color = `var(${n})`; document.body.append(d);
     const c = getComputedStyle(d).color; d.remove(); return c; }));
@@ -1580,7 +1580,7 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
         pillCol: getComputedStyle(w).color, rowName: getComputedStyle(document.getElementById(rows[i]).querySelector('.eco-card-name')).color })),
       hdImg: getComputedStyle(hd).backgroundImage, hdBw: getComputedStyle(hd).borderTopWidth, cardBg: getComputedStyle(sec).backgroundColor,
       secFg: v('--sec-' + (id === 'secBosta' ? 'bosta' : id === 'secFlow' ? 'flow' : 'tools') + '-fg'), lines: [...hd.querySelectorAll('.eco-sec-ln')].some(l => getComputedStyle(l).display !== 'none'),
-      sub: getComputedStyle(sec.querySelector('.eco-home-sec-sub')).display !== 'none',
+      sub: !!sec.querySelector('.eco-home-sec-sub'),
       secBg: v('--sec-' + (id === 'secBosta' ? 'bosta' : id === 'secFlow' ? 'flow' : 'tools') + '-bg'),
       green: v('--green-dark'), accent: v('--accent-dark'), amber: v('--amber-dark'), red: v('--red-dark') };
   }, [id, rows]);
@@ -1597,7 +1597,7 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   is(cb.pills.every(p => p.pillCol === p.rowName), 'الكبسولة بلون هوية صفها', cb.pills.map(p => p.pillCol).join(' | '));
   is(cb.hdImg.includes('linear-gradient') && !cb.lines && parseFloat(cb.hdBw) === 0, '🎨 المطوي نفس الهيدر (تدرّج أعمق) بلا إطار ولا خطين', JSON.stringify([cb.hdImg, cb.lines, cb.hdBw]));
   is(cb.cardBg === 'rgba(0, 0, 0, 0)', '🎨 والقسم المطوي بلا بطاقة (الخلفية بتتشال)', cb.cardBg);
-  is(cb.sub === true, 'والعنوان الفرعي بيفضل ظاهر وهو مطوي (الـ chips جنب العنوان)');
+  is(cb.sub === false, 'مفيش عنوان فرعي وهو مطوي (v1.60.0)');
   await page.click('#secFlow .eco-sec-chev');
   await page.waitForTimeout(450);
   const cf = await readSec('secFlow', ['rowReady', 'rowShipped']);
@@ -2463,7 +2463,7 @@ console.log('\n══ ⑭ §FOLD — حفظ حالة الطي (sessionStorage) +
   const stored = () => page.evaluate((k) => sessionStorage.getItem(k), 'dco_home_fold');
   const reload = async () => { await page.reload(); await page.waitForTimeout(1300); await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important}' }); };
   is((await st()).every(x => !x.c && x.e === 'true'), 'أول فتح (بلا حالة محفوظة): كله مفتوح');
-  is(await page.$$eval('.eco-fold-bar .eco-fold-btn', b => b.map(x => x.textContent.trim()).join('|')) === 'افتح الكل|اقفل الكل|✎ ترتيب', 'زرار «افتح الكل» و«اقفل الكل» و«✎ ترتيب» فوق الأقسام (ومفيش «رجّع الترتيب الأصلي»)');
+  is(await page.$$eval('.eco-fold-bar .eco-fold-btn', b => b.map(x => x.textContent.trim()).join('|')) === 'افتح الكل|اقفل الكل|ترتيب', 'زرار «افتح الكل» و«اقفل الكل» و«✎ ترتيب» فوق الأقسام (ومفيش «رجّع الترتيب الأصلي»)');
   await page.click('#secBosta .eco-sec-chev'); await page.waitForTimeout(200);
   is(JSON.parse(await stored()).Bosta === true, 'طي قسم = بيتحفظ في `sessionStorage` (المطوي بس)', await stored());
   await reload();
@@ -2507,8 +2507,8 @@ console.log('\n══ ⑯ §ORDER — ترتيب الأقسام والأدوات
 
   await page.click('[data-edit-toggle]');
   is(await page.getAttribute('[data-edit-toggle]', 'aria-pressed') === 'true' && await page.evaluate(() => document.getElementById('homeRoot').classList.contains('is-editing')), '✎ زرار «ترتيب» بيشغّل الوضع');
-  const dv = [await vis('.eco-eh'), await vis('.eco-ea'), await page.isVisible('.eco-edit-hint')];
-  is(dv[0] === 'grid' && ['inline-flex', 'flex'].includes(dv[1]) && dv[2], 'المقبض والأسهم وسطر الشرح بيظهروا', JSON.stringify(dv));
+  const dv = [await vis('.eco-eh'), await vis('.eco-ea'), !(await page.$('.eco-edit-hint'))];
+  is(dv[0] === 'grid' && ['inline-flex', 'flex'].includes(dv[1]) && dv[2], 'المقبض والأسهم بيظهروا ومفيش سطر شرح (v1.60.0)', JSON.stringify(dv));
   is(await page.$$eval('[data-ditem]:not([draggable="true"])', e => e.length) === 0, 'كل صف وكارت و chip بقى قابل للسحب');
   const url0 = page.url();
   await page.click('#rowReady .eco-card-name'); await page.waitForTimeout(300);
