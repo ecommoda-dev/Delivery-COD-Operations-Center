@@ -242,6 +242,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
   <button class="main-tab-btn"        id="tab-returned"  onclick="switchMainTab('returned')">↩️ Returned to business</button>
   <button class="main-tab-btn"        id="tab-delivered" onclick="switchMainTab('delivered')">✅ Delivered</button>
   <button class="main-tab-btn"        id="tab-terminated" onclick="switchMainTab('terminated')">🛑 Terminated</button>
+  <button class="main-tab-btn"        id="tab-matchfailed" onclick="switchMainTab('matchfailed')">⚠️ فشلت المطابقة</button>
 </div>
 
 <div class="tab-panel active" id="panel-main">
@@ -254,6 +255,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
 <div class="tab-panel" id="panel-returned"><div id="tabRoot-returned"></div></div>
 <div class="tab-panel" id="panel-delivered"><div id="tabRoot-delivered"></div></div>
 <div class="tab-panel" id="panel-terminated"><div id="tabRoot-terminated"></div></div>
+<div class="tab-panel" id="panel-matchfailed"><div id="tabRoot-matchfailed"></div></div>
 </div>
 </div><!-- /.container -->
 
@@ -361,7 +363,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
           <h4>FEATURE MAP</h4>
           <ul>
             <li><code>§SHELL</code> — الجلسة والسر والهيدر والتوست والإعدادات والخروج التلقائي كلها من <code>shared/core.js</code> (مفيش شاشة دخول هنا — الدخول من الرئيسية)</li>
-            <li><code>§TOOL::tabs</code> — 5 تابات، كل واحدة بفلاتر/بحث/فترة/ترتيب مستقل بالكامل: 🚚 الأوردرات تحت التوصيل (آخر حالة لكل رقم تتبع — Exception (47) حالة عادية هنا — وبيستبعد أي رقم وصل لحالة نهائية <b>أو بقى RTO</b>)، 🔁 In-Return (أي رقم تتبع نوعه RTO ولسه ماوصلش لحالة نهائية — نفس منطق آخر حالة لكل رقم)، ↩️ Returned to business (كود 46)، ✅ Delivered (كود 45)، 🛑 Terminated (كود 48) — التلاتة الأخيرين صف واحد لكل رقم تتبع (آخر حدث بنفس الحالة)</li>
+            <li><code>§TOOL::tabs</code> — 6 تابات، كل واحدة بفلاتر/بحث/فترة/ترتيب مستقل بالكامل: 🚚 الأوردرات تحت التوصيل (آخر حالة لكل رقم تتبع — Exception (47) حالة عادية هنا — وبيستبعد أي رقم وصل لحالة نهائية <b>أو بقى RTO</b>)، 🔁 In-Return (أي رقم تتبع نوعه RTO ولسه ماوصلش لحالة نهائية — نفس منطق آخر حالة لكل رقم)، ↩️ Returned to business (كود 46)، ✅ Delivered (كود 45)، 🛑 Terminated (كود 48) — التلاتة دول صف واحد لكل رقم تتبع (آخر حدث بنفس الحالة)، و⚠️ فشلت المطابقة (أي رقم تتبع وصله ولو حدث واحد <code>write_status = match_failed</code> — صف واحد لكل رقم بآخر حدث فاشل، وبيفضل ظاهر حتى لو أحداث بعده نجحت)</li>
             <li><code>buildTabPanelHtml()</code> / <code>buildThead()</code> — بيولّدوا HTML الجدول لكل تاب في وقت التحميل (بدل تكرار 4 نسخ يدويًا)، بـ id namespaced بـ <code>tabKey</code>. الفلاتر في رأس العمود: زرار القمع <code>[data-flt]</code> بيفتح قايمة عائمة <code>openPop()</code> على <code>body</code></li>
             <li><code>tabState[tabKey]</code> — فلاتر اختيار متعدد + بحث أوردر/تتبع + فترة تاريخ + ترتيب، لكل تاب نسخة مستقلة بالكامل (مفيش state متشارك بين التابات)</li>
             <li><code>computeFinalTrackingNumbers()</code> / <code>FINAL_STATES</code> (45 · 46 · 48) — Set بكل <code>tracking_number</code> وصلها حدث بحالة نهائية مرة على الأقل؛ بتستبعدها «الأوردرات تحت التوصيل» بس. <code>latestPerTracking()</code> بتدمج أحداث تابات Delivered/Returned/Terminated لصف واحد لكل رقم تتبع. <code>computeRtoTrackingNumbers()</code> — أرقام التتبع اللي وصلها حدث نوعه RTO: بتتشال من «تحت التوصيل» وبتظهر في تاب 🔁 In-Return. نتيجة الحساب بتتخزّن في <code>tabRows[tabKey]</code> مرة بعد كل تحميل</li>
@@ -478,7 +480,7 @@ function resultBadge(status) {
   return `<span class="badge ${cls}">${esc(label)}</span>`;
 }
 
-// ─── §TOOL::tabs — 5 تابات، كل واحدة بيانات + فلاتر (في رأس العمود) + ترتيب مستقلين تمامًا ───
+// ─── §TOOL::tabs — 6 تابات، كل واحدة بيانات + فلاتر (في رأس العمود) + ترتيب مستقلين تمامًا ───
 // 🔴 08-10-2026 — تاب الأرشيف اتحذف. الحالات النهائية (FINAL_STATES = 45 Delivered · 46 Returned ·
 // 48 Terminated) بتشيل رقم التتبع من «الأوردرات تحت التوصيل» لو وصل لواحدة منهم ولو مرة. وتابات
 // Delivered/Returned/Terminated بقت صف واحد لكل tracking_number (آخر حدث بنفس الحالة) — التكرار
@@ -632,10 +634,14 @@ const TABS = [
   { key: 'returned',   state: 46 },
   { key: 'delivered',  state: 45 },
   { key: 'terminated', state: 48 },
+  // «فشلت المطابقة»: أي رقم تتبع وصله حدث واحد على الأقل write_status='match_failed' (طلب أحمد 27-10-2026).
+  // صف واحد لكل رقم تتبع بآخر حدث فاشل، بغض النظر عن أحداثه التانية — الأحداث اللي نجحت بعده مابتشيلوش من التاب.
+  { key: 'matchfailed', failed: true },
 ];
 const ATTEMPT_CHIP_TABS = new Set(['main']);
 let tabRows = {};   // tabKey → الصفوف الأساسية للتاب (بعد الدمج) — بتتحسب مرة في renderAllTabs
 function computeTabRows(t) {
+  if (t.failed) return latestPerTracking(rawEvents.filter(ev => ev.write_status === 'match_failed'));
   return t.match ? rawEvents.filter(t.match)
                  : latestPerTracking(rawEvents.filter(ev => Number(ev.state) === t.state));
 }
@@ -1421,7 +1427,9 @@ async function refreshDiagBanners() {
     silenceBanner.classList.toggle('show', silent);
 
     const hasMatchFailed = (d.matchFailed24h || 0) > 0;
-    if (hasMatchFailed) matchBanner.textContent = `⚠️ ${d.matchFailed24h} حدث فشلت مطابقته لأوردر (S1/S2) في آخر 24 ساعة`;
+    if (hasMatchFailed) {
+      matchBanner.innerHTML = `⚠️ ${esc(String(d.matchFailed24h))} حدث فشلت مطابقته لأوردر (S1/S2) في آخر 24 ساعة — <a href="#" onclick="switchMainTab('matchfailed');return false;">اعرض الأوردرات</a>`;
+    }
     matchBanner.classList.toggle('show', hasMatchFailed);
   } catch (e) { /* فشل diag — ماينفعش نعرض بانر بيانات غير موثوقة */ }
 }
