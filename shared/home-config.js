@@ -41,7 +41,7 @@ const ECO_HOME = {
   staggerMs: 0,     // الطوابير بالتوازي (Workers مختلفة)
   sections: [
     { id: 'Bosta', cls: 'sec-bosta', summary: true, svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/></svg>`,
-      title: 'أوردرات بوسطة', sub: 'رفع الشحنات ومتابعتها', queues: ['bosta', 'webhook', 'followUp'] },
+      title: 'شحنات بوسطة', sub: 'رفع الشحنات ومتابعتها', queues: ['bosta', 'webhook', 'followUp'] },
     { id: 'Flow', cls: 'sec-flow', summary: true, svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12M12 6l6 6-6 6"/></svg>`,
       title: 'الحالات الانتقالية', sub: 'Ready ثم Shipped', queues: ['ready', 'shipped'] },
     { id: 'Tools', cls: 'sec-tools', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>`,
@@ -125,7 +125,7 @@ const ECO_HOME = {
   ready: {
     href: 'Ready-Orders.html', idCls: 'id-ready',
     svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg>`,
-    name: 'أوردرات جاهزة للشحن', code: 'Ready', ltr: true,
+    name: 'جاهزة للشحن (Ready)', code: 'Ready', ltr: true,
     err: 'تعذّر جلب قسم الجاهز للشحن',
     ...ecoRawQueue({
       cacheKey: ECO_CACHE_READY,
@@ -137,7 +137,7 @@ const ECO_HOME = {
   shipped: {
     href: 'Shipped-Orders.html', idCls: 'id-shipped',
     svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h11v10H2zM13 10h5l3 3v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>`,
-    name: 'أوردرات تحت التوصيل', code: 'Shipped', ltr: true,
+    name: 'تحت التوصيل (Shipped)', code: 'Shipped', ltr: true,
     err: 'تعذّر جلب طابور المشحون',
     ...ecoRawQueue({
       cacheKey: ECO_CACHE_SHIPPED,
