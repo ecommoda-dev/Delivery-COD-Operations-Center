@@ -221,7 +221,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.58.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.59.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -284,6 +284,7 @@ const ECO_CACHE_WEBHOOK = 'dco_queue_webhook';  // ملخّص «مستقبل ح�
 const ECO_CACHE_FOLLOWUP = 'dco_queue_followup'; // ملخّص «متابعة التأجيلات» — رد `queue_summary` خام (v1.44.0)
 const ECO_IDLE_KEY      = 'dco_last_activity';  // §IDLE — آخر نشاط (sessionStorage، لكل تاب لوحده)
 const ECO_FOLD_KEY      = 'dco_home_fold';      // §FOLD — الأقسام المطوية في الرئيسية `{ secId: true }` (sessionStorage · طلب أحمد 25-10-2026)
+const ECO_ORDER_KEY     = 'dco_home_order';     // §ORDER — ترتيب أقسام الرئيسية وأدواتها `{ secs, items }` (localStorage · تفضيل شاشة · طلب أحمد 27-10-2026 — مابيتمسحش مع الخروج ومفيش «رجّع الترتيب الأصلي»)
 // 🔴 كاش **صفوف** الصفحات (مش عدّادات الرئيسية) — الصفحة بترسم منه لو أحدث من ١٠ دقايق بدل جلب جديد عند كل فتح.
 //    فيه أسماء وتليفونات عملاء → بيتمسح مع الخروج (`clearKeys`).
 const ECO_CACHE_UPLOAD_ROWS   = { s1: 'dco_upload_rows_s1', return: 'dco_upload_rows_return', exchange: 'dco_upload_rows_exchange' };  // رد `get_orders`/`fetch_candidates` خام لكل وضع في «رفع بوسطة»

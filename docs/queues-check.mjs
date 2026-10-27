@@ -1474,16 +1474,21 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
      '🎨 أربع حاويات: بوسطة · الحالات · أدوات العمليات · أدوات أخرى', JSON.stringify(secs.map(x => x.cls)));
   is(secs.map(x => x.title).join('|') === 'أوردرات بوسطة|الحالات الانتقالية|أدوات العمليات|أدوات أخرى', 'عناوين الحاويات بالاسم المعتمد', secs.map(x => x.title).join('|'));
   is(secs.every(x => x.svg && x.sub && x.tsize >= 17), 'كل حاوية: أيقونة SVG + عنوان فرعي + عنوان ١٧px', JSON.stringify(secs));
-  // 🎨 v1.47.0: بلا إطار — الحاوية مجرد عنوان بخطين وصفوف
-  is(secs.every(x => x.bg === 'rgba(0, 0, 0, 0)' && x.bw === 0), '🎨 بلا إطار ولا خلفية (الإطار والخلفية الملوّنة اتشالوا)', JSON.stringify(secs.map(x => [x.bg, x.bw])));
+  // 🎨 v1.59.0: القسم المفتوح بطاقة واحدة (خلفية + إطار 1px) بتغلّف الهيدر والصفوف
+  is(secs.every(x => x.bg === 'rgb(255, 255, 255)' && x.bw === 1), '🎨 القسم المفتوح بطاقة واحدة: خلفية بيضاء + إطار ١px', JSON.stringify(secs.map(x => [x.bg, x.bw])));
   const hd = await page.evaluate(() => [...document.querySelectorAll('.eco-home-sec')].map(sec => {
-    const h = sec.querySelector('.eco-home-sec-hd'), r = h.getBoundingClientRect(), m = sec.querySelector('.eco-sec-mid').getBoundingClientRect();
-    return { off: Math.abs((m.left + m.right) / 2 - (r.left + r.right) / 2), lns: [...h.querySelectorAll('.eco-sec-ln')].map(l => l.getBoundingClientRect().width),
+    const h = sec.querySelector('.eco-home-sec-hd'), cs = getComputedStyle(h);
+    return { lns: sec.querySelectorAll('.eco-sec-ln, .eco-sec-sp').length, grad: cs.backgroundImage.includes('linear-gradient'), bw: parseFloat(cs.borderTopWidth),
              role: h.getAttribute('role'), exp: h.getAttribute('aria-expanded'), chev: !!h.querySelector('.eco-sec-chev svg'),
              open: !sec.classList.contains('is-collapsed') };
   }));
-  is(hd.every(x => x.off < 3 && x.lns.length === 2 && x.lns.every(w => w > 20)), '🎨 العنوان في النص بخطين على الجانبين', JSON.stringify(hd.map(x => [x.off, x.lns])));
+  is(hd.every(x => x.lns === 0 && x.grad && x.bw === 0), '🎨 الهيدر تدرّج بلا إطار ومن غير الخطين اللي كانوا على الجانبين', JSON.stringify(hd.map(x => [x.lns, x.grad, x.bw])));
   is(hd.every(x => x.role === 'button' && x.exp === 'true' && x.chev && x.open), '🔴 الهيدر زرار طي (`aria-expanded`) فيه سهم، وكله **مفتوح عند الفتح**');
+  const sp = await page.evaluate(() => { const r = [...document.querySelectorAll('.eco-home-sec')].map(s => ({ mb: parseFloat(getComputedStyle(s).marginBottom), r: s.getBoundingClientRect(), after: getComputedStyle(s, '::after') }));
+    return { gaps: r.slice(0, -1).map((x, i) => Math.round(r[i + 1].r.top - x.r.bottom)), lines: r.slice(0, -1).map(x => x.after.borderTopWidth + ' ' + x.after.borderTopStyle), last: r[r.length - 1].after.content };
+  });
+  is(sp.gaps.every(g => g === 42) && sp.lines.every(l => l === '1px solid'), '🎨 مسافة ٤٢px بين الأقسام المفتوحة (٣٢ + ١٠ بعد المفتوح) وخط رفيع بين كل قسم والتاني', JSON.stringify(sp));
+  is(sp.last === 'none', 'ومفيش خط بعد آخر قسم');
 
   // ② هوية الصفوف — أيقونة SVG بمربع مصمت
   const ids = ['rowBosta', 'rowWebhook', 'rowReady', 'rowShipped'];
@@ -1573,15 +1578,12 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
       pills: [...sec.querySelectorAll('.eco-sm:has(.eco-sm-nn)')].map((w, i) => ({ name: w.querySelector('.eco-sm-n').textContent.trim(), n: w.querySelector('.eco-sm-nn').textContent.trim(),
         cap: w.querySelector('.eco-smcap').textContent.trim(), capCol: getComputedStyle(w.querySelector('.eco-smcap')).color,
         pillCol: getComputedStyle(w).color, rowName: getComputedStyle(document.getElementById(rows[i]).querySelector('.eco-card-name')).color })),
-      hdBg: getComputedStyle(hd).backgroundColor, hdBd: getComputedStyle(hd).borderTopColor, hdBw: getComputedStyle(hd).borderTopWidth,
+      hdImg: getComputedStyle(hd).backgroundImage, hdBw: getComputedStyle(hd).borderTopWidth, cardBg: getComputedStyle(sec).backgroundColor,
       secFg: v('--sec-' + (id === 'secBosta' ? 'bosta' : id === 'secFlow' ? 'flow' : 'tools') + '-fg'), lines: [...hd.querySelectorAll('.eco-sec-ln')].some(l => getComputedStyle(l).display !== 'none'),
       sub: getComputedStyle(sec.querySelector('.eco-home-sec-sub')).display !== 'none',
       secBg: v('--sec-' + (id === 'secBosta' ? 'bosta' : id === 'secFlow' ? 'flow' : 'tools') + '-bg'),
       green: v('--green-dark'), accent: v('--accent-dark'), amber: v('--amber-dark'), red: v('--red-dark') };
   }, [id, rows]);
-  is(await page.evaluate(() => ['secBosta', 'secFlow'].every(id => { const s = document.getElementById(id), c = getComputedStyle(s.querySelector('.eco-home-sec-title')).color;
-    return [...s.querySelectorAll('.eco-sec-ln')].every(l => getComputedStyle(l).backgroundColor === c); })),
-     '🎨 خطين العنوان على الجانبين **بنفس لون العنوان** (أغمق من الحدود — قرار أحمد 22-10-2026)');
   await page.click('#secBosta .eco-sec-chev');
   await page.waitForTimeout(450);
   const cb = await readSec('secBosta', ['rowBosta', 'rowWebhook', 'rowFollowUp']);
@@ -1589,19 +1591,19 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   is(cb.sum === true && cb.pills.map(p => p.name).join('|') === 'رفع بوسطة|متابعة شحنات بوسطة|متابعة التأجيلات',
      '🔴 المطوي بيعرض ملخّص: اسم كل صف (من الصف نفسه)', cb.pills.map(p => p.name).join('|'));
   is(cb.pills.every(p => /^\d+$/.test(p.n)), 'والرقم جنب الاسم (رقم مش `—` لأن الجلب نجح)', cb.pills.map(p => p.n).join());
-  is(cb.pills.map(p => p.cap).join('|') === '2 دقيقة|12 دقيقة|31 دقيقة', '🔴 المدة تحت الكبسولة بالكلمة: «N دقيقة» (الرقم الأول)', cb.pills.map(p => p.cap).join('|'));
+  is(cb.pills.map(p => p.cap).join('|') === '2د|12د|31د', '🔴 المدة جوّه الـ chip مختصرة بساعة صغيرة: «Nد»', cb.pills.map(p => p.cap).join('|'));
   is(cb.pills[0].capCol === cb.green && cb.pills[1].capCol === cb.accent && cb.pills[2].capCol === cb.amber,
      '🔴 لون المدة بلون العمر (نفس سلّم `agoInfo`): أخضر · أزرق · كهرماني', cb.pills.map(p => p.capCol).join(' | '));
   is(cb.pills.every(p => p.pillCol === p.rowName), 'الكبسولة بلون هوية صفها', cb.pills.map(p => p.pillCol).join(' | '));
-  is(cb.hdBg === cb.secBg && cb.hdBg !== 'rgba(0, 0, 0, 0)' && !cb.lines, '🎨 المطوي شريط ملوّن بلون عيلة القسم والخطين اتشالوا', JSON.stringify([cb.hdBg, cb.secBg, cb.lines]));
-  is(cb.hdBd === cb.secFg && parseFloat(cb.hdBw) >= 2, '🎨 والمطوي له **إطار محدد بنفس لون العنوان** (قرار أحمد 22-10-2026)', JSON.stringify([cb.hdBd, cb.secFg, cb.hdBw]));
-  is(cb.sub === false, 'والعنوان الفرعي بيختفي وهو مطوي (الملخّص مكانه)');
+  is(cb.hdImg.includes('linear-gradient') && !cb.lines && parseFloat(cb.hdBw) === 0, '🎨 المطوي نفس الهيدر (تدرّج أعمق) بلا إطار ولا خطين', JSON.stringify([cb.hdImg, cb.lines, cb.hdBw]));
+  is(cb.cardBg === 'rgba(0, 0, 0, 0)', '🎨 والقسم المطوي بلا بطاقة (الخلفية بتتشال)', cb.cardBg);
+  is(cb.sub === true, 'والعنوان الفرعي بيفضل ظاهر وهو مطوي (الـ chips جنب العنوان)');
   await page.click('#secFlow .eco-sec-chev');
   await page.waitForTimeout(450);
   const cf = await readSec('secFlow', ['rowReady', 'rowShipped']);
   if (process.env.ECO_SHOT2) await page.screenshot({ path: process.env.ECO_SHOT2, fullPage: true });
-  is(cf.pills.map(p => p.cap).join('|') === '1 ساعة|4 دقيقة' && cf.pills[0].capCol === cf.red && cf.pills[1].capCol === cf.green,
-     'القسم التاني: ٧٥ د ← «1 ساعة» بالأحمر · ٤ د ← «4 دقيقة» بالأخضر', cf.pills.map(p => p.cap + ':' + p.capCol).join(' | '));
+  is(cf.pills.map(p => p.cap).join('|') === '1س|4د' && cf.pills[0].capCol === cf.red && cf.pills[1].capCol === cf.green,
+     'القسم التاني: ٧٥ د ← «1س» بالأحمر · ٤ د ← «4د» بالأخضر', cf.pills.map(p => p.cap + ':' + p.capCol).join(' | '));
   await page.click('#secTools .eco-sec-chev');
   await page.waitForTimeout(450);
   const ct = await readSec('secTools', []);
@@ -2461,7 +2463,7 @@ console.log('\n══ ⑭ §FOLD — حفظ حالة الطي (sessionStorage) +
   const stored = () => page.evaluate((k) => sessionStorage.getItem(k), 'dco_home_fold');
   const reload = async () => { await page.reload(); await page.waitForTimeout(1300); await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important}' }); };
   is((await st()).every(x => !x.c && x.e === 'true'), 'أول فتح (بلا حالة محفوظة): كله مفتوح');
-  is(await page.$$eval('.eco-fold-bar .eco-fold-btn', b => b.map(x => x.textContent.trim()).join('|')) === 'افتح الكل|اقفل الكل', 'زرارين «افتح الكل» و«اقفل الكل» فوق الأقسام');
+  is(await page.$$eval('.eco-fold-bar .eco-fold-btn', b => b.map(x => x.textContent.trim()).join('|')) === 'افتح الكل|اقفل الكل|✎ ترتيب', 'زرار «افتح الكل» و«اقفل الكل» و«✎ ترتيب» فوق الأقسام (ومفيش «رجّع الترتيب الأصلي»)');
   await page.click('#secBosta .eco-sec-chev'); await page.waitForTimeout(200);
   is(JSON.parse(await stored()).Bosta === true, 'طي قسم = بيتحفظ في `sessionStorage` (المطوي بس)', await stored());
   await reload();
@@ -2481,6 +2483,94 @@ console.log('\n══ ⑭ §FOLD — حفظ حالة الطي (sessionStorage) +
   await page.evaluate(() => sessionStorage.setItem('dco_home_fold', '{bad json'));
   await reload();
   is((await st()).every(x => !x.c) && errors.length === 0, '🔴 قيمة مخزّنة باظت: كله مفتوح وصفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+console.log('\n══ ⑯ §ORDER — ترتيب الأقسام والأدوات (طلب أحمد 27-10-2026) ══');
+{
+  const { page, ctx, errors } = await newPage();
+  const KEY = 'dco_home_order';
+  await page.setViewportSize({ width: 1280, height: 2800 });   // الصفحة كلها على الشاشة — السحب مايحتاجش سكرول
+  const open = async () => { await page.goto(`${BASE}/index.html`); await page.waitForTimeout(1300); await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important}' }); };
+  const secIds = () => page.$$eval('.eco-home-sec', e => e.map(x => x.id.replace('sec', '')).join());
+  const list = sid => page.$$eval(`#secBody${sid} [data-ditem]`, e => e.map(x => x.dataset.ditem).join());
+  const chips = sid => page.$$eval(`#sum${sid} .eco-sm`, e => e.map(x => x.getAttribute('href')).join());
+  const stored = () => page.evaluate((k) => localStorage.getItem(k), KEY);
+  const vis = sel => page.evaluate((s) => getComputedStyle(document.querySelector(s)).display, sel);
+  const reload = async () => { await page.reload(); await page.waitForTimeout(1300); await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important}' }); };
+  await open();
+  is(await secIds() === 'Bosta,Flow,Tools,Other' && await stored() === null, 'أول فتح: الترتيب الافتراضي من الإعداد ومفيش حاجة محفوظة');
+  is(await vis('.eco-eh') === 'none' && await vis('.eco-ea') === 'none', 'المقبض والأسهم مخفيين خارج وضع الترتيب');
+  is(await page.$$eval('[data-ditem][draggable="true"]', e => e.length) === 0, 'ومفيش عنصر قابل للسحب خارج وضع الترتيب');
+  is(await page.evaluate(() => !document.body.textContent.includes('الترتيب الأصلي')), '⛔ مفيش زرار «رجّع الترتيب الأصلي» (قرار أحمد)');
+  const baseCounts = await page.evaluate(() => ['Bosta', 'Webhook', 'Ready', 'Shipped'].map(k => document.getElementById('cnt' + k).textContent.trim()).join());
+
+  await page.click('[data-edit-toggle]');
+  is(await page.getAttribute('[data-edit-toggle]', 'aria-pressed') === 'true' && await page.evaluate(() => document.getElementById('homeRoot').classList.contains('is-editing')), '✎ زرار «ترتيب» بيشغّل الوضع');
+  const dv = [await vis('.eco-eh'), await vis('.eco-ea'), await page.isVisible('.eco-edit-hint')];
+  is(dv[0] === 'grid' && ['inline-flex', 'flex'].includes(dv[1]) && dv[2], 'المقبض والأسهم وسطر الشرح بيظهروا', JSON.stringify(dv));
+  is(await page.$$eval('[data-ditem]:not([draggable="true"])', e => e.length) === 0, 'كل صف وكارت و chip بقى قابل للسحب');
+  const url0 = page.url();
+  await page.click('#rowReady .eco-card-name'); await page.waitForTimeout(300);
+  is(page.url() === url0, '🔴 الضغط على صف وإحنا بنرتّب مابيفتحش الصفحة');
+
+  // أسهم الأقسام
+  is(await page.isDisabled('#secBosta [data-mv="s|Bosta||-1"]') && !(await page.isDisabled('#secBosta [data-mv="s|Bosta||1"]')), 'أول قسم: سهم «لفوق» معطّل');
+  await page.click('#secBosta [data-mv="s|Bosta||1"]');
+  is(await secIds() === 'Flow,Bosta,Tools,Other' && JSON.parse(await stored()).secs.join() === 'Flow,Bosta,Tools,Other', 'سهم ▼ على «أوردرات بوسطة» ← بقى التاني (الـ DOM والمحفوظ)', await secIds());
+  is(await page.isDisabled('#secOther [data-mv="s|Other||1"]'), 'آخر قسم: سهم «لتحت» معطّل');
+  // سحب قسم
+  await page.dragAndDrop('#secOther .eco-eh', '#secFlow .eco-home-sec-hd', { targetPosition: { x: 300, y: 3 } });
+  is(await secIds() === 'Other,Flow,Bosta,Tools', 'سحب مقبض «أدوات أخرى» فوق «الحالات» ← بقى الأول', await secIds());
+  is(await page.evaluate((b) => ['Bosta', 'Webhook', 'Ready', 'Shipped'].map(k => document.getElementById('cnt' + k).textContent.trim()).join() === b, baseCounts), '🔴 الأرقام والأعمار مالهاش أي تغيير بعد النقل (النقل بيحرّك الـ DOM مش بيعيد البناء)');
+
+  // ترتيب الطوابير جوّه القسم
+  await page.click('#rowFollowUp [data-mv="i|Bosta|followUp|-1"]');
+  is(await list('Bosta') === 'bosta,followUp,webhook', 'سهم ▲ على «متابعة التأجيلات» ← قبل «متابعة شحنات بوسطة»', await list('Bosta'));
+  await page.click('[data-fold-all="close"]'); await page.waitForTimeout(200);
+  is(await page.$$eval('#sumBosta .eco-sm', e => e.map(x => x.getAttribute('href')).join()) === 'Bosta-Orders-Upload.html,Bosta-Delivery-Follow-Up.html,Bosta-Webhook-Status-Receiver.html', '🎨 chips الملخّص المطوي بتتبع نفس الترتيب');
+  await page.click('[data-fold-all="open"]'); await page.waitForTimeout(200);
+  // ⛔ طابور مابيعدّيش لقسم تاني
+  await page.dragAndDrop('#rowReady', '#rowBosta', { targetPosition: { x: 200, y: 5 } });
+  is(await list('Flow') === 'ready,shipped' && await list('Bosta') === 'bosta,followUp,webhook', '⛔ طابور «الجاهز» مابيتنقلش لقسم بوسطة (الطوابير بتتنقل جوّه قسمها بس)', await list('Flow') + ' | ' + await list('Bosta'));
+  await page.click('#rowReady [data-mv="i|Flow|ready|1"]');
+  is(await list('Flow') === 'shipped,ready', 'وجوّه قسمه بيتنقل');
+
+  // الأدوات بين الأقسام
+  await page.click('#secTools [data-mvx^="Partial-Delivery.html"]');
+  is(await list('Tools') === 'Order-Status-Updater.html,COD-Payment-Center.html' && (await list('Other')).endsWith(',Partial-Delivery.html'), '⇄ بينقل «التسليم الجزئي» لقسم «أدوات أخرى» (في آخره)', await list('Tools') + ' | ' + await list('Other'));
+  is((await chips('Other')).endsWith(',Partial-Delivery.html') && !(await chips('Tools')).includes('Partial-Delivery'), 'وchips الملخّص المطوي اتحدّثت في القسمين', await chips('Other'));
+  await page.dragAndDrop('#secOther .eco-tool[data-ditem="Partial-Delivery.html"]', '#secTools .eco-tool[data-ditem="COD-Payment-Center.html"]', { targetPosition: { x: 20, y: 40 } });
+  is((await list('Tools')).split(',').includes('Partial-Delivery.html') && !(await list('Other')).includes('Partial-Delivery'), 'وبالسحب يرجع (بين الأقسام)', await list('Tools'));
+  is(await page.$$eval('#secTools [data-isec="Other"], #secOther [data-isec="Tools"]', e => e.length) === 0, '`data-isec` بيتحدّث مع النقل (مفيش كارت بنسبه لقسم غلط)');
+  await page.click('#secTools [data-mvx^="Order-Status-Updater.html"]');
+  await page.click('#secTools [data-mvx^="Partial-Delivery.html"]');
+  const one = await list('Tools');
+  await page.click(`#secTools [data-mvx^="${one}"]`);
+  is(await list('Tools') === one && one.split(',').length === 1, '⛔ القسم لازم يفضل فيه أداة واحدة على الأقل', one);
+
+  // الحفظ
+  const before = [await secIds(), await list('Bosta'), await list('Flow'), await list('Tools'), await list('Other')].join(' | ');
+  await reload();
+  is([await secIds(), await list('Bosta'), await list('Flow'), await list('Tools'), await list('Other')].join(' | ') === before, '🔴 الريفريش بيرجّع الترتيب زي ما هو (`localStorage`)', before);
+  is(!(await page.evaluate(() => document.getElementById('homeRoot').classList.contains('is-editing'))) && await vis('.eco-eh') === 'none', 'ووضع الترتيب نفسه ما بيتحفظش (بيفتح مقفول)');
+  is(await page.evaluate((b) => ['Bosta', 'Webhook', 'Ready', 'Shipped'].map(k => document.getElementById('cnt' + k).textContent.trim()).join() === b, baseCounts), 'والأرقام بتتجاب عادي بالترتيب الجديد');
+
+  // تقادم الترتيب المحفوظ
+  await page.evaluate((k) => localStorage.setItem(k, JSON.stringify({ secs: ['Other', 'Ghost', 'Bosta'], items: { Bosta: ['followUp', 'ghost'], Other: ['Re-Assign-Package-Zone-BOSTA.html'], Tools: ['Courier-Names.html', 'COD-Payment-Center.html'] } })), KEY);
+  await reload();
+  is(await secIds() === 'Other,Bosta,Flow,Tools', '🔴 قسم مجهول بيتجاهل، والأقسام اللي مش في المحفوظ بتيجي في آخرهم بترتيبها الأصلي', await secIds());
+  is(await list('Bosta') === 'followUp,bosta,webhook', 'وعنصر جديد/ناقص من المحفوظ بيظهر في آخر قسمه', await list('Bosta'));
+  is((await list('Other')).split(',')[0] === 'Re-Assign-Package-Zone-BOSTA.html' && !(await list('Other')).includes('Courier-Names'), 'وأداة محفوظة في قسم تاني بتتنقل ليه', await list('Other'));
+  is((await list('Tools')).split(',')[0] === 'Courier-Names.html', '…وبتتنقل من الأداة اللي في قسمها الأصلي', await list('Tools'));
+  // قيمة باظت
+  await page.evaluate((k) => localStorage.setItem(k, '{bad json'), KEY);
+  await reload();
+  is(await secIds() === 'Bosta,Flow,Tools,Other' && await list('Tools') === 'Order-Status-Updater.html,COD-Payment-Center.html,Partial-Delivery.html', '🔴 قيمة مخزّنة باظت: الترتيب الافتراضي من غير أخطاء');
+  await page.evaluate((k) => localStorage.setItem(k, '[1,2,3]'), KEY);
+  await reload();
+  is(await secIds() === 'Bosta,Flow,Tools,Other', 'وقيمة بشكل غلط (مصفوفة) = الافتراضي برضه');
+  is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
   await ctx.close();
 }
 
