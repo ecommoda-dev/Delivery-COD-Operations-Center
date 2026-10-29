@@ -28,6 +28,7 @@
        `ReferenceError` و**الصفحة كلها تسكت**. -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" defer></script>
 
+
 <style>
 /* ══════════════════════════════════════════════════════════════
    §STYLES — الصفحة دي بس. مفيش كتلة توكنز هنا (كلها في الـ shell).
@@ -2245,6 +2246,7 @@ document.getElementById('qWaChips').addEventListener('click', (e) => {
 
 // ⚠️ غلاف عن قصد: `qRender0` فيها أكتر من `return` بدري (تحميل · فشل · صفر
 //    نتائج)، والـ chips وعروض الأعمدة لازم يتحدّثوا في **كل** الحالات.
+
 function qRender() { qRender0(); qRenderSpecialChips(); colMaybeInit(); }
 function qRender0() {
   const rows  = qApplySort(qVisible());
