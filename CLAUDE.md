@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center (`Delivery-COD-Operations-Center`)
 
-![version](https://img.shields.io/badge/version-v1.61.0-blue)
+![version](https://img.shields.io/badge/version-v1.62.0-blue)
 
 **بتعمل إيه:** هب واحد لمحطة الشحن والتحصيل. الموظف بيدخل **مرة واحدة**،
 وبيشوف طوابير الشحن: اللي **جاهز يخرج**، واللي **خرج ولسه بلا نتيجة** —
@@ -11,7 +11,7 @@
 و**تحصيل الأوردرات COD** (v1.5.0)، و**التسليم الجزئي** (v1.10.0)، و**رفع
 بوسطة** (v1.13.0).
 **مين بيستخدمها:** الشحن والتحصيل
-**الإصدار:** `v1.61.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/hub-config.js`)
+**الإصدار:** `v1.62.0` — **واحد للهب كله** (`TOOL_VERSION` في `shared/hub-config.js`)
 
 > 🔴 **الريبو ده فيه النُصّين: الواجهة + Worker الدخول** (`index.js` ·
 > `wrangler.toml`). وده **الشكل القياسي** مش استثناء — قرار ٨ في
@@ -76,6 +76,14 @@
 
 > 🔄 **أسماء قديمة في الملف ده (تاريخية):** قبل المرحلة ٣/٤ (هب المخزن v1.45.0 · هب الشحن v1.49.0) كان فيه `shared/shell.js` و`shared/shell.css` والبادئات `woc*`/`dco*`. دلوقتي:
 > `shell.js` ← **`core.js`** (المشترك) + **`hub-config.js`** (`ECO_WORKERS` · `TOOL_VERSION` · مفاتيح الجلسة والسر) + **`dco-rules.js`**، و`shell.css` ← **`core.css`** (المشترك) + **`hub.css`** (ألوان الهب)، والبادئات ← **`eco*`** / `eco-` (`wocApi`←`ecoApi` · `WOC_WORKERS`/`DCO_WORKERS`←`ECO_WORKERS` · `.woc-*`/`.dco-*`←`.eco-*`). **قيم مفاتيح التخزين ما اتغيّرتش** (`woc_session` · `dco_session` · `*_worker_secret`). أي نص تحت بيقول «في الـ shell» معناه الملف المناسب من دول.
+
+## 🧩 تمريرة v1.62.0 — التسليم الجزئي على أوردرات الاستبدال S2 + نص الـ Reason في صفوف (طلب أحمد 29-10-2026)
+
+- **الـ Worker `partial-delivery-worker` v1.2.0** (ريبو `Partial-Delivery`، تفاصيله في `CLAUDE.md` بتاعه): بيقبل `S1 = Delivered` + `S2 ∈ {Shipped, In-Return}`، والمتاح للحذف قطع الاستبدال الخارجة بس (اللي اتفلفلت بعد آخر Return — قراءة بس)، ويلغي ويعيد فلفلمنت القطعة بس. S1 وS2 Shipped معًا = رفض بسبب. الدفتر `machine = S2`.
+- **`Partial-Delivery.html`:** بادج S2 · القطع الأصلية مقفولة بعلامة «قطعة أصلية — خارج النطاق» (`li.removable` من الـ Worker) · بانر أهلية وتأكيد خاصين بـ S2 · «عن الأداة» وسجل الإصدارات.
+- 🔴 **`DCO_WORKERS.partialDelivery.min` بقى `1.2.0`** — الصفحة معتمدة على `removable`/`machine` في رد `lookup_order`. **انشر الـ Worker قبل الصفحة**، وأضف صلاحية `read_returns` على الـ Custom App وإلا أوردرات S2 بترفض برسالة بتسمّيها.
+- الأداة ما بتلمسش الـ Return ولا الفلوس (قرار أحمد).
+- ✅ الفحص: queues 531 · rules 90 · tools 210 (**فشل واحد قديم قبل التمريرة**: «Bosta-Webhook-Status-Receiver.html: تابات الأداة زي ما هي» — اتأكد بإرجاع التعديلات). ⚠️ ما اتجرّبش على Worker/شوبيفاي حقيقيين؛ الـ Worker اتقاس على شوبيفاي وهمي ببيانات #62160.
 
 ## 🚚 تمريرة v1.61.0 — «طابور المشحون»: رقم التتبع لينك بوسطة + تصدير XLSX (طلب أحمد 29-10-2026)
 
@@ -348,7 +356,7 @@ tool في D1 : delivery_cod_ops_center   ← login · logout بس (ولسه مط
 | `Shipped-Orders.html` | **طابور المشحون** (اسم الملف اتغيّر v1.12.0) | `shipped-orders-worker` | **`1.2.0`** | L (1400) |
 | `Order-Status-Updater.html` | 🔗 **تحديث حالة الأوردرات** (مدموجة · اسم الملف اتغيّر v1.11.0) | `order-status-updater-worker` | **`4.7.0`** | **M (1200)** |
 | `COD-Payment-Center.html` | 🔗 **تحصيل الأوردرات COD** (مدموجة · اسم الملف اتغيّر v1.11.0) | `cod-payment-center-worker` | **`3.6.0`** | **M (1200)** |
-| `Partial-Delivery.html` | 🔗 **التسليم الجزئي** (مدموجة من v1.10.0 · بلا نسخة قديمة · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` | **`1.0.1`** | **M (1200)** |
+| `Partial-Delivery.html` | 🔗 **التسليم الجزئي** (مدموجة من v1.10.0 · بلا نسخة قديمة · اسم الملف اتغيّر v1.11.0 · S2 من v1.62.0) | `partial-delivery-worker` | **`1.2.0`** | **M (1200)** |
 | `Bosta-Orders-Upload.html` | 🔗 **رفع بوسطة** (مدموجة من v1.13.0 · من v1.18.0 هي النسخة الوحيدة — الرابط القديم اتشال بلا تحويل) | `bosta-orders-upload-worker` | **`2.20.0`** | **M (1200)** |
 | `Courier-Names.html` | 🛵 **أسماء المناديب** (v1.30.0 · قسم «أدوات أخرى» · Worker وبس في ريبو `Courier-Names`) | `courier-names-worker` | **`1.0.0`** | **M (1200)** |
 | `Bosta-Webhook-Status-Receiver.html` | 📮 **مستقبل حالة شحنات بوسطة** (v1.35.0 · **صف في «قسم أوردرات بوسطة» (اتسمّى «متابعة شحنات بوسطة» في v1.40.0)** · Worker وبس في ريبو `Bosta-Webhook-Status-Receiver` · **عرض بحت**) | `bosta-webhook-status-receiver-worker` | **`1.10.0`** | **L (1400)** |

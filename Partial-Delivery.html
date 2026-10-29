@@ -224,7 +224,18 @@
            مصدر واحد للنسخة (Standards #24). -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.10.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.62.0</span>
+          <span class="cl-ver-date">29-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>التسليم الجزئي على أوردرات الاستبدال (S2).</strong> الأوردر <code>S1 = Delivered</code> و<code>S2 = Shipped/In-Return</code> بقى مقبول، والمتاح للحذف <strong>قطع الاستبدال الخارجة بس</strong> (اللي اتفلفلت بعد آخر Return)، والقطع الأصلية المتسلّمة قبل كده مقفولة. الأداة بتلغي وتعيد الفلفلمنت بتاع القطعة بس، ومابتلمسش الـ Return ولا الفلوس. <code>S1</code> و<code>S2</code> مع بعض = رفض بسبب مكتوب. الدفتر: <code>machine = S2</code>. (Worker <code>1.2.0</code> — ⚠️ محتاج صلاحية <code>read_returns</code>.)</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>نص الـ Reason في تايم لاين شوبيفاي بقى في صفوف تحت بعض: «تسليم جزئي / العميل لم يستلم المنتج (SKU ×الكمية) / والقطعة رجعت مع المندوب / تم استلام المنتجات المرتجعة من الأوردر بواسطة …».</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.10.0</span>
           <span class="cl-ver-date">20-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -291,7 +302,7 @@
       <details class="about-sec">
         <summary>📋 وصف الأداة</summary>
         <div class="about-sec-body">
-          <p>الأداة دي لأوردر <b>S1 = Shipped</b> (أو <b>In-Return</b>) ومنتجاته <b>Fulfilled</b>،
+          <p>الأداة دي لأوردر <b>S1 = Shipped</b> (أو <b>In-Return</b>) ومنتجاته <b>Fulfilled</b>، <b>أو لأوردر استبدال</b> (<b>S1 = Delivered</b> و<b>S2 = Shipped/In-Return</b>) — وفي الاستبدال المتاح للحذف <b>قطع الاستبدال الخارجة</b> بس (اللي اتفلفلت بعد آخر Return)، والقطع الأصلية اللي اتسلّمت قبل كده خارج النطاق. الأداة بتقرا الـ Return قراءة بس ومابتلمسوش. لو S1 وS2 الاتنين Shipped/In-Return مع بعض بترفض وتقول السبب،
              واتضح إن منتج أو أكتر منه مش هيتسلّم فعليًا. الأداة بتشيل المنتج(ات) دي من الأوردر
              بلا ما تلمس الباقي.</p>
           <h4>مين بيستخدمها</h4>
@@ -301,11 +312,11 @@
             <li>الدخول بيحصل <strong>مرة واحدة في الشاشة الرئيسية للمركز</strong> — وكل عملية هنا
                 بتتنسب للموظف اللي داخل بيه.</li>
             <li>ابحث عن الأوردر برقمه (مثلًا 1780 أو #1780) أو اسكن الـ Order ID الطويل من الباركود.</li>
-            <li>الأداة بتتأكد إن الأوردر S1=Shipped/In-Return وFulfilled — لو مش كده بترفض بوضوح.</li>
+            <li>الأداة بتتأكد إن الأوردر S1=Shipped/In-Return أو (S1=Delivered وS2=Shipped/In-Return) وFulfilled — لو مش كده بترفض بوضوح.</li>
             <li>اختر المنتج(ات) المطلوب حذفها من قايمة المنتجات.</li>
             <li>حدّد لو عايز ترجّع الكمية للمخزون (Restock) واكتب سبب لو حابب.</li>
             <li>اضغط «شيل المنتجات المحددة» وأكّد في النافذة اللي بتقول العدد بالظبط.</li>
-            <li>الأداة بتلغي الفلفلمنت الحالي، تشيل المنتج(ات) من الأوردر (Order Edit)، وترجّع تفلفل الباقي تلقائيًا.</li>
+            <li>الأداة بتلغي الفلفلمنت الحالي (وفي S2 الفلفلمنت اللي فيه القطعة بس)، تشيل المنتج(ات) من الأوردر (Order Edit)، وترجّع تفلفل الباقي تلقائيًا.</li>
           </ol>
           <h4>الـ Endpoints الرئيسية</h4>
           <table>
@@ -447,14 +458,14 @@ function renderOrder(order, elig) {
   const card = document.getElementById('orderCard');
   const items = order.lineItems || [];
   const itemsHtml = items.map((li, i) => `
-    <div class="pd-item ${li.removed ? 'removed' : ''}">
+    <div class="pd-item ${li.removed || !li.removable ? 'removed' : ''}">
       ${li.image ? `<img src="${esc(li.image)}" alt="">` : `<div class="pd-item img" style="width:46px;height:46px;background:var(--surface-2);border-radius:6px;"></div>`}
-      <input type="checkbox" data-li="${esc(li.id)}" ${li.removed ? 'disabled' : ''} onchange="updateRemoveBtn()">
+      <input type="checkbox" data-li="${esc(li.id)}" ${li.removed || !li.removable ? 'disabled' : ''} onchange="updateRemoveBtn()">
       <div class="info">
         <div class="t" title="${esc(li.title)}">${esc(li.title)}${li.variantTitle ? ' — ' + esc(li.variantTitle) : ''}</div>
         <div class="s">${esc(li.sku || '—')}</div>
       </div>
-      <div class="qty">${li.removed ? 'اتشال' : `الكمية: ${li.currentQuantity}`}</div>
+      <div class="qty">${li.removed ? 'اتشال' : (li.removable ? `الكمية: ${li.currentQuantity}` : 'قطعة أصلية — خارج النطاق')}</div>
     </div>`).join('');
 
   card.innerHTML = `
@@ -466,11 +477,12 @@ function renderOrder(order, elig) {
         </div>
         <div>
           <span class="pd-badge mono">S1: ${esc(order.s1 || '—')}</span>
+          <span class="pd-badge mono">S2: ${esc(order.s2 || '—')}</span>
           <span class="pd-badge mono">${esc(order.fulfillmentStatus)}</span>
         </div>
       </div>
       <div class="pd-elig-banner ${elig.eligible ? 'ok' : 'bad'}">
-        ${elig.eligible ? '✅ الأوردر مؤهّل للتسليم الجزئي' : `⛔ ${esc(elig.reason)}`}
+        ${elig.eligible ? (order.machine === 's2' ? '✅ أوردر استبدال (S2) مؤهّل للتسليم الجزئي — المتاح للحذف قطع الاستبدال الخارجة بس' : '✅ الأوردر مؤهّل للتسليم الجزئي') : `⛔ ${esc(elig.reason)}`}
       </div>
       ${elig.eligible ? `
         <h3>المنتجات</h3>
@@ -507,7 +519,9 @@ async function confirmRemove() {
     header: '⚠️ تأكيد التسليم الجزئي',
     lead: `هتشيل ${ids.length} منتج من الأوردر ${currentOrder.name}:`,
     lines: [
-      { text: '🚫 الحذف نهائي — الأوردر هيرجع Shipped بمنتجات أقل' },
+      { text: currentOrder.machine === 's2'
+          ? '🚫 الحذف نهائي — الأوردر هيفضل S2 بمنتجات أقل'
+          : '🚫 الحذف نهائي — الأوردر هيرجع Shipped بمنتجات أقل' },
       { text: restock ? '📦 الكمية هترجع للمخزون' : '⚠️ الكمية مش هترجع للمخزون (بلا Restock)', soft: true },
     ],
     okLabel: `تأكيد — شيل ${ids.length} منتج`,
