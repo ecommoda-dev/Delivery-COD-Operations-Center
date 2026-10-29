@@ -152,7 +152,15 @@ TR_FN = '''// 🔴 رقم التتبع: الجديد أولاً، والقديم
 //    اتملّى وهو لسه فاضي.
 function trackingCell(o) {
   if (!o.tracking) return '<span class="flag-ok">—</span>';
-  return `<span class="col-num">${esc(o.tracking)}</span>`
+  // 🔴 **رقم التتبع لينك لداشبورد بوسطة** (v1.61.0 · طلب أحمد 29-10-2026) —
+  //    `https://business.bosta.co/orders/<رقم التتبع>`. الرقم بيتنضّف لأرقام
+  //    قبل ما يدخل الـ `href` (نفس قاعدة `orderLink`)؛ ولو مش رقمي بالكامل
+  //    بيفضل نص عادي — ⛔ ممنوع تخمين رابط.
+  const tn = String(o.tracking).trim();
+  const num = /^\d+$/.test(tn)
+    ? `<a class="order-link" href="https://business.bosta.co/orders/${tn}" target="_blank" rel="noopener" title="فتح الشحنة في داشبورد بوسطة">${esc(tn)}</a>`
+    : `<span class="col-num">${esc(tn)}</span>`;
+  return num
        + (o.trackingIsLegacy ? '<span class="cell-sub">من الحقل القديم</span>' : '');
 }'''
 
@@ -1244,7 +1252,98 @@ CL_SHIPPED_PREV = r'''          <li class="cl-item"><span class="cl-tag change">
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔴 <b>عمود «العميل» بقى سطرين بالكتير</b> — بنط أصغر وحشو أضيق، والاسم الطويل بيتقص بـ<code>…</code>، والاسم الكامل بيبان بالوقوف على الخلية والبحث بيدوّر فيه كامل. ⛔ <b>وبلا أي توسيع للعمود</b>.</span></li>
 '''
 
+EXPORT_LIB = r"""
+  <!-- 🔴 ExcelJS — تصدير جدول الطابور (v1.61.0 · طلب أحمد 29-10-2026). الاستخدام
+       **محروس بـ`typeof ExcelJS`** (نفس قاعدة تصدير الجرد). -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" defer></script>
+"""
+
+EXPORT_BTN = r"""        <button class="act-btn export" id="qExportBtn" type="button"
+          onclick="event.stopPropagation(); qExport();">⬇ تصدير XLSX</button>
+"""
+
+EXPORT_JS = r"""
+// ── تصدير جدول الطابور XLSX (v1.61.0 · طلب أحمد 29-10-2026) ──────────
+// 🔴 **بيصدّر اللي في الجدول بالظبط** — نفس `qApplySort(qVisible())` اللي
+//    `qRender0` بترسم منه: الفلاتر والبحث والتاريخ والترتيب كلهم. مصدر
+//    تاني للصفوف = ملف مش مطابق للشاشة.
+// 🔴 **اسم الملف:** `Shipped-Orders-{Courier}-{n}.xlsx` — `n` عدد الصفوف
+//    المصدَّرة، و`Courier` فلتر المندوب وقت التصدير (`All` لو مفيش اختيار،
+//    وأكتر من اختيار بتتوصل بـ`+`). الاسم بيتنضّف من أي حرف ممنوع في أسماء الملفات.
+async function qExport() {
+  if (typeof ExcelJS === 'undefined') {
+    showToast('مكتبة التصدير ما اتحمّلتش — راجع الاتصال وحدّث الصفحة', 'error', 6000);
+    return;
+  }
+  if (!qState.at) { showToast('الطابور لسه ما اتجابش — حدّث الأول', 'warning', 4000); return; }
+  const rows = qApplySort(qVisible());
+  if (!rows.length) { showToast('مفيش صفوف في الجدول للتصدير', 'warning', 4000); return; }
+  const btn = document.getElementById('qExportBtn');
+  btn.disabled = true; btn.textContent = '⏳ جاري التصدير…';
+  try {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'EcomModa — مركز عمليات الشحن والتحصيل';
+    wb.created = new Date();
+    const ws = wb.addWorksheet('Shipped-Orders', { views: [{ rightToLeft: true, state: 'frozen', ySplit: 1 }] });
+    ws.columns = [
+      { header: 'رقم الأوردر',    key: 'order',    width: 14 },
+      { header: 'العميل',         key: 'customer', width: 24 },
+      { header: 'المندوب',        key: 'courier',  width: 16 },
+      { header: 'العنوان',        key: 'address',  width: 50 },
+      { header: 'رقم التتبع',     key: 'tracking', width: 16 },
+      { header: 'مصدر رقم التتبع', key: 'trkSrc',   width: 16 },
+      { header: 'تاريخ الأوردر',  key: 'created',  width: 20 },
+      { header: 'تاريخ التغليف',  key: 'packed',   width: 20 },
+      { header: 'نوع الأوردر',    key: 'type',     width: 16 },
+      { header: 'المراجعة',       key: 'flags',    width: 30 },
+    ];
+    ws.getRow(1).font = { bold: true };
+    const dt = iso => iso ? `${formatDateForExport(iso)} ${formatTimeForExport(iso)}` : '—';
+    rows.forEach(o => {
+      const tn = o.tracking ? String(o.tracking).trim() : '';
+      ws.addRow({
+        order:    o.orderName || '—',
+        customer: o.customer || '—',
+        courier:  o.courier || '—',
+        address:  [o.address1, o.address2].filter(Boolean).join(' — ').trim() || 'بلا عنوان',
+        // 🔗 الرقم الرقمي = لينك بوسطة زي الجدول بالظبط
+        tracking: /^\d+$/.test(tn) ? { text: tn, hyperlink: `https://business.bosta.co/orders/${tn}` } : (tn || '—'),
+        trkSrc:   tn ? (o.trackingIsLegacy ? 'الحقل القديم' : 'الحقل الجديد') : '—',
+        created:  dt(o.createdAt),
+        packed:   dt(o.packedAt),
+        type:     o.machineLabel || '—',
+        flags:    (o.flags || []).map(f => f.label).join(' · ') || '—',
+      });
+    });
+    // أرقام التتبع كنص (مفيش تحويل لأس علمي) + لون اللينك
+    ws.getColumn('tracking').eachCell((c, r) => {
+      if (r > 1 && c.value && c.value.hyperlink) c.font = { color: { argb: 'FF2563EB' }, underline: true };
+    });
+
+    // اسم الملف — 🔴 `{Courier}` من فلتر المندوب
+    const sel = [...qMsState.courier.selected].map(v => String(v).startsWith('—') ? 'NoCourier' : String(v));
+    const courier = (sel.length ? sel.join('+') : 'All').replace(/[\\/:*?"<>|\s]+/g, '-');
+    const buf  = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Shipped-Orders-${courier}-${rows.length}.xlsx`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+    showToast(`تم تصدير ${rows.length.toLocaleString('en-US')} أوردر ✅`, 'success');
+  } catch (e) {
+    showToast('تعذّر التصدير: ' + e.message, 'error', 6000);
+  } finally {
+    btn.disabled = false; btn.textContent = '⬇ تصدير XLSX';
+  }
+}
+"""
+
+
 # v1.58.0 — عمود «العنوان» في طابور المشحون (طلب أحمد 26-10-2026).
+CL_V161_SHIPPED = r'''          <li class="cl-item"><span class="cl-tag new">جديد</span><span>⬇ <b>زرار «تصدير XLSX»</b> للجدول — بيصدّر اللي ظاهر بالظبط بعد الفلاتر والبحث والتاريخ والترتيب. اسم الملف <code>Shipped-Orders-{المندوب}-{العدد}.xlsx</code> (<code>All</code> لو مفيش فلتر مندوب).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔗 <b>رقم التتبع لينك</b> بيفتح الشحنة في داشبورد بوسطة (<code>business.bosta.co/orders/…</code>) — وفي الملف المصدَّر كمان.</span></li>
+'''
 CL_V158_SHIPPED = r'''          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔴 <b>عمود «العنوان» بعد المندوب</b> — <code>address1</code> و<code>address2</code> مع بعض، والأوردر اللي مالوش عنوان بيقول «بلا عنوان». بيترتّب وبيتبحث فيه زي صفحة «الجاهز». ⚠️ محتاج <code>shipped-orders-worker</code> <b>1.2.0</b>.</span></li>
 '''
 
@@ -1385,13 +1484,14 @@ PAGES = [
     addrAfterHead='<th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort(\'address\')">العنوان<span class="sort-icon" data-q-sort="address"></span></th>',
     addrAfterCell="""      <td class="addr-cell">${addressCell(o)}</td>\n""",
     noteHead='', noteCell='', noteFn='',
+    exportLib=EXPORT_LIB, exportBtn=EXPORT_BTN, exportJs=EXPORT_JS,
     aboutCols=SHIPPED_ABOUT_COLS,
     cols=9,
     # ⛔ بلا جرد — أوردر `Shipped` خرج من المكتب بالتعريف، فجرده سؤال
     #    مالوش معنى (الشرح كامل فوق عند الكتل).
     auditCss='', auditTabs='', auditLib='', auditView='', auditJs='', auditAbout='',
     apiFns='apiGet',
-    clItems=CL_V158_SHIPPED + CL_V138, clV133=CL_SHIPPED, clPrev=CL_SHIPPED_PREV,
+    clItems=CL_V161_SHIPPED + CL_V158_SHIPPED + CL_V138, clV133=CL_SHIPPED, clPrev=CL_SHIPPED_PREV,
     aboutWhat='''الأوردرات اللي حالتها <code>Shipped</code> — خرجت من المخزن
              و<b>محدش سجّل لها نتيجة نهائية</b> لسه. ⚠️ <code>In-Return</code>
              <b>مش داخلة</b> في الطابور ده (بند مفتوح).''',
@@ -1421,6 +1521,7 @@ TPL = r'''<!DOCTYPE html>
   <link rel="stylesheet" href="shared/core.css">
   <link rel="stylesheet" href="shared/hub.css">
 __AUDIT_LIB__
+__EXPORT_LIB__
 <style>
 /* ══════════════════════════════════════════════════════════════
    §STYLES — الصفحة دي بس. مفيش كتلة توكنز هنا (كلها في الـ shell).
@@ -1985,7 +2086,7 @@ __WA_CHIPS__      <div class="cb-money" id="qMoney"></div>
       <div class="tbl-bar-left">
         <!-- ⚠️ `stopPropagation` إلزامية في الزرارين — من غيرها الضغطة بتطوي الجدول.
              و«مسح كل الفلاتر» بقى هنا (§47) بعد ما هيدر الفلاتر اتشال. -->
-        <button class="clear-btn inactive" id="qClearAllBtn" type="button"
+__EXPORT_BTN__        <button class="clear-btn inactive" id="qClearAllBtn" type="button"
           onclick="event.stopPropagation(); qClearAllFilters();">✕ مسح كل الفلاتر</button>
       </div>
     </div>
@@ -3125,6 +3226,7 @@ __EXTRA_FN__
 __WA_CHIPS_JS__
 // ⚠️ غلاف عن قصد: `qRender0` فيها أكتر من `return` بدري (تحميل · فشل · صفر
 //    نتائج)، والـ chips وعروض الأعمدة لازم يتحدّثوا في **كل** الحالات.
+__EXPORT_JS__
 function qRender() { qRender0(); qRenderSpecialChips(); colMaybeInit(); }
 function qRender0() {
   const rows  = qApplySort(qVisible());
@@ -3430,6 +3532,9 @@ for p in PAGES:
     out = out.replace('__AUDIT_CSS__',   p['auditCss'])
     out = out.replace('__AUDIT_TABS__',  p['auditTabs'])
     out = out.replace('__AUDIT_LIB__',   p['auditLib'])
+    out = out.replace('__EXPORT_LIB__',  p.get('exportLib', ''))
+    out = out.replace('__EXPORT_BTN__',  p.get('exportBtn', ''))
+    out = out.replace('__EXPORT_JS__',   p.get('exportJs', ''))
     out = out.replace('__AUDIT_VIEW__',  p['auditView'])
     out = out.replace('__AUDIT_JS__',    p['auditJs'])
     out = out.replace('__AUDIT_ABOUT__', p['auditAbout'])
@@ -3447,7 +3552,7 @@ for p in PAGES:
                         '__NOTE_HEAD__','__NOTE_CELL__','__NOTE_FN__',
                         '__ABOUT_COLS__','__EXTRA_FILTER__','__AUDIT_CSS__','__AUDIT_TABS__',
                         '__WA_CHIPS__','__WA_CHIPS_CALL__','__WA_CHIPS_JS__',
-                        '__AUDIT_LIB__','__AUDIT_VIEW__','__AUDIT_JS__','__AUDIT_ABOUT__',
+                        '__AUDIT_LIB__','__EXPORT_LIB__','__EXPORT_BTN__','__EXPORT_JS__','__AUDIT_VIEW__','__AUDIT_JS__','__AUDIT_ABOUT__',
                         '__API_FNS__','__CL_ITEMS__','__CL_V133__','__CL_PREV__'] if t in out]
     assert not left, f"unreplaced {left}"
     out_path = os.path.join(REPO, p['file'])

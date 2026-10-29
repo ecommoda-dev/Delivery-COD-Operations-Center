@@ -1131,6 +1131,51 @@ console.log('\n══ ⑤ Shipped-Orders.html ══');
   is(legacy.includes('999888') && legacy.includes('من الحقل القديم'),
      'رقم من الحقل المتوقّف بيتعرض **وبعلامة صريحة**');
 
+  // 🔴 **رقم التتبع لينك لداشبورد بوسطة** (v1.61.0 · طلب أحمد 29-10-2026)
+  const lnk = await page.$$eval('#qBody a.order-link[href*="business.bosta.co"]', a => a.map(x => [x.textContent.trim(), x.getAttribute('href'), x.target]));
+  is(lnk.some(([t, h, tg]) => t === '1234567' && h === 'https://business.bosta.co/orders/1234567' && tg === '_blank'),
+     '🔴 رقم التتبع لينك `https://business.bosta.co/orders/<الرقم>` وبيفتح في تاب جديد', JSON.stringify(lnk));
+
+  // 🔴 **تصدير XLSX** (v1.61.0) — ExcelJS من CDN، فبنركّب بديل بيسجّل اللي اتكتب فيه
+  //    (الفحص بيقيس **منطق** التصدير: الصفوف · الفلاتر · اسم الملف · لينك التتبع).
+  await page.evaluate(() => {
+    window.__xl = { rows: [], name: null };
+    window.ExcelJS = { Workbook: function () {
+      this.addWorksheet = () => ({
+        set columns(c) {}, getRow: () => ({}), getColumn: () => ({ eachCell() {} }),
+        addRow: r => window.__xl.rows.push(r),
+      });
+      this.xlsx = { writeBuffer: async () => new ArrayBuffer(8) };
+    } };
+  });
+  const exportOnce = async () => {
+    await page.evaluate(() => { window.__xl.rows.length = 0; });
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#qExportBtn')]);
+    return { name: dl.suggestedFilename(), rows: await page.evaluate(() => window.__xl.rows.slice()) };
+  };
+  let ex = await exportOnce();
+  is(ex.name === `Shipped-Orders-All-${SHIPPED_TOTAL}.xlsx` && ex.rows.length === SHIPPED_TOTAL,
+     '🔴 تصدير بلا فلتر: `Shipped-Orders-All-{العدد}.xlsx` وكل الصفوف', `${ex.name} · ${ex.rows.length}`);
+  is(ex.rows.some(r => r.tracking && r.tracking.hyperlink === 'https://business.bosta.co/orders/1234567'),
+     'رقم التتبع في الملف لينك بوسطة كمان');
+  is(ex.rows.some(r => r.trkSrc === 'الحقل القديم') && ex.rows.some(r => r.address === 'بلا عنوان'),
+     'مصدر رقم التتبع و«بلا عنوان» بيتكتبوا في الملف');
+  // 🔴 بعد فلتر المندوب: الملف == اللي في الجدول بالظبط، والمندوب في الاسم
+  const cour = await page.evaluate(() => [...qMsState.courier.selected].length ? null : [...new Set(qState.rows.map(o => o.courier).filter(Boolean))][0]);
+  await page.evaluate(c => { qMsState.courier.selected.add(c); qRender(); }, cour);
+  const shown = await page.$$eval('#qBody tr', e => e.length);
+  ex = await exportOnce();
+  is(ex.rows.length === shown && shown < SHIPPED_TOTAL && ex.name === `Shipped-Orders-${cour.replace(/[\\/:*?"<>|\s]+/g, '-')}-${shown}.xlsx`,
+     '🔴 التصدير بعد فلتر المندوب: نفس صفوف الجدول واسم الملف فيه المندوب والعدد', `${ex.name} · ${ex.rows.length} من ${shown}`);
+  // بحث بلا نتيجة = مفيش ملف
+  await hsearch(page, 'zzzz');
+  await page.evaluate(() => { window.__xl.rows.length = 0; });
+  await page.click('#qExportBtn');
+  await page.waitForTimeout(150);
+  is(await page.evaluate(() => window.__xl.rows.length) === 0 && /مفيش صفوف/.test(await page.evaluate(() => document.body.innerText)),
+     'جدول فاضي: تنبيه «مفيش صفوف» بدل ملف فاضي');
+  await page.evaluate(() => qClearAllFilters());   // 🔴 رجّع الصفحة نضيفة للبنود اللي بعدها
+
   // حارس الفلفلمنت — S1 بس
   const flagged = await page.$$eval('#qBody tr.flagged', e => e.length);
   is(flagged === SHIPPED_FLAGGED, `${SHIPPED_FLAGGED} صفوف معلّمة`, `شفت ${flagged}`);
