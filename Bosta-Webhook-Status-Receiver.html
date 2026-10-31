@@ -278,7 +278,16 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
     <div class="eco-modal-body">
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.42.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.64.0</span>
+          <span class="cl-ver-date">31-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>🔴 <b>Delivered اللي بوسطة بتتراجع عنه</b> — شحنة وصلها Delivered (45) وبعدها أي حدث تاني (Received at warehouse · Exception · RTO…) بترجع لـ«الأوردرات تحت التوصيل»/In-Return وبتخرج من تاب Delivered. تاب Delivered بقى يعرض بس الأرقام اللي <b>آخر حدث</b> ليها 45. (شحنات #56174 · #59912 · #60320 · #61162). Worker ≥ 1.13.0 كمان بيصحّح <code>manual_status</code>/<code>package_whereabouts_s1</code> على شوبيفاي عند التراجع، و<code>queue_summary</code> بنفس التعريف.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.42.0</span>
           <span class="cl-ver-date">15-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -366,7 +375,7 @@ th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-borde
             <li><code>§TOOL::tabs</code> — 6 تابات، كل واحدة بفلاتر/بحث/فترة/ترتيب مستقل بالكامل: 🚚 الأوردرات تحت التوصيل (آخر حالة لكل رقم تتبع — Exception (47) حالة عادية هنا — وبيستبعد أي رقم وصل لحالة نهائية <b>أو بقى RTO</b>)، 🔁 In-Return (أي رقم تتبع نوعه RTO ولسه ماوصلش لحالة نهائية — نفس منطق آخر حالة لكل رقم)، ↩️ Returned to business (كود 46)، ✅ Delivered (كود 45)، 🛑 Terminated (كود 48) — التلاتة دول صف واحد لكل رقم تتبع (آخر حدث بنفس الحالة)، و⚠️ فشلت المطابقة (أي رقم تتبع وصله ولو حدث واحد <code>write_status = match_failed</code> — صف واحد لكل رقم بآخر حدث فاشل، وبيفضل ظاهر حتى لو أحداث بعده نجحت)</li>
             <li><code>buildTabPanelHtml()</code> / <code>buildThead()</code> — بيولّدوا HTML الجدول لكل تاب في وقت التحميل (بدل تكرار 4 نسخ يدويًا)، بـ id namespaced بـ <code>tabKey</code>. الفلاتر في رأس العمود: زرار القمع <code>[data-flt]</code> بيفتح قايمة عائمة <code>openPop()</code> على <code>body</code></li>
             <li><code>tabState[tabKey]</code> — فلاتر اختيار متعدد + بحث أوردر/تتبع + فترة تاريخ + ترتيب، لكل تاب نسخة مستقلة بالكامل (مفيش state متشارك بين التابات)</li>
-            <li><code>computeFinalTrackingNumbers()</code> / <code>FINAL_STATES</code> (45 · 46 · 48) — Set بكل <code>tracking_number</code> وصلها حدث بحالة نهائية مرة على الأقل؛ بتستبعدها «الأوردرات تحت التوصيل» بس. <code>latestPerTracking()</code> بتدمج أحداث تابات Delivered/Returned/Terminated لصف واحد لكل رقم تتبع. <code>computeRtoTrackingNumbers()</code> — أرقام التتبع اللي وصلها حدث نوعه RTO: بتتشال من «تحت التوصيل» وبتظهر في تاب 🔁 In-Return. نتيجة الحساب بتتخزّن في <code>tabRows[tabKey]</code> مرة بعد كل تحميل</li>
+            <li><code>computeFinalTrackingNumbers()</code> / <code>FINAL_STATES</code> (45 · 46 · 48) — Set بكل <code>tracking_number</code> وصله 46/48 ولو مرة، أو آخر حدث ليه 45 (Delivered اللي جه بعده حدث تاني مابقاش نهائي — الشحنة بترجع لـ«تحت التوصيل»/In-Return وبتخرج من تاب Delivered)؛ بتستبعدها «الأوردرات تحت التوصيل» بس. <code>latestPerTracking()</code> بتدمج أحداث تابات Delivered/Returned/Terminated لصف واحد لكل رقم تتبع. <code>computeRtoTrackingNumbers()</code> — أرقام التتبع اللي وصلها حدث نوعه RTO: بتتشال من «تحت التوصيل» وبتظهر في تاب 🔁 In-Return. نتيجة الحساب بتتخزّن في <code>tabRows[tabKey]</code> مرة بعد كل تحميل</li>
             <li><code>slotLabel()</code> — بيحوّل <code>matched_slot</code> (S1/S2 الخام) لليبل عمود "نوع الأوردر" المعروض: S1 ← "عادي (S1)"، S2 ← "استبدال/استرجاع (S2)"، أي قيمة تانية بترجع كابيتال زي ما هي. عمود "النوع" (<code>bosta_type</code> — SEND/RTO/EXCHANGE...) اتسمى "نوع الشحنة" في كل التابات — البيانات في D1 ما اتغيّرتش، التسمية في الواجهة بس.</li>
             <li><code>computeReasonsByTracking()</code> / <code>reasonsOf(ev)</code> — كل أسباب فشل التوصيل لرقم التتبع (الأحدث فوق، من غير تكرار) — بتحكم عمود «أسباب فشل التوصيل» وفلتره وترتيبه · <code>valsOf(k, ev)</code> — فلتر «أي قيمة من المصفوفة»</li>
             <li><code>ensureWidths()</code> / <code>applyW()</code> / <code>fitCol()</code> — التحكم اللايف في عرض الأعمدة (<code>LS_COLS</code> = <code>bosta_webhook_status_col_widths_v1</code>، عرض واحد مشترك للتابات الأربعة)</li>
@@ -523,9 +532,16 @@ function descOf(ev) {
   }
   return ev.description || '—';
 }
+// 🔴 31-10-2026 — Delivered (45) مش نهائي لو جه بعده أي حدث تاني: بوسطة بتبعت Delivered وبعدها ترجّع
+// Received at warehouse / Exception (شحنات #59912 · #56174 · #60320 · #61162). فالرقم نهائي لو:
+//   ① وصله 46 أو 48 ولو مرة، أو ② آخر حدث ليه (latestPerTracking) هو 45.
+// شحنة آخر حدث ليها مش 45 ووصلها 45 قبل كده بترجع لـ«تحت التوصيل»/«In-Return» وبتخرج من «Delivered».
+// ⚠️ نفس تعريف `queue_summary` في الـ Worker (≥ 1.13.0) — أي تعديل ينزل على الاتنين.
+const FINAL_EVER_STATES = new Set([46, 48]);
 function computeFinalTrackingNumbers(events) {
   const s = new Set();
-  events.forEach(ev => { if (FINAL_STATES.has(Number(ev.state)) && ev.tracking_number) s.add(String(ev.tracking_number)); });
+  events.forEach(ev => { if (FINAL_EVER_STATES.has(Number(ev.state)) && ev.tracking_number) s.add(String(ev.tracking_number)); });
+  latestPerTracking(events).forEach(ev => { if (Number(ev.state) === 45) s.add(String(ev.tracking_number)); });
   return s;
 }
 // الأحدث = أكبر bosta_timestamp، وعند التعادل received_at ثم id.
@@ -632,7 +648,8 @@ const TABS = [
   { key: 'inreturn',   match: ev => latestEventByTracking.get(String(ev.tracking_number)) === ev && !finalTrackingNumbers.has(String(ev.tracking_number)) && rtoTrackingNumbers.has(String(ev.tracking_number)) },
   // الباقي: كل أحداث الحالة دي، مدموجة لصف واحد لكل tracking_number (الأحدث).
   { key: 'returned',   state: 46 },
-  { key: 'delivered',  state: 45 },
+  // «Delivered»: آخر حدث 45 لكل رقم تتبع — **بس** لو آخر حدث للرقم (أي حالة) هو 45 (31-10-2026). لو جه حدث بعده بيخرج.
+  { key: 'delivered',  state: 45, onlyIfLatest: true },
   { key: 'terminated', state: 48 },
   // «فشلت المطابقة»: أي رقم تتبع وصله حدث واحد على الأقل write_status='match_failed' (طلب أحمد 27-10-2026).
   // صف واحد لكل رقم تتبع بآخر حدث فاشل، بغض النظر عن أحداثه التانية — الأحداث اللي نجحت بعده مابتشيلوش من التاب.
@@ -643,7 +660,8 @@ let tabRows = {};   // tabKey → الصفوف الأساسية للتاب (بع
 function computeTabRows(t) {
   if (t.failed) return latestPerTracking(rawEvents.filter(ev => ev.write_status === 'match_failed'));
   return t.match ? rawEvents.filter(t.match)
-                 : latestPerTracking(rawEvents.filter(ev => Number(ev.state) === t.state));
+                 : latestPerTracking(rawEvents.filter(ev => Number(ev.state) === t.state))
+                     .filter(ev => !t.onlyIfLatest || Number(((latestEventByTracking.get(String(ev.tracking_number)) || {}).state)) === t.state);
 }
 function tabPartition(tabKey) { return tabRows[tabKey] || []; }
 

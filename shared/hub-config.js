@@ -213,7 +213,7 @@ const ECO_WORKERS = {
   //    🎯 **min اترفع لـ `1.9.0` (v1.39.0)** — صف «مستقبل حالة بوسطة» في الرئيسية بينادي
   //       `queue_summary` (عدّ مجمّع بـ SQL). على Worker أقدم الصف بيقول فشل بالـ 404
   //       والصفحة نفسها شغّالة — فالحارس بيسمّي الأداة والنسخة.
-  bostaWebhook: { url: 'https://bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev', min: '1.12.0', label: 'متابعة شحنات بوسطة' },
+  bostaWebhook: { url: 'https://bosta-webhook-status-receiver-worker.ecommoda-dev.workers.dev', min: '1.13.0', label: 'متابعة شحنات بوسطة' },
   // 🔴 «متابعة التأجيلات» (v1.44.0) — Worker في ريبو `Bosta-Delivery-Follow-Up`. `1.0.0` = أول نسخة،
   //    فالحارس هنا بيمسك الحالة الوحيدة: الـ Worker ما اتنشرش أو الـ Promote ناقص.
   //    ⛔ بيقرا جدول `bosta_webhook_events` بتاع المستقبل (قراءة بس) — وسره **سر الهب**
@@ -221,7 +221,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.63.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.64.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
