@@ -19,13 +19,13 @@
       تاني يتولّد منه الملف ده. أي تعديل على منطق الأداة بيتعمل هنا
       مباشرة، وأي تعديل على الـ Worker بيتعمل في ريبو Partial-Delivery.
    🔴 **مفيش كتلة توكنز هنا — كلها في shared/core.css.** الكتلة اللي
-      كانت في النسخة المستقلة (~٤٠ متغيّر) اتشالت بالكامل: معظمها نفس
+      كانت في النسخة المستقلة (~٤٠ متغيّر) اتحذفت بالكامل: معظمها نفس
       القيمة بالحرف في الـ shell، و`--border-light` اتوصّلت لأقرب توكن
       شكله قريب (`var(--border)`)، والباقي (`--radius`/`--radius-sm`/
       `--surface-hover`/`--neutral-dark`) القيمة اتغيّرت شوية (مثلاً ١٢px
       بدل ١٠) عشان الصفحة تبقى على نفس مقياس باقي المركز — نفس المبدأ اللي
       اتطبّق وقت دمج Order-Status-Updater.html/COD-Payment-Center.html.
-   ✂️ واللي اتشال كمان لأن الـ shell بيملكه: الـ reset و`body` و`.container`
+   ✂️ واللي اتحذف كمان لأن الـ shell بيملكه: الـ reset و`body` و`.container`
       · `.app-header*` · `.hbtn` · `.btn-primary`/`.btn-ghost`/`.btn-green`/
       `.btn-red`/`.btn-outline` · `.order-link`/`.order-num` · `.card`
       الأساسي · `.main-tabs-bar`/`.main-tab-btn` · مودال الإعدادات
@@ -43,14 +43,51 @@
 
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 
-/* ── scan / search ── */
-.pd-scan-row { display: flex; gap: 10px; }
-.pd-scan-row input {
-  flex: 1; padding: 12px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
-  font-size: 15px; font-family: var(--font-mono); direction: ltr; text-align: right;
-}
-.pd-scan-row input.has-value { border-color: var(--accent-border); background: var(--accent-light); }
-.pd-scan-row input:focus { outline: none; border-color: var(--accent); }
+/* ══ §ENTRY-BAR — مربع الإدخال الموحّد (ecommoda-html-builder v8.5.0 · unified-entry-box.md)
+   نوعين بس هنا (الأداة بتشتغل على أوردر واحد): فاتورة شوبيفاي (Order ID) · رقم الأوردر.
+   اللون هو التمييز: أزرق = فاتورة · رمادي = رقم أوردر. صفر متغيّرات محلية. ══ */
+.scan-input-wrap { display: flex; gap: 8px; }
+.scan-input { flex: 1; width: 100%; padding: 12px 14px; border: 2px solid var(--accent); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 16px; background: var(--surface); color: var(--text-primary); outline: none; transition: box-shadow .15s, border-color .15s; }
+.scan-input:focus { box-shadow: 0 0 0 3px var(--focus-ring); }
+.scan-input:disabled { background: var(--surface-2); color: var(--text-secondary); }
+.entry-bar { display: flex; flex-direction: column; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px 16px; margin-bottom: 16px; transition: border-color .15s; }
+.entry-bar[data-view=manual] { border-top-color: var(--border-strong); }
+.entry-bar .scan-input { padding-block: 0; min-height: 52px; border-color: var(--accent); }
+.entry-bar[data-view=manual] .scan-input { border-color: var(--border-strong); }
+.entry-bar[data-view=manual] .scan-input:focus { box-shadow: 0 0 0 3px var(--focus-ring-neutral); }
+.entry-bar .scan-input-wrap .btn-primary { background: var(--accent); border-color: var(--accent); min-width: 96px; font-size: 15px; }
+.entry-bar[data-view=manual] .scan-input-wrap .btn-primary { background: var(--text-secondary); border-color: var(--text-secondary); }
+.entry-bar .scan-input-wrap .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
+.entry-chips { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.entry-segs { display: inline-flex; flex-wrap: wrap; gap: 1px; max-width: 100%; background: var(--border-strong); border: 1.5px solid var(--border-strong); border-radius: 10px; overflow: hidden; }
+.entry-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: 0; border-radius: 0; background: var(--surface); color: var(--text-secondary); font-family: var(--font-body); font-size: 14px; font-weight: 800; cursor: pointer; white-space: nowrap; transition: background .15s, color .15s; }
+.entry-chip:hover { background: var(--surface-2); }
+.entry-chip:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+.entry-chip[data-m=shopify].is-on { background: var(--accent); color: var(--on-accent); }
+.entry-chip[data-m=manual].is-on { background: var(--text-secondary); color: var(--on-accent); }
+.entry-hint { display: inline-flex; align-items: center; gap: 7px; padding: 3px 14px; border-radius: 20px; border: 1.5px solid; margin-inline-start: auto; font-size: 13px; font-weight: 800; pointer-events: none; user-select: none; }
+.entry-hint svg { width: 20px; height: 20px; flex-shrink: 0; }
+.entry-hint[data-m=shopify] { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); }
+.entry-hint[data-m=manual] { background: var(--surface-2); border-color: var(--text-secondary); color: var(--text-mid); }
+.entry-chip-auto { padding: 0 7px; line-height: 17px; border-radius: 20px; font-size: 10px; font-weight: 800; background: var(--on-accent); color: var(--accent); }
+.entry-chip[data-m=manual] .entry-chip-auto { color: var(--text-secondary); }
+
+/* ── الصندوق الأحمر: الفشل والتحذير (سطر قصير لكل حاجة + ✕) ── */
+.bc-fails { margin-bottom: 16px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--red-light); border: 1px solid var(--red-border); color: var(--red-dark); font-size: 12.5px; font-weight: 700; line-height: 1.8; }
+.bc-fails[hidden] { display: none; }
+.bc-fail-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bc-fail-row + .bc-fail-row { margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--red-border); }
+.bc-fail-lbl { font-family: var(--font-mono); font-weight: 800; direction: ltr; }
+.bc-fail-why { flex: 1; min-width: 140px; }
+.bc-fail-x { margin-inline-start: auto; border: none; background: transparent; cursor: pointer; font-size: 15px; font-weight: 900; color: inherit; line-height: 1; padding: 2px 6px; border-radius: 6px; opacity: .7; }
+.bc-fail-x:hover { opacity: 1; background: var(--red-border); }
+.bc-fails-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+
+/* ── توست الإدخال: ألوان الصوت (Standards #41) ── */
+.toast-dup { background: var(--amber); }
+.toast .ti { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-inline-end: 8px; border-radius: 50%; background: rgba(255,255,255,.25); font-size: 12px; font-weight: 900; }
+.pd-flash { animation: pdFlash 1s ease; }
+@keyframes pdFlash { 0%, 60% { background: var(--amber-light); } 100% { background: transparent; } }
 
 /* ── order summary ── */
 .pd-order-hdr { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
@@ -157,13 +194,27 @@
 
   <!-- ══════════════ §TOOL ══════════════ -->
   <div id="toolTabContent">
-    <div class="card">
-      <h3>🔎 ابحث عن الأوردر</h3>
-      <div class="pd-scan-row">
-        <input type="text" id="scanInput" placeholder="رقم الأوردر أو سكان الـ Order ID" autofocus>
-        <button class="btn btn-primary" onclick="handleScan()">بحث</button>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+      <symbol id="ico-scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(-.4 -1.2) scale(.8)"><path d="M5.5 5.6 15.6 4.6Q16.6 4.5 16.3 5.5L14.3 11.3Q14.1 12 13.4 12H5.5A2.5 2.5 0 0 1 3 9.5V8.1A2.5 2.5 0 0 1 5.5 5.6Z"/><path d="M12.9 4.8 11.3 12"/><path d="M7 12 5.3 19.1Q5.1 20 6 20H9.2Q10 20 9.6 19.3L8.5 17.6 10.3 12"/></g><path d="M15.6 4.4Q16.7 5.6 15.6 6.8M17.9 3Q19.9 5.6 17.9 8.2" stroke-width="1.5"/><path d="M13.8 15.6v-2h2M20.2 13.6h2v2M22.2 19.6v2h-2M15.8 21.6h-2v-2" stroke-width="1.6"/><path d="M16 16.6v3M17.9 16.6v3M19.8 16.6v3" stroke-width="1.4"/></symbol>
+      <symbol id="ico-kbd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01" stroke-width="2.4"/><path d="M9.5 14.2h5"/></symbol>
+    </defs></svg>
+
+    <!-- §ENTRY-BAR — مربع إدخال موحّد: الأداة بتعرف النوع من الطول، والإضافة بـ Enter أو «بحث» بس -->
+    <div class="entry-bar" id="entryBar" data-view="manual">
+      <div class="entry-chips" id="entryChips" role="group" aria-label="مصدر الإدخال">
+        <div class="entry-segs">
+          <button type="button" class="entry-chip" data-m="shopify" aria-pressed="false">🔫 فاتورة شوبيفاي</button>
+          <button type="button" class="entry-chip is-on" data-m="manual" aria-pressed="true">⌨️ رقم الأوردر</button>
+        </div>
+        <span class="entry-hint" id="entryHint" data-m="manual" aria-hidden="true"></span>
+      </div>
+      <div class="scan-input-wrap">
+        <input type="text" class="scan-input" id="scanInput" dir="auto" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="مربع البحث عن الأوردر" autofocus>
+        <button type="button" class="btn btn-primary" id="addBtn">بحث</button>
       </div>
     </div>
+
+    <div class="bc-fails" id="pdFails" hidden></div>
 
     <div id="orderCard" style="display:none;"></div>
   </div>
@@ -224,7 +275,18 @@
            مصدر واحد للنسخة (Standards #24). -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.62.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.63.0</span>
+          <span class="cl-ver-date">31-10-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>مربع البحث بقى «مربع إدخال موحّد»</strong> (ecommoda-html-builder v8.5.0): الأداة بتعرف النوع من الطول (١–٧ أرقام = رقم أوردر · ١٣–١٥ = باركود فاتورة شوبيفاي) · البحث <strong>بـ Enter أو «بحث» بس</strong> (المؤقّت التلقائي اتحذف) · الـ chip بيتبع النوع · الفشل والرفض في صندوق أحمر بسطر قصير + ✕ وزرار الحذف مقفول لحد ما يتفضّى · ٣ أصوات (صح · خطأ · مكرر) · توست بألوان وأيقونات ومدد · مفيش placeholder.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>كل ألفاظ «شيل / اتشال» بقت <strong>«حذف / احذف / تم الحذف»</strong> في الأزرار والتأكيد والسجل وسجل الإصدارات (وفي نص السجل اللي الـ Worker بيكتبه).</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.62.0</span>
           <span class="cl-ver-date">29-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -240,7 +302,7 @@
         </div>
         <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>الأداة دي بقت جوّه مركز عمليات الشحن والتحصيل — بدل رابط خارجي.</strong> الدخول بقى <strong>مرة واحدة</strong> من الشاشة الرئيسية للمركز، والسر بقى <strong>قيمة واحدة</strong> لكل أدوات المركز (مجموعة <code>delivery_cod_ops</code>). وفيه زرار <strong>🏠 الرئيسية</strong> في الهيدر بيرجّعك للمركز.</span></li>
-          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>⛔ <strong>الريبو المستقل (<code>Partial-Delivery</code>) بقى Worker وبس</strong> — الصفحة القديمة اتشالت خالص، ومفيش رابط خارجي تاني لأي نسخة قديمة. (مختلف عن «تحديث حالة الأوردرات»/«تحصيل الأوردرات COD» اللي روابطهم القديمة لسه شغّالة في ريبوهاتهم.)</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>⛔ <strong>الريبو المستقل (<code>Partial-Delivery</code>) بقى Worker وبس</strong> — الصفحة القديمة اتحذفت خالص، ومفيش رابط خارجي تاني لأي نسخة قديمة. (مختلف عن «تحديث حالة الأوردرات»/«تحصيل الأوردرات COD» اللي روابطهم القديمة لسه شغّالة في ريبوهاتهم.)</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>منطق الأداة ما اتلمسش ولا سطر.</strong> نفس الـ Worker (<code>partial-delivery-worker</code>) ونفس الخطوات (إلغاء فلفلمنت → Order Edit → إعادة فلفلمنت) ونفس السجل بالظبط — اللي اتغيّر هو <strong>الإطار</strong> بس.</span></li>
         </ul>
       </div>
@@ -251,7 +313,7 @@
           <span class="cl-ver-date">20-09-2026</span>
         </div>
         <ul class="cl-items">
-          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>«شيل المنتجات المحددة» كان بيفشل دايمًا بـ <code>calculatedOrder_lookup: Field 'calculatedOrder' doesn't exist on type 'QueryRoot'</code> — بقى بينادي <code>node(id:)</code> والمطابقة بالرقم العددي للـ ID، نفس نمط <code>Order-Item-Remover</code>.</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>«حذف المنتجات المحددة» كان بيفشل دايمًا بـ <code>calculatedOrder_lookup: Field 'calculatedOrder' doesn't exist on type 'QueryRoot'</code> — بقى بينادي <code>node(id:)</code> والمطابقة بالرقم العددي للـ ID، نفس نمط <code>Order-Item-Remover</code>.</span></li>
         </ul>
       </div>
 
@@ -294,7 +356,7 @@
           </ul>
           <p>⛔ <strong>وعكس «تحديث حالة الأوردرات»/«تحصيل الأوردرات COD»، مفيش رابط قديم
              شغّال.</strong> الريبو المستقل (<code>Partial-Delivery</code>) بقى Worker وبس —
-             الصفحة اللي كانت فيه اتشالت، ومركز الشحن والتحصيل هو المكان الوحيد اللي
+             الصفحة اللي كانت فيه اتحذفت، ومركز الشحن والتحصيل هو المكان الوحيد اللي
              الأداة دي بتفتح فيه.</p>
         </div>
       </details>
@@ -303,7 +365,7 @@
         <summary>📋 وصف الأداة</summary>
         <div class="about-sec-body">
           <p>الأداة دي لأوردر <b>S1 = Shipped</b> (أو <b>In-Return</b>) ومنتجاته <b>Fulfilled</b>، <b>أو لأوردر استبدال</b> (<b>S1 = Delivered</b> و<b>S2 = Shipped/In-Return</b>) — وفي الاستبدال المتاح للحذف <b>قطع الاستبدال الخارجة</b> بس (اللي اتفلفلت بعد آخر Return)، والقطع الأصلية اللي اتسلّمت قبل كده خارج النطاق. الأداة بتقرا الـ Return قراءة بس ومابتلمسوش. لو S1 وS2 الاتنين Shipped/In-Return مع بعض بترفض وتقول السبب،
-             واتضح إن منتج أو أكتر منه مش هيتسلّم فعليًا. الأداة بتشيل المنتج(ات) دي من الأوردر
+             واتضح إن منتج أو أكتر منه مش هيتسلّم فعليًا. الأداة بتحذف المنتج(ات) دي من الأوردر
              بلا ما تلمس الباقي.</p>
           <h4>مين بيستخدمها</h4>
           <p>موظفو الشحن والتحصيل — بعد ما يتأكد إن جزء من الشحنة مش هيوصل (ضاع، اتلف، رجع من العميل جزئيًا).</p>
@@ -315,8 +377,8 @@
             <li>الأداة بتتأكد إن الأوردر S1=Shipped/In-Return أو (S1=Delivered وS2=Shipped/In-Return) وFulfilled — لو مش كده بترفض بوضوح.</li>
             <li>اختر المنتج(ات) المطلوب حذفها من قايمة المنتجات.</li>
             <li>حدّد لو عايز ترجّع الكمية للمخزون (Restock) واكتب سبب لو حابب.</li>
-            <li>اضغط «شيل المنتجات المحددة» وأكّد في النافذة اللي بتقول العدد بالظبط.</li>
-            <li>الأداة بتلغي الفلفلمنت الحالي (وفي S2 الفلفلمنت اللي فيه القطعة بس)، تشيل المنتج(ات) من الأوردر (Order Edit)، وترجّع تفلفل الباقي تلقائيًا.</li>
+            <li>اضغط «حذف المنتجات المحددة» وأكّد في النافذة اللي بتقول العدد بالظبط.</li>
+            <li>الأداة بتلغي الفلفلمنت الحالي (وفي S2 الفلفلمنت اللي فيه القطعة بس)، تحذف المنتج(ات) من الأوردر (Order Edit)، وترجّع تفلفل الباقي تلقائيًا.</li>
           </ol>
           <h4>الـ Endpoints الرئيسية</h4>
           <table>
@@ -332,7 +394,7 @@
         <div class="about-sec-body">
           <h4>FEATURE MAP</h4>
           <ul>
-            <li>§SCAN — قراءة مربع البحث بنمط السكانر (دفعة أحرف سريعة = سكانر)</li>
+            <li>§ENTRY-CONFIG / §ENTRY / §ENTRY-BAR / §FAILS — مربع الإدخال الموحّد: التعرّف بالطول (١–٧ رقم أوردر · ١٣–١٥ باركود فاتورة) · البحث بـ Enter أو «بحث» بس · الـ chip بيتبع النوع · الفشل في صندوق أحمر</li>
             <li>§ORDER-JS — عرض الأوردر والمنتجات وحالة الأهلية</li>
             <li>§REMOVE-JS — تأكيد الحذف والنداء الفعلي وعرض الحالات الأربعة</li>
             <li>§LOG-JS — جدول السجل والفلاتر والتصدير</li>
@@ -350,6 +412,7 @@
           <ul>
             <li>🔴 الأداة بقت صفحة جوّه المركز — الريبو المستقل (<code>Partial-Delivery</code>)
                 بقى <strong>Worker وبس</strong>، ومفيش صفحة تانية ولا رابط خارجي.</li>
+            <li>🔴 <strong>مربع البحث مربع موحّد:</strong> الأداة بتعرف النوع من الطول (١–٧ أرقام = رقم أوردر · ١٣–١٥ = باركود فاتورة شوبيفاي · أي طول تاني = مرفوض بسبب مكتوب). البحث <strong>بـ Enter أو «بحث» بس — مفيش بحث تلقائي بالتوقيت</strong>. الأرقام العربي بتتحوّل إنجليزي لحظيًا. أي فشل بيظهر في <strong>صندوق أحمر</strong> بسطر قصير + ✕، وزرار الحذف مقفول طول ما الصندوق مش فاضي. ٣ أصوات: صح · خطأ (تحذير/فشل) · مكرر.</li>
             <li>الحذف عملية لا رجعة فيها — نافذة تأكيد إلزامية قبل التنفيذ (الـ shell مالوش
                 نافذة تأكيد خالص، فهي متسابة في الصفحة دي بس).</li>
           </ul>
@@ -389,7 +452,7 @@
 const ecoSession = requireSession();
 
 // 🔴 **الرابط والسر بقوا من الـ shell.** `WORKER_URL` و`LS_SECRET`
-//    (`partial_delivery_worker_secret`) **اتشالوا**: الأداة بقت جوّه
+//    (`partial_delivery_worker_secret`) **اتحذفوا**: الأداة بقت جوّه
 //    المركز، والسر قيمة واحدة لمجموعة `delivery_cod_ops`.
 //    ⚠️ **وشرطه مذكور بالاسم:** `partial-delivery-worker` لازم يكون
 //       **اتضمّ للمجموعة** (`WORKER_SECRET` اتدوّر لقيمة المجموعة من
@@ -406,7 +469,7 @@ let currentEmployee = { username: ecoSession.username, displayName: ecoSession.d
 //    `showToast` · `playBeep` · `cmpVersion`/`checkWorkerVersion`/
 //    `showWorkerStale` · `openAbout`/`openChangelog` · `runDiag` ·
 //    §AUTH-JS كلها (قايمة الموظفين · شاشة الـ PIN · `verify_employee` ·
-//    `finishLogin` · `doLogout`) — اتشالوا، بقوا من `shared/core.js`.
+//    `finishLogin` · `doLogout`) — اتحذفوا، بقوا من `shared/core.js`.
 //    ⚠️ **الحذف مش اختياري** — بعضهم `const`/`let` (`CAIRO_TZ` ·
 //       `_cairoFmt`) كانت هترمي «Identifier has already been declared»
 //       وتقتل سكربت الصفحة كله لو فضلت مع نسخة الـ shell.
@@ -415,42 +478,244 @@ let currentEmployee = { username: ecoSession.username, displayName: ecoSession.d
 //    اختصار ص/م. و`cairoDateStr()` بقت `cairoDayStr(new Date())`.
 
 // ══════════════════════════════════════════════════════
-// §SCAN
+// §ENTRY-CONFIG — مربع الإدخال الموحّد (unified-entry-box.md)
 // ══════════════════════════════════════════════════════
-let scanTimer;
-document.getElementById('scanInput').addEventListener('input', () => {
-  clearTimeout(scanTimer);
-  const isBurst = document.getElementById('scanInput').value.length > 3;
-  scanTimer = setTimeout(handleScan, isBurst ? 150 : 400);
-});
-document.getElementById('scanInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { clearTimeout(scanTimer); handleScan(); } });
+// ⚠️ الأطوال مصدرها القياس الموثّق في المهارة (v8.5.0) — بتتنقل لـ ecommoda-constants بعد
+//    تأكيد البنود المفتوحة هناك. مكتوبة هنا مرة واحدة، مش مبعثرة في الدوال.
+//    والـ Worker (`parseOrderQuery`) بيفسّر ≥١٠ خانات كـ ID وغير كده اسم — متوافق مع النطاقين.
+const PD_CFG = {
+  ORDER_NAME: { min: 1,  max: 7  },     // رقم الأوردر (#62403)
+  ORDER_ID:   { min: 13, max: 15 },     // باركود فاتورة شوبيفاي (Order ID)
+  DIGITS_WARN_MIN: 8,                   // تحذير «مفيش Enter» من ٨ أرقام
+  MISSING_ENTER_MS: 1500,               // تحذير بس — عمره ما بيضيف لوحده
+  TOAST_MS: { success: 2200, dup: 3200, neutral: 3200, error: 6500 },
+};
+const PD_TYPES = {
+  order_name: { mode: 'manual',  label: 'رقم الأوردر' },
+  order_id:   { mode: 'shopify', label: 'باركود الفاتورة' },
+};
+const PD_MODES = {
+  shopify: { to: 'فاتورة شوبيفاي', aria: 'مربع البحث — اسكن باركود فاتورة شوبيفاي' },
+  manual:  { to: 'رقم الأوردر',    aria: 'مربع البحث — اكتب رقم الأوردر' },
+};
 
+const pdEntry = document.getElementById('scanInput');
+let pdCurMode = 'manual';        // الـ chip الحالي — بيتبع آخر نوع اتعرّف ومابيتثبّتش
+let pdStartMode = 'manual';      // الـ chip وقت بداية الإدخال الحالي (عشان نكتب «تلقائي»)
+let pdAuto = false;
+let pdBusy = null;               // null | 'lookup' | 'remove'
+let pdMeTimer = null;
+let pdFails = [];
+let pdFseq = 0;
 let currentOrder = null;
 
-async function handleScan() {
-  const input = document.getElementById('scanInput');
-  const val = input.value.trim();
-  if (!val) return;
-  input.value = '';
-  input.focus();
-  await lookupOrder(val);
+// ── §ENTRY — التنضيف والتعرّف بالطول ──
+const PD_AR = '٠١٢٣٤٥٦٧٨٩', PD_FA = '۰۱۲۳۴۵۶۷۸۹';
+const pdToWestern = s => String(s ?? '').replace(/[٠-٩]/g, d => PD_AR.indexOf(d)).replace(/[۰-۹]/g, d => PD_FA.indexOf(d));
+function pdNormalize(raw) {
+  let s = String(raw ?? '').replace(/[‎‏‪-‮⁦-⁩ ]/g, ' ');
+  s = pdToWestern(s).trim();
+  const noHash = s.replace(/#/g, '').trim();
+  if (/^\d[\d\s,،;]*$/.test(noHash)) return { clean: noHash, numeric: true };
+  return { clean: s, numeric: false };
 }
+const pdInR = (n, r) => n >= r.min && n <= r.max;
+function pdLengthReason(n) {
+  if (n > PD_CFG.ORDER_ID.max) return `${n} خانة — غالبًا باركودين ملزوقين، اسكنهم واحد واحد`;
+  return `${n} خانة — مش طول معروف، غالبًا اتقرا ناقص`;
+}
+function pdClassify(raw) {
+  const n = pdNormalize(raw);
+  if (!n.clean) return { kind: 'empty' };
+  if (!n.numeric) return { kind: 'invalid', reason: 'اكتب رقم الأوردر أو اسكن باركود الفاتورة — مفيش حروف' };
+  const tokens = [...new Set(n.clean.split(/[\s,،;]+/).filter(Boolean))];
+  if (tokens.length > 1) return { kind: 'invalid', reason: `${tokens.length} أرقام — الأداة بتشتغل على أوردر واحد في المرة` };
+  const v = tokens[0], len = v.length;
+  if (pdInR(len, PD_CFG.ORDER_NAME)) {
+    const nv = String(Number(v));
+    if (nv === '0') return { kind: 'invalid', reason: 'رقم الأوردر مش ممكن يبقى صفر' };
+    return { kind: 'single', type: 'order_name', value: nv };
+  }
+  if (pdInR(len, PD_CFG.ORDER_ID)) return { kind: 'single', type: 'order_id', value: v };
+  return { kind: 'invalid', reason: pdLengthReason(len) };
+}
+
+// ── الصوت والتوست (٣ أصوات: صح · خطأ · مكرر — قيمها في playBeep بتاع الـ shell) ──
+const PD_TOAST_ICON = { success: '✓', error: '✗', dup: '↻', neutral: '' };
+function pdToast(msg, type = 'neutral', ms) {
+  const box = document.getElementById('toastContainer');
+  if (!box) return;
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.setAttribute('role', type === 'error' ? 'alert' : 'status');
+  if (PD_TOAST_ICON[type]) { const i = document.createElement('span'); i.className = 'ti'; i.textContent = PD_TOAST_ICON[type]; t.appendChild(i); }
+  t.appendChild(document.createTextNode(msg));
+  box.appendChild(t);
+  setTimeout(() => t.remove(), ms || PD_CFG.TOAST_MS[type] || 3200);
+}
+
+// ── §ENTRY-BAR — الـ chips واللون والـ pill ──
+function pdRenderEntryBar() {
+  const c = pdClassify(pdEntry.value);
+  const detected = c.kind === 'single' ? PD_TYPES[c.type].mode : null;
+  if (detected) pdCurMode = detected;                  // الـ chip بيتبع آخر نوع اتعرّف
+  if (!pdEntry.value) pdStartMode = pdCurMode;         // مفيش إدخال شغّال = البداية هي الحالي
+  pdAuto = !!pdEntry.value && pdCurMode !== pdStartMode;
+  document.getElementById('entryBar').dataset.view = pdCurMode;
+  document.querySelectorAll('.entry-chip').forEach(ch => {
+    const on = ch.dataset.m === pdCurMode;
+    ch.classList.toggle('is-on', on);
+    ch.setAttribute('aria-pressed', on ? 'true' : 'false');
+    ch.querySelectorAll('.entry-chip-auto').forEach(x => x.remove());
+    if (on && pdAuto) { const t = document.createElement('span'); t.className = 'entry-chip-auto'; t.textContent = 'تلقائي'; ch.appendChild(t); }
+  });
+  pdEntry.setAttribute('aria-label', PD_MODES[pdCurMode].aria);
+  let ico = pdCurMode === 'manual' ? 'ico-kbd' : 'ico-scan';
+  let text = pdCurMode === 'manual' ? 'كتابة الرقم يدوي' : 'سكانر';
+  if (pdAuto) text = 'اتحوّل تلقائيًا إلى ' + PD_MODES[pdCurMode].to;
+  const hint = document.getElementById('entryHint');
+  hint.dataset.m = pdCurMode;
+  hint.innerHTML = `<svg viewBox="0 0 24 24"><use href="#${ico}"/></svg>${text}`;
+}
+function pdLiveHint() {
+  clearTimeout(pdMeTimer);
+  // الأرقام العربي/الفارسي ← إنجليزي لحظيًا جوّه المربع نفسه
+  const w = pdToWestern(pdEntry.value);
+  if (w !== pdEntry.value) pdEntry.value = w;
+  const v = pdEntry.value;
+  pdRenderEntryBar();
+  if (!v) return;
+  const nn = pdNormalize(v);
+  if (nn.numeric && nn.clean.replace(/\D/g, '').length >= PD_CFG.DIGITS_WARN_MIN) {
+    pdMeTimer = setTimeout(() => {
+      if (pdEntry.value !== v) return;
+      playBeep('fail');
+      pdToast(`الرقم وصل (${nn.clean.length} خانة) ولسه ماتبحثش — اضغط Enter أو «بحث». لو بيتكرر مع السكانر راجع إعداد Enter فيه`, 'error');
+    }, PD_CFG.MISSING_ENTER_MS);
+  }
+}
+
+// ── §FAILS — الفشل والتحذير في الصندوق الأحمر (سطر قصير لكل حاجة + ✕) ──
+function pdAddFail(label, reason) {
+  label = String(label || '—');
+  if (!pdFails.find(f => f.label === label && f.reason === reason)) pdFails.unshift({ id: ++pdFseq, label, reason });
+  playBeep('fail');
+  pdToast(`${label} — ${reason}`, 'error');
+  pdRenderFails();
+}
+function pdRemoveFail(id) { if (pdBusy) return; pdFails = pdFails.filter(f => f.id !== id); pdRenderFails(); pdEntry.focus(); }
+function pdClearFails()   { if (pdBusy) return; pdFails = []; pdRenderFails(); pdEntry.focus(); }
+function pdRenderFails() {
+  const fb = document.getElementById('pdFails');
+  fb.hidden = pdFails.length === 0;
+  fb.innerHTML = pdFails.length ? (pdFails.length > 1
+      ? `<div class="bc-fails-head"><span>${pdFails.length} حاجة ما اتفتحتش</span><button class="btn btn-sm" type="button" id="pdClearFails" ${pdBusy ? 'disabled' : ''}>🗑 احذف الكل</button></div>` : '') +
+    pdFails.map(f => `
+      <div class="bc-fail-row">
+        <span aria-label="فشل">⚠️</span>
+        <span class="bc-fail-lbl">${esc(f.label)}</span>
+        <span class="bc-fail-why">— ${esc(f.reason)}</span>
+        <button class="bc-fail-x" type="button" data-fx="${f.id}" aria-label="احذف ${esc(f.label)} من الصندوق" ${pdBusy ? 'disabled' : ''}>✕</button>
+      </div>`).join('') : '';
+  if (typeof updateRemoveBtn === 'function') updateRemoveBtn();
+}
+document.getElementById('pdFails').addEventListener('click', (e) => {
+  const x = e.target.closest('[data-fx]');
+  if (x) { pdRemoveFail(Number(x.dataset.fx)); return; }
+  if (e.target.closest('#pdClearFails')) pdClearFails();
+});
+
+// ── §ENTRY::fire — Enter أو زرار «بحث» بس. مفيش بحث تلقائي بالتوقيت أبدًا ──
+// ⛔ مفيش setTimeout على حدث input غير تحذير «مفيش Enter». القراءة والمسح جوّه الدالة دي.
+function pdFinishSubmit() {
+  pdEntry.value = '';
+  pdStartMode = pdCurMode;     // الـ chip اللي اتعرّف يفضل هو الحالي — مفيش رجوع للقديم
+  pdRenderEntryBar();
+  if (!pdBusy) pdEntry.focus();
+}
+function pdFire(via) {
+  clearTimeout(pdMeTimer);
+  if (pdBusy) {
+    playBeep('fail');
+    pdToast(pdBusy === 'remove' ? 'جاري التنفيذ — الإدخال مقفول لحد ما يخلص' : 'جاري البحث عن الأوردر — استنى لحد ما يخلص', 'error');
+    return;
+  }
+  const raw = pdEntry.value;
+  const c = pdClassify(raw);
+  if (c.kind === 'empty') return;
+  if (c.kind === 'invalid') {
+    const shown = (pdNormalize(raw).clean || String(raw).trim()).slice(0, 40);
+    pdFinishSubmit();
+    pdAddFail(shown, c.reason);
+    return;
+  }
+  pdFinishSubmit();
+  // مكرر: نفس الأوردر معروض قدامك — مابنعيدش البحث
+  if (currentOrder && (c.type === 'order_name'
+        ? String(currentOrder.name).replace(/^#/, '') === c.value
+        : String(currentOrder.id) === c.value)) {
+    playBeep('dup');
+    pdToast(`${currentOrder.name} معروض قدامك بالفعل`, 'dup');
+    const cardEl = document.querySelector('#orderCard .card');
+    if (cardEl) { cardEl.classList.remove('pd-flash'); void cardEl.offsetWidth; cardEl.classList.add('pd-flash'); }
+    return;
+  }
+  lookupOrder(c.value, { type: c.type });
+}
+function pdSetLock(on) {
+  pdBusy = on ? 'remove' : null;
+  pdEntry.disabled = on;
+  document.getElementById('addBtn').disabled = on;
+  pdRenderFails();
+  if (!on) pdEntry.focus();
+}
+// الضغط على chip = تحديد نقطة البداية (مفيش تثبيت ولا رفض) — أي إدخال بعده بيتعرّف بطوله والـ chip بيتبعه
+function pdSelectChip(m) {
+  if (pdBusy) return;
+  pdCurMode = m; pdStartMode = m;
+  pdEntry.value = '';
+  clearTimeout(pdMeTimer);
+  pdRenderEntryBar();
+  pdEntry.focus();
+}
+pdEntry.addEventListener('input', pdLiveHint);
+pdEntry.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); pdFire('Enter'); } });
+document.getElementById('addBtn').addEventListener('click', () => pdFire('زرار البحث'));
+document.getElementById('entryChips').addEventListener('click', (e) => { const c = e.target.closest('.entry-chip'); if (c) pdSelectChip(c.dataset.m); });
+pdRenderEntryBar();
 
 // ══════════════════════════════════════════════════════
 // §ORDER-JS
 // ══════════════════════════════════════════════════════
-async function lookupOrder(q) {
+async function lookupOrder(q, opts = {}) {
+  // opts.silent = إعادة قراءة بعد الحذف (من غير صوت/توست نجاح تاني)؛ opts.type = نوع الإدخال لصياغة السبب
   const card = document.getElementById('orderCard');
-  card.style.display = '';
-  card.innerHTML = '<div class="card"><div class="q-empty">⏳ جاري البحث عن الأوردر...</div></div>';
+  const hadCard = card.style.display !== 'none' && card.innerHTML.trim() !== '';
+  pdBusy = 'lookup';
+  if (hadCard) card.style.opacity = '.5';
+  else { card.style.display = ''; card.innerHTML = '<div class="card"><div class="q-empty">⏳ جاري البحث عن الأوردر...</div></div>'; }
+  const label = opts.type === 'order_id' ? String(q) : (String(q).startsWith('#') ? String(q) : '#' + q);
+  // السبب القصير للأوردر اللي مش موجود (قاموس الأسباب — unified-entry-box.md § ٤)
+  const notFoundWhy = opts.type === 'order_id' ? 'مفيش أوردر بباركود الفاتورة ده على شوبيفاي'
+                    : 'مفيش أوردر بالرقم ده على شوبيفاي';
+  const dropEmptyCard = () => { if (!hadCard) { card.style.display = 'none'; card.innerHTML = ''; } };
   try {
     const d = await apiGet('lookup_order', { q });
-    if (!d.ok) { card.innerHTML = `<div class="card"><div class="pd-elig-banner bad">${esc(d.error)}</div></div>`; playBeep('warn'); return; }
+    if (!d.ok) {   // الفشل في الصندوق الأحمر بسطر قصير — مش في كارت الأوردر
+      dropEmptyCard(); pdAddFail(label, notFoundWhy); return;
+    }
     currentOrder = d.order;
     renderOrder(d.order, d.eligibility);
+    if (!opts.silent) { playBeep('success'); pdToast(`اتفتح ${d.order.name}`, 'success'); }
   } catch (e) {
-    card.innerHTML = `<div class="card"><div class="pd-elig-banner bad">تعذّر الاستعلام: ${esc(e.message)}</div></div>`;
-    playBeep('error');
+    dropEmptyCard();
+    // الـ Worker بيرجّع 404 على «الأوردر غير موجود» — ده مش «تعذّر استعلام»
+    pdAddFail(label, e.status === 404 ? notFoundWhy : `تعذّر الاستعلام: ${e.message}`);
+  } finally {
+    pdBusy = null;
+    card.style.opacity = '';
+    pdRenderFails();
+    pdEntry.focus();
   }
 }
 
@@ -465,7 +730,7 @@ function renderOrder(order, elig) {
         <div class="t" title="${esc(li.title)}">${esc(li.title)}${li.variantTitle ? ' — ' + esc(li.variantTitle) : ''}</div>
         <div class="s">${esc(li.sku || '—')}</div>
       </div>
-      <div class="qty">${li.removed ? 'اتشال' : (li.removable ? `الكمية: ${li.currentQuantity}` : 'قطعة أصلية — خارج النطاق')}</div>
+      <div class="qty">${li.removed ? 'تم الحذف' : (li.removable ? `الكمية: ${li.currentQuantity}` : 'قطعة أصلية — خارج النطاق')}</div>
     </div>`).join('');
 
   card.innerHTML = `
@@ -491,7 +756,8 @@ function renderOrder(order, elig) {
           <label><input type="checkbox" id="optRestock" checked disabled> رجّع الكمية للمخزون (Restock)</label>
           <input type="text" id="optReason" placeholder="سبب الحذف (اختياري)">
         </div>
-        <button class="btn btn-red" id="removeBtn" disabled onclick="confirmRemove()">🗑 شيل المنتجات المحددة</button>
+        <button class="btn btn-red" id="removeBtn" disabled onclick="confirmRemove()">🗑 حذف المنتجات المحددة</button>
+        <span id="removeWhy" style="margin-inline-start:10px;font-size:12px;font-weight:700;color:var(--red-dark);"></span>
         <div id="removeResult"></div>
       ` : ''}
     </div>`;
@@ -501,8 +767,11 @@ function updateRemoveBtn() {
   const n = document.querySelectorAll('#orderCard input[type="checkbox"][data-li]:checked').length;
   const btn = document.getElementById('removeBtn');
   if (!btn) return;
-  btn.disabled = n === 0;
-  btn.textContent = n ? `🗑 شيل ${n} منتج محدد` : '🗑 شيل المنتجات المحددة';
+  const blocked = pdFails.length > 0;   // أي صف في الصندوق الأحمر = التنفيذ مقفول
+  btn.disabled = n === 0 || blocked || !!pdBusy;
+  btn.textContent = n ? `🗑 حذف ${n} منتج محدد` : '🗑 حذف المنتجات المحددة';
+  const why = document.getElementById('removeWhy');
+  if (why) why.textContent = blocked ? 'مقفول: فيه حاجات في الصندوق الأحمر — احذفها بـ ✕ الأول.' : '';
 }
 
 // ══════════════════════════════════════════════════════
@@ -517,14 +786,14 @@ async function confirmRemove() {
 
   const ok = await askConfirm({
     header: '⚠️ تأكيد التسليم الجزئي',
-    lead: `هتشيل ${ids.length} منتج من الأوردر ${currentOrder.name}:`,
+    lead: `هتحذف ${ids.length} منتج من الأوردر ${currentOrder.name}:`,
     lines: [
       { text: currentOrder.machine === 's2'
           ? '🚫 الحذف نهائي — الأوردر هيفضل S2 بمنتجات أقل'
           : '🚫 الحذف نهائي — الأوردر هيرجع Shipped بمنتجات أقل' },
       { text: restock ? '📦 الكمية هترجع للمخزون' : '⚠️ الكمية مش هترجع للمخزون (بلا Restock)', soft: true },
     ],
-    okLabel: `تأكيد — شيل ${ids.length} منتج`,
+    okLabel: `تأكيد — احذف ${ids.length} منتج`,
   });
   if (!ok) return;
 
@@ -532,20 +801,24 @@ async function confirmRemove() {
   btn.disabled = true;
   const resEl = document.getElementById('removeResult');
   resEl.innerHTML = '<div class="q-empty">⏳ جاري التنفيذ — من فضلك متقفلش الصفحة...</div>';
+  pdSetLock(true);   // Standards #43 — مربع الإدخال والبحث مقفولين طول التنفيذ
 
   try {
     const d = await apiPost('remove_items', {
       employee: currentEmployee.username, orderId: currentOrder.id, lineItemIds: ids, restock, reason,
     });
     renderRemoveResult(d);
-    if (d.status === 'success' || d.status === 'already') { playBeep('success'); await lookupOrder(currentOrder.name); }
-    else if (d.status === 'warning') { playBeep('warn'); await lookupOrder(currentOrder.name); }
-    else { playBeep('error'); btn.disabled = false; }
+    pdSetLock(false);
+    if (d.status === 'success')      { playBeep('success'); await lookupOrder(currentOrder.name, { silent: true }); }
+    else if (d.status === 'already') { playBeep('dup');     await lookupOrder(currentOrder.name, { silent: true }); }
+    else if (d.status === 'warning') { playBeep('fail');    await lookupOrder(currentOrder.name, { silent: true }); }
+    else { playBeep('fail'); updateRemoveBtn(); }
   } catch (e) {
+    pdSetLock(false);
     // 🔴 فشل شبكة/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — الحذف مالوش رجعة،
     //    فالرسالة بتقول يراجع الأوردر قبل أي إعادة.
     resEl.innerHTML = `<div class="pd-result error"><span class="badge">✗ ما قدرناش نتأكد</span>${esc(e.message)}<br>⚠️ افتح الأوردر تاني وشوف البنود قبل ما تعيد المحاولة — الحذف ممكن يكون اتنفّذ فعلاً.</div>`;
-    playBeep('error'); btn.disabled = false;
+    playBeep('fail'); updateRemoveBtn();
   }
 }
 
@@ -571,7 +844,7 @@ function renderRemoveResult(d) {
 const LOG_PAGE_SIZE = 100;
 let logCurrentPage = 1, logTotalCount = 0, logSearchTimer = null;
 const msState = { employee: new Set(), type: new Set() };
-const TYPE_LABELS = { remove_item: 'شيل منتج', remove_failed: 'فشل الشيل', rejected: 'مرفوض' };
+const TYPE_LABELS = { remove_item: 'حذف منتج', remove_failed: 'فشل الحذف', rejected: 'مرفوض' };
 let allEmployeesCache = null;
 
 document.getElementById('logSearch').addEventListener('input', function () {
