@@ -71,6 +71,20 @@ const EVENTS = [
   ev({ tracking_number: 'TCP1', business_reference: '#1010', state: 23, description: 'Picked up from consignee', bosta_type: 'CUSTOMER_RETURN_PICKUP', matched_slot: 'S2', bosta_timestamp: ts(5), received_at: new Date(ts(5)).toISOString() }),
   // T11: CUSTOMER_RETURN_PICKUP لسه ماوصلهاش 23 — تفضل في «تحت التوصيل»
   ev({ tracking_number: 'TCP2', business_reference: '#1011', state: 41, description: 'Out for pickup', bosta_type: 'CUSTOMER_RETURN_PICKUP', matched_slot: 'S2', bosta_timestamp: ts(4), received_at: new Date(ts(4)).toISOString() }),
+  // 31-10-2026 — Delivered اللي بوسطة اتراجعت عنه: 45 ثم أي حدث تاني = رجوع لـ«تحت التوصيل»/In-Return وخروج من Delivered
+  // TR1: 45 ثم Received at warehouse (SEND) → «تحت التوصيل»
+  ev({ tracking_number: 'TR1', business_reference: '#1021', state: 45, description: 'Delivered', bosta_timestamp: ts(30), received_at: new Date(ts(30)).toISOString() }),
+  ev({ tracking_number: 'TR1', business_reference: '#1021', state: 24, description: 'Received at warehouse', bosta_timestamp: ts(29), received_at: new Date(ts(29)).toISOString() }),
+  // TR2: 45 ثم Received at warehouse بنوع RTO → In-Return
+  ev({ tracking_number: 'TR2', business_reference: '#1022', state: 45, description: 'Delivered', bosta_timestamp: ts(31), received_at: new Date(ts(31)).toISOString() }),
+  ev({ tracking_number: 'TR2', business_reference: '#1022', state: 24, description: 'Received at warehouse', bosta_type: 'RTO', bosta_timestamp: ts(27), received_at: new Date(ts(27)).toISOString() }),
+  // TR3: 45 ثم 24 ثم 45 تاني → لسه Delivered (آخر حدث 45)
+  ev({ tracking_number: 'TR3', business_reference: '#1023', state: 45, description: 'Delivered', bosta_timestamp: ts(33), received_at: new Date(ts(33)).toISOString() }),
+  ev({ tracking_number: 'TR3', business_reference: '#1023', state: 24, description: 'Received at warehouse', bosta_timestamp: ts(32), received_at: new Date(ts(32)).toISOString() }),
+  ev({ tracking_number: 'TR3', business_reference: '#1023', state: 45, description: 'Delivered', bosta_timestamp: ts(26), received_at: new Date(ts(26)).toISOString() }),
+  // TR4: 45 ثم 41 ثم 46 → Returned وبرّه Delivered
+  ev({ tracking_number: 'TR4', business_reference: '#1024', state: 45, description: 'Delivered', bosta_timestamp: ts(35), received_at: new Date(ts(35)).toISOString() }),
+  ev({ tracking_number: 'TR4', business_reference: '#1024', state: 46, description: 'Returned to business', bosta_type: 'RTO', bosta_timestamp: ts(25), received_at: new Date(ts(25)).toISOString() }),
   // تاريخ باظ (الحارس): لازم ما يوقّفش رسم الجدول
   ev({ tracking_number: 'T5', business_reference: '#1005', state: 21, delivery_promise_date: '25-09-2026', bosta_timestamp: ts(3), received_at: new Date(ts(3)).toISOString() }),
 ];
@@ -82,7 +96,7 @@ function mockWorker(page, calls) {
     const action = u.searchParams.get('action') || '';
     calls.push({ from: (() => { try { return req.frame().url(); } catch { return ''; } })(), host: u.host, action, auth: req.headers()['authorization'] || '', method: req.method() });
     let body = { ok: true };
-    if (action === 'get_config') body = { version: '1.12.0' };
+    if (action === 'get_config') body = { version: '1.13.0' };
     else if (action === 'list_events') body = { events: EVENTS, maxId: id, updated: [] };   // v1.10.0: بلا raw_payload
     else if (action === 'get_event_payload') body = { id: Number(u.searchParams.get('id')), raw_payload: '{"a":1,"id":' + u.searchParams.get('id') + '}' };
     else if (action === 'diag') body = { checks: [], lastEvent: { business_reference: '#1005', received_at: new Date().toISOString() }, count24h: 7, dup24h: 0, matchFailed24h: 1, eventsTableOk: true, silenceThresholdHours: 3 };
@@ -141,8 +155,9 @@ sec('② المنطق — صف لكل رقم تتبع والحالات النه�
   await page.waitForSelector('#eventsBody-main tr');
   const main = await rowsOf(page, 'main');
   const txt = main.join('\n');
-  is(main.length === 4, 'تحت التوصيل: T1 · T5 · T9 · TCP2 بس — صف واحد لكل رقم', main.join(' || '));
+  is(main.length === 5, 'تحت التوصيل: T1 · T5 · T9 · TCP2 · TR1 بس — صف واحد لكل رقم', main.join(' || '));
   is(txt.includes('T1') && txt.includes('T5'), 'T1 وT5 ظاهرين');
+  is(txt.includes('TR1') && !txt.includes('TR3'), '🔴 TR1 (Delivered ثم Received at warehouse) رجعت لـ«تحت التوصيل» · وTR3 (آخر حدث Delivered) لأ');
   is(!txt.includes('T6') && !txt.includes('T7'), '⛔ T6 (RTO) اتنقلت من «تحت التوصيل» لتاب In-Return')
   is(!txt.includes('T2') && !txt.includes('T3') && !txt.includes('T4'), '⛔ T2 (Delivered) وT3 (Returned) وT4 (Terminated) اتشالوا من «تحت التوصيل»');
   is(txt.includes('Customer not answering'), '🔴 سبب فشل الاستثناء القديم لسه معروض على T1 رغم إن آخر حالتها Out for delivery');
@@ -152,7 +167,7 @@ sec('② المنطق — صف لكل رقم تتبع والحالات النه�
   {
     await page.click('#tab-inreturn');
     const r = await rowsOf(page, 'inreturn');
-    is(r.length === 3 && r.some(x => x.includes('T6')) && r.some(x => x.includes('T8')) && r.some(x => x.includes('TCP1')) && !r.some(x => x.includes('TCP2')) && !r.some(x => x.includes('T9')), '🔁 تاب In-Return: T6 (RTO) وT8 (استبدال بعد 23) — وT7 (RTO ووصلت 46) وT9 (استبدال قبل 23) مش هنا', r.join(' || '));
+    is(r.length === 4 && r.some(x => x.includes('TR2')) && r.some(x => x.includes('T6')) && r.some(x => x.includes('T8')) && r.some(x => x.includes('TCP1')) && !r.some(x => x.includes('TCP2')) && !r.some(x => x.includes('T9')), '🔁 تاب In-Return: T6 (RTO) وT8 (استبدال بعد 23) — وT7 (RTO ووصلت 46) وT9 (استبدال قبل 23) مش هنا', r.join(' || '));
     const t8 = r.find(x => x.includes('T8')) || '';
     is(t8.includes('Out for Return') && !t8.includes('Out for exchange'), '🔁 T8: آخر حالة 41 بعد 23 بتتعرض «Out for Return» (مش Out for exchange)', t8);
     await page.click('#tab-main');
@@ -164,8 +179,9 @@ sec('② المنطق — صف لكل رقم تتبع والحالات النه�
     await page.click(`#tab-${tab}`);
     const r = await rowsOf(page, tab);
     // T7 (RTO ووصلت 46) بتروح Returned مش In-Return
-    const want = tab === 'returned' ? 2 : 1;
-    is(r.length === want && r.some(x => x.includes(tn)) && (tab !== 'returned' || r.some(x => x.includes('T7'))), `تاب ${tab}: ${want === 2 ? 'T3 وT7' : 'صف واحد ' + tn}`, r.join(' || '));
+    // 31-10-2026: returned = T3 · T7 · TR4 · delivered = T2 · TR3 (TR1/TR2/TR4 خرجوا لأن آخر حدث ليهم مش 45)
+    const want = tab === 'returned' ? 3 : tab === 'delivered' ? 2 : 1;
+    is(r.length === want && r.some(x => x.includes(tn)) && (tab !== 'returned' || (r.some(x => x.includes('T7')) && r.some(x => x.includes('TR4')))) && (tab !== 'delivered' || (r.some(x => x.includes('TR3')) && !r.some(x => x.includes('TR1') || x.includes('TR2') || x.includes('TR4')))), `تاب ${tab}: ${tab === 'returned' ? 'T3 وT7 وTR4' : tab === 'delivered' ? 'T2 وTR3 بس' : 'صف واحد ' + tn}`, r.join(' || '));
   }
   const t4 = (await rowsOf(page, 'terminated'))[0] || '';
   is(await page.$('#eventsBody-terminated a.order-link') === null && t4.includes('1004'), 'T4 بلا shopify_order_id → رقم الأوردر نص عادي بلا لينك');
