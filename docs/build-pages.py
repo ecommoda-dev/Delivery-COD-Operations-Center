@@ -3480,6 +3480,10 @@ renderAboutWorkers();
 //    كاش أحدث من `ECO_CACHE_TTL_MS` (١٠ دقايق) = **صفر نداء** عند الفتح، والأقدم بيترسم ويتجاب في الخلفية.
 //    الدخول والخروج بين الأدوات مابقاش بيعمل نداءات زيادة على الـ Workers. الجلب اليدوي بزرار «تحديث» بس.
 document.getElementById('qFreshMount').innerHTML = ecoFreshUnitHTML({ id: 'qFresh', onclick: 'qLoad(false)' });
+// 🔴 **صف الفلاتر لازم يتبني قبل الرسم من الكاش، وبنود الفلاتر لازم تتبني منه** — الكاش
+//    الطازج (< ١٠ دقايق) بيمنع `qLoad` عند الفتح، و`qSyncMsItems()` كانت بتتنادى من
+//    `qLoad` بس: فالقمع كان بيفتح «لا توجد عناصر» والمربعات مابتفلترش — لحد أول «تحديث».
+qBuildMsRow();
 const cacheFresh = (function drawFromCache() {
   const c = cacheGet(__CACHE__);
   if (!c || !c.data || !Array.isArray(c.data.orders)) return false;
@@ -3487,15 +3491,15 @@ const cacheFresh = (function drawFromCache() {
   qState.at        = new Date(c.at);
   qState.truncated = !!c.data.truncated;
   qState.minDay    = c.data.minCreatedDay || null;
+  qSyncMsItems();
   qRender();
   qSetFresh();
   return c.ageMs >= 0 && c.ageMs < ECO_CACHE_TTL_MS;
 })();
 
-// ⚠️ **الترتيب مهم:** صف الفلاتر لازم يتبني **قبل** أول `qLoad` — دوال
-//    الفلتر بتكتب في عناصر جوّاه، ولو اتنادت قبل ما تتخلق بتقع بصمت
-//    (`getElementById` بترجّع `null` والدالة بتخرج من غير ما تعمل حاجة).
-qBuildMsRow();
+// ⚠️ **الترتيب مهم:** صف الفلاتر (`qBuildMsRow`) اتبنى فوق **قبل** الرسم من الكاش
+//    وقبل أول `qLoad` — دوال الفلتر بتكتب في عناصر جوّاه، ولو اتنادت قبل ما تتخلق
+//    بتقع بصمت (`getElementById` بترجّع `null` والدالة بتخرج من غير ما تعمل حاجة).
 qUpdateSortHeaderUI();
 if (!cacheFresh) qLoad(true);
 </script>
