@@ -18,6 +18,9 @@
   --id-shipped:#334155;
   --id-shipped-light:#f1f5f9;
   --id-shipped-border:#cbd5e1;
+  --id-return:#9c3a22;
+  --id-return-light:#fbf1ee;
+  --id-return-border:#e6bfb3;
   --sec-bosta-bg:#faf5ff;
   --sec-bosta-border:#e9d5ff;
   --sec-bosta-fg:#6b21a8;
@@ -39,6 +42,8 @@
 .eco-qrow.id-track,.eco-sm.id-track{--idc:var(--id-track);--idc-light:var(--id-track-light);--idc-border:var(--id-track-border)}
 .eco-qrow.id-ready,.eco-sm.id-ready{--idc:var(--id-ready);--idc-light:var(--id-ready-light);--idc-border:var(--id-ready-border)}
 .eco-qrow.id-shipped,.eco-sm.id-shipped{--idc:var(--id-shipped);--idc-light:var(--id-shipped-light);--idc-border:var(--id-shipped-border)}
+/* 🟤 «في طريق الرجوع» (v1.65.0) — بني-أحمر للدلالة على المرتجعات، بعيد عن أحمر العمر (#dc2626) وكهرماني العمر */
+.eco-qrow.id-return,.eco-sm.id-return{--idc:var(--id-return);--idc-light:var(--id-return-light);--idc-border:var(--id-return-border)}
 .eco-chip.qc-flag{background:var(--amber-light);color:var(--amber-dark);border-color:var(--amber-border)}
 .eco-money{display:inline-flex;align-items:center;gap:7px;padding:3px 11px;border-radius:var(--radius-sm);border:1.5px solid var(--border-strong);background:var(--surface);font-size:11.5px;font-weight:800;color:var(--text-secondary);white-space:nowrap}
 .eco-money b{font-family:var(--font-mono);font-size:13px;font-weight:900;color:var(--text-primary);direction:ltr;font-variant-numeric:tabular-nums}

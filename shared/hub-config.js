@@ -92,6 +92,12 @@ const ECO_WORKERS = {
   // 🔴 **`1.2.0` من v1.58.0** — عمود «العنوان» في طابور المشحون بيقرا `address1`/`address2` من الرد.
   //    على Worker أقدم العمود بيقول «بلا عنوان» على كل صف (الحارس بيسمّي الأداة والنسخة).
   shipped: { url: 'https://shipped-orders-worker.ecommoda-dev.workers.dev', min: '1.2.0', label: 'طابور المشحون' },
+  // 🟤 **«في طريق الرجوع» (v1.65.0) — تالت طابور في «الحالات الانتقالية»** · Worker في ريبو `In-Return-Orders`
+  //    (**Worker وبس** — الواجهة `In-Return-Orders.html` جوّه الهب). `1.0.0` = أول نسخة (مفيش نسخة أقدم)، فالحارس
+  //    هنا بيمسك الحالة الوحيدة الممكنة: الـ Worker ما اتنشرش أو الـ Promote ناقص (`get_config` بيرجّع 404/401)،
+  //    وبيسمّي الأداة بدل ما الموظف يدوّر. 🔴 **والسر سر الهب** (`delivery_cod_ops`) — الـ Worker لازم يتضم للمجموعة
+  //    (`WORKER_SECRET` يتدوّر من الداشبورد) وإلا كل نداء `401`. نفس الأرضية `01/04/2026` بالحرف.
+  inReturn: { url: 'https://in-return-orders-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'في طريق الرجوع' },
   // 🔴 **Worker الدخول — بتاع الهب نفسه، وعايش في **نفس الريبو**.**
   //    الهب واجهة + Worker دخول = الشكل القياسي (قرار ٨ في
   //    `ecommoda-tool-migration-playbook`). بيخدم: `get_employees` ·
@@ -221,7 +227,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.64.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.65.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -279,6 +285,7 @@ const SHOP_HANDLE  = '6c7e1a-53';
 const ECO_SESSION_KEY   = 'dco_session';
 const ECO_CACHE_READY   = 'dco_queue_ready';
 const ECO_CACHE_SHIPPED = 'dco_queue_shipped';
+const ECO_CACHE_INRETURN = 'dco_queue_inreturn';  // كاش طابور «في طريق الرجوع» (v1.65.0)
 const ECO_CACHE_BOSTA_UPLOAD = 'dco_queue_bosta';    // عدّادات «رفع بوسطة» التلاتة (v1.38.0)
 const ECO_CACHE_WEBHOOK = 'dco_queue_webhook';  // ملخّص «مستقبل حالة بوسطة» — رد `queue_summary` خام (v1.39.0)
 const ECO_CACHE_FOLLOWUP = 'dco_queue_followup'; // ملخّص «متابعة التأجيلات» — رد `queue_summary` خام (v1.44.0)
@@ -298,7 +305,7 @@ const ECO_HUB = {
   // ⚠️ `dco_audit_ready` (حالة جرد المكتب) **مش** هنا عن قصد — مش بيانات حساسة،
   //    وبتتحمّل ساعات شغل (Standards #52 · multi-page-hub § ٩).
   clearKeys: [
-    ECO_CACHE_READY, ECO_CACHE_SHIPPED, ECO_CACHE_BOSTA_UPLOAD, ECO_CACHE_WEBHOOK, ECO_CACHE_FOLLOWUP,
+    ECO_CACHE_READY, ECO_CACHE_SHIPPED, ECO_CACHE_INRETURN, ECO_CACHE_BOSTA_UPLOAD, ECO_CACHE_WEBHOOK, ECO_CACHE_FOLLOWUP,
     ...Object.values(ECO_CACHE_UPLOAD_ROWS), ECO_CACHE_FOLLOWUP_ROWS,
   ],
   // الأدوات المدموجة (متولّدة/منقولة) علم الدفعة عندها اسمه معروف، فبنقراه بالاسم —
@@ -310,5 +317,5 @@ const ECO_HUB = {
     return false;
   },
   secretNote:  "السر المشترك لمجموعة <code>delivery_cod_ops</code> — <b>قيمة واحدة لكل Workers المركز</b>، ومستقلة عن سر محطة المخزن",
-  workersNote: "delivery-cod-operations-center-worker (الدخول) · ready-orders-worker · shipped-orders-worker · order-status-updater-worker · cod-payment-center-worker · partial-delivery-worker · bosta-orders-upload-worker · courier-names-worker · bosta-webhook-status-receiver-worker",
+  workersNote: "delivery-cod-operations-center-worker (الدخول) · ready-orders-worker · shipped-orders-worker · in-return-orders-worker · order-status-updater-worker · cod-payment-center-worker · partial-delivery-worker · bosta-orders-upload-worker · courier-names-worker · bosta-webhook-status-receiver-worker",
 };

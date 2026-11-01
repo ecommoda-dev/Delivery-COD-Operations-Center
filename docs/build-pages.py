@@ -1391,6 +1391,32 @@ SHIPPED_ABOUT_COLS = '''            <li><b>العنوان</b> — <code>address1
                 دي مش تزويق: من غيرها الموظف بيفتكر إن الحقول الجديدة اتملّت وهي
                 لسه فاضية على كل الأوردرات.</li>'''
 
+# ══════════════════════════════════════════════════════════════
+# 🟤 «في طريق الرجوع» (v1.65.0 · طلب أحمد 01-11-2026) — تالت صفحة طابور
+# ══════════════════════════════════════════════════════════════
+# 🔴 **نسخة من «المشحون» بقيمة حالة مختلفة** (`In-Return` بدل `Shipped`) —
+#    نفس الأعمدة (مع رقم التتبع والعنوان بعد المندوب) ونفس التصدير. السبب:
+#    رقم التتبع هو أهم عمود في مرتجع في الطريق، والتصدير بيتطلب لمتابعة
+#    المندوب. 🔴 **والتصدير نفس كود المشحون بالحرف** — بس اسم الملف والشيت
+#    (`In-Return-Orders-…`) — فمفيش نسخة تانية بتفترق (درس R1).
+# ⛔ بلا جرد ولا مربعات «موقع الشحنة» ولا عمود ملحوظات — نفس أسباب «المشحون»
+#    بالحرف (الشرح عند معاملات صفحة المشحون).
+EXPORT_JS_INRETURN = EXPORT_JS.replace('Shipped-Orders', 'In-Return-Orders')
+assert 'Shipped-Orders' not in EXPORT_JS_INRETURN
+
+INRETURN_ABOUT_COLS = SHIPPED_ABOUT_COLS.replace('shipped-orders-worker', 'in-return-orders-worker').replace('<b>1.2.0</b>', '<b>1.0.0</b>')
+INRETURN_ABOUT_COLS += '''
+            <li><b>الصف ممكن يبقى «شحنة أصلية» أو «استبدال/استرجاع»</b> — حسب أنهي حقل
+                قيمته <code>In-Return</code>: <code>custom.manual_status</code> (حدث RTO
+                من بوسطة بيكتبه) أو <code>custom.status_2_r_e</code> (دورة R/E).
+                ⚠️ والأوردر اللي الحقلين الاتنين عليهم <code>In-Return</code> بيتعدّ
+                <b>مرة واحدة على S1</b> وبياخد علامة مراجعة.</li>'''
+
+CL_V165_INRETURN = r'''          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🟤 <b>أول إصدار</b> — طابور <b>«في طريق الرجوع (In-Return)»</b>: الأوردرات اللي حالتها <code>In-Return</code> في الشحنة الأصلية أو دورة الاستبدال/الاسترجاع. كانت <b>برّه أي طابور</b> في الهب (طابور «المشحون» بيقول <code>Shipped</code> بالحرف). ⛔ ومحتاج <code>in-return-orders-worker</code> <b>1.0.0</b>.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>⬇ <b>زرار «تصدير XLSX»</b> بعد الفلاتر الحالية — اسم الملف <code>In-Return-Orders-{المندوب}-{العدد}.xlsx</code> · 🔗 رقم التتبع لينك بوسطة · 🔴 الفلاتر في رؤوس الأعمدة · الأرضية <code>01/04/2026</code> بالحرف زي الطابورين التانيين.</span></li>
+'''
+
+
 PAGES = [
   dict(
     file='Ready-Orders.html', key='ready', status='Ready', action='get_ready_queue',
@@ -1496,15 +1522,50 @@ PAGES = [
              و<b>محدش سجّل لها نتيجة نهائية</b> لسه. ⚠️ <code>In-Return</code>
              <b>مش داخلة</b> في الطابور ده (بند مفتوح).''',
   ),
+  dict(
+    file='In-Return-Orders.html', key='inreturn', status='In-Return', action='get_in_return_queue',
+    worker='inReturn', cache='ECO_CACHE_INRETURN',
+    icon='↩️', title='في طريق الرجوع', subtitle='مركز عمليات الشحن والتحصيل',
+    emptyOk='مفيش مرتجعات في الطريق دلوقتي',
+    packCol='تاريخ التغليف',
+    # 🟤 نفس معاملات «المشحون» بالحرف: رقم التتبع كعمود زيادة · العنوان بعد المندوب ·
+    #    بلا موقع الشحنة/ملحوظات/جرد. (الأسباب مكتوبة عند معاملات صفحة المشحون فوق.)
+    extraHead='<th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort(\'tracking\')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th>',
+    extraFilter='',
+    extraCell="""      <td>${trackingCell(o)}</td>\n""",
+    extraFn=TR_FN,
+    waChipsBox='', waChipsCall='', waChipsJs='',
+    addrHead='', addrCell='', addrFn=ADDR_FN,
+    addrAfterHead='<th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort(\'address\')">العنوان<span class="sort-icon" data-q-sort="address"></span></th>',
+    addrAfterCell="""      <td class="addr-cell">${addressCell(o)}</td>\n""",
+    noteHead='', noteCell='', noteFn='',
+    exportLib=EXPORT_LIB, exportBtn=EXPORT_BTN, exportJs=EXPORT_JS_INRETURN,
+    aboutCols=INRETURN_ABOUT_COLS,
+    cols=9,
+    auditCss='', auditTabs='', auditLib='', auditView='', auditJs='', auditAbout='',
+    apiFns='apiGet',
+    # 🔴 صفحة جديدة بنسخة واحدة في السجل — `clSingle` بيستبدل كتل السجل التاريخية
+    #    (v1.38.0/v1.33.0/v1.9.0 بتوع الطابورين التانيين) بكتلة واحدة، لأن الصفحة دي
+    #    مالهاش تاريخ قبل v1.65.0 — بند عن تغيير مماثل في صفحة تانية كان هيتقري ادعاء كاذب.
+    # ⚠️ html-builder v8.5.0 مش v8.6.0 عن قصد: جدول الطابور المشترك اتراجع على v8.5.0 (فلاتر رأس العمود · عناوين ثابتة · سحب العرض)،
+    #    وبنود v8.6.0 (فلتر نص بتوكنز · نافذة أرقام · قايمة تاريخ بأقسام · فلتر وقت · عرض أعمدة متماثل) 🟡 مُستحسن **ما اتطبّقتش** — بتتطبّق على الثلاث
+    #    صفحات مع بعض (درس R1)، مش على الصفحة الجديدة لوحدها.
+    skills='html-builder v8.5.0 (جدول الطابور المشترك) · worker-builder v3.10.0 · constants v4.4.0 · order-lifecycle v1.9.0 — 01-11-2026',
+    clSingle=True, clItems=CL_V165_INRETURN, clV133='', clPrev='',
+    aboutWhat='''الأوردرات اللي حالتها <code>In-Return</code> — مرتجعة وفي طريقها
+             للمخزن و<b>محدش سجّل لها <code>Returned</code></b> لسه. 🔴 <b>مفيهاش
+             أوردرات <code>Shipped</code></b> — دي في طابور «تحت التوصيل (Shipped)»،
+             والأوردر بينتقل من هناك لهنا لما حالته تتغيّر (حدث RTO).''',
+  ),
 ]
 
 TPL = r'''<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- skills: html-builder v8.5.0 · worker-builder v3.7.0 · constants v3.1.0 · order-lifecycle v1.8.0 — 26-10-2026 -->
+__SKILLS__
 <!-- ══════════════════════════════════════════════════════════════
      🔴 **الملف ده متولّد من `docs/build-pages.py`.**
-     الصفحتان (`Ready-Orders.html` · `Shipped-Orders.html`) **متطابقتان
+     الصفحات (`Ready-Orders.html` · `Shipped-Orders.html` · `In-Return-Orders.html`) **متطابقة
      بالحرف** فيما عدا المعاملات في أول المولّد (الحالة · الـ endpoint ·
      العمود الزيادة). ده تطبيق مباشر لدرس R1: نسختان بتتعدّلا بالإيد
      بيفترقا مع أول تعديل، واتصلح في واحدة وفضل مكسور في التانية لشهور.
@@ -1525,7 +1586,7 @@ __EXPORT_LIB__
 <style>
 /* ══════════════════════════════════════════════════════════════
    §STYLES — الصفحة دي بس. مفيش كتلة توكنز هنا (كلها في الـ shell).
-   ⚠️ الملفين (`Ready-Orders.html` · `Shipped-Orders.html`) **متطابقين
+   ⚠️ الملفات (`Ready-Orders.html` · `Shipped-Orders.html` · `In-Return-Orders.html`) **متطابقة
       بالحرف** في الكتلة دي — أي تعديل يتعمل في الاتنين في نفس التمريرة
       (درس R1).
    ══════════════════════════════════════════════════════════════ */
@@ -3509,6 +3570,21 @@ if (!cacheFresh) qLoad(true);
 
 for p in PAGES:
     out = TPL
+    # 🔴 صفحة جديدة بلا تاريخ: كتلة سجل واحدة بدل الكتل التاريخية بتاعة الطابورين التانيين.
+    if p.get('clSingle'):
+        a = out.index('      <!-- ⚠️ بادج أول كتلة')
+        b = out.index('    </div>\n    <div class="eco-modal-ftr"><button class="btn-ghost" onclick="closeChangelog()">')
+        out = out[:a] + (
+            '      <div class="cl-version-block">\n'
+            '        <div class="cl-version-row">\n'
+            '          <span class="cl-ver-badge" id="clLatestVerBadge">v1.65.0</span>\n'
+            '          <span class="cl-ver-date">01-11-2026</span>\n'
+            '        </div>\n'
+            '        <ul class="cl-items">\n__CL_ITEMS__        </ul>\n'
+            '      </div>\n') + out[b:]
+    # 🔴 بصمة المهارات (Rule 8) **لكل صفحة بتاعتها** — صفحة جديدة بتتكتب على إصدارات اليوم،
+    #    والتانيتين بصمتهم ما اتغيّرتش لأنهم ما اتراجعوش على الإصدارات الأحدث.
+    out = out.replace('__SKILLS__', '<!-- skills: ' + p.get('skills', 'html-builder v8.5.0 · worker-builder v3.7.0 · constants v3.1.0 · order-lifecycle v1.8.0 — 26-10-2026') + ' -->')
     out = out.replace('__TITLE__', p['title']).replace('__SUBTITLE__', p['subtitle'])
     out = out.replace('__ICON__', p['icon'])
     out = out.replace('__EMPTY_OK__', p['emptyOk'])
@@ -3554,7 +3630,7 @@ for p in PAGES:
                         '__EXTRA_FN__','__ADDR_HEAD__','__ADDR_CELL__','__ADDR_FN__',
                         '__ADDR_AFTER_HEAD__','__ADDR_AFTER_CELL__',
                         '__NOTE_HEAD__','__NOTE_CELL__','__NOTE_FN__',
-                        '__ABOUT_COLS__','__EXTRA_FILTER__','__AUDIT_CSS__','__AUDIT_TABS__',
+                        '__SKILLS__','__ABOUT_COLS__','__EXTRA_FILTER__','__AUDIT_CSS__','__AUDIT_TABS__',
                         '__WA_CHIPS__','__WA_CHIPS_CALL__','__WA_CHIPS_JS__',
                         '__AUDIT_LIB__','__EXPORT_LIB__','__EXPORT_BTN__','__EXPORT_JS__','__AUDIT_VIEW__','__AUDIT_JS__','__AUDIT_ABOUT__',
                         '__API_FNS__','__CL_ITEMS__','__CL_V133__','__CL_PREV__'] if t in out]

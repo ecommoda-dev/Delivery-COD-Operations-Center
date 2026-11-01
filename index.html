@@ -198,7 +198,11 @@
                 تحت اسم الصف في الشاشة الرئيسية هي القيمة دي بالحرف</b> — مش وصف.</li>
             <li><b>«تحت التوصيل (Shipped)»</b> = نفس الحقلين بقيمة <code>Shipped</code> — يعني
                 خرج ومحدش سجّل <code>Delivered</code> ولا <code>Returned</code> لسه.
-                ⚠️ <code>In-Return</code> <b>مش داخلة</b> في الرقم ده.</li>
+                ⚠️ <code>In-Return</code> <b>مش داخلة</b> في الرقم ده — ليها طابور مستقل
+                تحته (الصف اللي بعده).</li>
+            <li><b>«في طريق الرجوع (In-Return)»</b> (v1.65.0) = نفس الحقلين بقيمة <code>In-Return</code> —
+                مرتجع في الطريق ومحدش سجّل <code>Returned</code> لسه. الأوردر بينتقل من «تحت التوصيل» لهنا
+                لما حالته تتغيّر (حدث RTO بيكتب <code>In-Return</code>) ومابيتعدّش في الاتنين.</li>
             <li><b>«مستحق التحصيل»</b> = مجموع <code>currentTotalPriceSet</code> للأوردرات
                 اللي حالتها المالية <code>PENDING</code> بس. المدفوع مقدمًا <b>بيتقال بعدده</b>
                 جنبه — مش بيختفي في صمت.</li>
@@ -248,7 +252,16 @@
            واحد للنسخة (Standards #24). الرقم هنا **مش** مكتوب بإيد. -->
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.64.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.65.0</span>
+          <span class="cl-ver-date">01-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🟤 <b>طابور «في طريق الرجوع (In-Return)»</b> — تالت طابور في «الحالات الانتقالية» تحت «تحت التوصيل (Shipped)»، بلون <b>بني-أحمر</b> للدلالة على المرتجعات. بيعرض الأوردرات اللي حالتها <code>In-Return</code> (الشحنة الأصلية S1 أو دورة الاستبدال/الاسترجاع S2) ومحدش سجّل لها <code>Returned</code>. كانت <b>برّه أي طابور</b> في الهب. نفس أعمدة «المشحون» وتصديره XLSX ونفس أرضية <code>01/04/2026</code>. ⛔ محتاج Worker جديد <code>in-return-orders-worker</code> <b>1.0.0</b> (ريبو <code>In-Return-Orders</code>) — <b>انشره قبل الصفحة</b> وإلا الصف بيقول «تعذّر».</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.64.0</span>
           <span class="cl-ver-date">31-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -794,7 +807,7 @@ const { apiGet, apiPost } = ecoApi(ECO_WORKERS.auth);
 // ✅ **والفشل هنا مابيولّعش تحذير نسخة كاذب** — `checkWorkerVersion`
 //    بتبلع الاستثناء عن قصد: الـ Worker اللي لسه ما انضمّش لمجموعة السر
 //    بيرجّع `401`، ودي **مش** «نسخة قديمة». اللي بيقولها بالنص هو 🩺.
-const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'orderStatus', 'codPayment', 'partialDelivery', 'bostaUpload', 'couriers', 'reassignBosta', 'bostaWebhook', 'deliveryFollowUp'];
+const PAGE_WORKERS = ['auth', 'ready', 'shipped', 'inReturn', 'orderStatus', 'codPayment', 'partialDelivery', 'bostaUpload', 'couriers', 'reassignBosta', 'bostaWebhook', 'deliveryFollowUp'];
 
 // §AUTH-JS — Unified Login UI (منقولة من أداة التغليف)
 // ══════════════════════════════════════════════════════════════
