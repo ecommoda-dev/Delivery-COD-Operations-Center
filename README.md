@@ -16,6 +16,7 @@
 | `index.html` | الدخول + الشاشة الرئيسية (الطابورين بأرقامهم) | **`delivery-cod-operations-center-worker`** (في الريبو ده) |
 | `Ready-Orders.html` | **أوردرات جاهزة للشحن** — حالته `Ready` (S1 أو S2) | `ready-orders-worker` **1.3.0** |
 | `Shipped-Orders.html` | **أوردرات تحت التوصيل** — حالته `Shipped` ولسه بلا `Delivered`/`Returned` | `shipped-orders-worker` |
+| `In-Return-Orders.html` 🟤 | **في طريق الرجوع (In-Return)** — حالته `In-Return` (S1 أو S2) ولسه بلا `Returned` (v1.65.0) · **عرض بحت** · متولّدة من `docs/build-pages.py` | `in-return-orders-worker` (في ريبو `In-Return-Orders` — Worker وبس) |
 | `Order-Status-Updater.html` 🔗 | **تحديث حالة الأوردرات** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `order-status-updater-worker` (في ريبوه) |
 | `COD-Payment-Center.html` 🔗 | **تحصيل الأوردرات COD** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `cod-payment-center-worker` (في ريبوه) |
 | `Partial-Delivery.html` 🔗 | **التسليم الجزئي** — أداة مدموجة (v1.10.0 · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` (في ريبوه) |

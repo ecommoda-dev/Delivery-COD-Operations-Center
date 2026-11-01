@@ -43,7 +43,7 @@ const ECO_HOME = {
     { id: 'Bosta', cls: 'sec-bosta', summary: true, svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/></svg>`,
       title: 'شحنات بوسطة', sub: 'رفع الشحنات ومتابعتها', queues: ['bosta', 'webhook', 'followUp'] },
     { id: 'Flow', cls: 'sec-flow', summary: true, svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12M12 6l6 6-6 6"/></svg>`,
-      title: 'الحالات الانتقالية', sub: 'Ready ثم Shipped', queues: ['ready', 'shipped'] },
+      title: 'الحالات الانتقالية', sub: 'Ready ثم Shipped ثم In-Return', queues: ['ready', 'shipped', 'inReturn'] },
     { id: 'Tools', cls: 'sec-tools', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>`,
       title: 'أدوات العمليات', sub: 'أدوات بتكتب على الأوردرات',
       tools: [
@@ -143,6 +143,20 @@ const ECO_HOME = {
       cacheKey: ECO_CACHE_SHIPPED,
       fetchRaw: () => ecoApi(ECO_WORKERS.shipped).apiGet('get_shipped_queue'),
       derive: d => deriveQueue(d, 'Shipped', 'shipped'),
+      valid: d => Array.isArray(d.orders),
+    }),
+  },
+  // 🟤 «في طريق الرجوع» (v1.65.0) — نفس شكل «تحت التوصيل (Shipped)» بالحرف بقيمة `In-Return`. الاشتقاق من نفس
+  //    `ecoQueueRows`/`ecoChips`، فالرقم هنا مستحيل يخالف قايمة الصفحة. الأيقونة سهم رجوع (↩) في مربع بني-أحمر.
+  inReturn: {
+    href: 'In-Return-Orders.html', idCls: 'id-return',
+    svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>`,
+    name: 'في طريق الرجوع (In-Return)', code: 'In-Return', ltr: true,
+    err: 'تعذّر جلب طابور في طريق الرجوع',
+    ...ecoRawQueue({
+      cacheKey: ECO_CACHE_INRETURN,
+      fetchRaw: () => ecoApi(ECO_WORKERS.inReturn).apiGet('get_in_return_queue'),
+      derive: d => deriveQueue(d, 'In-Return', 'inreturn'),
       valid: d => Array.isArray(d.orders),
     }),
   },

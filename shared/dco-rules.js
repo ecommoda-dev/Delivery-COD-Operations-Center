@@ -128,6 +128,8 @@ function ecoFlags(o, status, queue) {
       detail: o.cancelledAt ? `اتلغى على شوبيفاي (${formatDate(o.cancelledAt)})` : 'حالة S1 = Cancelled',
       action: queue === 'shipped'
         ? 'شحنة خرجت على أوردر ملغي — راجعها مع المندوب فورًا'
+        : queue === 'inreturn'
+        ? 'مرتجع على أوردر ملغي — راجع مع المندوب إيه اللي راجع فعلاً وسجّله'
         : 'اقفل الشحنة ورجّع المنتجات على الرف' });
   }
 

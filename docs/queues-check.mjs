@@ -181,6 +181,34 @@ const SHIPPED_TOTAL   = 5;
 const SHIPPED_FLAGGED = 2;                       // #56002 (بلا فلفلمنت) · #56005 (الماكينتين)
 const SHIPPED_COD_DUE = 900 + 400 + 600 + 800;   // = 2700 — من غير #56003 (PAID)
 
+// 🟤 «في طريق الرجوع» (v1.65.0) — نفس شكل رد `shipped-orders-worker` بالحرف بقيمة `In-Return`.
+//    الأرقام المتوقعة **محسوبة بالإيد** (مش من دوال الـ shell).
+const INRETURN_RAW = [
+  // ✅ سليم — RTO على شحنة أصلية (S1)
+  { orderId:'7213000000011', orderName:'#57001', createdAt:'2026-09-05T08:00:00Z', cancelledAt:null,
+    fulfillment:'FULFILLED', financial:'PENDING', customer:'سامي منير', address1:'١٢ شارع التحرير', address2:'شقة ٤', province:'Alexandria',
+    itemsQty:1, total:'750.00', currency:'EGP', zone:'Other_Regions', courier:'Bosta',
+    s1:'In-Return', s2:null, packedAtS1:'2026-09-06T09:00:00Z', packedAtS2:null,
+    packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:null, whereaboutsS2:null,
+    trackingS1:'3330001', trackingS2:null, trackingLegacy:null },
+  // 🔴 دورة استبدال/استرجاع (S2) — رقم التتبع لازم ييجي من `…_s2` مش `…_s1`
+  { orderId:'7213000000012', orderName:'#57002', createdAt:'2026-09-03T08:00:00Z', cancelledAt:null,
+    fulfillment:'FULFILLED', financial:'PAID', customer:'هدى سلامة', address1:'٣ شارع الملك', address2:null, province:'Cairo',
+    itemsQty:2, total:'1200.00', currency:'EGP', zone:'Cairo+Giza', courier:'Saif',
+    s1:'Delivered', s2:'In-Return', packedAtS1:'2026-09-01T09:00:00Z', packedAtS2:'2026-09-10T09:00:00Z',
+    packedByS1:'Abo Selim', packedByS2:'Marwan Mohammed', whereaboutsS1:null, whereaboutsS2:null,
+    trackingS1:'4440001', trackingS2:'4440002', trackingLegacy:null },
+  // ⚠️ شاذ — ملغي وهو لسه In-Return
+  { orderId:'7213000000013', orderName:'#57003', createdAt:'2026-09-07T08:00:00Z', cancelledAt:'2026-09-08T10:00:00Z',
+    fulfillment:'FULFILLED', financial:'PENDING', customer:'نبيل حامد', address1:null, address2:null, province:'Giza',
+    itemsQty:1, total:'500.00', currency:'EGP', zone:'Other_Regions', courier:'Bosta',
+    s1:'In-Return', s2:null, packedAtS1:'2026-09-07T12:00:00Z', packedAtS2:null,
+    packedByS1:'Abo Selim', packedByS2:null, whereaboutsS1:null, whereaboutsS2:null,
+    trackingS1:null, trackingS2:null, trackingLegacy:'888777' },
+];
+const INRETURN_TOTAL   = 3;
+const INRETURN_FLAGGED = 1;                      // #57003 (ملغي)
+
 const DIAG = { ok:false, version:'1.0.0', checks:[
   { ok:true,  label:'متغيرات وأسرار الـ Worker', detail:'SHOP_DOMAIN=22 حرف · WORKER_SECRET=40 حرف' },
   { ok:true,  label:'بصمة WORKER_SECRET', detail:'بصمة a3f19c47 · مجموعة warehouse_ops' },
@@ -192,7 +220,7 @@ const DIAG = { ok:false, version:'1.0.0', checks:[
 // ⚠️ `readyRows` بتتسيب `null` في كل البنود ما عدا بند واحد — بند
 //    «المربع اللي عدده صفر بيفضل ظاهر» محتاج طابور **ناقصة منه قيمة**،
 //    وده مستحيل على البيانات الأساسية اللي فيها القيم الأربعة كلها.
-const state = { readyFail:false, shippedFail:false, truncated:false, calls:[],
+const state = { readyFail:false, shippedFail:false, inReturnFail:false, truncated:false, calls:[],
                 authBodies:[], logoutUrls:[], lookupBodies:[], lookupFail:false,
                 readyRows:null,
                 // 🔴 أرضية تاريخ الطابور زي ما الـ Worker بيرجّعها (v1.9.0).
@@ -261,6 +289,12 @@ function makeStub() {
       if (state.readyFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
       else body = { ok:true, queue:'ready', orders:state.readyRows || READY_RAW,
                     truncated:state.truncated, minCreatedDay:state.minDay || undefined,
+                    fetchedAt:new Date().toISOString() };
+    }
+    else if (action === 'get_in_return_queue') {
+      if (state.inReturnFail) { status = 500; body = { ok:false, error:'الـ Worker وقع' }; }
+      else body = { ok:true, queue:'in_return', orders:INRETURN_RAW, truncated:false,
+                    minCreatedDay:state.minDay || undefined,
                     fetchedAt:new Date().toISOString() };
     }
     else if (action === 'get_shipped_queue') {
@@ -875,7 +909,7 @@ console.log('\n══ ③ المراجعة والفلتر والبحث ══');
 // ⚠️ **والبند بيقرا التخطيط الفعلي** (`getClientRects().length`) مش اسم
 //    كلاس ولا قيمة CSS — لفّ سطر بيحصل من عرض الشاشة والخط الفعلي،
 //    ومقارنة على `white-space` كانت هتعدّي على الحالة اللي بتكسر.
-for (const [file, total] of [['Ready-Orders.html', 'الجاهز'], ['Shipped-Orders.html', 'المشحون']]) {
+for (const [file, total] of [['Ready-Orders.html', 'الجاهز'], ['Shipped-Orders.html', 'المشحون'], ['In-Return-Orders.html', 'في طريق الرجوع']]) {
   const { page, ctx, errors } = await newPage();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${BASE}/${file}`);
@@ -1020,7 +1054,7 @@ console.log('\n══ ③-ج عمود «العميل» — سطران بالكت
 //    (Worker بلا الحقل) هو اللي بيثبت كده: لو التاريخ كان مكتوب في
 //    الصفحة، كان هيفضل ظاهر وهو مش مطبّق.
 console.log('\n══ ③-د أرضية تاريخ الطابور ══');
-for (const [file, label] of [['Ready-Orders.html', 'الجاهز للشحن'], ['Shipped-Orders.html', 'المشحون']]) {
+for (const [file, label] of [['Ready-Orders.html', 'الجاهز للشحن'], ['Shipped-Orders.html', 'المشحون'], ['In-Return-Orders.html', 'في طريق الرجوع']]) {
   const { page, ctx } = await newPage();
   await page.goto(`${BASE}/${file}`);
   await page.waitForSelector('#qBody tr');
@@ -1192,6 +1226,85 @@ console.log('\n══ ⑤ Shipped-Orders.html ══');
      `«مستحق التحصيل» للمشحون = ${SHIPPED_COD_DUE}`, money.replace(/\s+/g,' ').trim());
 
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | '));
+  await ctx.close();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ⑤-ب 🟤 طابور «في طريق الرجوع» (v1.65.0 · طلب أحمد 01-11-2026)
+// ══════════════════════════════════════════════════════════════
+console.log('\n══ ⑤-ب In-Return-Orders.html ══');
+{
+  const { page, ctx, errors } = await newPage();
+  state.calls.length = 0;
+  await page.goto(`${BASE}/In-Return-Orders.html`);
+  await page.waitForSelector('#qBody tr');
+
+  is(state.calls.includes('get_in_return_queue') && !state.calls.includes('get_shipped_queue'),
+     '🟤 الصفحة بتنادي `get_in_return_queue` (مش طابور المشحون)', state.calls.join(','));
+  const rows = await page.$$eval('#qBody tr', e => e.length);
+  is(rows === INRETURN_TOTAL, `صفوف الجدول == اللي رجع من الـ Worker بالحرف (${INRETURN_TOTAL}) — صفر فلترة في الصفحة`, `شفت ${rows}`);
+  is(num(await page.textContent('#qCount')) === INRETURN_TOTAL, 'الرقم الكبير == صفوف الجدول', await page.textContent('#qCount'));
+  is((await page.title()).includes('في طريق الرجوع'), 'عنوان التاب «في طريق الرجوع»', await page.title());
+
+  const th = await page.$$eval('#qTable thead th', e => e.length);
+  const td = await page.$$eval('#qBody tr:first-child td', e => e.length);
+  is(th === td, `خلايا الصف == أعمدة الهيدر (${th})`, `th=${th} td=${td}`);
+
+  // نفس أعمدة «المشحون» بالحرف: العنوان بعد المندوب، ورقم التتبع بعده، وبلا ملحوظات ولا موقع شحنة
+  const heads = await page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim()));
+  const shHeads = await (async () => {
+    const o2 = await newPage();
+    await o2.page.goto(`${BASE}/Shipped-Orders.html`); await o2.page.waitForSelector('#qBody tr');
+    const h = await o2.page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim())); await o2.ctx.close(); return h; })();
+  is(JSON.stringify(heads) === JSON.stringify(shHeads),
+     '🔴 أعمدة «في طريق الرجوع» == أعمدة «المشحون» بالحرف وبالترتيب', JSON.stringify(heads));
+  is(!heads.includes('ملحوظات') && !heads.includes('موقع الشحنة') && await page.$('#qWaChips') === null,
+     '⛔ بلا ملحوظات ولا موقع الشحنة ولا مربعات «موقع الشحنة» (نفس أسباب المشحون)');
+  is(await page.$('#viewAudit, #tabAudit, #audStart') === null, '⛔ بلا تاب جرد (مرتجع في الطريق مش مكانه المكتب)');
+
+  // رقم التتبع بماكينة الصف
+  const s2 = await page.$$eval('#qBody tr', els => (els.find(e => e.textContent.includes('#57002')) || {}).innerText || '');
+  is(s2.includes('4440002') && !s2.includes('4440001'),
+     '🔴 صف S2 أخد **رقم تتبع S2** مش S1', s2.replace(/\s+/g, ' ').slice(0, 120));
+  const legacy = await page.$$eval('#qBody tr', els => (els.find(e => e.textContent.includes('#57003')) || {}).innerText || '');
+  is(legacy.includes('888777') && legacy.includes('من الحقل القديم'), 'رقم من الحقل المتوقّف بيتعرض وبعلامة صريحة');
+  const addr = await page.$$eval('#qBody tr', (r) => r.map(x => x.querySelector('td.addr-cell')?.textContent.trim()));
+  is(addr.some(t => t && t.includes('١٢ شارع التحرير') && t.includes('شقة ٤')) && addr.filter(t => t === 'بلا عنوان').length === 1,
+     'العنوان: `address1`+`address2` مع بعض، و«بلا عنوان» على الأوردر اللي مالوش', JSON.stringify(addr));
+
+  // الأرضية معلنة من رد الـ Worker
+  is((await page.textContent('#qScope')).includes('01/04/2026'), '🔴 شيب الأرضية «01/04/2026» ظاهر وجاي من رد الـ Worker', await page.textContent('#qScope'));
+
+  // العلامات: ملغي وهو In-Return — الفعل بصيغة المرتجع مش صيغة الجاهز
+  const flagged = await page.evaluate(() => qState.rows.filter(r => r.flags.length).map(r => [r.orderName, r.flags.map(f => f.code).join(), r.flags.map(f => f.action).join(' | ')]));
+  is(flagged.length === INRETURN_FLAGGED && flagged[0][0] === '#57003' && flagged[0][1] === 'cancelled'
+     && flagged[0][2].includes('مرتجع على أوردر ملغي') && !flagged[0][2].includes('رجّع المنتجات على الرف'),
+     '⚠️ الأوردر الملغي بيتعلّم **وبيفضل في الطابور** والفعل المطلوب بصيغة المرتجع', JSON.stringify(flagged));
+  is(await page.evaluate(() => qState.rows.every(r => !r.flags.some(f => f.code === 'not_fulfilled' || f.code === 'at_courier'))),
+     '⛔ علامات «بلا فلفلمنت» و«الطرد مع المندوب» مش بتتطبّق على In-Return');
+
+  // الترتيب: الأقدم فوق
+  const order = await page.$$eval('#qBody tr', r => r.map(x => (x.textContent.match(/#\d{5}/) || [])[0]));
+  is(order.join() === '#57002,#57001,#57003', 'الأقدم فوق', order.join());
+
+  // مستحق التحصيل: PENDING بس (#57001 750 + #57003 500) — والمدفوع (#57002) بعدده
+  const money = (await page.textContent('#qMoney')).replace(/\s+/g, ' ');
+  is(money.includes('1,250') || money.includes('1250'), 'مستحق التحصيل = ١٬٢٥٠ (PENDING بس)', money);
+
+  // التصدير: اسم الملف بـ In-Return-Orders
+  is(await page.$('#qExportBtn') !== null, '⬇ زرار «تصدير XLSX» موجود');
+  is(await page.evaluate(() => /In-Return-Orders-\$\{courier\}-\$\{rows\.length\}\.xlsx/.test(qExport.toString()) && !/Shipped-Orders/.test(qExport.toString())),
+     '🔴 اسم ملف التصدير `In-Return-Orders-{المندوب}-{العدد}.xlsx` — ومفيش «Shipped» في الكود');
+
+  // الكاش بيتكتب بمفتاحه هو
+  const ck = await page.evaluate(() => JSON.parse(sessionStorage.getItem('dco_queue_inreturn') || 'null'));
+  is(ck && Array.isArray(ck.data?.orders) && ck.data.orders.length === INRETURN_TOTAL, 'الجلب كتب الكاش `dco_queue_inreturn` بالرد الخام', JSON.stringify(ck).slice(0, 80));
+  is(await page.evaluate(() => !sessionStorage.getItem('dco_queue_shipped') && !sessionStorage.getItem('dco_queue_ready')),
+     'ومالمسش كاش الطابورين التانيين');
+
+  // حارس النسخة بيسمّي الأداة
+  is(await page.evaluate(() => typeof ECO_WORKERS.inReturn === 'object' && ECO_WORKERS.inReturn.label === 'في طريق الرجوع'), 'حارس النسخة بيسمّي «في طريق الرجوع»');
+  is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | ').slice(0, 200));
   await ctx.close();
 }
 
@@ -1399,8 +1512,8 @@ console.log('\n══ ⑪-ب صف «مستقبل حالة بوسطة» ══');
     rows: [...sec.querySelectorAll('.eco-qrow')].map(r => r.id) })));
   is(secs[0].title === 'شحنات بوسطة' && JSON.stringify(secs[0].rows) === '["rowBosta","rowWebhook","rowFollowUp"]',
      '🔴 «أوردرات بوسطة» أول قسم وفيه «رفع بوسطة» و«متابعة شحنات بوسطة» و«متابعة التأجيلات»', JSON.stringify(secs));
-  is(secs[1].title === 'الحالات الانتقالية' && JSON.stringify(secs[1].rows) === '["rowReady","rowShipped"]',
-     'و«الحالات الانتقالية» فيه الجاهز والمشحون بس');
+  is(secs[1].title === 'الحالات الانتقالية' && JSON.stringify(secs[1].rows) === '["rowReady","rowShipped","rowInReturn"]',
+     '🟤 و«الحالات الانتقالية» فيه الجاهز والمشحون و**في طريق الرجوع** (v1.65.0) بالترتيب ده', JSON.stringify(secs[1].rows));
   is((await page.textContent('#rowWebhook .eco-card-name')).trim() === 'متابعة شحنات بوسطة', 'الاسم «متابعة شحنات بوسطة»');
   is(num(await page.textContent('#cntWebhook')) === 7, 'الرقم الكبير == عدد أرقام التتبع تحت التوصيل', await page.textContent('#cntWebhook'));
   const chips = (await page.textContent('#chipsWebhook')).replace(/\s+/g, ' ');
@@ -1536,7 +1649,7 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   is(sp.last === 'none', 'ومفيش خط بعد آخر قسم');
 
   // ② هوية الصفوف — أيقونة SVG بمربع مصمت
-  const ids = ['rowBosta', 'rowWebhook', 'rowReady', 'rowShipped'];
+  const ids = ['rowBosta', 'rowWebhook', 'rowReady', 'rowShipped', 'rowInReturn'];
   const idv = await page.evaluate((ids) => ids.map(id => {
     const row = document.getElementById(id), ico = row.querySelector('.eco-card-ico');
     return { id, svg: !!ico.querySelector('svg'), txt: ico.textContent.trim(), img: !!ico.querySelector('img'),
@@ -1548,7 +1661,7 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   is(idv.every(r => r.svg && r.txt === '' && !r.img), '🔴 أيقونات الصفوف الأربعة SVG (مفيش إيموجي ولا صورة)', JSON.stringify(idv.map(r => [r.id, r.svg, r.txt])));
   is(await page.evaluate(() => !document.querySelector('img[src*="bosta-logo"]')), '⛔ لوجو بوسطة اتشال من الرئيسية');
   is(idv.every(r => r.icoSize === 42), 'مربع الأيقونة 42px (كثافة مضغوطة)', idv.map(r => r.icoSize).join());
-  is(new Set(idv.map(r => r.icoBg)).size === 4, 'أربع ألوان هوية مختلفة', idv.map(r => r.icoBg).join(' | '));
+  is(new Set(idv.map(r => r.icoBg)).size === 5, 'خمس ألوان هوية مختلفة (v1.65.0: + بني-أحمر لـ«في طريق الرجوع»)', idv.map(r => r.icoBg).join(' | '));
   is(idv.every(r => r.icoBg === r.name && r.name === r.cnt && !r.hasCode),
      'الأيقونة والاسم والرقم بلون الصف نفسه وبلا كود حالة تحت الاسم (v1.60.0)', JSON.stringify(idv.map(r => [r.icoBg, r.name, r.cnt, r.hasCode])));
   const ageCols = await page.evaluate(() => ['--green', '--accent', '--amber', '--red'].map(n => {
@@ -1610,7 +1723,7 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   // ⑤-ب طي الأقسام (v1.47.0): شريط ملوّن + ملخّص (اسم + رقم + المدة بلون العمر)، وكله مفتوح عند الفتح
   await page.evaluate(() => {
     const now = Date.now(), at = m => new Date(now - m * 60000);
-    homeQ.bosta.at = at(2); homeQ.webhook.at = at(12); homeQ.followUp.at = at(31); homeQ.ready.at = at(75); homeQ.shipped.at = at(4);
+    homeQ.bosta.at = at(2); homeQ.webhook.at = at(12); homeQ.followUp.at = at(31); homeQ.ready.at = at(75); homeQ.shipped.at = at(4); homeQ.inReturn.at = at(40);
     renderFreshness(now);
   });
   const readSec = (id, rows) => page.evaluate(([id, rows]) => {
@@ -1645,10 +1758,10 @@ console.log('\n══ ⑫ الرئيسية: هوية الصفوف وحاويات
   is(cb.sub === false, 'مفيش عنوان فرعي وهو مطوي (v1.60.0)');
   await page.click('#secFlow .eco-sec-chev');
   await page.waitForTimeout(450);
-  const cf = await readSec('secFlow', ['rowReady', 'rowShipped']);
+  const cf = await readSec('secFlow', ['rowReady', 'rowShipped', 'rowInReturn']);
   if (process.env.ECO_SHOT2) await page.screenshot({ path: process.env.ECO_SHOT2, fullPage: true });
-  is(cf.pills.map(p => p.cap).join('|') === '1س|4د' && cf.pills[0].capCol === cf.red && cf.pills[1].capCol === cf.green,
-     'القسم التاني: ٧٥ د ← «1س» بالأحمر · ٤ د ← «4د» بالأخضر', cf.pills.map(p => p.cap + ':' + p.capCol).join(' | '));
+  is(cf.pills.map(p => p.cap).join('|') === '1س|4د|40د' && cf.pills[0].capCol === cf.red && cf.pills[1].capCol === cf.green && cf.pills[2].capCol === cf.amber,
+     'القسم التاني: ٧٥ د ← «1س» بالأحمر · ٤ د ← «4د» بالأخضر · ٤٠ د ← «40د» بالكهرماني', cf.pills.map(p => p.cap + ':' + p.capCol).join(' | '));
   await page.click('#secTools .eco-sec-chev');
   await page.waitForTimeout(450);
   const ct = await readSec('secTools', []);
@@ -2577,9 +2690,9 @@ console.log('\n══ ⑯ §ORDER — ترتيب الأقسام والأدوات
   await page.click('[data-fold-all="open"]'); await page.waitForTimeout(200);
   // ⛔ طابور مابيعدّيش لقسم تاني
   await page.dragAndDrop('#rowReady', '#rowBosta', { targetPosition: { x: 200, y: 5 } });
-  is(await list('Flow') === 'ready,shipped' && await list('Bosta') === 'bosta,followUp,webhook', '⛔ طابور «الجاهز» مابيتنقلش لقسم بوسطة (الطوابير بتتنقل جوّه قسمها بس)', await list('Flow') + ' | ' + await list('Bosta'));
+  is(await list('Flow') === 'ready,shipped,inReturn' && await list('Bosta') === 'bosta,followUp,webhook', '⛔ طابور «الجاهز» مابيتنقلش لقسم بوسطة (الطوابير بتتنقل جوّه قسمها بس)', await list('Flow') + ' | ' + await list('Bosta'));
   await page.click('#rowReady [data-mv="i|Flow|ready|1"]');
-  is(await list('Flow') === 'shipped,ready', 'وجوّه قسمه بيتنقل');
+  is(await list('Flow') === 'shipped,ready,inReturn', 'وجوّه قسمه بيتنقل');
 
   // الأدوات بين الأقسام
   await page.click('#secTools [data-mvx^="Partial-Delivery.html"]');
@@ -2620,7 +2733,7 @@ console.log('\n══ ⑯ §ORDER — ترتيب الأقسام والأدوات
 }
 
 console.log('\n══ ⑮ §CACHE-TTL + §FRESH-UNIT — الجاهز والمشحون (طلب أحمد 25-10-2026) ══');
-for (const [page_, action, key] of [['Ready-Orders.html', 'get_ready_queue', 'dco_queue_ready'], ['Shipped-Orders.html', 'get_shipped_queue', 'dco_queue_shipped']]) {
+for (const [page_, action, key] of [['Ready-Orders.html', 'get_ready_queue', 'dco_queue_ready'], ['Shipped-Orders.html', 'get_shipped_queue', 'dco_queue_shipped'], ['In-Return-Orders.html', 'get_in_return_queue', 'dco_queue_inreturn']]) {
   const { page, ctx, errors } = await newPage();
   state.calls.length = 0;
   const n = () => state.calls.filter(a => a === action).length;
@@ -2642,7 +2755,7 @@ for (const [page_, action, key] of [['Ready-Orders.html', 'get_ready_queue', 'dc
 
 // ══ ⑩-ج tooltip القمع (Standards #50) + عمود العنوان في المشحون — الصفحتين ══
 console.log('\n══ ⑩-ج tooltip القمع بقيم الفلتر المفعّل ══');
-for (const page_ of ['Ready-Orders.html', 'Shipped-Orders.html']) {
+for (const page_ of ['Ready-Orders.html', 'Shipped-Orders.html', 'In-Return-Orders.html']) {
   const { page, ctx, errors } = await newPage();
   await page.goto(`${BASE}/${page_}`);
   await page.waitForSelector('#qBody tr');
@@ -2670,7 +2783,7 @@ for (const page_ of ['Ready-Orders.html', 'Shipped-Orders.html']) {
 // 🔴 اتمسك بعد v1.56.0: الكاش الطازج بيمنع `qLoad`، و`qSyncMsItems()` كانت بتتنادى منه بس —
 //    فالقمع كان بيفتح «لا توجد عناصر» والمربعات مابتفلترش لحد أول ضغطة على «تحديث».
 console.log('\n══ ⑩-د الفلاتر بعد الفتح بكاش طازج ══');
-for (const [file, label] of [['Ready-Orders.html', 'الجاهز'], ['Shipped-Orders.html', 'المشحون']]) {
+for (const [file, label] of [['Ready-Orders.html', 'الجاهز'], ['Shipped-Orders.html', 'المشحون'], ['In-Return-Orders.html', 'في طريق الرجوع']]) {
   const { page, ctx, errors } = await newPage();
   await page.goto(`${BASE}/${file}`);
   await page.waitForTimeout(900);                 // أول فتح: بيجيب ويكتب الكاش
