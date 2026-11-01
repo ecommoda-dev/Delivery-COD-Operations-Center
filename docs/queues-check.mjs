@@ -2665,6 +2665,34 @@ for (const page_ of ['Ready-Orders.html', 'Shipped-Orders.html']) {
   is(errors.length === 0, `${page_}: صفر خطأ في الكونسول`, errors.join(' | '));
   await ctx.close();
 }
+
+// ══ ⑩-د الفتح بكاش طازج (< ١٠ دقايق) — الفلاتر لازم تشتغل من غير «تحديث» ══
+// 🔴 اتمسك بعد v1.56.0: الكاش الطازج بيمنع `qLoad`، و`qSyncMsItems()` كانت بتتنادى منه بس —
+//    فالقمع كان بيفتح «لا توجد عناصر» والمربعات مابتفلترش لحد أول ضغطة على «تحديث».
+console.log('\n══ ⑩-د الفلاتر بعد الفتح بكاش طازج ══');
+for (const [file, label] of [['Ready-Orders.html', 'الجاهز'], ['Shipped-Orders.html', 'المشحون']]) {
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/${file}`);
+  await page.waitForTimeout(900);                 // أول فتح: بيجيب ويكتب الكاش
+  const calls0 = state.calls.length;
+  await page.reload();
+  await page.waitForTimeout(900);                 // التاني: من الكاش بصفر نداء طابور
+  const q = file.startsWith('Ready') ? 'get_ready_queue' : 'get_shipped_queue';
+  is(!state.calls.slice(calls0).includes(q), `${label}: الفتح التاني من الكاش بصفر نداء طابور`);
+  const items = await page.evaluate(() => MS.q.state.courier.items.length);
+  is(items > 0, `${label}: خيارات فلتر المندوب اتبنت من الكاش`, String(items));
+  await page.click('#qTableWrap th[data-fk="courier"] .th-flt');
+  const pop = await page.$eval('.hpop', e => e.innerText).catch(() => '');
+  is(pop.includes('Bosta') && !pop.includes('لا توجد عناصر'), `${label}: القمع بيفتح قايمة فيها المناديب`, pop.replace(/\s+/g, ' '));
+  await page.keyboard.press('Escape');
+  const before = await page.$$eval('#qBody tr', r => r.length);
+  await page.click('#qChips [data-fk]');
+  await page.waitForTimeout(150);
+  const after = await page.$$eval('#qBody tr', r => r.length);
+  is(after < before, `${label}: ضغطة مربع المندوب بتفلتر الجدول`, `${before} → ${after}`);
+  is(errors.length === 0, `${label}: صفر خطأ في الكونسول`, errors.join(' | '));
+  await ctx.close();
+}
 await browser.close();
 server.close();
 console.log(`\n${fail ? '❌' : '✅'} النتيجة: ${pass} عدّى · ${fail} فشل`);
