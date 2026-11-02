@@ -408,6 +408,22 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
 .log-export-btn:hover{background:var(--green);color:var(--on-accent);}
 .log-btns-end{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap;}
 .log-body{overflow:auto;max-height:68vh;}   /* #49 — سكرول داخلي والعناوين sticky */
+/* ── §HDR-FILTER — قمع الفلتر في رأس العمود (#47 · #50) ── */
+.hfn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-inline-start:4px;padding:0;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--text-muted);cursor:pointer;vertical-align:middle;transition:background .12s,color .12s,border-color .12s;}
+.hfn svg{width:13px;height:13px;fill:currentColor;}
+.hfn:hover{background:var(--surface-hover);color:var(--text-primary);}
+.hfn.on{color:var(--accent);background:var(--accent-light);border-color:var(--accent-border);}
+.hfpop{position:fixed;z-index:200;max-width:92vw;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 28px rgba(0,0,0,.18);padding:8px;display:flex;flex-direction:column;gap:8px;}
+.hfpop[hidden]{display:none;}
+.hfpop-title{font-size:12px;font-weight:700;color:var(--text-secondary);padding:2px 4px;}
+.hfpop .ms-menu{display:flex;position:static;width:auto;max-width:none;box-shadow:none;border:0;border-radius:0;overflow:visible;}
+.hfpop .ms-list{max-height:260px;}
+.hfpop .log-fg{display:flex;flex-direction:column;gap:4px;}
+.log-chips{display:flex;flex-direction:column;gap:6px;padding:8px 16px;border-bottom:1px solid var(--border);}
+.log-chips:not(:has(.ms-chip)){display:none;}
+.log-chips .ms-chips-row{align-items:center;}
+.chips-label{font-size:11px;font-weight:700;color:var(--text-secondary);}
+.log-none{padding:28px 12px;text-align:center;color:var(--text-muted);font-weight:600;}
 .log-stat-sub{font-weight:500;color:var(--text-secondary);margin-inline-start:4px;}
 .log-stat-sub strong{color:var(--text-primary);}
 .log-sort-note{font-size:11px;font-weight:600;color:var(--amber-dark);background:var(--amber-light);border:1px solid var(--amber-border);border-radius:20px;padding:3px 10px;}
@@ -724,7 +740,7 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
   <div class="tab-panel" id="panelLog">
     <div class="log-tab-wrap">
 
-      <div class="log-filters-section">
+      <div class="log-filters-section" id="logFiltersHolder" hidden>
         <div class="log-filters-header" onclick="toggleLogFilters()">
           <div class="log-filters-title">🔎 الفلاتر</div>
           <span class="log-filters-toggle open" id="logFiltersToggleIcon">▲</span>
@@ -851,14 +867,12 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
             </div>
           </div>
 
-          <div class="ms-chips-row" id="chipsRow-logType"></div>
-          <div class="ms-chips-row" id="chipsRow-logCourier"></div>
-          <div class="ms-chips-row" id="chipsRow-logEmp"></div>
         </div>
       </div>
 
       <div class="log-stats-bar">
         <button class="log-refresh-btn" onclick="fetchLog()">↺ تحديث</button>
+        <button class="log-clear-btn" id="logClearAllBtn" onclick="clearLogFilters()">✕ مسح كل الفلاتر</button>
         <div class="log-stat-chip filtered" title="السجل بيعرض جلسات؛ كل جلسة فيها أوردر أو أكتر. الرقم التاني بيعدّ العمليات (الأوردرات) المطابقة للفلاتر في كل الصفحات">النتائج: <strong id="logSessCount">—</strong> جلسة<span class="log-stat-sub">(من <strong id="logFilteredCount">—</strong> عملية مطابقة)</span></div>
         <div class="log-sort-note" id="logSortNote" hidden>↕ الترتيب على الصفحة الحالية بس (١٠٠ عملية)</div>
         <div class="log-btns-end">
@@ -866,6 +880,16 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
           <button class="log-export-btn" id="logExportBtn" onclick="exportXLSX(false)">⬇ تصدير الكل</button>
         </div>
       </div>
+
+      <!-- chips الفلاتر المفعّلة — سطر لكل فلتر، واسم الفلتر مرة واحدة في أول السطر (#47) -->
+      <div class="log-chips" id="logChips">
+        <div class="ms-chips-row" id="chipsRow-logType"></div>
+        <div class="ms-chips-row" id="chipsRow-logCourier"></div>
+        <div class="ms-chips-row" id="chipsRow-logEmp"></div>
+        <div class="ms-chips-row" id="chipsRow-search"></div>
+        <div class="ms-chips-row" id="chipsRow-date"></div>
+      </div>
+      <div class="hfpop" id="hfPop" hidden></div>
 
       <!-- Standards #30 — بانر **ثابت** فوق الجدول مش توست: التوست بيختفي
            والملف الناقص بيفضل على الديسك -->
@@ -2961,16 +2985,84 @@ document.addEventListener('click', (e) => {
   });
 });
 
+const CHIP_LABEL = { logType: 'نوع العملية', logCourier: 'المندوب', logEmp: 'الموظف' };
 function renderChips() {
   Object.keys(msState).forEach(key => {
     const row = $(`chipsRow-${key}`);
     if (!row) return;
-    row.innerHTML = [...msState[key].selected].map(val => {
+    const sel = [...msState[key].selected];
+    row.innerHTML = sel.length ? `<span class="chips-label">${CHIP_LABEL[key]}:</span>` + sel.map(val => {
       const label = (msState[key].items.find(it => it.value === val) || {}).label || val;
       return `<span class="ms-chip">${esc(label)}<button onclick="msToggleItem(${esc(JSON.stringify(key))},${esc(JSON.stringify(val))})">✕</button></span>`;
-    }).join('');
+    }).join('') : '';
   });
+  const q = $('logSearch').value.trim();
+  $('chipsRow-search').innerHTML = q ? `<span class="chips-label">رقم الأوردر:</span><span class="ms-chip">${esc(q)}<button onclick="clearLogSearch()">✕</button></span>` : '';
+  const f = $('rangeDateFrom').value, t = $('rangeDateTo').value;
+  $('chipsRow-date').innerHTML = (f || t) ? `<span class="chips-label">التاريخ:</span><span class="ms-chip">من 📅 ${esc(f ? f.split('-').reverse().join('/') : '—')} إلى 📅 ${esc(t ? t.split('-').reverse().join('/') : '—')}<button onclick="clearLogDate()">✕</button></span>` : '';
 }
+function clearLogSearch() { $('logSearch').value = ''; toggleSearchActiveState($('logSearch')); logCurrentPage = 1; clearExportWarn(); fetchLog(); }
+function clearLogDate() {
+  $('rangeDateFrom').value = ''; $('rangeDateTo').value = ''; activeRangePreset = '';
+  document.querySelectorAll('.range-preset-item').forEach(el => el.classList.remove('active'));
+  $('rangePresetLabel').textContent = '⚡ اختار فترة'; $('rangePresetBtn').classList.remove('has-preset');
+  logCurrentPage = 1; clearExportWarn(); fetchLog();
+}
+
+// ══ §LOG-JS::header-filters — القمع في رأس العمود (Standards #47 · #50) ══
+// 🔴 القمع بيفتح **نفس** قوايم الفلاتر القديمة (نفس الـ ids ونفس الدوال)، بينقلها لقايمة عايمة
+//    `position:fixed` وبيرجّعها مكانها (اللوحة القديمة `hidden` وهي حاملة الحالة). فالمربع
+//    والقمع والـ chips **مستحيل يفترقوا** — نفس قرار v1.33.0 في الطابورين.
+const HF = {
+  date:    { title: 'التاريخ',        width: 340, items: () => [{ node: $('rangePresetWrap').closest('.log-fg') }, { node: $('rangeDateFrom').closest('.log-fg') }, { node: $('rangeDateTo').closest('.log-fg') }], active: () => !!($('rangeDateFrom').value || $('rangeDateTo').value) },
+  type:    { title: 'نوع العملية',    width: 260, items: () => [{ node: $('msMenu-logType'),    home: $('msWrap-logType') }],    active: () => msState.logType.selected.size > 0 },
+  courier: { title: 'المندوب',        width: 260, items: () => [{ node: $('msMenu-logCourier'), home: $('msWrap-logCourier') }], active: () => msState.logCourier.selected.size > 0 },
+  emp:     { title: 'الموظف',         width: 260, items: () => [{ node: $('msMenu-logEmp'),     home: $('msWrap-logEmp') }],     active: () => msState.logEmp.selected.size > 0 },
+  search:  { title: 'بحث برقم الأوردر', width: 280, items: () => [{ node: $('logSearch').closest('.log-fg') }],               active: () => !!$('logSearch').value.trim() },
+};
+let hfOpen = null;   // { key, btn, moved: [{node, home}] }
+function hfClose() {
+  if (!hfOpen) return;
+  const pop = $('hfPop');
+  hfOpen.moved.forEach(m => m.home.appendChild(m.node));
+  pop.hidden = true; pop.innerHTML = '';
+  hfOpen = null;
+}
+function hfPlace() {
+  if (!hfOpen) return;
+  const pop = $('hfPop'), r = hfOpen.btn.getBoundingClientRect(), w = HF[hfOpen.key].width;
+  pop.style.width = w + 'px';
+  pop.style.top  = Math.min(r.bottom + 4, innerHeight - 80) + 'px';
+  pop.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + 'px';
+}
+function hfToggle(key, btn) {
+  const same = hfOpen && hfOpen.key === key;
+  hfClose();
+  if (same) return;
+  const pop = $('hfPop');
+  pop.innerHTML = `<div class="hfpop-title">${esc(HF[key].title)}</div>`;
+  const moved = HF[key].items().map(it => { const home = it.home || it.node.parentNode; pop.appendChild(it.node); return { node: it.node, home }; });
+  pop.hidden = false;
+  hfOpen = { key, btn, moved };
+  hfPlace();
+  const first = pop.querySelector('input[type=text],input:not([type=checkbox])');
+  if (first) first.focus();
+}
+function syncFunnels() {
+  document.querySelectorAll('.hfn[data-hf]').forEach(b => b.classList.toggle('on', !!HF[b.dataset.hf].active()));
+  if (hfOpen) { const nb = document.querySelector(`.hfn[data-hf="${hfOpen.key}"]`); if (nb) { hfOpen.btn = nb; hfPlace(); } }
+}
+document.addEventListener('click', (e) => {
+  if (!document.contains(e.target)) return;   // Standards #32 — العنصر اتشال بعد إعادة رسم القايمة
+  if (hfOpen && !$('hfPop').contains(e.target) && !e.target.closest('.hfn')) hfClose();
+});
+document.addEventListener('keydown', (e) => {
+  if (!hfOpen) return;
+  if (e.key === 'Escape') hfClose();
+  else if (e.key === 'Enter' && $('hfPop').contains(e.target) && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') hfClose();   // Enter يقفل القايمة والفلتر يفضل
+});
+window.addEventListener('resize', hfClose);
+$('logBody').addEventListener('scroll', hfPlace);
 function onMsFilterChanged() { logCurrentPage = 1; clearExportWarn(); fetchLog(); }
 
 function initLogTypeFilter() {
@@ -3131,6 +3223,7 @@ async function fetchLog() {
   const body = $('logBody');
   body.innerHTML = '<div class="log-empty"><div class="spinner" style="width:14px;height:14px;border-width:2px"></div><p style="margin-top:8px;font-size:12px">جاري التحميل...</p></div>';
 
+  renderChips(); syncFunnels();
   const filterParams = buildLogParams();
   const offset = (logCurrentPage - 1) * LOG_PAGE_SIZE;
   const params = { limit: LOG_PAGE_SIZE, offset, ...filterParams };
@@ -3308,10 +3401,24 @@ const LOG_SORT_VALUE = {
                    return r.has('error') ? 3 : r.has('warning') ? 2 : (r.has('unknown') || !r.size) ? 0 : 1; },
 };
 
-function sortableTh(key, label) {
+const HF_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18l-7 8.5V20l-4-2v-5.5z"/></svg>';
+function hfBtn(k) {
+  const t = HF[k].title;
+  return `<button type="button" class="hfn" data-hf="${k}" aria-label="فلتر ${esc(t)}" onclick="event.stopPropagation();hfToggle('${k}',this)">${HF_ICON}</button>`;
+}
+function sortableTh(key, label, hf) {
   const active = logSort.key === key && logSort.dir !== 0;
   const ind = active ? `<span class="sort-ind">${logSort.dir === 1 ? '▲' : '▼'}</span>` : '';
-  return `<th class="sortable-th${active ? ' active' : ''}" onclick="toggleLogSort('${key}')">${label}${ind}</th>`;
+  return `<th class="sortable-th${active ? ' active' : ''}" onclick="toggleLogSort('${key}')">${label}${ind}${hf ? hfBtn(hf) : ''}</th>`;
+}
+function logHeadHtml() {
+  return `<thead><tr>
+      <th style="width:32px"></th>
+      ${sortableTh('date', 'التاريخ', 'date')}${sortableTh('time', 'الوقت')}<th>النوع${hfBtn('type')}</th>
+      ${sortableTh('courier', 'المندوب', 'courier')}${sortableTh('employee', 'الموظف', 'emp')}
+      ${sortableTh('count', 'عدد', 'search')}${sortableTh('collect', 'تحصيل')}${sortableTh('refund', 'استرداد')}
+      <th>طرق الدفع</th>${sortableTh('result', 'النتيجة')}<th></th>
+    </tr></thead>`;
 }
 
 function toggleLogSort(key) {
@@ -3337,7 +3444,11 @@ function applyLogSort(groups) {
 function renderLog(entries) {
   window.__logEntries = entries;
   const body = $('logBody');
-  if (!entries.length) { body.innerHTML = '<div class="log-empty">لا توجد عمليات مطابقة</div>'; $('logSessCount').textContent = '0'; $('logSortNote').hidden = true; return; }
+  if (!entries.length) {
+    // الجدول وعناوينه (والقمع) بيفضلوا ظاهرين — الرسالة صف جوّاه، فالموظف يقدر يشيل الفلتر (#47)
+    body.innerHTML = `<table class="log-otbl">${logHeadHtml()}<tbody><tr><td class="log-none" colspan="12">لا توجد عمليات مطابقة للفلاتر</td></tr></tbody></table>`;
+    $('logSessCount').textContent = '0'; $('logSortNote').hidden = true; syncFunnels(); return;
+  }
 
   const totalPages = Math.max(1, Math.ceil(logTotalCount / LOG_PAGE_SIZE));
   const groups = groupRowsIntoSessions(entries, {
@@ -3436,17 +3547,12 @@ function renderLog(entries) {
   }).join('');
 
   body.innerHTML = `<table class="log-otbl">
-    <thead><tr>
-      <th style="width:32px"></th>
-      ${sortableTh('date', 'التاريخ')}${sortableTh('time', 'الوقت')}<th>النوع</th>
-      ${sortableTh('courier', 'المندوب')}${sortableTh('employee', 'الموظف')}
-      ${sortableTh('count', 'عدد')}${sortableTh('collect', 'تحصيل')}${sortableTh('refund', 'استرداد')}
-      <th>طرق الدفع</th>${sortableTh('result', 'النتيجة')}<th></th>
-    </tr></thead>
+    ${logHeadHtml()}
     <tbody>${rowsHtml}</tbody>
   </table>`;
 
   updateExportSelectedUI();
+  syncFunnels();
 }
 
 function toggleBatch(i) {
