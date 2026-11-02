@@ -314,6 +314,7 @@ const ECO_HUB = {
     if (typeof isUpdating !== 'undefined' && isUpdating) return true;        // Order-Status-Updater
     if (typeof uploadRunning !== 'undefined' && uploadRunning) return true;  // Bosta-Orders-Upload
     if (typeof cnBusy !== 'undefined' && cnBusy) return true;                // Courier-Names
+    if (typeof isProcessing !== 'undefined' && isProcessing) return true;    // COD-Payment-Center (pay/refund)
     return false;
   },
   secretNote:  "السر المشترك لمجموعة <code>delivery_cod_ops</code> — <b>قيمة واحدة لكل Workers المركز</b>، ومستقلة عن سر محطة المخزن",

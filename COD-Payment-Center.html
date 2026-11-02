@@ -575,7 +575,7 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
             <div class="input-method-body">
               <div class="scanner-wrap">
                 <span class="scanner-icon-wrap">🔫</span>
-                <input type="text" id="scannerInput" class="scanner-input" placeholder="امسح الباركود هنا..." autocomplete="off" spellcheck="false" inputmode="none">
+                <input type="text" id="scannerInput" class="scanner-input" autocomplete="off" spellcheck="false" inputmode="none">
               </div>
               <div class="scanner-hint">💡 Scanner Gun: امسح وسيتم الاستعلام تلقائياً</div>
             </div>
@@ -588,7 +588,7 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
             </div>
             <div class="input-method-body">
               <div class="manual-row">
-                <input type="text" id="manualInput" class="manual-input" placeholder="أدخل رقم الأوردر..." autocomplete="off" spellcheck="false" inputmode="numeric">
+                <input type="text" id="manualInput" class="manual-input" autocomplete="off" spellcheck="false" inputmode="numeric">
                 <button class="btn-manual" id="manualBtn" onclick="handleManualAdd()">إضافة</button>
               </div>
             </div>
@@ -644,11 +644,11 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
             </div>
             <div class="extra-scanner-row">
               <span class="extra-row-label orange">🔫 سكانر</span>
-              <input type="text" id="extraScanInput" class="extra-scan-input" placeholder="امسح الباركود هنا..." autocomplete="off" spellcheck="false" inputmode="none">
+              <input type="text" id="extraScanInput" class="extra-scan-input" autocomplete="off" spellcheck="false" inputmode="none">
             </div>
             <div class="extra-manual-row">
               <span class="extra-row-label">✏️ يدوي</span>
-              <input type="text" id="extraManualInput" class="extra-manual-input" placeholder="12345 أو #12345" autocomplete="off" spellcheck="false" inputmode="numeric">
+              <input type="text" id="extraManualInput" class="extra-manual-input" autocomplete="off" spellcheck="false" inputmode="numeric">
               <button class="btn-extra-action" id="extraManualBtn" onclick="handleExtraManualAdd()">إضافة</button>
             </div>
           </div>
@@ -656,9 +656,9 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
         </div>
 
         <div class="pay-grid">
-          <div class="pay-method-item"><div class="pay-method-label">💵 نقدي</div><input type="number" id="pmCash" class="pay-method-input" placeholder="0.00" min="0" step="0.01" oninput="updatePayValidation()"></div>
-          <div class="pay-method-item"><div class="pay-method-label">📱 انستاباي</div><input type="number" id="pmInstapay" class="pay-method-input" placeholder="0.00" min="0" step="0.01" oninput="updatePayValidation()"></div>
-          <div class="pay-method-item"><div class="pay-method-label">👛 محفظة</div><input type="number" id="pmWallet" class="pay-method-input" placeholder="0.00" min="0" step="0.01" oninput="updatePayValidation()"></div>
+          <div class="pay-method-item"><div class="pay-method-label">💵 نقدي</div><input type="number" id="pmCash" class="pay-method-input" min="0" step="0.01" oninput="updatePayValidation()"></div>
+          <div class="pay-method-item"><div class="pay-method-label">📱 انستاباي</div><input type="number" id="pmInstapay" class="pay-method-input" min="0" step="0.01" oninput="updatePayValidation()"></div>
+          <div class="pay-method-item"><div class="pay-method-label">👛 محفظة</div><input type="number" id="pmWallet" class="pay-method-input" min="0" step="0.01" oninput="updatePayValidation()"></div>
         </div>
         <div class="pay-validation" id="payValidation"><span class="pay-val-text" id="payValText">أدخل طرق الدفع</span></div>
       </div>
@@ -738,8 +738,7 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
                     <span class="ms-ftr-count" id="msFtrCount-logCourier"></span>
                   </div>
                   <div class="ms-search-wrap">
-                    <input type="text" class="ms-search" id="msSearch-logCourier"
-                      placeholder="بحث..." oninput="msFilterList('logCourier', this.value)">
+                    <input type="text" class="ms-search" id="msSearch-logCourier" oninput="msFilterList('logCourier', this.value)">
                   </div>
                   <div class="ms-selectall-row" onclick="msToggleSelectAll('logCourier')">
                     <input type="checkbox" id="msSelectAll-logCourier"
@@ -753,7 +752,7 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
 
             <div class="log-fg">
               <label class="log-flabel">بحث برقم الأوردر</label>
-              <input type="text" class="log-finput w-search" id="logSearch" placeholder="مثال: 1780" autocomplete="off" spellcheck="false" oninput="toggleSearchActiveState(this)">
+              <input type="text" class="log-finput w-search" id="logSearch" autocomplete="off" spellcheck="false" oninput="toggleSearchActiveState(this)">
             </div>
 
             <div class="log-fg">
@@ -1439,7 +1438,7 @@ function updateImportBtn() {
   const textEl = $('importBtnText'), methodEl = $('methodImport');
   if (!textEl) return;
   if (courier) {
-    textEl.innerHTML = `البحث عن أوردرات <span class="btn-import-method-courier">${courier}</span>`;
+    textEl.innerHTML = `البحث عن أوردرات <span class="btn-import-method-courier">${esc(courier)}</span>`;
     if (methodEl) methodEl.classList.add('active');
   } else {
     textEl.textContent = 'البحث عن أوردرات المندوب';
@@ -1482,9 +1481,20 @@ scannerInput.addEventListener('input', () => {
 scannerInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(scanTimer); handleScan(); } });
 $('manualInput').addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); handleManualAdd(); } });
 
+// ─── §SCAN::plausibility — رقم رقمي طوله بره المعقول = قراءة مقطوعة أو باركودين ملزوقين
+const SCAN_MIN_LEN = 4, SCAN_MAX_LEN = 15;
+function scanLenOk(raw) {
+  if (raw.length >= SCAN_MIN_LEN && raw.length <= SCAN_MAX_LEN) return true;
+  showToast(`الرقم "${esc(raw)}" طوله ${raw.length} رقم — المتوقّع بين ${SCAN_MIN_LEN} و${SCAN_MAX_LEN}. `
+    + (raw.length > SCAN_MAX_LEN ? 'غالبًا اتسكن باركودين ورا بعض — اسكنهم تاني واحد واحد.' : 'غالبًا الباركود اتقرا ناقص — اسكنه تاني.'),
+    'warning', 6000);
+  playBeep('warn');
+  return false;
+}
 async function handleScan() {
   const raw = scannerInput.value.trim(); scannerInput.value = ''; scannerInput.focus();
   if (!raw || !/^\d+$/.test(raw)) return;
+  if (!scanLenOk(raw)) return;
   if (orders.find(o => o.id === raw)) { showToast('⚠ موجود بالفعل'); return; }
   if (!isConfigured()) { openSettings(); return; }
   await addOrder(raw);
@@ -1593,7 +1603,7 @@ $('extraManualInput').addEventListener('keypress', e => { if (e.key === 'Enter')
 async function handleExtraScan() {
   const raw = extraScanInput.value.trim(); extraScanInput.value = '';
   if (!raw) return;
-  if (/^\d+$/.test(raw)) await processExtraOrderById(raw);
+  if (/^\d+$/.test(raw)) { if (scanLenOk(raw)) await processExtraOrderById(raw); }
   else await processExtraOrderByName(raw.replace(/^#/, ''));
 }
 async function handleExtraManualAdd() {
@@ -1664,16 +1674,16 @@ function renderExtraEntries() {
 
     let statusHtml = '';
     if (e.status === 'loading') statusHtml = `<span class="extra-entry-status extra-entry-loading"><span class="spinner"></span></span>`;
-    else if (e.status === 'error' || e.status === 'notfound') statusHtml = `<span class="extra-entry-status extra-entry-error">⚠ ${e.error}</span>`;
+    else if (e.status === 'error' || e.status === 'notfound') statusHtml = `<span class="extra-entry-status extra-entry-error">⚠ ${esc(e.error)}</span>`;
     else if (e.cancelled) statusHtml = `<span class="extra-entry-status" style="color:var(--text-muted);font-size:10px">ملغي</span>`;
 
     let courierHtml = '';
     if (e.status === 'loading') courierHtml = `<span class="extra-entry-courier" style="color:var(--text-muted)">...</span>`;
     else if (!e.courier) courierHtml = `<span class="extra-entry-courier-warn"><span class="warn-name">⚠ لا يوجد مندوب</span></span>`;
-    else if (expectedCourier && e.courier !== expectedCourier) courierHtml = `<span class="extra-entry-courier-warn"><span class="warn-name">⚠ ${e.courier}</span><span class="warn-label">مندوب مختلف!</span></span>`;
-    else courierHtml = `<span class="extra-entry-courier">${e.courier}</span>`;
+    else if (expectedCourier && e.courier !== expectedCourier) courierHtml = `<span class="extra-entry-courier-warn"><span class="warn-name">⚠ ${esc(e.courier)}</span><span class="warn-label">مندوب مختلف!</span></span>`;
+    else courierHtml = `<span class="extra-entry-courier">${esc(e.courier)}</span>`;
 
-    const statusErrHtml = hasStatusErr ? `<div class="extra-status-err-row">⚠ ${e.statusError}</div>` : '';
+    const statusErrHtml = hasStatusErr ? `<div class="extra-status-err-row">⚠ ${esc(e.statusError)}</div>` : '';
     const nameLink = orderLink(e.orderName || ('#'+e.id), e.id);
 
     return `<div class="extra-entry-wrap">
@@ -1682,7 +1692,7 @@ function renderExtraEntries() {
         ${courierHtml}
         ${statusHtml}
         <div class="extra-entry-amount-wrap">
-          <input type="number" class="extra-entry-amount" placeholder="0.00" min="0" step="0.01"
+          <input type="number" class="extra-entry-amount" min="0" step="0.01"
             value="${e.amount}" oninput="updateExtraAmount(${i}, this.value)" ${e.status === 'loading' ? 'disabled' : ''}>
           <span class="extra-entry-currency">EGP</span>
         </div>
@@ -1726,11 +1736,11 @@ function calcStatusError(order, isExtra) {
   }
 }
 function renderSBadge(val, isErr) {
-  if (isErr) return `<span class="s-badge s-badge-err">⚠ ${val||'فارغ'}</span>`;
+  if (isErr) return `<span class="s-badge s-badge-err">⚠ ${esc(val||'فارغ')}</span>`;
   if (!val)  return `<span class="s-badge-empty">—</span>`;
-  if (val === 'Delivered') return `<span class="s-badge s-badge-delivered">${val}</span>`;
-  if (val === 'Returned')  return `<span class="s-badge s-badge-returned">${val}</span>`;
-  return `<span class="s-badge s-badge-other">${val}</span>`;
+  if (val === 'Delivered') return `<span class="s-badge s-badge-delivered">${esc(val)}</span>`;
+  if (val === 'Returned')  return `<span class="s-badge s-badge-returned">${esc(val)}</span>`;
+  return `<span class="s-badge s-badge-other">${esc(val)}</span>`;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1799,7 +1809,7 @@ function renderTable() {
     let shopifyTotal = null;
     if (!isCancelled && o.amount != null) shopifyTotal = isRefundStatus ? -Math.abs(o.refundAmount || o.amount) : o.amount;
 
-    const courierDisplay = isCancelled ? `<span style="color:var(--text-muted)">—</span>` : (o.courier || `<span style="color:var(--text-muted)">—</span>`);
+    const courierDisplay = isCancelled ? `<span style="color:var(--text-muted)">—</span>` : (esc(o.courier) || `<span style="color:var(--text-muted)">—</span>`);
 
     let paymentStatusDisplay;
     if (isCancelled) paymentStatusDisplay = `<span style="color:var(--red);font-size:11px">Cancelled</span>`;
@@ -1812,15 +1822,15 @@ function renderTable() {
     else if (o.status === 'cancelled')badge = `<span class="badge badge-cancelled">ملغي</span>`;
     else if (o.status === 'refund')   badge = `<span class="badge badge-refund">استرداد</span>`;
     else if (o.status === 'refund-done') badge = `<span class="badge badge-refund-done">✓ تم الاسترداد</span>`;
-    else if (o.status === 'refund-error') badge = `<span class="badge badge-error" title="${o.error||''}">خطأ استرداد</span>`;
+    else if (o.status === 'refund-error') badge = `<span class="badge badge-error" title="${esc(o.error)}">خطأ استرداد</span>`;
     else if (o.status === 'ready')    badge = o.preRegistered ? `<span class="badge badge-prereg">📋 مسجل مسبقاً</span>` : `<span class="badge badge-collect">تحصيل</span>`;
     else if (o.status === 'done')     badge = `<span class="badge badge-done">✓ تم التحصيل</span>`;
     else if (o.status === 'skipped') {
       if (o.skipReason === 'مدفوع بالكامل') badge = `<span class="badge badge-paid">مدفوع بالكامل</span>`;
-      else badge = `<span class="badge badge-skipped">${o.skipReason||'مُتخطى'}</span>`;
+      else badge = `<span class="badge badge-skipped">${esc(o.skipReason||'مُتخطى')}</span>`;
     }
     else if (o.status === 'notfound') badge = `<span class="badge badge-notfound">غير موجود</span>`;
-    else badge = `<span class="badge badge-error" title="${o.error||''}">خطأ</span>`;
+    else badge = `<span class="badge badge-error" title="${esc(o.error)}">خطأ</span>`;
 
     let rowClass = 'order-row';
     if (i === 0 && orders.length === 1) rowClass += ' row-new';
@@ -1840,7 +1850,7 @@ function renderTable() {
       <td style="padding:6px 8px;text-align:center"><button class="row-del-btn" onclick="deleteOrder(${i})" title="حذف">❌</button></td>
       <td class="cell-order" onclick="${hasDetails?`toggleRow(${i})`:''}" style="${hasDetails?'cursor:pointer':''}">
         ${expandIcon}${nameDisplay}
-        ${o.statusError?`<div style="font-size:10px;color:var(--red);font-weight:700;margin-top:3px">⚠ ${o.statusError}</div>`:''}
+        ${o.statusError?`<div style="font-size:10px;color:var(--red);font-weight:700;margin-top:3px">⚠ ${esc(o.statusError)}</div>`:''}
         ${(o.preRegistered && o.s2Due && !o.preRegBlock)?`<div style="font-size:10px;color:var(--purple);font-weight:700;margin-top:3px">متبقي S2: ${fmt(o.s2Due)} — مش في تحصيل الجلسة دي، بيتحصّل مع شحنة الاستبدال</div>`:''}
       </td>
       <td class="cell-courier">${courierDisplay}</td>
@@ -1857,11 +1867,11 @@ function renderTable() {
     let detailContent = '';
     if (hasDetails) {
       let normalRows = o.lineItems ? o.lineItems.map(li => `<tr>
-        <td class="td-sku">${li.sku}</td><td class="td-qty">${li.quantity}</td>
+        <td class="td-sku">${esc(li.sku)}</td><td class="td-qty">${li.quantity}</td>
         <td class="td-price">${fmt(li.unitPrice)}</td><td class="td-total">${fmt(li.totalPrice)}</td>
       </tr>`).join('') : '';
       let returnRows = o.returnedItems ? o.returnedItems.map(ri => `<tr style="background:var(--red-soft)">
-        <td class="td-sku returned">↩ ${ri.sku}</td><td class="td-qty negative">−${ri.quantity}</td>
+        <td class="td-sku returned">↩ ${esc(ri.sku)}</td><td class="td-qty negative">−${ri.quantity}</td>
         <td class="td-price negative">−${fmt(ri.discountedUnitPrice)}</td>
         <td class="td-total negative">−${fmt(parseFloat(ri.discountedUnitPrice)*ri.quantity)}</td>
       </tr>`).join('') : '';
@@ -1878,10 +1888,10 @@ function renderTable() {
   extraEntries.forEach((e, i) => {
     const amount = parseFloat(e.amount) || 0;
     const nameDisplay = orderLink(e.orderName || ('#'+e.id), e.id);
-    const courierDisplay = e.courier ? `<span style="color:var(--purple);font-weight:600">${e.courier}</span>` : `<span style="color:var(--text-muted)">—</span>`;
+    const courierDisplay = e.courier ? `<span style="color:var(--purple);font-weight:600">${esc(e.courier)}</span>` : `<span style="color:var(--text-muted)">—</span>`;
     const moneyDisplay = amount > 0 ? `<span style="color:var(--orange);font-family:var(--font-mono);font-weight:700">−${fmt(amount)}</span>` : `<span style="color:var(--text-muted)">—</span>`;
     const statusHtml = e.status === 'loading' ? `<span class="badge badge-loading"><span class="spinner"></span> جاري...</span>`
-      : (e.status === 'error' || e.status === 'notfound') ? `<span class="badge badge-error">${e.error}</span>`
+      : (e.status === 'error' || e.status === 'notfound') ? `<span class="badge badge-error">${esc(e.error)}</span>`
       : e.statusError ? `<span class="badge badge-status-err">⚠ حالة خاطئة</span>`
       : e.cancelled ? `<span class="badge badge-extra">🚚 شحن إضافي <span style="font-size:9px;opacity:.7">ملغي</span></span>`
       : `<span class="badge badge-extra">🚚 شحن إضافي</span>`;
@@ -1898,7 +1908,7 @@ function renderTable() {
     const extraRowClass = 'order-row extra-row' + (e.statusError ? ' status-err-row' : '');
     rows.push(`<tr class="${extraRowClass}" data-type="extra" data-idx="${i}">
       <td style="padding:6px 8px;text-align:center"><button class="row-del-btn" onclick="deleteExtraEntry(${i})" title="حذف">❌</button></td>
-      <td class="cell-order">${nameDisplay}${e.statusError?`<div style="font-size:10px;color:var(--red);font-weight:700;margin-top:3px">⚠ ${e.statusError}</div>`:''}</td>
+      <td class="cell-order">${nameDisplay}${e.statusError?`<div style="font-size:10px;color:var(--red);font-weight:700;margin-top:3px">⚠ ${esc(e.statusError)}</div>`:''}</td>
       <td class="cell-courier">${courierDisplay}</td>
       <td class="cell-money">${moneyDisplay}</td>
       <td class="cell-money"><span style="color:var(--text-muted)">—</span></td>
@@ -2499,11 +2509,11 @@ async function importLoadCouriers() {
       let values = data.values;
       if (activeCourier) values = values.filter(v => v === activeCourier);
       if (values.length) {
-        sel.innerHTML = '<option value="">اختر مندوباً...</option>' + values.map(v => `<option value="${v}">${v}</option>`).join('');
+        sel.innerHTML = '<option value="">اختر مندوباً...</option>' + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
         if (values.length === 1) { sel.value = values[0]; btn.disabled = false; } else { btn.disabled = true; }
         hint.textContent = activeCourier ? `يظهر فقط مندوب الأوردرات الحالية: ${activeCourier}` : 'اختر مندوباً للاستعلام عن أوردراته';
       } else {
-        sel.innerHTML = `<option value="">${activeCourier} — غير موجود في القائمة</option>`;
+        sel.innerHTML = `<option value="">${esc(activeCourier)} — غير موجود في القائمة</option>`;
         hint.textContent = `المندوب الحالي (${activeCourier}) غير موجود في الـ metafield choices`;
       }
     } else { sel.innerHTML = '<option value="">لا توجد مناديب</option>'; hint.textContent = 'لا توجد مناديب محددة في الـ metafield definition'; }
@@ -2567,20 +2577,20 @@ function importMakeRow(o, i) {
   const amount = parseFloat(o.amount), shipping = parseFloat(o.shippingAmount);
   const statusErr = importCalcStatusError(o);
   const s1 = o.s1||null, s2 = o.s2||null;
-  const s1Badge = s1==='Delivered' ? `<span class="s-badge s-badge-delivered">${s1}</span>`
-    : s1==='Returned' ? `<span class="s-badge s-badge-returned">${s1}</span>`
-    : s1 ? `<span class="s-badge s-badge-other">${s1}</span>` : `<span class="s-badge-empty">—</span>`;
-  const s2Badge = s2==='Returned' ? `<span class="s-badge s-badge-returned">${s2}</span>`
-    : s2 ? `<span class="s-badge s-badge-other">${s2}</span>` : `<span class="s-badge-empty">—</span>`;
+  const s1Badge = s1==='Delivered' ? `<span class="s-badge s-badge-delivered">${esc(s1)}</span>`
+    : s1==='Returned' ? `<span class="s-badge s-badge-returned">${esc(s1)}</span>`
+    : s1 ? `<span class="s-badge s-badge-other">${esc(s1)}</span>` : `<span class="s-badge-empty">—</span>`;
+  const s2Badge = s2==='Returned' ? `<span class="s-badge s-badge-returned">${esc(s2)}</span>`
+    : s2 ? `<span class="s-badge s-badge-other">${esc(s2)}</span>` : `<span class="s-badge-empty">—</span>`;
   const statusBadge = alreadyInTable ? `<span class="import-already-badge">موجود بالجدول</span>`
-    : statusErr ? `<span class="s-badge-err" style="display:inline-block;padding:2px 7px;border-radius:5px">⚠ ${statusErr}</span>`
+    : statusErr ? `<span class="s-badge-err" style="display:inline-block;padding:2px 7px;border-radius:5px">⚠ ${esc(statusErr)}</span>`
     : o.preRegistered ? `<span class="import-prereg-badge">📋 مسجل مسبقاً</span>`
     : `<span style="color:var(--green);font-size:10px;font-weight:600">✓ مؤهل</span>`;
   const rowClass = alreadyInTable ? 'already-row' : (statusErr ? ' import-err-row' : '');
   return `<tr class="${rowClass}" id="irow-${i}">
     <td class="col-check"><input type="checkbox" class="import-row-cb" data-idx="${i}" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer" ${(alreadyInTable||!!statusErr)?'disabled':''} onchange="importOnCheckChange()"></td>
     <td class="cell-mono">${orderLink(o.orderName, o.id)}</td>
-    <td class="cell-dim">${o.customerName||'—'}</td>
+    <td class="cell-dim">${esc(o.customerName)||'—'}</td>
     <td class="cell-money">${fmt(amount)}</td>
     <td class="cell-money" style="color:var(--text-secondary)">${fmt(shipping)}</td>
     <td class="cell-dim">${importFmtDate(o.createdAt)}</td>
@@ -2682,9 +2692,9 @@ function msRenderList(key) {
     : visible.map(it => {
         const checked = st.selected.has(it.value);
         const labelCls = it.mono ? 'ms-item-label ms-item-mono' : 'ms-item-label';
-        return `<div class="ms-item ${checked ? 'checked' : ''}" onclick="msToggleItem('${key}','${it.value}')">
-          <input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation(); msToggleItem('${key}','${it.value}')">
-          <span class="${labelCls}">${it.label}</span>
+        return `<div class="ms-item ${checked ? 'checked' : ''}" onclick="msToggleItem(${esc(JSON.stringify(key))},${esc(JSON.stringify(it.value))})">
+          <input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation(); msToggleItem(${esc(JSON.stringify(key))},${esc(JSON.stringify(it.value))})">
+          <span class="${labelCls}">${esc(it.label)}</span>
         </div>`;
       }).join('');
 
@@ -2751,7 +2761,7 @@ function renderChips() {
     if (!row) return;
     row.innerHTML = [...msState[key].selected].map(val => {
       const label = (msState[key].items.find(it => it.value === val) || {}).label || val;
-      return `<span class="ms-chip">${label}<button onclick="msToggleItem('${key}','${val.replace(/'/g, "\\'")}')">✕</button></span>`;
+      return `<span class="ms-chip">${esc(label)}<button onclick="msToggleItem(${esc(JSON.stringify(key))},${esc(JSON.stringify(val))})">✕</button></span>`;
     }).join('');
   });
 }
@@ -2932,7 +2942,7 @@ async function fetchLog() {
     renderPagination();
     loadLogCount();
   } catch (e) {
-    body.innerHTML = `<div class="log-empty">⚠️ ${e.message}</div>`;
+    body.innerHTML = `<div class="log-empty">⚠️ ${esc(e.message)}</div>`;
     $('logFilteredCount').textContent = '—';
   }
 }
@@ -3153,13 +3163,13 @@ function renderLog(entries) {
           <td>${orderLink(e.order_name || e.order_id, e.order_id)}${hasSub ? '<span class="lo-arrow">▶</span>' : ''}</td>
           <td>${orderTypeLbl}${x.preRegistered ? ' <span style="color:var(--purple);font-size:10px">📋</span>' : ''}</td>
           <td style="color:${isRefund?'var(--red)':'var(--green)'};font-family:var(--font-mono);font-weight:700">${isRefund?'−':''}${fmt(amt)}</td>
-          <td>${e.notes || '—'}</td>
+          <td>${esc(e.notes) || '—'}</td>
         </tr>
         ${hasSub ? `<tr class="log-sub-row hidden" id="${subId}"><td colspan="4"><div class="log-sub-inner"><table class="log-detail-tbl">
             <thead><tr><th>SKU</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
             <tbody>
-              ${(x.lineItems||[]).map(li => `<tr><td>${li.sku}</td><td>${li.quantity}</td><td>${fmt(li.unitPrice)}</td><td>${fmt(li.totalPrice)}</td></tr>`).join('')}
-              ${(x.returnedItems||[]).map(ri2 => `<tr style="color:var(--red)"><td>↩ ${ri2.sku}</td><td>−${ri2.quantity}</td><td>−${fmt(ri2.discountedUnitPrice)}</td><td>−${fmt(parseFloat(ri2.discountedUnitPrice)*ri2.quantity)}</td></tr>`).join('')}
+              ${(x.lineItems||[]).map(li => `<tr><td>${esc(li.sku)}</td><td>${li.quantity}</td><td>${fmt(li.unitPrice)}</td><td>${fmt(li.totalPrice)}</td></tr>`).join('')}
+              ${(x.returnedItems||[]).map(ri2 => `<tr style="color:var(--red)"><td>↩ ${esc(ri2.sku)}</td><td>−${ri2.quantity}</td><td>−${fmt(ri2.discountedUnitPrice)}</td><td>−${fmt(parseFloat(ri2.discountedUnitPrice)*ri2.quantity)}</td></tr>`).join('')}
             </tbody>
           </table></div></td></tr>` : ''}`;
     }).join('');
@@ -3190,8 +3200,8 @@ function renderLog(entries) {
       <td>${formatDate(g.timestamp)}</td>
       <td>${formatTimeOnly(g.timestamp)}</td>
       <td>${typeTag}</td>
-      <td>${g.courier ? `<span class="log-tag cr">🛵 ${g.courier}</span>` : '—'}</td>
-      <td>${(g.employeeDisplayName || g.employee) ? `<span class="log-tag emp">👤 ${(g.employeeDisplayName || g.employee).replace(/_/g,' ')}</span>` : '—'}</td>
+      <td>${g.courier ? `<span class="log-tag cr">🛵 ${esc(g.courier)}</span>` : '—'}</td>
+      <td>${(g.employeeDisplayName || g.employee) ? `<span class="log-tag emp">👤 ${esc((g.employeeDisplayName || g.employee).replace(/_/g,' '))}</span>` : '—'}</td>
       <td>${g.rows.length.toLocaleString('en-US')}${g.shortfall ? `<span class="log-miss" title="جلسة ناقصة">⚠ ${g.shortfall.orders > 0 ? '−'+g.shortfall.orders : 'فرق'}</span>` : ''}</td>
       <td style="color:var(--green);font-family:var(--font-mono);font-weight:700">${g.totalAmount ? fmt(g.totalAmount) : '—'}</td>
       <td style="color:var(--red);font-family:var(--font-mono);font-weight:700">${g.totalRefund ? '−'+fmt(g.totalRefund) : '—'}</td>
@@ -3603,7 +3613,7 @@ async function exportXLSX(selectedOnly) {
   const buffer = await wb.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = URL.createObjectURL(blob), a = document.createElement('a');
-  a.href = url; a.download = `cod-payment-center-${new Date().toISOString().slice(0,10)}.xlsx`;
+  a.href = url; a.download = `cod-payment-center-${cairoDayStr(new Date())}.xlsx`;
   a.click(); URL.revokeObjectURL(url);
 
   // 🔴 Standards #30 — رسالة النجاح في فرع else **بس**. `showToast('تم التصدير')`
