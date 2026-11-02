@@ -21,6 +21,14 @@ const browser = await chromium.launch({ args: ['--no-sandbox'], ...(process.env.
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } }); const page = await ctx.newPage(); const errs = [];
 page.on('pageerror', e => errs.push(e.message));
 await page.addInitScript(() => { sessionStorage.setItem('dco_session', JSON.stringify({ v: 1, username: 'A', displayName: 'A', loginAt: '2026-11-02T08:00:00Z' })); localStorage.setItem('delivery_cod_ops_worker_secret', 'S'); });
+// بديل لـ ExcelJS (الـ CDN مش متاح في بيئة الفحص) — بيسجّل الصفوف والأعمدة، ومابيكتبش ملف فعلي
+await page.addInitScript(() => {
+  window.__xl = { rows: 0, cols: 0, sheets: 0 };
+  const sink = () => new Proxy(function () {}, { get: (t, k) => k === 'toString' ? () => '' : k === 'valueOf' ? () => 0 : (k === 'then' || typeof k === 'symbol') ? undefined : sink(), apply: () => sink(), set: () => true });
+  const ws = () => new Proxy({}, { get: (t, k) => k === 'addRow' ? (...a) => { window.__xl.rows++; return sink(); } : k === 'columns' ? undefined : k === 'toString' ? () => '' : k === 'valueOf' ? () => 0 : (typeof k === 'symbol' || k === 'then') ? undefined : sink(), set: (t, k, v) => { if (k === 'columns') window.__xl.cols = Math.max(window.__xl.cols, v.length); return true; } });
+  window.ExcelJS = { Workbook: function () { return { views: null, addWorksheet: () => { window.__xl.sheets++; return ws(); }, xlsx: { writeBuffer: async () => new ArrayBuffer(8) } }; } };
+});
+let EXPORT_MODE = 'full';
 const calls = [];
 await page.route('**/*.workers.dev/**', async route => {
   const req = route.request(); const u = new URL(req.url()); const a = u.searchParams.get('action') || '';
@@ -28,6 +36,7 @@ await page.route('**/*.workers.dev/**', async route => {
   let out = { ok: true, success: true, version: '99.0.0', checks: [], employees: [], values: [], entries: [], total: 0 };
   if (a === 'get_logs') out.entries = u.searchParams.get('search') === 'zzz' ? [] : ROWS;
   if (a === 'get_logs_count') out.total = 137;
+  if (a === 'get_logs_export') { out.entries = ROWS; out.total = 137; out.cap = EXPORT_MODE === 'cut' ? 4 : 5000; out.truncated = EXPORT_MODE === 'cut'; }
   await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(out) });
 });
 await page.goto(`${BASE}/COD-Payment-Center.html`); await page.waitForSelector('#entryInput');
@@ -128,6 +137,40 @@ is(w2 < w1, 'دبل كليك بيضبط على المحتوى (وبيصغّر ل
 is(await page.evaluate(() => document.getElementById('logBody').scrollWidth <= document.getElementById('logBody').clientWidth + 1), 'بعد الضبط مفيش فراغ زيادة ولا سكرول أفقي');
 await page.click('.log-batch-row >> nth=0'); await page.waitForTimeout(150);
 is(await page.locator('.log-detail-row').first().isVisible(), 'فتح تفاصيل الجلسة لسه شغّال بعد تثبيت الأعمدة');
+
+console.log('\n══ التصدير (المرحلة ٥) ══');
+await (await hdr('type')).click(); await page.click('#msList-logType .ms-item >> nth=0'); await page.keyboard.press('Escape'); await page.waitForTimeout(300);
+await (await hdr('search')).click(); await page.fill('#logSearch', '62'); await page.press('#logSearch', 'Enter'); await page.waitForTimeout(700);
+const lastList = calls.filter(c => c.a === 'get_logs').at(-1).q;
+EXPORT_MODE = 'cut';
+let dl = page.waitForEvent('download', { timeout: 8000 }).catch(() => null);
+await page.click('#logExportBtn'); const d1 = await dl;
+if (!d1) console.log('DEBUG errs:', errs.slice(-3), 'toasts:', await page.locator('.toast').allInnerTexts());
+ await page.waitForTimeout(300);
+const expQ = calls.filter(c => c.a === 'get_logs_export').at(-1).q;
+const FILTER_KEYS = ['type', 'courier', 'employee', 'search', 'dateFrom', 'dateTo'];
+const pick = q => Object.fromEntries(FILTER_KEYS.filter(k => q[k] != null).map(k => [k, q[k]]));
+is(JSON.stringify(pick(expQ)) === JSON.stringify(pick(lastList)) && pick(expQ).search === '62' && !!pick(expQ).type, 'التصدير بيبعت نفس الفلاتر بالظبط اللي الجدول بيعرضها', JSON.stringify([pick(expQ), pick(lastList)]));
+is(/^cod-payment-center-\d{4}-\d{2}-\d{2}\.xlsx$/.test(d1.suggestedFilename()), 'اسم الملف بتاريخ القاهرة', d1.suggestedFilename());
+is((await page.evaluate(() => window.__xl)).sheets >= 1, 'الملف اتبنى (شيتات > 0)');
+const warn = await page.locator('#logExportWarn').innerText();
+is(await page.locator('#logExportWarn').isVisible() && warn.includes('التصدير اتقص') && warn.includes('4') && warn.includes('137'), 'بانر ثابت «التصدير اتقص» بالرقمين (٤ من ١٣٧)', warn);
+is(await page.locator('.toast-error', { hasText: 'اتقص' }).count() >= 1 && await page.locator('.toast-success', { hasText: 'تم التصدير' }).count() === 0, 'توست أحمر والنجاح الأخضر مش ظاهر على ملف مقصوص');
+await (await hdr('type')).click(); await page.click('#msList-logType .ms-item >> nth=1'); await page.keyboard.press('Escape'); await page.waitForTimeout(500);
+is(await page.locator('#logExportWarn').isHidden(), 'البانر بيتمسح مع أي تغيير في الفلاتر');
+EXPORT_MODE = 'full';
+dl = page.waitForEvent('download'); await page.click('#logExportBtn'); await dl; await page.waitForTimeout(300);
+is(await page.locator('#logExportWarn').isHidden() && await page.locator('.toast-success', { hasText: 'تم التصدير' }).count() >= 1, 'ملف كامل: مفيش بانر وفي توست نجاح');
+await page.click('#logClearAllBtn'); await page.waitForTimeout(500);
+const expBefore = calls.filter(c => c.a === "get_logs_export").length;
+await page.locator('.log-batch-row .log-cb').first().check(); await page.waitForTimeout(100);
+is(await page.locator('#logExportSelectedBtn').isVisible() && await page.textContent('#logExportSelCount') === '1', 'زرار «تصدير المحدد (١)» ظهر');
+dl = page.waitForEvent('download'); await page.click('#logExportSelectedBtn'); await dl;
+is(calls.filter(c => c.a === "get_logs_export").length === expBefore, 'تصدير المحدد من غير نداء للـ Worker (من جلسات الصفحة)');
+await page.evaluate(() => { window.__sv = window.ExcelJS; delete window.ExcelJS; });
+await page.click('#logExportBtn'); await page.waitForTimeout(250);
+is(calls.filter(c => c.a === "get_logs_export").length === expBefore && await page.locator('.toast-error', { hasText: 'مكتبة التصدير' }).count() >= 1, 'CDN محجوب: رسالة واضحة وصفر نداء شبكة');
+await page.evaluate(() => { window.ExcelJS = window.__sv; });
 console.log('\n══ مصدر الفلاتر ══');
 const exp = calls.filter(c => c.a === 'get_logs' || c.a === 'get_logs_count');
 is(exp.length >= 2, 'get_logs و get_logs_count اتنادوا');

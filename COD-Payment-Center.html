@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- skills: html-builder v6.6.0 · worker-builder v2.1.0 · constants v1.8.0 — 06-09-2026 -->
+<!-- skills: html-builder v8.5.0 (مربع الإدخال + جدول السجل: #47 #49 #50 #51 — بنود v8.6.0 الجديدة لسه ما اتطبّقتش) · v6.6.0 (باقي الصفحة) · worker-builder v2.1.0 · constants v1.8.0 — 02-11-2026 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>تحصيل الأوردرات COD — مركز عمليات الشحن والتحصيل</title>
@@ -1230,7 +1230,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li>لو فيه أكتر من مندوب في نفس الدفعة، الأداة بتمنع الدفع لحد ما يبقى مندوب واحد فقط.</li>
             <li>إدخال طرق الدفع (نقدي / انستاباي / محفظة) لحد ما المجموع يطابق صافي التحصيل المطلوب.</li>
             <li>تأكيد العملية — الأداة بتنفّذ <code>pay</code> لكل أوردر تحصيل و<code>refund</code> لكل أوردر استرداد بالتتابع، وتسجّل الكل في D1 تحت نفس الـ <code>batchId</code>.</li>
-            <li>مراجعة العمليات السابقة من تاب "السجل" — فلاتر (نوع العملية/المندوب/الموظف/فترة تاريخ) + جدول جلسات قابل للتوسيع لكل أوردر، ولكل SKU جوه الأوردر.</li>
+            <li>مراجعة العمليات السابقة من تاب "السجل" — <strong>فلتر في رأس كل عمود</strong> (قمع ▽: التاريخ · النوع · المندوب · الموظف · رقم الأوردر) وchips للفلاتر المفعّلة تحت صف «النتائج»، وجدول جلسات قابل للتوسيع لكل أوردر ولكل SKU جواه. «النتائج» = عدد الجلسات في الصفحة «(من N عملية مطابقة)». الترتيب بالضغط على العنوان <strong>على الصفحة الحالية (١٠٠ عملية) بس</strong>، وعرض الأعمدة بالسحب (دبل كليك = ضبط) ومحفوظ على جهازك.</li>
           </ol>
 
           <h4>الـ Endpoints الرئيسية</h4>
@@ -1264,9 +1264,12 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li><code>§TOOL-JS::allocatePaymentSplit</code> — توزيع طرق الدفع على أوردرات الجلسة بالتناسب مع تحصيل كل أوردر. توزيع تراكمي عشان مجموع الحصص يساوي المُدخل بالمليم. الوزن للأوردرات اللي على نفس اتجاه صافي الجلسة بس</li>
             <li><code>§TOOL-JS::alertPartialFailure</code> — نافذة إقرار بتوقف الموظف لما جلسة تخلص بنجاح جزئي، وبتقوله بالجنيه إيه اللي اتقبض ومش مسجّل</li>
             <li><code>§TOOL-JS::import</code> — نافذة استيراد أوردرات مندوب — مصدرين (<code>importSource</code>: 'shopify' | 'osu') بنفس جدول العرض والـ helpers (importRenderTable/importMakeRow/importCalcStatusError)</li>
-            <li><code>§LOG-JS</code> — فلاتر اختيار متعدد (نوع/مندوب/موظف) + بحث + فترة تاريخ، Pagination بصفحات عبر get_logs_count، جدول جلسات قابل للتوسيع (جلسة ← أوردر ← SKUs)، تصدير XLSX عبر ExcelJS</li>
+            <li><code>§LOG-JS</code> — جدول جلسات قابل للتوسيع (جلسة ← أوردر ← SKUs) · Pagination بصفحات (١٠٠/صفحة) عبر <code>get_logs</code> + <code>get_logs_count</code> · فلاتر server-side (<code>buildLogParams</code> مصدر واحد لـ<code>get_logs</code> و<code>get_logs_count</code> و<code>get_logs_export</code>) · تصدير XLSX للكل أو للمحدد عبر ExcelJS</li>
+            <li><code>§LOG-JS::header-filters</code> — القمع ▽ في رأس العمود (<code>HF</code> · <code>hfToggle</code> · <code>#hfPop</code>): بيحرّك نفس قوايم الفلاتر القديمة لقايمة <code>position:fixed</code> وبيرجّعها. لوحة الفلاتر القديمة <code>#logFiltersHolder</code> <strong>مخفية وهي حاملة الحالة — ممنوع تتشال</strong>. tooltip بقيم الفلتر المفعّل بس (<code>#hfTip</code>).</li>
+            <li><code>§LOG-JS::col-widths</code> — سحب عرض الأعمدة (<code>colLog</code>): <code>colgroup</code> + <code>table-layout:fixed</code>، دبل كليك = ضبط بـ<code>Range</code>، محفوظ في <code>localStorage[dco_col_widths_v1_…_log]</code>. بيقرا <code>tHead.rows[0].cells</code> بس (تفاصيل الجلسة جواها جداول فرعية).</li>
+            <li><code>§ENTRY-BAR</code> — مربع الإدخال الموحّد: النوع بالطول (١–٧ رقم أوردر · ١٣–١٥ باركود فاتورة)، Enter أو «إضافة» بس، والفشل في صندوق أحمر يقفل زرار التسجيل.</li>
             <li><code>§LOG-JS::resultBadge</code> — عمود «النتيجة» بيقرا <code>extra.result</code>. أي صف أقدم من Worker v3.5.0 مالوش الحقل ده وبيتعرض <strong>«—» مش «✓»</strong> — إحنا فعليًا مش عارفين إن الفعل اتأكد وقتها</li>
-            <li><code>§LOG-JS::sorting</code> — ترتيب الأعمدة بـ3 حالات (تصاعدي ← تنازلي ← بلا)، الأيقونة تظهر بس عند التفعيل، و<code>[...groups].sort()</code> على نسخة مش في المكان. مستقل تمامًا عن الفلاتر، ونطاقه الصفحة المعروضة</li>
+            <li><code>§LOG-JS::sorting</code> — ترتيب الأعمدة بـ3 حالات (تصاعدي ← تنازلي ← بلا) <strong>على جلسات الصفحة الحالية بس</strong> (تنبيه <code>#logSortNote</code> بيظهر)، والأيقونة تظهر بس عند التفعيل، و<code>[...groups].sort()</code> على نسخة مش في المكان.</li>
             <li><code>§CONFIG::apiRequest</code> — الطبقة اللي بتفرّق تلات أنواع فشل مختلفة كانت بتتخلط في رسالة واحدة غامضة: الـ Worker رد بخطأ · الشبكة/الـ CORS رافض · الرد مش JSON</li>
             <li><code>§SHELL-JS::runDiag</code> — زرار 🩺 في الإعدادات بينادي <code>?action=diag</code>. <code>diagRows()</code> بيفهم شكلَي <code>checks</code> (مصفوفة وكائن) عشان مايرميش على أداة بشكل قديم</li>
           </ul>
@@ -1282,7 +1285,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li><code>extraEntries[]</code> — أوردرات الشحن الإضافي (منفصلة عن الجدول الرئيسي)</li>
             <li><code>importSource</code> — 'shopify' (getCourierOrders) أو 'osu' (getCourierOrdersToday — تسليمات اليوم Delivered فقط، من D1 مباشرة) — بيتصفّر لـ 'shopify' كل ما تتفتح نافذة الاستيراد</li>
             <li><code>TOOL_VERSION</code> — مصدر واحد لرقم نسخة الواجهة: زرار الهيدر + بادج الـ Changelog + نص شاشة الدخول (<code>#loginVersionText</code>)، كلهم عبر <code>renderVersionUI()</code></li>
-            <li><code>msState</code> — حالة فلاتر الاختيار المتعدد في تاب السجل (logType/logCourier/logEmp)</li>
+            <li><code>msState</code> — حالة فلاتر الاختيار المتعدد في تاب السجل (logType/logCourier/logEmp) · <code>HF</code> — تعريف قمعات الرؤوس · <code>COL_LS_KEY</code> — مفتاح عروض الأعمدة</li>
             <li><code>logCurrentPage</code> / <code>logTotalCount</code> — Pagination بتاع تاب السجل (100 صف/صفحة)</li>
           </ul>
 

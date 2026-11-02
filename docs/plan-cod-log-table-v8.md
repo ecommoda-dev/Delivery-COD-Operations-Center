@@ -4,7 +4,7 @@
 
 ![version](https://img.shields.io/badge/plan-v1-blue)
 
-**الحالة:** خطة فقط — لا كود اتغيّر. **المرجع:** `references/data-table-standard.md` + `templates/24_data-table-section.html`.
+**الحالة:** ✅ **اتنفّذت المراحل ١–٦ (v1.67.0 → v1.70.0)** على صفحة الهب فقط — تفاصيل كل مرحلة في `CLAUDE.md`. اللي فاضل بنود v8.6.0 الجديدة (فلتر نص بتوكنز · نافذة أرقام · فلتر وقت · عرض متماثل) — مستنية قرار. **المرجع:** `references/data-table-standard.md` + `templates/24_data-table-section.html`.
 **أقرب تنفيذ موجود في الريبو ده:** `Re-Assign-Package-Zone-BOSTA.html` (`§TBL` — وضع server للسجل) و`Bosta-Orders-Upload.html` (جدول سجل بفلاتر رأس العمود).
 
 ## ١) الوضع الحالي (مقيس من الكود)
