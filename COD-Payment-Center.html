@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- skills: html-builder v8.5.0 (مربع الإدخال + جدول السجل: #47 #49 #50 #51 — بنود v8.6.0 الجديدة لسه ما اتطبّقتش) · v6.6.0 (باقي الصفحة) · worker-builder v2.1.0 · constants v1.8.0 — 02-11-2026 -->
+<!-- skills: html-builder v8.6.0 (جدول السجل: #47 #49 #50 #51 + بنود v8.6.0 — توكنز · نافذة أرقام · وقت · تاريخ بأقسام · أعمدة متماثلة) · v8.5.0 (مربع الإدخال) · v6.6.0 (باقي الصفحة) · worker-builder v2.1.0 · constants v1.8.0 — 02-11-2026 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>تحصيل الأوردرات COD — مركز عمليات الشحن والتحصيل</title>
@@ -428,12 +428,69 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
 body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:none !important;}
 .log-otbl col.hl{background:var(--accent-light);}
 .w-badge{position:fixed;z-index:220;bottom:14px;left:50%;transform:translateX(-50%);background:var(--neutral-dark);color:var(--on-accent);font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:20px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.25);}
-.hfpop{position:fixed;z-index:200;max-width:92vw;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 28px rgba(0,0,0,.18);padding:8px;display:flex;flex-direction:column;gap:8px;}
+.hfpop{position:fixed;z-index:200;max-width:92vw;max-height:72vh;overflow:auto;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 28px rgba(0,0,0,.18);padding:8px;display:flex;flex-direction:column;gap:8px;}
 .hfpop[hidden]{display:none;}
 .hfpop-title{font-size:12px;font-weight:700;color:var(--text-secondary);padding:2px 4px;}
 .hfpop .ms-menu{display:flex;position:static;width:auto;max-width:none;box-shadow:none;border:0;border-radius:0;overflow:visible;}
 .hfpop .ms-list{max-height:260px;}
 .hfpop .log-fg{display:flex;flex-direction:column;gap:4px;}
+/* ══ §LOG-CSS::filters-v86 — فلاتر السجل الجديدة (html-builder v8.6.0) ══ */
+.f86-head{display:flex;justify-content:flex-start;padding:0 2px;}
+.f86-clear{font-family:inherit;font-size:12px;font-weight:700;color:var(--accent);background:transparent;border:0;padding:2px 4px;border-radius:6px;cursor:pointer;}
+.f86-clear:hover:not(:disabled){background:var(--accent-light);}
+.f86-clear:disabled{color:var(--text-muted);opacity:.55;cursor:default;}
+.hfpop>.f86-sec+.f86-sec{border-top:1px solid var(--border);padding-top:8px;}
+.f86-sec{display:flex;flex-direction:column;gap:6px;transition:opacity .15s;}
+.f86-sec.dim{opacity:.4;}.f86-sec.dim:hover{opacity:.8;}
+.f86-sl{font-size:12px;font-weight:700;color:var(--text-secondary);display:flex;justify-content:space-between;align-items:center;}
+.f86-link{font-family:inherit;font-size:12px;font-weight:700;color:var(--accent);background:transparent;border:0;cursor:pointer;padding:0 4px;}
+.f86-lab{display:flex;flex-direction:column;gap:3px;font-size:11.5px;font-weight:700;color:var(--text-secondary);min-width:0;flex:1;}
+.f86-inp{font-family:inherit;font-size:12.5px;font-weight:600;height:32px;padding:0 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-primary);min-width:0;width:100%;box-sizing:border-box;text-align:start;}
+.f86-inp[type=date]{padding:0 8px;min-width:0;}
+.f86-inp:focus{outline:2px solid var(--accent-border);border-color:var(--accent);}
+.f86-rng{display:flex;gap:8px;}
+.f86-rng>.f86-lab,.f86-rng>div{min-width:0;}
+.f86-sw{position:relative;}
+.f86-sw svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none;}
+.f86-search{padding-left:34px;}
+.f86-toks{display:flex;flex-wrap:wrap;gap:6px;}.f86-toks:empty{display:none;}
+.ms-chip.pend{opacity:.7;border-style:dashed;}
+.f86-sugg{border:1px solid var(--border);border-radius:var(--radius-sm);max-height:236px;overflow:auto;padding:3px;}.f86-sugg:empty{display:none;}
+.f86-sg{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12.5px;font-weight:600;padding:6px 8px;border-radius:6px;cursor:pointer;}
+.f86-sg:hover,.f86-sg.act{background:var(--accent-light);}
+.f86-n{font-size:11.5px;color:var(--text-muted);font-weight:600;}
+.f86-more{font-size:11.5px;color:var(--text-muted);padding:6px 8px;}
+.f86-list{max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:1px;}
+.f86-it{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;padding:5px 6px;border-radius:6px;cursor:pointer;}
+.f86-it:hover{background:var(--surface-hover);}
+.f86-it .f86-n{margin-inline-start:auto;}
+.f86-pills{display:grid;gap:6px;}.f86-pills.c3{grid-template-columns:repeat(3,1fr);}.f86-pills.c4{grid-template-columns:repeat(4,1fr);}.f86-pills.c6{grid-template-columns:repeat(6,1fr);}
+.f86-pill,.f86-year{font-family:inherit;font-size:11.5px;font-weight:700;min-height:30px;padding:3px 4px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-primary);cursor:pointer;white-space:normal;line-height:1.25;}
+.f86-pill:hover,.f86-year:hover{background:var(--surface-hover);}
+.f86-pill.on,.f86-year.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+.f86-ynav{display:flex;align-items:center;justify-content:center;gap:10px;}
+.f86-yb{font-family:inherit;font-size:16px;font-weight:800;width:30px;height:28px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;color:var(--text-primary);}
+.f86-yb:disabled{opacity:.35;cursor:default;}.f86-year{min-width:64px;font-size:13px;}
+.f86-tl{font-size:12.5px;font-weight:700;color:var(--text-primary);text-align:center;}
+.f86-dual{position:relative;height:28px;direction:rtl;}
+.f86-track{position:absolute;inset-inline:0;top:12px;height:4px;border-radius:2px;background:var(--border-strong);}
+.f86-fill{position:absolute;top:12px;height:4px;border-radius:2px;background:var(--accent);}
+.f86-dual input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;pointer-events:none;-webkit-appearance:none;appearance:none;}
+.f86-dual input[type=range]::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);cursor:pointer;}
+.f86-dual input[type=range]::-moz-range-thumb{pointer-events:auto;width:14px;height:14px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);cursor:pointer;}
+.f86-tfs{flex-direction:row;gap:8px;}
+.f86-tf{cursor:pointer;display:flex;align-items:center;justify-content:center;direction:ltr;}
+.f86-err{font-size:12px;font-weight:700;color:var(--red);padding:2px 4px;}
+.f86-tp{position:fixed;z-index:205;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 28px rgba(0,0,0,.2);padding:8px;width:210px;direction:ltr;}
+.f86-tpcols{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.f86-tph{font-size:11.5px;font-weight:700;color:var(--text-secondary);text-align:center;padding-bottom:4px;}
+.f86-tpl{height:190px;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:1px;}
+.f86-tpi{direction:ltr;unicode-bidi:isolate;text-align:center;font-family:inherit;font-size:12.5px;font-weight:600;padding:5px 4px;border:0;border-radius:6px;background:transparent;color:var(--text-primary);cursor:pointer;flex-shrink:0;}
+.f86-tpi:hover{background:var(--surface-hover);}.f86-tpi.on{background:var(--accent);color:var(--on-accent);}
+.f86-tpf{display:flex;justify-content:space-between;margin-top:8px;}
+.f86-tpb{font-family:inherit;font-size:12px;font-weight:700;padding:5px 14px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;color:var(--text-primary);}
+.f86-tpb.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+
 .log-chips{display:flex;flex-direction:column;gap:6px;padding:8px 16px;border-bottom:1px solid var(--border);}
 .log-chips:not(:has(.ms-chip)){display:none;}
 .log-chips .ms-chips-row{align-items:center;}
@@ -903,6 +960,10 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
         <div class="ms-chips-row" id="chipsRow-logEmp"></div>
         <div class="ms-chips-row" id="chipsRow-search"></div>
         <div class="ms-chips-row" id="chipsRow-date"></div>
+        <div class="ms-chips-row" id="chipsRow-time"></div>
+        <div class="ms-chips-row" id="chipsRow-count"></div>
+        <div class="ms-chips-row" id="chipsRow-collect"></div>
+        <div class="ms-chips-row" id="chipsRow-refund"></div>
       </div>
       <div class="hfpop" id="hfPop" hidden></div>
       <div class="hfn-tip" id="hfTip" hidden role="tooltip"></div>
@@ -1266,7 +1327,8 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li><code>§TOOL-JS::import</code> — نافذة استيراد أوردرات مندوب — مصدرين (<code>importSource</code>: 'shopify' | 'osu') بنفس جدول العرض والـ helpers (importRenderTable/importMakeRow/importCalcStatusError)</li>
             <li><code>§LOG-JS</code> — جدول جلسات قابل للتوسيع (جلسة ← أوردر ← SKUs) · Pagination بصفحات (١٠٠/صفحة) عبر <code>get_logs</code> + <code>get_logs_count</code> · فلاتر server-side (<code>buildLogParams</code> مصدر واحد لـ<code>get_logs</code> و<code>get_logs_count</code> و<code>get_logs_export</code>) · تصدير XLSX للكل أو للمحدد عبر ExcelJS</li>
             <li><code>§LOG-JS::header-filters</code> — القمع ▽ في رأس العمود (<code>HF</code> · <code>hfToggle</code> · <code>#hfPop</code>): بيحرّك نفس قوايم الفلاتر القديمة لقايمة <code>position:fixed</code> وبيرجّعها. لوحة الفلاتر القديمة <code>#logFiltersHolder</code> <strong>مخفية وهي حاملة الحالة — ممنوع تتشال</strong>. tooltip بقيم الفلتر المفعّل بس (<code>#hfTip</code>).</li>
-            <li><code>§LOG-JS::col-widths</code> — سحب عرض الأعمدة (<code>colLog</code>): <code>colgroup</code> + <code>table-layout:fixed</code>، دبل كليك = ضبط بـ<code>Range</code>، محفوظ في <code>localStorage[dco_col_widths_v1_…_log]</code>. بيقرا <code>tHead.rows[0].cells</code> بس (تفاصيل الجلسة جواها جداول فرعية).</li>
+            <li><code>§LOG-JS::filters-v86</code> — فلاتر السجل الجديدة (<code>F86</code>): رقم الأوردر بتوكنز + اقتراحات (<code>get_log_suggest</code>) · أرقام عدد/تحصيل/استرداد (<code>countFrom/To/In</code>…، القايمة من <code>get_log_num_values</code>) · وقت اليوم (<code>timeFrom/timeTo</code> بتوقيت القاهرة) · تاريخ بأقسام. كلها server-side (Worker ≥ 3.8.0) ومجاميع الجلسة بتتحسب على الجلسة كلها بغض النظر عن باقي الفلاتر.</li>
+            <li><code>§LOG-JS::col-widths</code> — سحب عرض الأعمدة (<code>colLog</code>): كل الأعمدة متماثلة بالتناسب (<code>effective</code> · <code>ResizeObserver</code> · حارس العرض المنفوخ)، <code>colgroup</code> + <code>table-layout:fixed</code>، دبل كليك = ضبط بـ<code>Range</code>، محفوظ في <code>localStorage[dco_col_widths_v1_…_log]</code>. بيقرا <code>tHead.rows[0].cells</code> بس (تفاصيل الجلسة جواها جداول فرعية).</li>
             <li><code>§ENTRY-BAR</code> — مربع الإدخال الموحّد: النوع بالطول (١–٧ رقم أوردر · ١٣–١٥ باركود فاتورة)، Enter أو «إضافة» بس، والفشل في صندوق أحمر يقفل زرار التسجيل.</li>
             <li><code>§LOG-JS::resultBadge</code> — عمود «النتيجة» بيقرا <code>extra.result</code>. أي صف أقدم من Worker v3.5.0 مالوش الحقل ده وبيتعرض <strong>«—» مش «✓»</strong> — إحنا فعليًا مش عارفين إن الفعل اتأكد وقتها</li>
             <li><code>§LOG-JS::sorting</code> — ترتيب الأعمدة بـ3 حالات (تصاعدي ← تنازلي ← بلا) <strong>على جلسات الصفحة الحالية بس</strong> (تنبيه <code>#logSortNote</code> بيظهر)، والأيقونة تظهر بس عند التفعيل، و<code>[...groups].sort()</code> على نسخة مش في المكان.</li>
@@ -1279,7 +1341,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li><code>currentEmployee</code> — { username, displayName }، مصدره <code>dco_session</code> في <code>sessionStorage</code> (جلسة المركز) — أبداً في <code>localStorage</code></li>
             <li><code>WORKER_URL</code> · <code>ADMIN_WORKER_URL</code> — <strong>ثوابت</strong> في §CONFIG مش حقول إعدادات ولا localStorage (Standards #28). الرابط مش سر — الحماية في <code>WORKER_SECRET</code> + CORS allowlist</li>
             <li><code>LS_SECRET = 'delivery_cod_ops_worker_secret'</code> (في <code>shared/hub-config.js</code>) — <strong>المفتاح الوحيد في localStorage</strong>، وقيمته سر مجموعة <code>delivery_cod_ops</code> المشترك بين أدوات المركز. ⚠️ المفتاح القديم <code>cod_payment_center_worker_secret</code> <strong>ما اتمسحش</strong> من متصفحات الموظفين — بقى مهمل بس.</li>
-            <li><code>MIN_WORKER_VERSION = '3.6.0'</code> — أقل نسخة Worker الواجهة بتشتغل معاها. Worker أقدم بيسيب <code>status</code>/<code>logged</code>/<code>truncated</code> فاضيين <strong>في صمت</strong>، فالواجهة تعرض «تم» على كل حاجة — عشان كده الحارس ده إلزامي</li>
+            <li><code>MIN_WORKER_VERSION = '3.8.0'</code> — أقل نسخة Worker الواجهة بتشتغل معاها. Worker أقدم بيسيب <code>status</code>/<code>logged</code>/<code>truncated</code> فاضيين <strong>في صمت</strong>، فالواجهة تعرض «تم» على كل حاجة — عشان كده الحارس ده إلزامي</li>
             <li><code>TOOL_NAME</code> — <strong>اتشال من الواجهة</strong>. قيمة <code>tool</code> في جدول logs (<code>cod_payment</code>) متحدّدة في كود الـ Worker ومابتتبعتش من العميل — قيمة جاية من العميل معناها أي طلب معاه السر يقدر يكتب صفوف بأي اسم أداة في الجدول المشترك.</li>
             <li><code>orders[]</code> — الأوردرات في الجدول الرئيسي (تحصيل/استرجاع/استبدال)</li>
             <li><code>extraEntries[]</code> — أوردرات الشحن الإضافي (منفصلة عن الجدول الرئيسي)</li>
@@ -1389,7 +1451,7 @@ const $ = id => document.getElementById(id);
 // ══════════════════════════════════════════════════════════════
 //
 // ⛔ **اتشال من هنا ودلوقتي في `shared/hub-config.js`:** `TOOL_VERSION` ·
-//    `MIN_WORKER_VERSION` (بقت `ECO_WORKERS.codPayment.min` = `3.6.0`) ·
+//    `MIN_WORKER_VERSION` (بقت `ECO_WORKERS.codPayment.min` = `3.8.0`) ·
 //    `cmpVersion` · `checkWorkerVersion` · `showWorkerStale` ·
 //    `renderVersionUI` · مودال الإعدادات (`openSettings`/`saveSettings`/
 //    `updateSettingsBtn`) · `diagRows`/`runDiag` (→ `ecoRunDiag`) ·
@@ -3015,33 +3077,56 @@ function renderChips() {
       return `<span class="ms-chip">${esc(label)}<button onclick="msToggleItem(${esc(JSON.stringify(key))},${esc(JSON.stringify(val))})">✕</button></span>`;
     }).join('') : '';
   });
-  const q = $('logSearch').value.trim();
-  $('chipsRow-search').innerHTML = q ? `<span class="chips-label">رقم الأوردر:</span><span class="ms-chip">${esc(q)}<button onclick="clearLogSearch()">✕</button></span>` : '';
-  const f = $('rangeDateFrom').value, t = $('rangeDateTo').value;
-  $('chipsRow-date').innerHTML = (f || t) ? `<span class="chips-label">التاريخ:</span><span class="ms-chip">من 📅 ${esc(f ? f.split('-').reverse().join('/') : '—')} إلى 📅 ${esc(t ? t.split('-').reverse().join('/') : '—')}<button onclick="clearLogDate()">✕</button></span>` : '';
+  // رقم الأوردر: توكن لكل chip (✕ بيشيله لوحده) + المكتوب اللي لسه ما اتضافش (بيفلتر لايف)
+  const pend = orderParts(F86.pending).filter(t => !F86.tok.includes(t));
+  $('chipsRow-search').innerHTML = (F86.tok.length || pend.length)
+    ? `<span class="chips-label">رقم الأوردر:</span>` + F86.tok.map((t, i) => `<span class="ms-chip">${esc(t)}<button type="button" onclick="removeOrderTok(${i})">✕</button></span>`).join('') + pend.map(t => `<span class="ms-chip pend">${esc(t)}<button type="button" onclick="clearOrderPending()">✕</button></span>`).join('') : '';
+  $('chipsRow-date').innerHTML = dateActive() ? `<span class="chips-label">التاريخ:</span><span class="ms-chip">${esc(dateChipText())}<button type="button" onclick="clearLogDate()">✕</button></span>` : '';
+  $('chipsRow-time').innerHTML = (F86.tm.from || F86.tm.to) ? `<span class="chips-label">الوقت:</span><span class="ms-chip">من 🕐 ${esc(F86.tm.from ? fT(F86.tm.from, true) : 'بداية اليوم')} إلى 🕐 ${esc(F86.tm.to ? fT(F86.tm.to, true) : 'نهاية اليوم')}<button type="button" onclick="clearLogTime()">✕</button></span>` : '';
+  Object.keys(F86.num).forEach(k => {
+    const a = F86.num[k], m = numMode(a), row = $('chipsRow-' + k); if (!row) return;
+    row.innerHTML = !m ? '' : `<span class="chips-label">${NUM_TITLE[k]}:</span>` + (m === 'list'
+      ? [...a.sel].map(v => `<span class="ms-chip">${esc(fmtN(v))}<button type="button" onclick="removeNumVal('${k}','${esc(v)}')">✕</button></span>`).join('')
+      : `<span class="ms-chip">من ${esc(a.from !== '' ? fmtN(a.from) : '—')} إلى ${esc(a.to !== '' ? fmtN(a.to) : '—')}<button type="button" onclick="clearNum('${k}')">✕</button></span>`);
+  });
 }
-function clearLogSearch() { $('logSearch').value = ''; toggleSearchActiveState($('logSearch')); logCurrentPage = 1; clearExportWarn(); fetchLog(); }
-function clearLogDate() {
-  $('rangeDateFrom').value = ''; $('rangeDateTo').value = ''; activeRangePreset = '';
-  document.querySelectorAll('.range-preset-item').forEach(el => el.classList.remove('active'));
-  $('rangePresetLabel').textContent = '⚡ اختار فترة'; $('rangePresetBtn').classList.remove('has-preset');
-  logCurrentPage = 1; clearExportWarn(); fetchLog();
+const fmtD = v => v ? v.split('-').reverse().join('/') : '—';
+function dateChipText() {
+  if (!dateActive()) return '';
+  if (activeRangePreset && RANGE_PRESET_LABELS[activeRangePreset]) return RANGE_PRESET_LABELS[activeRangePreset];
+  const m = F86.dMonth;
+  if (m && m.length === 7) return `${MONTHS_AR[+m.slice(5) - 1]} ${m.slice(0, 4)}`;
+  if (m && m.length === 4) return `عام ${m}`;
+  return `من 📅 ${fmtD($('rangeDateFrom').value)} إلى 📅 ${fmtD($('rangeDateTo').value)}`;
 }
+function f86Changed() { syncFunnels(); logCurrentPage = 1; clearExportWarn(); fetchLog(); }
+function removeOrderTok(i) { F86.tok.splice(i, 1); f86Changed(); }
+function clearOrderPending() { F86.pending = ''; if ($('f86OrdInp')) { $('f86OrdInp').value = ''; ordRenderToks(); } f86Changed(); }
+function clearLogTime() { F86.tm = { from: '', to: '' }; tmSyncUI && $('f86TmA') && tmSyncUI(true); f86Changed(); }
+function removeNumVal(k, v) { F86.num[k].sel.delete(String(v)); f86Changed(); }
+function clearNum(k) { F86.num[k] = mkNum(); f86Changed(); }
+function clearLogSearch() { F86.tok = []; F86.pending = ''; f86Changed(); }
+function clearLogDate() { activeRangePreset = ''; F86.dMonth = ''; $('rangeDateFrom').value = ''; $('rangeDateTo').value = ''; if ($('f86DF')) { $('f86DF').value = ''; $('f86DT').value = ''; dateMark(); } f86Changed(); }
 
 // ══ §LOG-JS::header-filters — القمع في رأس العمود (Standards #47 · #50) ══
 // 🔴 القمع بيفتح **نفس** قوايم الفلاتر القديمة (نفس الـ ids ونفس الدوال)، بينقلها لقايمة عايمة
 //    `position:fixed` وبيرجّعها مكانها (اللوحة القديمة `hidden` وهي حاملة الحالة). فالمربع
 //    والقمع والـ chips **مستحيل يفترقوا** — نفس قرار v1.33.0 في الطابورين.
 const HF = {
-  date:    { title: 'التاريخ',        width: 340, items: () => [{ node: $('rangePresetWrap').closest('.log-fg') }, { node: $('rangeDateFrom').closest('.log-fg') }, { node: $('rangeDateTo').closest('.log-fg') }], active: () => !!($('rangeDateFrom').value || $('rangeDateTo').value) },
+  date:    { title: 'التاريخ',        width: 340, render: pop => renderDatePop(pop), active: () => dateActive() },
+  time:    { title: 'الوقت',          width: 340, render: pop => renderTimePop(pop), active: () => !!(F86.tm.from || F86.tm.to) },
   type:    { title: 'نوع العملية',    width: 260, items: () => [{ node: $('msMenu-logType'),    home: $('msWrap-logType') }],    active: () => msState.logType.selected.size > 0 },
   courier: { title: 'المندوب',        width: 260, items: () => [{ node: $('msMenu-logCourier'), home: $('msWrap-logCourier') }], active: () => msState.logCourier.selected.size > 0 },
   emp:     { title: 'الموظف',         width: 260, items: () => [{ node: $('msMenu-logEmp'),     home: $('msWrap-logEmp') }],     active: () => msState.logEmp.selected.size > 0 },
-  search:  { title: 'بحث برقم الأوردر', width: 280, items: () => [{ node: $('logSearch').closest('.log-fg') }],               active: () => !!$('logSearch').value.trim() },
+  orders:  { title: 'بحث برقم الأوردر', width: 300, render: pop => renderOrdersPop(pop), active: () => f86Orders().length > 0 },
+  count:   { title: 'عدد',            width: 300, render: pop => renderNumPop(pop, 'count'),   active: () => numActive('count') },
+  collect: { title: 'تحصيل',          width: 300, render: pop => renderNumPop(pop, 'collect'), active: () => numActive('collect') },
+  refund:  { title: 'استرداد',        width: 300, render: pop => renderNumPop(pop, 'refund'),  active: () => numActive('refund') },
 };
 let hfOpen = null;   // { key, btn, moved: [{node, home}] }
 function hfClose() {
   if (!hfOpen) return;
+  tpClose();
   const pop = $('hfPop');
   hfOpen.moved.forEach(m => m.home.appendChild(m.node));
   pop.hidden = true; pop.innerHTML = '';
@@ -3060,11 +3145,14 @@ function hfToggle(key, btn) {
   if (same) return;
   const pop = $('hfPop');
   pop.innerHTML = `<div class="hfpop-title">${esc(HF[key].title)}</div>`;
-  const moved = HF[key].items().map(it => { const home = it.home || it.node.parentNode; pop.appendChild(it.node); return { node: it.node, home }; });
-  pop.hidden = false;
-  hfOpen = { key, btn, moved };
+  let moved = [];
+  if (HF[key].render) { pop.hidden = false; hfOpen = { key, btn, moved }; HF[key].render(pop); }
+  else {
+    moved = HF[key].items().map(it => { const home = it.home || it.node.parentNode; pop.appendChild(it.node); return { node: it.node, home }; });
+    pop.hidden = false; hfOpen = { key, btn, moved };
+  }
   hfPlace();
-  const first = pop.querySelector('input[type=text],input:not([type=checkbox])');
+  const first = pop.querySelector('.f86-search,input[type=text],input[type=number]');
   if (first) first.focus();
 }
 function syncFunnels() {
@@ -3073,9 +3161,10 @@ function syncFunnels() {
 }
 document.addEventListener('click', (e) => {
   if (!document.contains(e.target)) return;   // Standards #32 — العنصر اتشال بعد إعادة رسم القايمة
-  if (hfOpen && !$('hfPop').contains(e.target) && !e.target.closest('.hfn')) hfClose();
+  if (hfOpen && !$('hfPop').contains(e.target) && !e.target.closest('.hfn') && !e.target.closest('.f86-tp')) hfClose();
 });
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && tpEl) { tpClose(); return; }   // قايمة الساعة/الدقيقة بتتقفل الأول
   if (!hfOpen) return;
   if (e.key === 'Escape') hfClose();
   else if (e.key === 'Enter' && $('hfPop').contains(e.target) && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') hfClose();   // Enter يقفل القايمة والفلتر يفضل
@@ -3090,9 +3179,10 @@ function hfValuesText(k) {
     const key = { type: 'logType', courier: 'logCourier', emp: 'logEmp' }[k];
     return [...msState[key].selected].map(v => lbl(key, v)).join('، ');
   }
-  if (k === 'search') return $('logSearch').value.trim();
-  const f = $('rangeDateFrom').value, t = $('rangeDateTo').value, fm = d => d ? d.split('-').reverse().join('/') : '—';
-  return (f || t) ? `من ${fm(f)} إلى ${fm(t)}` : '';
+  if (k === 'orders') return f86Orders().map(t => '#' + t).join('، ');
+  if (k === 'time') return `من ${F86.tm.from ? fT(F86.tm.from, true) : 'بداية اليوم'} إلى ${F86.tm.to ? fT(F86.tm.to, true) : 'نهاية اليوم'}`;
+  if (F86.num[k]) { const a = F86.num[k]; return numMode(a) === 'list' ? [...a.sel].map(fmtN).join('، ') : `من ${a.from !== '' ? fmtN(a.from) : '—'} إلى ${a.to !== '' ? fmtN(a.to) : '—'}`; }
+  return dateChipText();
 }
 function hfTipShow(btn) {
   const k = btn.dataset.hf; if (!HF[k] || !HF[k].active()) return hfTipHide();
@@ -3109,27 +3199,347 @@ document.addEventListener('focusin',    e => { const b = e.target.closest && e.t
 document.addEventListener('focusout',   hfTipHide);
 document.addEventListener('click',      hfTipHide, true);
 
+// ══ §LOG-JS::filters-v86 — بنود html-builder v8.6.0 على جدول السجل (طلب أحمد 02-11-2026) ══
+// 🔴 كلها **server-side** (Worker ≥ 3.8.0): الجدول جلسات والصفحة ١٠٠ عملية — فلتر في المتصفح كان هيعدّ الصفحة بس
+//    والصفحة التانية تيجي بلا فلتر والتصدير غير مفلتر. الحالة كلها في `F86` + مدخلات التاريخ المخفية، و`buildLogParams`
+//    مصدر واحد لـ`get_logs` و`get_logs_count` و`get_logs_export`.
+const pad2 = n => String(n).padStart(2, '0');
+const latinDigits = v => String(v == null ? '' : v).replace(/[٠-٩]/g, c => String(c.charCodeAt(0) - 1632));
+const orderParts = v => latinDigits(v).split(/\D+/).filter(Boolean);
+const fmtN = v => Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const mkNum = () => ({ from: '', to: '', sel: new Set() });
+const F86 = { tok: [], pending: '', num: { count: mkNum(), collect: mkNum(), refund: mkNum() }, tm: { from: '', to: '' }, dMonth: '' };
+const NUM_TITLE = { count: 'عدد', collect: 'تحصيل', refund: 'استرداد' };
+let f86T = null, f86Seq = 0, dtYear = null;
+function f86Refetch(ms) { clearTimeout(f86T); f86T = setTimeout(() => { logCurrentPage = 1; clearExportWarn(); fetchLog(); }, ms || 0); }
+const f86Orders = () => [...new Set([...F86.tok, ...orderParts(F86.pending)])];
+const numMode = a => a.sel.size ? 'list' : ((a.from !== '' || a.to !== '') ? 'range' : '');
+const numActive = k => !!numMode(F86.num[k]);
+function f86Params(p) {
+  const o = f86Orders(); if (o.length) p.orders = o.join(',');
+  if (F86.tm.from) p.timeFrom = F86.tm.from;
+  if (F86.tm.to)   p.timeTo   = F86.tm.to;
+  Object.keys(F86.num).forEach(k => {
+    const a = F86.num[k], m = numMode(a);
+    if (m === 'list') p[k + 'In'] = [...a.sel].join(',');
+    else if (m === 'range') { if (a.from !== '') p[k + 'From'] = a.from; if (a.to !== '') p[k + 'To'] = a.to; }
+  });
+}
+
+// ─── وقت: 24 ساعة HH:MM للتخزين، 12 ساعة للعرض ───
+const hm2m = hm => { const p = String(hm || '').split(':'); return p.length === 2 ? (+p[0]) * 60 + (+p[1]) : 0; };
+const m2hm = m => pad2(Math.floor(m / 60)) + ':' + pad2(m % 60);
+function fT(hm, long) {
+  if (!hm) return '--:--';
+  const h = +hm.slice(0, 2), mm = hm.slice(3, 5);
+  return `${pad2(h % 12 || 12)}:${mm} ${long ? (h < 12 ? 'صباحاً' : 'مساءً') : (h < 12 ? 'ص' : 'م')}`;
+}
+let tpEl = null, tpWhich = null, tpH = null, tpM = null;
+function tpClose() { if (tpEl) { tpEl.remove(); tpEl = null; tpWhich = null; } }
+function tpOpen(btn) {
+  const which = btn.dataset.tf; if (tpEl && tpWhich === which) { tpClose(); return; } tpClose();
+  tpWhich = which; const cur = F86.tm[which]; tpH = cur ? +cur.slice(0, 2) : null; tpM = cur ? +cur.slice(3, 5) : null;
+  tpEl = document.createElement('div'); tpEl.className = 'f86-tp'; tpEl.setAttribute('role', 'dialog'); tpEl.setAttribute('aria-label', which === 'from' ? 'من وقت' : 'إلى وقت');
+  const hrs = Array.from({ length: 24 }, (_, h) => `<button type="button" class="f86-tpi${tpH === h ? ' on' : ''}" data-tph="${h}">${pad2(h % 12 || 12)} ${h < 12 ? 'ص' : 'م'}</button>`).join('');
+  const mins = Array.from({ length: 60 }, (_, m) => `<button type="button" class="f86-tpi${tpM === m ? ' on' : ''}" data-tpm="${m}">${pad2(m)}</button>`).join('');
+  tpEl.innerHTML = `<div class="f86-tpcols"><div><div class="f86-tph">ساعة · HH</div><div class="f86-tpl" id="f86TpH">${hrs}</div></div><div><div class="f86-tph">دقيقة · MM</div><div class="f86-tpl" id="f86TpM">${mins}</div></div></div><div class="f86-tpf"><button type="button" class="f86-tpb" data-tpclear>مسح</button><button type="button" class="f86-tpb pri" data-tpdone>تم</button></div>`;
+  document.body.appendChild(tpEl);
+  const r = btn.getBoundingClientRect();
+  tpEl.style.top = Math.min(r.bottom + 4, innerHeight - tpEl.offsetHeight - 8) + 'px';
+  tpEl.style.left = Math.max(8, Math.min(r.left, innerWidth - tpEl.offsetWidth - 8)) + 'px';
+  const on = tpEl.querySelector('#f86TpH .on'); if (on) on.scrollIntoView({ block: 'center' });
+  const om = tpEl.querySelector('#f86TpM .on'); if (om) om.scrollIntoView({ block: 'center' });
+}
+function tpSet(h, m) {
+  tpH = h; tpM = m; if (tpH === null) return;
+  F86.tm[tpWhich] = pad2(tpH) + ':' + pad2(tpM == null ? 0 : tpM);
+  tmSyncUI(true); f86Refetch(250); syncFunnels();
+  if (tpEl) { tpEl.querySelectorAll('#f86TpH .f86-tpi').forEach(b => b.classList.toggle('on', +b.dataset.tph === tpH)); tpEl.querySelectorAll('#f86TpM .f86-tpi').forEach(b => b.classList.toggle('on', +b.dataset.tpm === (tpM == null ? 0 : tpM))); }
+}
+document.addEventListener('click', e => {
+  if (!tpEl) return;
+  const t = e.target; if (!document.contains(t)) return;
+  const bh = t.closest && t.closest('[data-tph]'), bm = t.closest && t.closest('[data-tpm]');
+  if (tpEl.contains(t)) {
+    if (bh) tpSet(+bh.dataset.tph, tpM);
+    else if (bm) { tpM = +bm.dataset.tpm; if (tpH !== null) tpSet(tpH, tpM); else tpEl.querySelectorAll('#f86TpM .f86-tpi').forEach(b => b.classList.toggle('on', +b.dataset.tpm === tpM)); }
+    else if (t.closest('[data-tpclear]')) { F86.tm[tpWhich] = ''; tpClose(); tmSyncUI(true); f86Refetch(250); syncFunnels(); }
+    else if (t.closest('[data-tpdone]')) tpClose();
+    return;
+  }
+  if (!t.closest('[data-tf]')) tpClose();
+}, true);
+window.addEventListener('scroll', e => { if (tpEl && !tpEl.contains(e.target)) tpClose(); }, true);
+
+// ─── فلتر الوقت (عمود «الوقت») ───
+function tmSyncUI(fromFields) {
+  const a = $('f86TmA'), b = $('f86TmB'); if (!a || !b) return;
+  const lo = F86.tm.from ? hm2m(F86.tm.from) : 0, hi = F86.tm.to ? hm2m(F86.tm.to) : 1440;
+  if (fromFields) { a.value = lo; b.value = hi; }
+  const x = Math.min(+a.value, +b.value), y = Math.max(+a.value, +b.value);
+  $('f86TmLbl').textContent = `من ${F86.tm.from ? fT(F86.tm.from, true) : 'بداية اليوم'} إلى ${F86.tm.to ? fT(F86.tm.to, true) : 'نهاية اليوم'}`;
+  const fill = $('f86TmFill'); fill.style.right = (x / 1440 * 100) + '%'; fill.style.width = ((y - x) / 1440 * 100) + '%';
+  document.querySelectorAll('#hfPop [data-tf]').forEach(bt => { bt.textContent = fT(F86.tm[bt.dataset.tf]); });
+  $('f86TmErr').hidden = !(F86.tm.from && F86.tm.to && F86.tm.from > F86.tm.to);
+}
+function renderTimePop(pop) {
+  pop.insertAdjacentHTML('beforeend', `
+    <div class="f86-head"><button type="button" class="f86-clear" id="f86TmClear">✕ مسح الاختيار</button></div>
+    <div class="f86-sec"><div class="f86-tl" id="f86TmLbl"></div>
+      <div class="f86-dual"><div class="f86-track"></div><div class="f86-fill" id="f86TmFill"></div>
+        <input type="range" min="0" max="1440" step="1" id="f86TmA" aria-label="بداية الوقت"><input type="range" min="0" max="1440" step="1" id="f86TmB" aria-label="نهاية الوقت"></div></div>
+    <div class="f86-sec f86-tfs"><label class="f86-lab">من وقت<button type="button" class="f86-inp f86-tf" data-tf="from"></button></label><label class="f86-lab">إلى وقت<button type="button" class="f86-inp f86-tf" data-tf="to"></button></label></div>
+    <div class="f86-err" id="f86TmErr" hidden>وقت «من» بعد وقت «إلى» — مفيش نتايج</div>`);
+  tmSyncUI(true);
+}
+
+// ─── توكنز رقم الأوردر + اقتراحات لايف ───
+let sgItems = [], sgAct = -1, sgT = null;
+function ordRenderToks() {
+  const box = $('f86Toks'); if (!box) return;
+  const pend = orderParts(F86.pending);
+  box.innerHTML = F86.tok.map((t, i) => `<span class="ms-chip">${esc(t)}<button type="button" data-tokx="${i}" aria-label="شيل ${esc(t)}">✕</button></span>`).join('') +
+    pend.map(t => `<span class="ms-chip pend">${esc(t)}</span>`).join('');
+}
+async function ordSuggest() {
+  const box = $('f86Sugg'); if (!box) return;
+  const parts = orderParts(F86.pending);
+  if (!parts.length) { box.innerHTML = ''; sgItems = []; sgAct = -1; return; }
+  const seq = ++f86Seq;
+  try {
+    const d = await apiGet('get_log_suggest', { q: parts.join(' '), exclude: F86.tok.join(',') });
+    if (seq !== f86Seq || !$('f86Sugg')) return;
+    sgItems = d.suggestions || []; sgAct = -1;
+    const more = (d.total || 0) - sgItems.length;
+    $('f86Sugg').innerHTML = sgItems.length
+      ? sgItems.map((s, i) => `<div class="f86-sg" role="option" data-sg="${i}">${esc(s.name)}<span class="f86-n">${s.count} ${s.count === 1 ? 'عملية' : 'عمليات'}</span></div>`).join('') + (more > 0 ? `<div class="f86-more">+${more} أخرى — كمّل الكتابة لتضييق النتائج</div>` : '')
+      : '<div class="f86-more">مفيش اقتراحات — Enter بيضيف اللي كتبته كبحث جزئي</div>';
+  } catch { if ($('f86Sugg')) $('f86Sugg').innerHTML = ''; }
+}
+function ordAdd(list) {
+  let added = false;
+  list.forEach(t => { if (t && !F86.tok.includes(t)) { F86.tok.push(t); added = true; } });
+  F86.pending = ''; const inp = $('f86OrdInp'); if (inp) { inp.value = ''; inp.focus(); }
+  ordRenderToks(); const sb = $('f86Sugg'); if (sb) sb.innerHTML = ''; sgItems = []; sgAct = -1;
+  syncFunnels(); f86Refetch(0); return added;
+}
+function ordPick(i) {
+  const s = sgItems[i]; if (!s) return;
+  const digits = orderParts(s.name).pop(); const parts = orderParts(F86.pending);
+  ordAdd([...parts.slice(0, -1), digits]);
+}
+function renderOrdersPop(pop) {
+  pop.insertAdjacentHTML('beforeend', `
+    <div class="f86-head"><button type="button" class="f86-clear" id="f86OrdClear">✕ مسح الاختيار</button></div>
+    <div class="f86-sw"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="text" class="f86-inp f86-search" id="f86OrdInp" autocomplete="off" spellcheck="false" inputmode="numeric" aria-label="رقم الأوردر"></div>
+    <div class="f86-toks" id="f86Toks"></div><div class="f86-sugg" id="f86Sugg" role="listbox"></div>`);
+  $('f86OrdInp').value = F86.pending; ordRenderToks(); if (F86.pending) ordSuggest();
+}
+
+// ─── فلتر الأرقام: نافذة واحدة (نطاق + قايمة قيم متبادلين) ───
+const numVals = {};
+function markNumPop() {
+  const k = hfOpen && hfOpen.key; if (!k || !F86.num[k]) return;
+  const a = F86.num[k], m = numMode(a);
+  const r = document.querySelector('#hfPop [data-sec="range"]'), l = document.querySelector('#hfPop [data-sec="list"]');
+  if (r) r.classList.toggle('dim', m === 'list'); if (l) l.classList.toggle('dim', m === 'range');
+  const c = $('f86NumClear'); if (c) c.disabled = !m;
+}
+function numListHtml(k) {
+  const v = numVals[k]; if (!v) return '<div class="f86-more">جاري التحميل…</div>';
+  const q = ($('f86NumQ') || {}).value || '';
+  const items = v.filter(x => !q || fmtN(x.v).includes(latinDigits(q)));
+  return items.length ? items.map(x => `<label class="f86-it"><input type="checkbox" data-nv="${x.v}"${F86.num[k].sel.has(String(x.v)) ? ' checked' : ''}><span>${fmtN(x.v)}</span><span class="f86-n">(${x.n})</span></label>`).join('') : '<div class="f86-more">مفيش قيم</div>';
+}
+function renderNumPop(pop, k) {
+  const a = F86.num[k];
+  pop.insertAdjacentHTML('beforeend', `
+    <div class="f86-head"><button type="button" class="f86-clear" id="f86NumClear">✕ مسح الاختيار</button></div>
+    <div class="f86-sec" data-sec="range"><div class="f86-sl">نطاق (من — إلى)</div><div class="f86-rng"><label class="f86-lab">من<input type="number" class="f86-inp" id="f86NF" step="any" value="${esc(a.from)}"></label><label class="f86-lab">إلى<input type="number" class="f86-inp" id="f86NT" step="any" value="${esc(a.to)}"></label></div></div>
+    <div class="f86-sec" data-sec="list"><div class="f86-sl">أو اختار قيم <button type="button" class="f86-link" id="f86NumAll">تحديد الكل</button></div><div id="f86NumQW"></div><div class="f86-list" id="f86NumList">${numListHtml(k)}</div></div>`);
+  markNumPop();
+  apiGet('get_log_num_values', { field: k }).then(d => {
+    numVals[k] = d.values || []; if (!hfOpen || hfOpen.key !== k) return;
+    if (numVals[k].length >= 10 && !$('f86NumQ')) $('f86NumQW').innerHTML = '<input type="text" class="f86-inp f86-search" id="f86NumQ" autocomplete="off" aria-label="بحث في القيم" inputmode="decimal">';
+    $('f86NumList').innerHTML = numListHtml(k); markNumPop();
+  }).catch(() => { if ($('f86NumList')) $('f86NumList').innerHTML = '<div class="f86-more">تعذّر تحميل القيم</div>'; });
+}
+function numSetRange(k) {
+  const a = F86.num[k]; a.sel.clear();
+  document.querySelectorAll('#f86NumList input[type=checkbox]').forEach(c => c.checked = false);
+  markNumPop(); syncFunnels(); f86Refetch(350);
+}
+function numSetList(k) {
+  const a = F86.num[k]; a.from = a.to = ''; if ($('f86NF')) { $('f86NF').value = ''; $('f86NT').value = ''; }
+  markNumPop(); syncFunnels(); f86Refetch(150);
+}
+
+// ─── التاريخ: بأقسام بلا عناوين (أيام · فترات سريعة · شهر/عام · من/إلى) ───
+const DAY_PRESETS = [['today','اليوم'],['yesterday','أمس'],['last3','آخر 3 أيام'],['last7','آخر 7 أيام'],['last14','آخر 14 يوم'],['last21','آخر 21 يوم'],['last30','آخر 30 يوم'],['last60','آخر 60 يوم'],['last90','آخر 90 يوم']];
+const QUICK_PRESETS = [['thisMonth','الشهر الحالي'],['lastMonth','الشهر السابق'],['thisYear','العام الحالي'],['lastYear','العام السابق']];
+const dateActive = () => !!($('rangeDateFrom').value || $('rangeDateTo').value);
+function dmGridHtml() {
+  const ny = cairoNow().getUTCFullYear();
+  return `<div class="f86-ynav"><button type="button" class="f86-yb" data-dy="-1" aria-label="السنة السابقة"${dtYear <= ny - 10 ? ' disabled' : ''}>›</button><button type="button" class="f86-year${F86.dMonth === String(dtYear) ? ' on' : ''}" data-dyear>${dtYear}</button><button type="button" class="f86-yb" data-dy="1" aria-label="السنة التالية"${dtYear >= ny ? ' disabled' : ''}>‹</button></div>` +
+    `<div class="f86-pills c6">${MONTHS_AR.map((n, i) => `<button type="button" class="f86-pill${F86.dMonth === dtYear + '-' + pad2(i + 1) ? ' on' : ''}" data-dm="${i + 1}">${n}</button>`).join('')}</div>`;
+}
+function renderDatePop(pop) {
+  if (dtYear === null) dtYear = F86.dMonth ? +F86.dMonth.slice(0, 4) : cairoNow().getUTCFullYear();
+  const pills = (arr, c) => `<div class="f86-pills ${c}">${arr.map(([k, l]) => `<button type="button" class="f86-pill${activeRangePreset === k ? ' on' : ''}" data-dp="${k}">${l}</button>`).join('')}</div>`;
+  pop.insertAdjacentHTML('beforeend', `
+    <div class="f86-head"><button type="button" class="f86-clear" id="f86DClear">✕ مسح الاختيار</button></div>
+    <div class="f86-sec">${pills(DAY_PRESETS, 'c3')}</div>
+    <div class="f86-sec">${pills(QUICK_PRESETS, 'c4')}</div>
+    <div class="f86-sec" id="f86DM">${dmGridHtml()}</div>
+    <div class="f86-sec f86-rng"><label class="f86-lab">من تاريخ<input type="date" class="f86-inp" id="f86DF" value="${esc($('rangeDateFrom').value)}"></label><label class="f86-lab">إلى تاريخ<input type="date" class="f86-inp" id="f86DT" value="${esc($('rangeDateTo').value)}"></label></div>`);
+  dateMark();
+}
+function dateMark() {
+  document.querySelectorAll('#hfPop [data-dp]').forEach(b => b.classList.toggle('on', activeRangePreset === b.dataset.dp));
+  const g = $('f86DM'); if (g) g.innerHTML = dmGridHtml();
+  const c = $('f86DClear'); if (c) c.disabled = !dateActive();
+}
+function dateSet(from, to, preset, month) {
+  $('rangeDateFrom').value = from; $('rangeDateTo').value = to; activeRangePreset = preset; F86.dMonth = month;
+  if ($('f86DF')) { $('f86DF').value = from; $('f86DT').value = to; }
+  dateMark(); syncFunnels(); logCurrentPage = 1; clearExportWarn(); fetchLog();
+}
+function dateClear() { dateSet('', '', '', ''); }
+function dateMonth(y, m) {
+  const key = y + '-' + pad2(m);
+  if (F86.dMonth === key) return dateClear();
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  dateSet(`${key}-01`, `${key}-${pad2(last)}`, '', key);
+}
+function dateYear(y) {
+  if (F86.dMonth === String(y)) return dateClear();
+  dateSet(`${y}-01-01`, `${y}-12-31`, '', String(y));
+}
+
+// ─── ربط الأحداث (تفويض على #hfPop) ───
+const hfPopEl = $('hfPop');
+hfPopEl.addEventListener('click', e => {
+  const t = e.target; if (!t.closest) return;
+  let el;
+  if ((el = t.closest('[data-dp]'))) { const r = computePresetRange(el.dataset.dp); if (r) { if (activeRangePreset === el.dataset.dp) dateClear(); else dateSet(r.from, r.to, el.dataset.dp, ''); } }
+  else if ((el = t.closest('[data-dy]'))) { const ny = cairoNow().getUTCFullYear(); dtYear = Math.max(ny - 10, Math.min(ny, dtYear + (+el.dataset.dy))); dateMark(); }
+  else if (t.closest('[data-dyear]')) dateYear(dtYear);
+  else if ((el = t.closest('[data-dm]'))) dateMonth(dtYear, +el.dataset.dm);
+  else if (t.closest('#f86DClear')) dateClear();
+  else if ((el = t.closest('[data-sg]'))) ordPick(+el.dataset.sg);
+  else if ((el = t.closest('[data-tokx]'))) { F86.tok.splice(+el.dataset.tokx, 1); ordRenderToks(); syncFunnels(); f86Refetch(0); }
+  else if (t.closest('#f86OrdClear')) { F86.tok = []; F86.pending = ''; $('f86OrdInp').value = ''; ordRenderToks(); $('f86Sugg').innerHTML = ''; syncFunnels(); f86Refetch(0); }
+  else if (t.closest('#f86TmClear')) { F86.tm = { from: '', to: '' }; tmSyncUI(true); syncFunnels(); f86Refetch(0); }
+  else if (t.closest('#f86NumClear')) { const a = F86.num[hfOpen.key]; a.from = a.to = ''; a.sel.clear(); $('f86NF').value = ''; $('f86NT').value = ''; document.querySelectorAll('#f86NumList input').forEach(c => c.checked = false); markNumPop(); syncFunnels(); f86Refetch(0); }
+  else if (t.closest('#f86NumAll')) { const a = F86.num[hfOpen.key]; document.querySelectorAll('#f86NumList input[data-nv]').forEach(c => { c.checked = true; a.sel.add(c.dataset.nv); }); numSetList(hfOpen.key); }
+  else if ((el = t.closest('[data-tf]'))) tpOpen(el);
+});
+// ⭐ القسم الباهت قابل للضغط: الضغط عليه بيمسح الاختيار التاني ويشتغل هو
+hfPopEl.addEventListener('pointerdown', e => {
+  const s = e.target.closest && e.target.closest('.f86-sec.dim'); if (!s || !hfOpen || !F86.num[hfOpen.key]) return;
+  const a = F86.num[hfOpen.key];
+  if (s.dataset.sec === 'range') { a.sel.clear(); document.querySelectorAll('#f86NumList input').forEach(c => c.checked = false); }
+  else { a.from = a.to = ''; $('f86NF').value = ''; $('f86NT').value = ''; }
+  markNumPop(); syncFunnels(); f86Refetch(150);
+});
+hfPopEl.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'f86OrdInp') {
+    const v = latinDigits(t.value); if (v !== t.value) t.value = v;
+    F86.pending = v; ordRenderToks(); syncFunnels(); f86Refetch(350);
+    clearTimeout(sgT); sgT = setTimeout(ordSuggest, 180);
+  } else if (t.id === 'f86NF' || t.id === 'f86NT') {
+    const a = F86.num[hfOpen.key]; a.from = $('f86NF').value; a.to = $('f86NT').value; numSetRange(hfOpen.key);
+  } else if (t.id === 'f86NumQ') { $('f86NumList').innerHTML = numListHtml(hfOpen.key); }
+  else if (t.id === 'f86TmA' || t.id === 'f86TmB') {
+    t.value = Math.round(t.value / 5) * 5;
+    const a = +$('f86TmA').value, b = +$('f86TmB').value, lo = Math.min(a, b), hi = Math.max(a, b);
+    F86.tm.from = lo > 0 ? m2hm(lo) : ''; F86.tm.to = hi < 1440 ? m2hm(Math.min(hi, 1439)) : '';
+    tmSyncUI(false); syncFunnels(); f86Refetch(300);
+  }
+});
+hfPopEl.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'f86DF' || t.id === 'f86DT') {
+    $('rangeDateFrom').value = $('f86DF').value; $('rangeDateTo').value = $('f86DT').value; activeRangePreset = ''; F86.dMonth = '';
+    dateMark(); syncFunnels();
+    const f = $('rangeDateFrom').value, to = $('rangeDateTo').value;
+    if ((!f || !to || f <= to)) f86Refetch(400);
+  } else if (t.dataset && t.dataset.nv !== undefined) {
+    const a = F86.num[hfOpen.key]; t.checked ? a.sel.add(t.dataset.nv) : a.sel.delete(t.dataset.nv); numSetList(hfOpen.key);
+  }
+});
+hfPopEl.addEventListener('keydown', e => {
+  if (e.target.id !== 'f86OrdInp') return;
+  const k = e.key;
+  if (k === 'ArrowDown' || k === 'ArrowUp') {
+    if (!sgItems.length) return; e.preventDefault();
+    sgAct = (sgAct + (k === 'ArrowDown' ? 1 : -1) + sgItems.length) % sgItems.length;
+    document.querySelectorAll('#f86Sugg .f86-sg').forEach((n, i) => n.classList.toggle('act', i === sgAct));
+  } else if (k === 'Enter') {
+    e.preventDefault(); e.stopPropagation();
+    if (sgAct >= 0) ordPick(sgAct);
+    else if (orderParts(e.target.value).length) ordAdd(orderParts(e.target.value));
+    else hfClose();   // Enter على حقل فاضي = يقفل القايمة والفلتر يفضل
+  }
+});
+
 // ══ §LOG-JS::col-widths — سحب عرض الأعمدة (#51) · نفس محرّك «رفع بوسطة» ══
 // مفتاح التخزين: `dco_col_widths_v1_<اسم الصفحة>_log` — تفضيل شاشة مش بيانات (مايتمسحش مع الخروج).
-// آخر عمود بيمتص الفراغ وقت العرض بس (العرض المحفوظ مايتغيّرش). الدبل كليك بيضبط على المحتوى (بـRange مش الخلية).
+// ⭐ v8.6.0: كل الأعمدة متماثلة بالتناسب (مفيش عمود بيمتص الفراغ لوحده). الدبل كليك بيضبط على المحتوى (بـRange مش الخلية).
 const COL_LS_KEY = 'dco_col_widths_v1_' + (location.pathname.split('/').pop() || 'page') + '_log';
 const COL_MIN = 64, COL_MAX = 700, COL_INIT_CAP = 320;
 const colMinOf = k => (k === 'cb' || k === 'arrow') ? 36 : COL_MIN;
 const colLog = (() => {
-  const S = { w: {}, drag: null, badge: null, ready: false, custom: false, fontWait: false, rt: null };
+  // ⭐ v8.6.0 — «كل الأعمدة متماثلة بالتناسب»: W = العرض المفضّل، E = المعروض (effective). مفيش عمود بيمتص الفراغ لوحده.
+  const S = { w: {}, e: {}, drag: null, badge: null, ready: false, free: false, fontWait: false, ro: null };
+  const SOFT_MIN = 90, FIXED = k => k === 'cb' || k === 'arrow';
   const tbl = () => document.querySelector('#logBody .log-otbl');
   const wrap = () => $('logBody');
   // 🔴 رؤوس الجدول الرئيسي بس — تفاصيل الجلسة جواها جداول فرعية بـ`thead` خاص بيها
   const hcells = () => tbl().tHead.rows[0].cells;
   const keys = () => [...hcells()].map((th, i) => th.dataset.col || ('c' + i));
+  const avail = () => Math.floor(wrap().clientWidth);
   const save = () => { try { localStorage.setItem(COL_LS_KEY, JSON.stringify(S.w)); } catch (e) {} };
-  const load = () => { try { const o = JSON.parse(localStorage.getItem(COL_LS_KEY) || 'null'); return o && keys().every(k => o[k] >= colMinOf(k)) ? o : null; } catch (e) { return null; } };
-  const last = () => { const c = tbl().querySelectorAll('colgroup col'); return c.length ? c[c.length - 1].dataset.c : null; };
-  const slack = () => { let sum = 0; keys().forEach(k => sum += S.w[k] || 0); return Math.max(0, wrap().clientWidth - sum); };
-  function apply() {
+  const load = () => {
+    try {
+      const o = JSON.parse(localStorage.getItem(COL_LS_KEY) || 'null'); if (!o) return null;
+      const ks = keys(); if (!ks.every(k => o[k] >= colMinOf(k))) return null;
+      // 🛡️ حارس العرض المحفوظ المنفوخ: مجموع المحفوظ > max(2×المتاح، 2000) بيتتجاهل ويتقاس من جديد (من غير ما نمسح المخزّن)
+      let sum = 0; ks.forEach(k => sum += o[k]); if (sum > Math.max(2 * avail(), 2000)) return null;
+      return o;
+    } catch (e) { return null; }
+  };
+  // توزيع تناسبي: لو المجموع أصغر من المتاح كل الأعمدة بتتمدّد بالنسبة (باقي القسمة لآخر عمود غير مثبّت)؛ لو أكبر بيتقلّصوا
+  // على مرحلتين (SOFT_MIN ثم MIN) بنسبة زيادة كل عمود عن الحد؛ ولو مش هيتّسع حتى بالأدنى E=W وسكرول أفقي.
+  function effective(av, pin) {
+    const ks = keys(), E = {}; ks.forEach(k => E[k] = S.w[k]);
+    if (S.free) return E;
+    const fixedSum = ks.filter(FIXED).reduce((s, k) => s + E[k], 0);
+    const flex = ks.filter(k => !FIXED(k) && k !== pin), pinW = pin && !FIXED(pin) ? E[pin] : 0;
+    const room = av - fixedSum - pinW; if (room <= 0 || !flex.length) return E;
+    const sumW = flex.reduce((s, k) => s + S.w[k], 0);
+    if (sumW <= room) {
+      let used = 0; flex.forEach((k, i) => { E[k] = i === flex.length - 1 ? room - used : Math.floor(S.w[k] * room / sumW); used += E[k]; });
+      return E;
+    }
+    let excess = sumW - room;
+    for (const floor of [SOFT_MIN, null]) {
+      const mn = k => floor === null ? colMinOf(k) : Math.max(colMinOf(k), Math.min(floor, S.w[k]));
+      const cap = flex.reduce((s, k) => s + Math.max(0, E[k] - mn(k)), 0); if (cap <= 0) continue;
+      const take = Math.min(excess, cap);
+      flex.forEach(k => { E[k] = Math.max(mn(k), E[k] - take * (E[k] - mn(k)) / cap); });
+      excess -= take; if (excess <= 0.5) break;
+    }
+    ks.forEach(k => E[k] = Math.floor(E[k]));
+    if (excess <= 0.5) { const rem = room - flex.reduce((x, k) => x + E[k], 0); if (rem > 0) E[flex[flex.length - 1]] += rem; }   // باقي القسمة لآخر عمود غير مثبّت
+    return E;
+  }
+  function apply(pin) {
     const t = tbl(); if (!t) return;
-    const sl = slack(), l = last(); let sum = 0;
-    t.querySelectorAll('colgroup col').forEach(col => { const k = col.dataset.c, w = S.w[k] + (k === l ? sl : 0); col.style.width = w + 'px'; sum += w; });
+    const E = effective(avail(), pin); S.e = E; let sum = 0;
+    t.querySelectorAll('colgroup col').forEach(col => { const w = E[col.dataset.c]; col.style.width = w + 'px'; sum += w; });
     t.style.width = sum + 'px';
   }
   function freeze() { tbl().classList.remove('col-auto'); apply(); }
@@ -3140,27 +3550,25 @@ const colLog = (() => {
       if (ks[i] === 'cb' || th.querySelector('.col-rz')) return;
       const h = document.createElement('span'); h.className = 'col-rz'; h.dataset.rz = ks[i]; th.appendChild(h);
     });
+    if (!S.ro && window.ResizeObserver) { S.ro = new ResizeObserver(() => { if (S.ready && tbl() && wrap().clientWidth) apply(); }); S.ro.observe(wrap()); }
   }
   // 🔴 Math.floor مش round — التقريب لفوق كان بيعدّي عرض الكارت بـ١-٢px فيظهر سكرول أفقي من غير سبب
   function measure() {
     const t = tbl(), ks = keys();
     t.classList.add('col-auto'); t.style.width = ''; t.querySelectorAll('colgroup col').forEach(c => c.style.width = '');
-    let sum = 0;
-    [...t.tHead.rows[0].cells].forEach((th, i) => { const w = Math.min(COL_INIT_CAP, Math.max(colMinOf(ks[i]), Math.floor(th.getBoundingClientRect().width))); S.w[ks[i]] = w; sum += w; });
-    const fixed = S.w.cb || 0, avail = wrap().clientWidth;
-    if (sum < avail && sum > fixed) { const f = (avail - fixed) / (sum - fixed); ks.forEach(k => { if (k !== 'cb') S.w[k] = Math.floor(S.w[k] * f); }); }
+    [...t.tHead.rows[0].cells].forEach((th, i) => { S.w[ks[i]] = Math.min(COL_INIT_CAP, Math.max(colMinOf(ks[i]), Math.floor(th.getBoundingClientRect().width))); });
     freeze();
   }
   function init() {
     if (S.ready) return; attach();
     const saved = load();
-    if (saved) { Object.assign(S.w, saved); S.custom = true; S.ready = true; freeze(); return; }
+    if (saved) { Object.assign(S.w, saved); S.ready = true; freeze(); return; }
     measure(); S.ready = true;
   }
   // أول قياس بيستنى الخطوط + الجدول ظاهر وفيه صفوف — القياس على تاب مخفي أو بخط احتياطي بيدّي عروض ضيقة
   function maybeInit() {
     const t = tbl(), w = wrap(); if (!t || !w || !w.clientWidth) return;
-    if (S.ready) { attach(); let sum = 0; keys().forEach(k => sum += S.w[k] || 0); if (!S.custom && sum > w.clientWidth) measure(); else apply(); return; }
+    if (S.ready) { attach(); apply(); return; }
     if (!t.querySelector('tbody tr:not(.empty-row)')) return;
     if (document.fonts && document.fonts.status !== 'loaded') {
       if (!S.fontWait) { S.fontWait = true; document.fonts.ready.then(() => { S.fontWait = false; maybeInit(); }); }
@@ -3169,9 +3577,19 @@ const colLog = (() => {
     init();
   }
   function showBadge(w) { if (!S.badge) { S.badge = document.createElement('div'); S.badge.className = 'w-badge'; document.body.appendChild(S.badge); } S.badge.textContent = w + ' px'; }
+  // سقف العمود = المتاح − حدود الباقي (٩٠px)؛ لو الجدول أصلاً أعرض من الكارت السحب حر (سقف ٧٠٠ من غير ضغط)
+  const capFor = k => {
+    if (S.free) return COL_MAX;
+    let others = 0; keys().forEach(x => { if (x !== k) others += FIXED(x) ? S.w[x] : SOFT_MIN; });
+    return Math.max(colMinOf(k), Math.min(COL_MAX, avail() - others));
+  };
+  // bake: المعروض فعلًا هو المحفوظ (عند pointerdown وعند الإفلات)
+  const bake = () => { keys().forEach(k => { if (S.e[k] != null) S.w[k] = Math.max(colMinOf(k), S.e[k]); }); };
   function down(e, h) {
-    const k = h.dataset.rz; if (k === last()) S.w[k] += slack();
-    S.drag = { k, x: e.clientX, w: S.w[k], sign: getComputedStyle(tbl()).direction === 'rtl' ? -1 : 1, h };
+    const k = h.dataset.rz; let tot = 0; keys().forEach(x => tot += S.e[x] || S.w[x]);
+    S.free = tot > avail() + 1;
+    const before = Object.assign({}, S.w); bake();
+    S.drag = { k, x: e.clientX, w: S.w[k], sign: getComputedStyle(tbl()).direction === 'rtl' ? -1 : 1, h, before, moved: false };
     try { h.setPointerCapture(e.pointerId); } catch (_) {}
     h.classList.add('active'); document.body.classList.add('col-resizing');
     const col = tbl().querySelector(`colgroup col[data-c="${k}"]`); if (col) col.classList.add('hl');
@@ -3179,18 +3597,22 @@ const colLog = (() => {
   }
   function move(e) {
     if (!S.drag) return;
-    S.w[S.drag.k] = Math.max(colMinOf(S.drag.k), Math.min(COL_MAX, Math.round(S.drag.w + S.drag.sign * (e.clientX - S.drag.x))));
-    apply(); showBadge(S.w[S.drag.k]);
+    const d = S.drag, nw = Math.max(colMinOf(d.k), Math.min(capFor(d.k), Math.round(d.w + d.sign * (e.clientX - d.x))));
+    if (nw !== S.w[d.k]) d.moved = true;
+    S.w[d.k] = nw; apply(d.k); showBadge(S.e[d.k] != null ? S.e[d.k] : nw);
   }
   function end() {
     if (!S.drag) return;
-    S.drag.h.classList.remove('active'); document.body.classList.remove('col-resizing');
+    const d = S.drag; d.h.classList.remove('active'); document.body.classList.remove('col-resizing');
     const t = tbl(); if (t) t.querySelectorAll('col.hl').forEach(c => c.classList.remove('hl'));
-    S.drag = null; if (S.badge) { S.badge.remove(); S.badge = null; } S.custom = true; save();
+    S.drag = null; if (S.badge) { S.badge.remove(); S.badge = null; }
+    if (!d.moved) { S.w = d.before; S.free = false; apply(); return; }   // كليك من غير حركة بيرجّع العروض القديمة
+    bake(); S.free = false; apply(); save();
   }
-  // دبل كليك = ضبط على أطول محتوى (عنوانه + خلاياه). القياس بـRange على المحتوى مش الخلية — قياس الخلية كان بيكبّر بس.
+  // دبل كليك = ضبط على أطول محتوى (عنوانه + خلاياه) في حدود capFor. القياس بـRange على المحتوى مش الخلية — قياس الخلية كان بيكبّر بس.
   function fit(k) {
     const t = tbl(), ks = keys(), i = ks.indexOf(k); if (i < 0) return;
+    S.free = false; bake();
     t.classList.add('col-measure');
     const th = t.tHead.rows[0].cells[i], rz = th.querySelector('.col-rz');
     const hr = document.createRange(); hr.setStart(th, 0);
@@ -3201,14 +3623,11 @@ const colLog = (() => {
       const rg = document.createRange(); rg.selectNodeContents(td); w = Math.max(w, rg.getBoundingClientRect().width + 16);
     });
     t.classList.remove('col-measure');
-    S.w[k] = Math.max(colMinOf(k), Math.min(COL_MAX, Math.ceil(w))); S.custom = true; apply(); save();
+    const want = Math.max(colMinOf(k), Math.ceil(w)), cap = capFor(k);
+    S.w[k] = Math.min(cap, want); apply(k); bake(); apply(); save();
+    if (want > cap && typeof showToast === 'function') showToast('العمود وصل لأقصى مساحة متاحة في الكارت', 'warning');
   }
-  function onResize() {
-    if (!S.ready) return;
-    if (S.custom) { apply(); return; }
-    clearTimeout(S.rt);
-    S.rt = setTimeout(() => { if (!S.custom && wrap().clientWidth && tbl()) measure(); }, 150);
-  }
+  function onResize() { if (S.ready && tbl() && wrap().clientWidth) apply(); }
   return { down, move, end, fit, onResize, maybeInit, ready: () => S.ready, owns: el => !!tbl() && tbl().contains(el) };
 })();
 document.addEventListener('pointerdown', e => {
@@ -3257,7 +3676,7 @@ async function loadLogEmployeeFilter() {
 // ─── §LOG-JS::date-range filter ───
 const RANGE_PRESET_LABELS = {
   today:'اليوم', yesterday:'أمس', last3:'آخر 3 أيام',
-  last7:'آخر 7 أيام', last30:'آخر 30 يوم', last90:'آخر 90 يوم',
+  last7:'آخر 7 أيام', last14:'آخر 14 يوم', last21:'آخر 21 يوم', last30:'آخر 30 يوم', last60:'آخر 60 يوم', last90:'آخر 90 يوم',
   thisMonth:'الشهر الحالي', lastMonth:'الشهر السابق', thisQuarter:'الربع الحالي',
   thisYear:'العام الحالي', lastYear:'العام السابق',
 };
@@ -3283,7 +3702,10 @@ function computePresetRange(preset) {
     case 'yesterday':  { const y = addDays(today, -1); return { from: y, to: y }; }
     case 'last3':        return { from: addDays(today, -2),  to: today };
     case 'last7':        return { from: addDays(today, -6),  to: today };
+    case 'last14':       return { from: addDays(today, -13), to: today };
+    case 'last21':       return { from: addDays(today, -20), to: today };
     case 'last30':       return { from: addDays(today, -29), to: today };
+    case 'last60':       return { from: addDays(today, -59), to: today };
     case 'last90':       return { from: addDays(today, -89), to: today };
     case 'thisMonth': {
       const from = `${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}-01`;
@@ -3335,8 +3757,9 @@ function onRangeDateChange() {
 }
 
 function clearLogFilters() {
-  $('logSearch').value = '';
-  toggleSearchActiveState($('logSearch'));
+  hfClose();
+  F86.tok = []; F86.pending = ''; F86.tm = { from: '', to: '' }; F86.dMonth = ''; Object.keys(F86.num).forEach(k => F86.num[k] = mkNum());
+  clearTimeout(f86T);
   msState.logType.selected.clear();
   msState.logCourier.selected.clear();
   msState.logEmp.selected.clear();
@@ -3369,11 +3792,10 @@ function buildLogParams() {
   if (msState.logType.selected.size)    params.type     = [...msState.logType.selected].join(',');
   if (msState.logCourier.selected.size) params.courier  = [...msState.logCourier.selected].join(',');
   if (msState.logEmp.selected.size)     params.employee = [...msState.logEmp.selected].join(',');
-  const search = $('logSearch').value.trim();
-  if (search) params.search = search;
   const from = $('rangeDateFrom').value, to = $('rangeDateTo').value;
   if (from) params.dateFrom = from;
   if (to)   params.dateTo   = to;
+  f86Params(params);   // orders · timeFrom/To · count/collect/refund — كلها server-side (Worker ≥ 3.8.0)
   return params;
 }
 
@@ -3569,14 +3991,14 @@ function hfBtn(k) {
 function sortableTh(key, label, hf) {
   const active = logSort.key === key && logSort.dir !== 0;
   const ind = active ? `<span class="sort-ind">${logSort.dir === 1 ? '▲' : '▼'}</span>` : '';
-  return `<th class="sortable-th${active ? ' active' : ''}" data-col="${key}" onclick="toggleLogSort('${key}')">${label}${ind}${hf ? hfBtn(hf) : ''}</th>`;
+  return `<th class="sortable-th${active ? ' active' : ''}" data-col="${key}" onclick="toggleLogSort('${key}')">${label}${ind}${hf ? hf.split(',').map(hfBtn).join('') : ''}</th>`;
 }
 function logHeadHtml() {
   return `<thead><tr>
       <th data-col="cb"></th>
-      ${sortableTh('date', 'التاريخ', 'date')}${sortableTh('time', 'الوقت')}<th data-col="type">النوع${hfBtn('type')}</th>
+      ${sortableTh('date', 'التاريخ', 'date')}${sortableTh('time', 'الوقت', 'time')}<th data-col="type">النوع${hfBtn('type')}</th>
       ${sortableTh('courier', 'المندوب', 'courier')}${sortableTh('employee', 'الموظف', 'emp')}
-      ${sortableTh('count', 'عدد', 'search')}${sortableTh('collect', 'تحصيل')}${sortableTh('refund', 'استرداد')}
+      ${sortableTh('count', 'عدد', 'orders,count')}${sortableTh('collect', 'تحصيل', 'collect')}${sortableTh('refund', 'استرداد', 'refund')}
       <th data-col="pm">طرق الدفع</th>${sortableTh('result', 'النتيجة')}<th data-col="arrow"></th>
     </tr></thead>`;
 }
@@ -3714,6 +4136,7 @@ function renderLog(entries) {
   updateExportSelectedUI();
   syncFunnels();
   colLog.maybeInit();
+  syncFunnels();   // الجدول اتعاد رسمه → زرار القمع الجديد هو اللي بتتمركز عليه القايمة المفتوحة (من غير ده بتقفز مكانها)
 }
 
 function toggleBatch(i) {

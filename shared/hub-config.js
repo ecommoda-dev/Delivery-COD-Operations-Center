@@ -132,7 +132,10 @@ const ECO_WORKERS = {
   //    من داشبورد كلاودفلير). قبل الضم النداء بيرجّع **401** والرسالة
   //    بتسمّي الأداة. البند مفتوح في `CLAUDE.md`.
   orderStatus: { url: 'https://order-status-updater-worker.ecommoda-dev.workers.dev', min: '4.7.0', label: 'تحديث حالة الأوردرات' },
-  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.6.0', label: 'تحصيل الأوردرات COD' },
+  // 🔴 `codPayment.min = '3.8.0'` (02-11-2026) — جدول السجل بقى بينادي فلاتر `orders` · `timeFrom/timeTo` ·
+  //    `count|collect|refund` (From/To/In) + `get_log_suggest` + `get_log_num_values`. على Worker أقدم الفلاتر دي بتتجاهَل
+  //    **في صمت** (الجدول بيرجع بلا فلتر والموظف فاكره مفلتر) — فالحارس بيسمّي الأداة والنسخة. **انشر الـ Worker قبل الصفحة.**
+  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.8.0', label: 'تحصيل الأوردرات COD' },
 
   // 🔴 **التسليم الجزئي (v1.10.0) — تالت أداة مدموجة، وأول واحدة من غير
   //    رابط قديم شغّال.** الأداتين اللي فوق (`orderStatus`/`codPayment`)
@@ -227,7 +230,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.70.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.71.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
