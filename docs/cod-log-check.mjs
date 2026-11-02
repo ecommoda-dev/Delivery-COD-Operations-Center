@@ -87,6 +87,47 @@ is(await page.locator('#hfPop[hidden]').count() === 1, 'الضغط برّه بي
 await page.click('#logClearAllBtn'); await page.waitForTimeout(500);
 is(await page.locator('.hfn.on').count() === 0 && await page.locator('.log-chips .ms-chip').count() === 0 && await page.inputValue('#logSearch') === '', '«مسح كل الفلاتر» بيرجّع كل حاجة للحالة الأولى');
 is(await page.locator('.log-batch-row').count() === 3, 'والجدول رجع بالجلسات');
+
+console.log('\n══ tooltip القمع (المرحلة ٣) ══');
+const tipTxt = async sel => { await page.hover(sel); await page.waitForTimeout(150); return (await page.locator('#hfTip:not([hidden])').count()) ? await page.locator('#hfTip').innerText() : null; };
+await (await hdr('courier')).click();   // افتح وقفل من غير اختيار
+await page.keyboard.press('Escape'); await page.mouse.move(5, 5);
+is(await tipTxt('.hfn[data-hf="courier"]') === null, 'مفيش tooltip على قمع مفيش عليه اختيار');
+await page.mouse.move(5, 5);
+await (await hdr('type')).click(); await page.click('#msList-logType .ms-item >> nth=0'); await page.keyboard.press('Escape'); await page.mouse.move(5, 5); await page.waitForTimeout(400);
+const t1 = await tipTxt('.hfn[data-hf="type"]');
+is(t1 && t1.includes('نوع العملية') && t1.includes('تحصيل'), 'القمع المفعّل بيعرض القيمة المختارة', String(t1));
+is(await page.evaluate(() => { const t = document.getElementById('hfTip'); return getComputedStyle(t).position === 'fixed' && +getComputedStyle(t).zIndex === 210; }), 'tooltip مخصّص (.hfn-tip · z 210) مش title native');
+is(await page.locator('.hfn[data-hf="type"]').getAttribute('title') === null, 'مفيش title native على القمع');
+await page.mouse.move(5, 5); await page.waitForTimeout(100);
+is(await page.locator('#hfTip[hidden]').count() === 1, 'الـ tooltip بيختفي بخروج الماوس');
+await page.click('#logClearAllBtn'); await page.waitForTimeout(400);
+
+console.log('\n══ عرض الأعمدة (المرحلة ٤) ══');
+const W = k => page.evaluate(k => parseFloat(document.querySelector(`.log-otbl colgroup col[data-c="${k}"]`).style.width), k);
+is(await page.locator('.log-otbl .col-rz').count() === 11, 'مقبض سحب على كل عمود ما عدا الـ checkbox (١١)');
+is(await page.evaluate(() => !document.querySelector('.log-otbl').classList.contains('col-auto') && getComputedStyle(document.querySelector('.log-otbl')).tableLayout === 'fixed'), 'بعد القياس الأول الجدول table-layout:fixed');
+const noScroll = await page.evaluate(() => { const b = document.getElementById('logBody'); return b.scrollWidth <= b.clientWidth + 1; });
+is(noScroll, 'مفيش سكرول أفقي في العرض الافتراضي');
+const w0 = await W('collect');
+const hb = await page.locator('.col-rz[data-rz="collect"]').boundingBox();
+await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2); await page.mouse.down(); await page.mouse.move(hb.x + hb.width / 2 - 80, hb.y + hb.height / 2, { steps: 6 });
+is(await page.locator('.w-badge').count() === 1, 'بادج العرض ظاهر وقت السحب');
+await page.mouse.up();
+const w1 = await W('collect');
+is(Math.abs((w1 - w0) - 80) <= 1, 'السحب +٨٠px بالظبط (RTL)', `${w0} → ${w1}`);
+is(await page.locator('#logSortNote:not([hidden])').count() === 0, 'السحب ما رتّبش العمود');
+const saved = await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('dco_col_widths_v1_')));
+is(saved.length === 1 && saved[0].endsWith('_log'), 'مفتاح تخزين واحد بس: dco_col_widths_v1_…_log', JSON.stringify(saved));
+await page.reload(); await page.waitForSelector('#entryInput'); await page.click('#tabLog'); await page.waitForSelector('.log-otbl .col-rz'); await page.waitForTimeout(400);
+is(Math.abs(await W('collect') - w1) <= 1, 'العرض اتحفظ وبيرجع بعد refresh', `${await W('collect')} vs ${w1}`);
+const hb2 = await page.locator('.col-rz[data-rz="collect"]').boundingBox();
+await page.mouse.dblclick(hb2.x + hb2.width / 2, hb2.y + hb2.height / 2); await page.waitForTimeout(150);
+const w2 = await W('collect');
+is(w2 < w1, 'دبل كليك بيضبط على المحتوى (وبيصغّر لما العمود أوسع من اللازم)', `${w1} → ${w2}`);
+is(await page.evaluate(() => document.getElementById('logBody').scrollWidth <= document.getElementById('logBody').clientWidth + 1), 'بعد الضبط مفيش فراغ زيادة ولا سكرول أفقي');
+await page.click('.log-batch-row >> nth=0'); await page.waitForTimeout(150);
+is(await page.locator('.log-detail-row').first().isVisible(), 'فتح تفاصيل الجلسة لسه شغّال بعد تثبيت الأعمدة');
 console.log('\n══ مصدر الفلاتر ══');
 const exp = calls.filter(c => c.a === 'get_logs' || c.a === 'get_logs_count');
 is(exp.length >= 2, 'get_logs و get_logs_count اتنادوا');

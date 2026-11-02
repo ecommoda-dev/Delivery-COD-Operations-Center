@@ -413,6 +413,21 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
 .hfn svg{width:13px;height:13px;fill:currentColor;}
 .hfn:hover{background:var(--surface-hover);color:var(--text-primary);}
 .hfn.on{color:var(--accent);background:var(--accent-light);border-color:var(--accent-border);}
+.hfn-tip{position:fixed;z-index:210;max-width:300px;background:var(--neutral-dark);color:var(--on-accent);font-size:12px;font-weight:600;line-height:1.7;padding:6px 10px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.25);pointer-events:none;direction:rtl;}
+.hfn-tip[hidden]{display:none;}
+/* #51 — عرض الأعمدة بالسحب (نفس محرّك «رفع بوسطة») */
+.log-otbl{table-layout:fixed;}
+.log-otbl.col-auto{table-layout:auto;}
+.log-otbl.col-auto thead th{white-space:nowrap;}
+.log-otbl.col-auto tbody tr.log-batch-row td{white-space:nowrap;}
+.log-otbl.col-measure th,.log-otbl.col-measure td{white-space:nowrap;}
+.log-otbl tbody tr.log-batch-row td{overflow-wrap:anywhere;}
+.col-rz{position:absolute;top:0;bottom:0;inset-inline-end:0;width:10px;cursor:col-resize;touch-action:none;z-index:3;}
+.col-rz::after{content:'';position:absolute;top:24%;bottom:24%;inset-inline-end:3px;width:2px;border-radius:2px;background:var(--border-strong);transition:background .12s,top .12s,bottom .12s;}
+.col-rz:hover::after,.col-rz.active::after{background:var(--accent);top:8%;bottom:8%;}
+body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:none !important;}
+.log-otbl col.hl{background:var(--accent-light);}
+.w-badge{position:fixed;z-index:220;bottom:14px;left:50%;transform:translateX(-50%);background:var(--neutral-dark);color:var(--on-accent);font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:20px;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.25);}
 .hfpop{position:fixed;z-index:200;max-width:92vw;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 28px rgba(0,0,0,.18);padding:8px;display:flex;flex-direction:column;gap:8px;}
 .hfpop[hidden]{display:none;}
 .hfpop-title{font-size:12px;font-weight:700;color:var(--text-secondary);padding:2px 4px;}
@@ -890,6 +905,7 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
         <div class="ms-chips-row" id="chipsRow-date"></div>
       </div>
       <div class="hfpop" id="hfPop" hidden></div>
+      <div class="hfn-tip" id="hfTip" hidden role="tooltip"></div>
 
       <!-- Standards #30 — بانر **ثابت** فوق الجدول مش توست: التوست بيختفي
            والملف الناقص بيفضل على الديسك -->
@@ -3063,6 +3079,147 @@ document.addEventListener('keydown', (e) => {
 });
 window.addEventListener('resize', hfClose);
 $('logBody').addEventListener('scroll', hfPlace);
+
+// ── tooltip القمع (#50): قيم الفلتر المفعّل بس — ومفيش tooltip لو مفيش اختيار. مخصّص مش `title` native ──
+function hfValuesText(k) {
+  const lbl = (key, v) => ((msState[key].items.find(it => it.value === v) || {}).label || v);
+  if (k === 'type' || k === 'courier' || k === 'emp') {
+    const key = { type: 'logType', courier: 'logCourier', emp: 'logEmp' }[k];
+    return [...msState[key].selected].map(v => lbl(key, v)).join('، ');
+  }
+  if (k === 'search') return $('logSearch').value.trim();
+  const f = $('rangeDateFrom').value, t = $('rangeDateTo').value, fm = d => d ? d.split('-').reverse().join('/') : '—';
+  return (f || t) ? `من ${fm(f)} إلى ${fm(t)}` : '';
+}
+function hfTipShow(btn) {
+  const k = btn.dataset.hf; if (!HF[k] || !HF[k].active()) return hfTipHide();
+  const tip = $('hfTip'), txt = hfValuesText(k); if (!txt) return hfTipHide();
+  tip.textContent = `${HF[k].title}: ${txt}`; tip.hidden = false;
+  const r = btn.getBoundingClientRect(), w = tip.offsetWidth;
+  tip.style.top = Math.min(r.bottom + 6, innerHeight - tip.offsetHeight - 8) + 'px';
+  tip.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + 'px';
+}
+function hfTipHide() { const t = $('hfTip'); if (t) t.hidden = true; }
+document.addEventListener('mouseover', e => { const b = e.target.closest && e.target.closest('.hfn'); if (b) hfTipShow(b); });
+document.addEventListener('mouseout',  e => { if (e.target.closest && e.target.closest('.hfn')) hfTipHide(); });
+document.addEventListener('focusin',    e => { const b = e.target.closest && e.target.closest('.hfn'); if (b) hfTipShow(b); });
+document.addEventListener('focusout',   hfTipHide);
+document.addEventListener('click',      hfTipHide, true);
+
+// ══ §LOG-JS::col-widths — سحب عرض الأعمدة (#51) · نفس محرّك «رفع بوسطة» ══
+// مفتاح التخزين: `dco_col_widths_v1_<اسم الصفحة>_log` — تفضيل شاشة مش بيانات (مايتمسحش مع الخروج).
+// آخر عمود بيمتص الفراغ وقت العرض بس (العرض المحفوظ مايتغيّرش). الدبل كليك بيضبط على المحتوى (بـRange مش الخلية).
+const COL_LS_KEY = 'dco_col_widths_v1_' + (location.pathname.split('/').pop() || 'page') + '_log';
+const COL_MIN = 64, COL_MAX = 700, COL_INIT_CAP = 320;
+const colMinOf = k => (k === 'cb' || k === 'arrow') ? 36 : COL_MIN;
+const colLog = (() => {
+  const S = { w: {}, drag: null, badge: null, ready: false, custom: false, fontWait: false, rt: null };
+  const tbl = () => document.querySelector('#logBody .log-otbl');
+  const wrap = () => $('logBody');
+  // 🔴 رؤوس الجدول الرئيسي بس — تفاصيل الجلسة جواها جداول فرعية بـ`thead` خاص بيها
+  const hcells = () => tbl().tHead.rows[0].cells;
+  const keys = () => [...hcells()].map((th, i) => th.dataset.col || ('c' + i));
+  const save = () => { try { localStorage.setItem(COL_LS_KEY, JSON.stringify(S.w)); } catch (e) {} };
+  const load = () => { try { const o = JSON.parse(localStorage.getItem(COL_LS_KEY) || 'null'); return o && keys().every(k => o[k] >= colMinOf(k)) ? o : null; } catch (e) { return null; } };
+  const last = () => { const c = tbl().querySelectorAll('colgroup col'); return c.length ? c[c.length - 1].dataset.c : null; };
+  const slack = () => { let sum = 0; keys().forEach(k => sum += S.w[k] || 0); return Math.max(0, wrap().clientWidth - sum); };
+  function apply() {
+    const t = tbl(); if (!t) return;
+    const sl = slack(), l = last(); let sum = 0;
+    t.querySelectorAll('colgroup col').forEach(col => { const k = col.dataset.c, w = S.w[k] + (k === l ? sl : 0); col.style.width = w + 'px'; sum += w; });
+    t.style.width = sum + 'px';
+  }
+  function freeze() { tbl().classList.remove('col-auto'); apply(); }
+  function attach() {
+    const t = tbl(); if (!t) return; const ks = keys();
+    if (!t.querySelector('colgroup')) { const cg = document.createElement('colgroup'); cg.innerHTML = ks.map(k => `<col data-c="${k}">`).join(''); t.insertBefore(cg, t.firstChild); }
+    [...t.tHead.rows[0].cells].forEach((th, i) => {
+      if (ks[i] === 'cb' || th.querySelector('.col-rz')) return;
+      const h = document.createElement('span'); h.className = 'col-rz'; h.dataset.rz = ks[i]; th.appendChild(h);
+    });
+  }
+  // 🔴 Math.floor مش round — التقريب لفوق كان بيعدّي عرض الكارت بـ١-٢px فيظهر سكرول أفقي من غير سبب
+  function measure() {
+    const t = tbl(), ks = keys();
+    t.classList.add('col-auto'); t.style.width = ''; t.querySelectorAll('colgroup col').forEach(c => c.style.width = '');
+    let sum = 0;
+    [...t.tHead.rows[0].cells].forEach((th, i) => { const w = Math.min(COL_INIT_CAP, Math.max(colMinOf(ks[i]), Math.floor(th.getBoundingClientRect().width))); S.w[ks[i]] = w; sum += w; });
+    const fixed = S.w.cb || 0, avail = wrap().clientWidth;
+    if (sum < avail && sum > fixed) { const f = (avail - fixed) / (sum - fixed); ks.forEach(k => { if (k !== 'cb') S.w[k] = Math.floor(S.w[k] * f); }); }
+    freeze();
+  }
+  function init() {
+    if (S.ready) return; attach();
+    const saved = load();
+    if (saved) { Object.assign(S.w, saved); S.custom = true; S.ready = true; freeze(); return; }
+    measure(); S.ready = true;
+  }
+  // أول قياس بيستنى الخطوط + الجدول ظاهر وفيه صفوف — القياس على تاب مخفي أو بخط احتياطي بيدّي عروض ضيقة
+  function maybeInit() {
+    const t = tbl(), w = wrap(); if (!t || !w || !w.clientWidth) return;
+    if (S.ready) { attach(); let sum = 0; keys().forEach(k => sum += S.w[k] || 0); if (!S.custom && sum > w.clientWidth) measure(); else apply(); return; }
+    if (!t.querySelector('tbody tr:not(.empty-row)')) return;
+    if (document.fonts && document.fonts.status !== 'loaded') {
+      if (!S.fontWait) { S.fontWait = true; document.fonts.ready.then(() => { S.fontWait = false; maybeInit(); }); }
+      return;
+    }
+    init();
+  }
+  function showBadge(w) { if (!S.badge) { S.badge = document.createElement('div'); S.badge.className = 'w-badge'; document.body.appendChild(S.badge); } S.badge.textContent = w + ' px'; }
+  function down(e, h) {
+    const k = h.dataset.rz; if (k === last()) S.w[k] += slack();
+    S.drag = { k, x: e.clientX, w: S.w[k], sign: getComputedStyle(tbl()).direction === 'rtl' ? -1 : 1, h };
+    try { h.setPointerCapture(e.pointerId); } catch (_) {}
+    h.classList.add('active'); document.body.classList.add('col-resizing');
+    const col = tbl().querySelector(`colgroup col[data-c="${k}"]`); if (col) col.classList.add('hl');
+    showBadge(S.w[k]);
+  }
+  function move(e) {
+    if (!S.drag) return;
+    S.w[S.drag.k] = Math.max(colMinOf(S.drag.k), Math.min(COL_MAX, Math.round(S.drag.w + S.drag.sign * (e.clientX - S.drag.x))));
+    apply(); showBadge(S.w[S.drag.k]);
+  }
+  function end() {
+    if (!S.drag) return;
+    S.drag.h.classList.remove('active'); document.body.classList.remove('col-resizing');
+    const t = tbl(); if (t) t.querySelectorAll('col.hl').forEach(c => c.classList.remove('hl'));
+    S.drag = null; if (S.badge) { S.badge.remove(); S.badge = null; } S.custom = true; save();
+  }
+  // دبل كليك = ضبط على أطول محتوى (عنوانه + خلاياه). القياس بـRange على المحتوى مش الخلية — قياس الخلية كان بيكبّر بس.
+  function fit(k) {
+    const t = tbl(), ks = keys(), i = ks.indexOf(k); if (i < 0) return;
+    t.classList.add('col-measure');
+    const th = t.tHead.rows[0].cells[i], rz = th.querySelector('.col-rz');
+    const hr = document.createRange(); hr.setStart(th, 0);
+    if (rz) hr.setEndBefore(rz); else hr.setEnd(th, th.childNodes.length);
+    let w = hr.getBoundingClientRect().width + 16;
+    t.querySelectorAll('tbody tr.log-batch-row').forEach(tr => {
+      const td = tr.children[i]; if (!td) return;
+      const rg = document.createRange(); rg.selectNodeContents(td); w = Math.max(w, rg.getBoundingClientRect().width + 16);
+    });
+    t.classList.remove('col-measure');
+    S.w[k] = Math.max(colMinOf(k), Math.min(COL_MAX, Math.ceil(w))); S.custom = true; apply(); save();
+  }
+  function onResize() {
+    if (!S.ready) return;
+    if (S.custom) { apply(); return; }
+    clearTimeout(S.rt);
+    S.rt = setTimeout(() => { if (!S.custom && wrap().clientWidth && tbl()) measure(); }, 150);
+  }
+  return { down, move, end, fit, onResize, maybeInit, ready: () => S.ready, owns: el => !!tbl() && tbl().contains(el) };
+})();
+document.addEventListener('pointerdown', e => {
+  const h = e.target.closest && e.target.closest('[data-rz]'); if (!h || e.button || !colLog.owns(h)) return;
+  e.preventDefault(); e.stopPropagation(); hfClose();
+  colLog.down(e, h);
+});
+document.addEventListener('pointermove', e => colLog.move(e));
+document.addEventListener('pointerup', () => colLog.end());
+document.addEventListener('pointercancel', () => colLog.end());
+document.addEventListener('dblclick', e => { const h = e.target.closest && e.target.closest('[data-rz]'); if (h && colLog.owns(h)) { e.preventDefault(); colLog.fit(h.dataset.rz); } });
+// ⚠️ المقبض جوّه <th> اللي عليه onclick للترتيب — الضغطة بعد السحب لازم ما توصلش للترتيب
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.col-rz')) { e.stopPropagation(); e.preventDefault(); } }, true);
+window.addEventListener('resize', () => colLog.onResize());
 function onMsFilterChanged() { logCurrentPage = 1; clearExportWarn(); fetchLog(); }
 
 function initLogTypeFilter() {
@@ -3409,15 +3566,15 @@ function hfBtn(k) {
 function sortableTh(key, label, hf) {
   const active = logSort.key === key && logSort.dir !== 0;
   const ind = active ? `<span class="sort-ind">${logSort.dir === 1 ? '▲' : '▼'}</span>` : '';
-  return `<th class="sortable-th${active ? ' active' : ''}" onclick="toggleLogSort('${key}')">${label}${ind}${hf ? hfBtn(hf) : ''}</th>`;
+  return `<th class="sortable-th${active ? ' active' : ''}" data-col="${key}" onclick="toggleLogSort('${key}')">${label}${ind}${hf ? hfBtn(hf) : ''}</th>`;
 }
 function logHeadHtml() {
   return `<thead><tr>
-      <th style="width:32px"></th>
-      ${sortableTh('date', 'التاريخ', 'date')}${sortableTh('time', 'الوقت')}<th>النوع${hfBtn('type')}</th>
+      <th data-col="cb"></th>
+      ${sortableTh('date', 'التاريخ', 'date')}${sortableTh('time', 'الوقت')}<th data-col="type">النوع${hfBtn('type')}</th>
       ${sortableTh('courier', 'المندوب', 'courier')}${sortableTh('employee', 'الموظف', 'emp')}
       ${sortableTh('count', 'عدد', 'search')}${sortableTh('collect', 'تحصيل')}${sortableTh('refund', 'استرداد')}
-      <th>طرق الدفع</th>${sortableTh('result', 'النتيجة')}<th></th>
+      <th data-col="pm">طرق الدفع</th>${sortableTh('result', 'النتيجة')}<th data-col="arrow"></th>
     </tr></thead>`;
 }
 
@@ -3446,8 +3603,8 @@ function renderLog(entries) {
   const body = $('logBody');
   if (!entries.length) {
     // الجدول وعناوينه (والقمع) بيفضلوا ظاهرين — الرسالة صف جوّاه، فالموظف يقدر يشيل الفلتر (#47)
-    body.innerHTML = `<table class="log-otbl">${logHeadHtml()}<tbody><tr><td class="log-none" colspan="12">لا توجد عمليات مطابقة للفلاتر</td></tr></tbody></table>`;
-    $('logSessCount').textContent = '0'; $('logSortNote').hidden = true; syncFunnels(); return;
+    body.innerHTML = `<table class="log-otbl">${logHeadHtml()}<tbody><tr class="empty-row"><td class="log-none" colspan="12">لا توجد عمليات مطابقة للفلاتر</td></tr></tbody></table>`;
+    $('logSessCount').textContent = '0'; $('logSortNote').hidden = true; syncFunnels(); colLog.maybeInit(); return;
   }
 
   const totalPages = Math.max(1, Math.ceil(logTotalCount / LOG_PAGE_SIZE));
@@ -3553,6 +3710,7 @@ function renderLog(entries) {
 
   updateExportSelectedUI();
   syncFunnels();
+  colLog.maybeInit();
 }
 
 function toggleBatch(i) {
