@@ -831,6 +831,9 @@ function addDays(dateStr, n) {
 //    الوحيدتين اللي كانت بتعمل كده اتعدّلوا في نفس التمريرة، فالمخرج على
 //    الشاشة **نفسه بالحرف**.
 
+// 🔴 العلامة العشرية بتظهر بس لو الرقم فيه جزء عشري (100.12) — الصحيح بيفضل 100 مش 100.00.
+//    التقريب لقرشين الأول: 100.004 رقم صحيح عملياً، فمايظهرش 100.00.
+function isWholeMoney(n){ const v=Number(n); return !isFinite(v) || Math.round(v*100)%100===0; }
 ''',
         'التوقيت — إصلاح الإزاحة الثابتة (بند 29-10-2026)')
 
@@ -907,11 +910,13 @@ loadLogEmployeeFilter();  // محميّ جوّاه
     #    في الاسترداد وعمود الشحن) بياخد بادج الهب (`#clLatestVerBadge` =
     #    `TOOL_VERSION` بتاع الهب)، وبند دمج الهب v1.5.0 بينزل تحته قبل
     #    v3.4.0 — كده الترتيب بالتاريخ: 07-10 ← 26-09 ← 16-09 ← 06-09.
-    p.sub('          <span class="cl-ver-badge" id="clVerBadge">v3.6.0</span>\n'
-          '          <span class="cl-ver-date">07-10-2026</span>\n'
+    # ملحوظة: كتلة `§ESC-BEGIN…§ESC-END` في المصدر بتتشال مع قطع `showToast` فوق —
+    # `esc()` في الهب جاية من shared/core.js (مصدر واحد). والحارس تحت بيتأكد.
+    p.sub('          <span class="cl-ver-badge" id="clVerBadge">v3.7.0</span>\n'
+          '          <span class="cl-ver-date">02-11-2026</span>\n'
           '        </div>',
           '''          <span class="cl-ver-badge" id="clLatestVerBadge">v1.33.0</span>
-          <span class="cl-ver-date">07-10-2026 · الواجهة الأصلية v3.6.0</span>
+          <span class="cl-ver-date">02-11-2026 · الواجهة الأصلية v3.7.0</span>
         </div>''',
           'سجل التحديثات — أحدث بلوك بياخد بادج الهب')
 

@@ -227,7 +227,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.65.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.70.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -314,6 +314,7 @@ const ECO_HUB = {
     if (typeof isUpdating !== 'undefined' && isUpdating) return true;        // Order-Status-Updater
     if (typeof uploadRunning !== 'undefined' && uploadRunning) return true;  // Bosta-Orders-Upload
     if (typeof cnBusy !== 'undefined' && cnBusy) return true;                // Courier-Names
+    if (typeof isProcessing !== 'undefined' && isProcessing) return true;    // COD-Payment-Center (pay/refund)
     return false;
   },
   secretNote:  "السر المشترك لمجموعة <code>delivery_cod_ops</code> — <b>قيمة واحدة لكل Workers المركز</b>، ومستقلة عن سر محطة المخزن",
