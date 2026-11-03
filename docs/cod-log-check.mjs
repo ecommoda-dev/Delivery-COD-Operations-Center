@@ -267,7 +267,7 @@ const expQ = calls.filter(c => c.a === 'get_logs_export').at(-1).q;
 const FILTER_KEYS = ['type', 'courier', 'employee', 'orders', 'dateFrom', 'dateTo', 'timeFrom', 'timeTo', 'countFrom', 'countTo', 'countIn', 'collectFrom', 'collectTo', 'collectIn', 'refundFrom', 'refundTo', 'refundIn'];
 const pick = q => Object.fromEntries(FILTER_KEYS.filter(k => q[k] != null).map(k => [k, q[k]]));
 is(JSON.stringify(pick(expQ)) === JSON.stringify(pick(lastList)) && pick(expQ).orders === '62' && !!pick(expQ).type, 'التصدير بيبعت نفس الفلاتر بالظبط اللي الجدول بيعرضها', JSON.stringify([pick(expQ), pick(lastList)]));
-is(/^cod-payment-center-\d{4}-\d{2}-\d{2}\.xlsx$/.test(d1.suggestedFilename()), 'اسم الملف بتاريخ القاهرة', d1.suggestedFilename());
+is(d1.suggestedFilename() === 'COD_All_2026-11-02_partial.xlsx', 'اسم الملف: COD_{مندوب}_{فترة البيانات بتوقيت القاهرة}_partial (الملف مقصوص)', d1.suggestedFilename());
 is((await page.evaluate(() => window.__xl)).sheets >= 1, 'الملف اتبنى (شيتات > 0)');
 const warn = await page.locator('#logExportWarn').innerText();
 is(await page.locator('#logExportWarn').isVisible() && warn.includes('التصدير اتقص') && warn.includes('4') && warn.includes('137'), 'بانر ثابت «التصدير اتقص» بالرقمين (٤ من ١٣٧)', warn);

@@ -772,9 +772,9 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
         </div>
 
         <div class="pay-grid">
-          <div class="pay-method-item"><div class="pay-method-label">💵 نقدي</div><input type="number" id="pmCash" class="pay-method-input" min="0" step="0.01" oninput="updatePayValidation()"></div>
-          <div class="pay-method-item"><div class="pay-method-label">📱 انستاباي</div><input type="number" id="pmInstapay" class="pay-method-input" min="0" step="0.01" oninput="updatePayValidation()"></div>
-          <div class="pay-method-item"><div class="pay-method-label">👛 محفظة</div><input type="number" id="pmWallet" class="pay-method-input" min="0" step="0.01" oninput="updatePayValidation()"></div>
+          <div class="pay-method-item"><div class="pay-method-label">💵 نقدي</div><input type="number" id="pmCash" class="pay-method-input" min="0" step="0.01" oninput="normalizePayInput(this)" onkeydown="blockPayMinus(event)"></div>
+          <div class="pay-method-item"><div class="pay-method-label">📱 انستاباي</div><input type="number" id="pmInstapay" class="pay-method-input" min="0" step="0.01" oninput="normalizePayInput(this)" onkeydown="blockPayMinus(event)"></div>
+          <div class="pay-method-item"><div class="pay-method-label">👛 محفظة</div><input type="number" id="pmWallet" class="pay-method-input" min="0" step="0.01" oninput="normalizePayInput(this)" onkeydown="blockPayMinus(event)"></div>
         </div>
         <div class="pay-validation" id="payValidation"><span class="pay-val-text" id="payValText">أدخل طرق الدفع</span></div>
       </div>
@@ -1054,7 +1054,20 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.33.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.72.0</span>
+          <span class="cl-ver-date">03-11-2026 · Worker v3.9.0</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>طرق الدفع في الاسترداد ظهرت بالموجب (وشيت «الإجمالي» طلّع نقدي 29,800 بدل 8,200).</strong> الموظف كان بيكتب الاسترداد بالسالب في الأغلب، والواجهة كانت بتقلب الإشارة فوق كده. دلوقتي الإشارة من <strong>نوع الصف</strong> مش من المخزّن (يصلّح الجلسات القديمة كمان)، والمبلغ بيتكتب <strong>بالموجب</strong> وأي سالب بيتحوّل لموجب، والـ Worker بيخزّنه غير سالب. ونافذة التأكيد كانت بتخفي طرق الدفع السالبة — بقت بتظهرها.</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>الاسترجاع الجزئي كان بيتسمّى «استبدال».</strong> النوع بقى بيجي من الـ Worker من <strong>أحدث دورة</strong> (<code>exchangeLineItems</code>) مش من القطع الباقية: عادي · استرجاع جزئي · استرجاع كلي · استبدال. الصفوف الأقدم من 3.9.0 (٧٦ صف) بتاخد تسمية محايدة «استرجاع جزئي / استبدال». وأوردر عليه أكتر من دورة بيظهر بعلامة ⚠ (الأرقام ما اتغيّرتش).</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>الإكسيل:</strong> سطور الاسترجاع بتقفل على رقم الصف (القطع الباقية بقت سطور مرجعية رمادي بلا قيمة) · التاريخ بتوقيت القاهرة مش جهاز الموظف · عمود «النتيجة» من نفس خريطة الشاشة («—» للسجل القديم بدل «ناجح») · عمود «ملاحظة النتيجة».</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>اسم ملف التصدير بيعبّر عن اللي جواه: <code>COD_Showroom_2026-11-02.xlsx</code> (مندوب + فترة البيانات) · <code>_sel</code> لو جلسات محددة · <code>_partial</code> لو الملف اتقص. وعمودين جداد (الوقت · الجلسة) وشيت «معلومات التصدير» (الفلاتر ووقت التصدير وهل الملف كامل).</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.66.0</span>
           <span class="cl-ver-date">02-11-2026 · الواجهة الأصلية v3.7.0</span>
         </div>
         <ul class="cl-items">
@@ -1866,6 +1879,9 @@ async function addOrder(numericId) {
         order.hasReturn       = d.hasReturn || false;
         order.returnShipping  = d.returnShipping || '0.00';
         order.returnedItems   = d.returnedItems || [];
+        order.orderKind       = d.orderKind || null;       // Worker ≥ 3.9.0 — النوع من أحدث دورة
+        order.cycleCount      = d.cycleCount || 0;
+        order.multiCycle      = d.multiCycle === true;
         order.s1              = d.s1 || null;
         order.s2              = d.s2 || null;
         // 🔴 v3.6.0 — أوردر مسجّل مسبقًا عليه متبقي مالوش تفسير (مفيش S2 ولا
@@ -2055,6 +2071,47 @@ function renderSBadge(val, isErr) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// §TOOL-JS::orderKind — مصدر واحد لتسمية نوع الأوردر (v1.72.0 · Worker ≥ 3.9.0)
+// الجدول · نافذة التأكيد · تفاصيل السجل · الإكسيل كلهم بيقروا من هنا. كان فيه ٤ نسخ
+// بتحكم من `lineItems.length > 0` ⇒ «استبدال» — و`lineItems` هي القطع الباقية في
+// الأوردر، فأي استرجاع جزئي (رجّع ٤ وفضل ١) كان بيتسمّى استبدال (#63578).
+// النوع الحقيقي بيجي من الـ Worker (`orderKind` — من أحدث دورة، قاعدة 8+15).
+// ⚠️ الصف/الأوردر اللي مالوش `orderKind` (سجل أقدم من 3.9.0) بياخد تسمية **محايدة**
+//    بدل ما نجزم بحاجة مش متأكدين منها.
+// ══════════════════════════════════════════════════════════════
+const KIND_META = {
+  normal:         { label: 'عادي',                    tone: 'green'  },
+  partial_return: { label: 'استرجاع جزئي',             tone: 'red'    },
+  full_return:    { label: 'استرجاع كلي',              tone: 'red'    },
+  exchange:       { label: 'استبدال',                  tone: 'purple' },
+  refund_only:    { label: 'استرداد',                  tone: 'red'    },   // صف استرداد على أوردر مالوش مرتجع
+  legacy_return:  { label: 'استرجاع',                  tone: 'red',   legacy: true },
+  legacy_mixed:   { label: 'استرجاع جزئي / استبدال',    tone: 'amber', legacy: true },
+};
+const LEGACY_KIND_HINT = 'سجل قديم — النوع الدقيق (استرجاع جزئي ولا استبدال) ما كانش بيتسجّل وقتها';
+const MULTI_CYCLE_HINT = 'الأوردر عليه أكتر من دورة استرجاع/استبدال — رسم المرتجع والقطع الراجعة مجمّعة من كل الدورات. راجع الرقم مع المندوب.';
+function orderKindKey(o, isRefundRow) {
+  if (!o) return 'normal';
+  const k = o.orderKind;
+  if (k && KIND_META[k] && !KIND_META[k].legacy && k !== 'refund_only') {
+    return (k === 'normal' && isRefundRow) ? 'refund_only' : k;
+  }
+  if (!o.hasReturn) return isRefundRow ? 'refund_only' : 'normal';
+  return (o.lineItems && o.lineItems.length) ? 'legacy_mixed' : 'legacy_return';
+}
+const KIND_STYLE = {
+  green:  'background:var(--green-light);color:var(--green);border:1px solid var(--green-border)',
+  red:    'background:var(--red-light);color:var(--red);border:1px solid var(--red-border)',
+  purple: 'background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border)',
+  amber:  'background:var(--amber-light);color:var(--amber);border:1px solid var(--amber-border)',
+};
+function kindBadgeHTML(key, multiCycle) {
+  const m = KIND_META[key] || KIND_META.normal;
+  const hint = [m.legacy ? LEGACY_KIND_HINT : '', multiCycle ? MULTI_CYCLE_HINT : ''].filter(Boolean).join(' — ');
+  return `<span style="${KIND_STYLE[m.tone]};padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700"${hint ? ` title="${esc(hint)}"` : ''}>${m.label}${multiCycle ? ' ⚠' : ''}</span>`;
+}
+
+// ══════════════════════════════════════════════════════════════
 // §TOOL-JS — Calculations
 // ══════════════════════════════════════════════════════════════
 function calcCourierCollect(o) {
@@ -2108,13 +2165,8 @@ function renderTable() {
     let orderTypeCol;
     if (isCancelled || o.status === 'scanning' || o.status === 'loading' || o.status === 'notfound' || o.status === 'error')
       orderTypeCol = `<span style="color:var(--text-muted);font-size:11px">—</span>`;
-    else if (o.hasReturn) {
-      const hasNewItems = o.lineItems && o.lineItems.length > 0;
-      orderTypeCol = hasNewItems
-        ? `<span style="background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700">استبدال</span>`
-        : `<span style="background:var(--red-light);color:var(--red);border:1px solid var(--red-border);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700">استرجاع</span>`;
-    } else {
-      orderTypeCol = `<span style="background:var(--green-light);color:var(--green);border:1px solid var(--green-border);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700">عادي</span>`;
+    else {
+      orderTypeCol = kindBadgeHTML(orderKindKey(o, isRefundStatus), o.multiCycle);
     }
 
     let shopifyTotal = null;
@@ -2302,7 +2354,26 @@ function getCourierCollectNet() {
   sum -= getTotalExtraShipping();
   return sum;
 }
-function getPaySum()   { return (parseFloat($('pmCash').value)||0)+(parseFloat($('pmInstapay').value)||0)+(parseFloat($('pmWallet').value)||0); }
+// 🔴 v1.72.0 — المبلغ بيتكتب **بالموجب دايمًا**؛ اتجاه الفلوس (تحصيل ولا استرداد)
+//    بيتحدد من نوع الأوردرات مش من الإشارة. الموظفين كانوا بيكتبوا الاسترداد
+//    بالسالب في الأغلب (١١ من ١٣ جلسة استرداد منذ 06-09-2026) فالإشارة كانت
+//    بتتخزّن على مزاج الموظف، والواجهة بتقلبها فوق كده ← 10,800 بدل 10,800−.
+function payVal(id) { return Math.abs(parseFloat($(id).value) || 0); }
+function getPaySum()   { return payVal('pmCash') + payVal('pmInstapay') + payVal('pmWallet'); }
+function normalizePayInput(el) {
+  const v = parseFloat(el.value);
+  if (v < 0) {   // لصق أو سهم الـspinner — الكتابة بالـ«-» اتمنعت تحت
+    el.value = String(Math.abs(v));
+    showToast('اتكتب المبلغ بالموجب — اتجاه الفلوس (تحصيل أو استرداد) بيتحدد من الأوردرات مش من الإشارة', 'warning', 4500);
+  }
+  updatePayValidation();
+}
+function blockPayMinus(e) {
+  if (e.key === '-' || e.key === 'Subtract') {
+    e.preventDefault();
+    showToast('اكتب المبلغ بالموجب — الاسترداد بيتحدد من الأوردرات مش من الإشارة', 'warning', 3500);
+  }
+}
 function isPayEmpty()  { return !$('pmCash').value && !$('pmInstapay').value && !$('pmWallet').value; }
 
 function updatePayMethodsCard() {
@@ -2425,7 +2496,7 @@ async function confirmBulkPay() {
   if (readyOrders.length && !isPayValid()) { showResult(false, '⚠ طريقة الدفع غير مكتملة', ''); return; }
 
   const courierName = getReadyCourier();
-  const cash = parseFloat($('pmCash').value)||0, instapay = parseFloat($('pmInstapay').value)||0, wallet = parseFloat($('pmWallet').value)||0;
+  const cash = payVal('pmCash'), instapay = payVal('pmInstapay'), wallet = payVal('pmWallet');
   const extraTotal = getTotalExtraShipping();
 
   const readyCollectOnly = readyOrders.reduce((s,o) => s + (calcCourierCollect(o)||0), 0);
@@ -2435,18 +2506,19 @@ async function confirmBulkPay() {
   const totalRefund = refundOrders.reduce((s,o) => s + (o.refundAmount||0), 0);
   const totalRetShip = refundOrders.reduce((s,o) => s + (parseFloat(o.returnShipping)||0), 0);
 
-  const pureNormal = readyOrders.filter(o => !o.hasReturn).length;
-  const readyExch  = readyOrders.filter(o => o.hasReturn && o.lineItems && o.lineItems.length>0).length;
-  const readyRet   = readyOrders.filter(o => o.hasReturn && !(o.lineItems && o.lineItems.length>0)).length;
-  const refundExch = refundOrders.filter(o => o.lineItems && o.lineItems.length>0).length;
-  const refundRet  = refundOrders.length - refundExch;
-
-  const orderParts = [];
-  if (pureNormal>0) orderParts.push(`<span style="color:var(--green);font-weight:700">${pureNormal} عادي</span>`);
-  if (readyExch>0)  orderParts.push(`<span style="color:var(--purple);font-weight:700">${readyExch} استبدال</span>`);
-  if (readyRet>0)   orderParts.push(`<span style="color:var(--amber);font-weight:700">${readyRet} استرجاع</span>`);
-  if (refundExch>0) orderParts.push(`<span style="color:var(--purple);font-weight:700">${refundExch} استرداد استبدال</span>`);
-  if (refundRet>0)  orderParts.push(`<span style="color:var(--red);font-weight:700">${refundRet} استرداد استرجاع</span>`);
+  // 🔴 v1.72.0 — العدّ بالنوع من `orderKindKey` (مصدر واحد) مش من `lineItems.length`.
+  const kindParts = new Map();   // التسمية → { n, tone }
+  const bumpKind = (o, isRefund) => {
+    const k = orderKindKey(o, isRefund), m = KIND_META[k];
+    const label = (isRefund && k !== 'refund_only') ? `استرداد ${m.label}` : m.label;
+    const e = kindParts.get(label) || { n: 0, tone: m.tone };
+    e.n++; kindParts.set(label, e);
+  };
+  readyOrders.forEach(o => bumpKind(o, false));
+  refundOrders.forEach(o => bumpKind(o, true));
+  const TONE_COLOR = { green: 'var(--green)', red: 'var(--red)', purple: 'var(--purple)', amber: 'var(--amber)' };
+  const orderParts = [...kindParts].map(([label, e]) => `<span style="color:${TONE_COLOR[e.tone]};font-weight:700">${e.n} ${label}</span>`);
+  const multiCycleOrders = [...readyOrders, ...refundOrders].filter(o => o.multiCycle);
   if (extraEntries.filter(e=>e.status==='ok').length>0) orderParts.push(`<span style="color:var(--orange);font-weight:700">${extraEntries.filter(e=>e.status==='ok').length} شحن إضافي</span>`);
 
   const paySection = `
@@ -2464,6 +2536,11 @@ async function confirmBulkPay() {
     ${wallet>0?`<div class="confirm-detail-row"><span class="confirm-detail-label">👛 محفظة</span><span class="confirm-detail-val">${fmt(wallet)} جنيه</span></div>`:''}`;
 
   const bodyHTML = `${paySection}
+    ${multiCycleOrders.length ? `<div class="confirm-warning" style="background:var(--amber-light);border-color:var(--amber-border)">
+      <span class="confirm-warning-icon">⚠️</span>
+      <div><div class="confirm-warning-title">أكتر من دورة مرتجع/استبدال: ${multiCycleOrders.map(o => esc(o.orderName || o.id)).join('، ')}</div>
+      <div class="confirm-warning-text">رسم شحن المرتجع والقطع الراجعة مجمّعة من كل الدورات — راجع الرقم مع المندوب قبل التأكيد.</div></div>
+    </div>` : ''}
     <div class="confirm-warning">
       <span class="confirm-warning-icon">⚠️</span>
       <div><div class="confirm-warning-title">تحذير — لا يمكن التراجع</div>
@@ -2486,9 +2563,9 @@ async function confirmBulkPay() {
 //   • جلسة صافيها موجب (المندوب بيدفع لنا) → أوردرات التحصيل هي اللي جابت
 //     الفلوس؛ أوردرات الاسترداد بتقلّل الصافي مش بتجيب كاش، فحصتها صفر.
 //   • جلسة صافيها سالب (إحنا بندفع للمندوب) → العكس بالظبط.
-// كده الحصص كلها بنفس إشارة المدخل، ومفيش صف بيقول "قبضت" وهو دافع.
-// اتجاه الأوردر نفسه محفوظ أصلاً في `type` و`courierCollect` — مش محتاج
-// يتكرر في الإشارة هنا.
+// 🔴 v1.72.0 — الحصص كلها **غير سالبة**. اتجاه الأوردر نفسه محفوظ في `type`
+//    و`courierCollect`، والإشارة بتتحط وقت العرض/التصدير من `type` الصف
+//    (والـ Worker ≥ 3.9.0 بيطبّع كمان). مدخل سالب بيتحوّل لموجب هنا.
 function allocatePaymentSplit(weights, methods) {
   const n = weights.length;
   const out = Array.from({ length: n }, () => ({ cash:'0.00', instapay:'0.00', wallet:'0.00' }));
@@ -2499,7 +2576,7 @@ function allocatePaymentSplit(weights, methods) {
   const W = w.reduce((s, x) => s + x, 0);
 
   for (const key of ['cash', 'instapay', 'wallet']) {
-    const total = Math.round((parseFloat(methods[key]) || 0) * 100);   // بالقروش
+    const total = Math.round(Math.abs(parseFloat(methods[key]) || 0) * 100);   // بالقروش · غير سالب
     if (!total) continue;
     if (W <= 0) { out[0][key] = (total / 100).toFixed(2); continue; }  // كل الأوزان صفر
     let cum = 0, running = 0;
@@ -2517,7 +2594,7 @@ async function doBulkPayAndRefund() {
   const readyOrders = orders.filter(o => o.status === 'ready');
   const refundOrders = orders.filter(o => o.status === 'refund');
   const courierName = getReadyCourier();
-  const cash = parseFloat($('pmCash').value)||0, instapay = parseFloat($('pmInstapay').value)||0, wallet = parseFloat($('pmWallet').value)||0;
+  const cash = payVal('pmCash'), instapay = payVal('pmInstapay'), wallet = payVal('pmWallet');
   const extraTotal = getTotalExtraShipping();
 
   // 🔴 إعادة تحقق قبل أول نداء — `confirmBulkPay()` بتتحقق **مرة واحدة** قبل
@@ -2618,7 +2695,7 @@ async function doBulkPayAndRefund() {
   for (const order of readyOrders) {
     order.status = 'loading'; renderTable();
     try {
-      const orderMeta = { lineItems:order.lineItems, returnedItems:order.returnedItems, orderDiscount:order.orderDiscount, preRegistered:order.preRegistered, hasReturn:order.hasReturn, returnShipping:order.returnShipping, courierCollect:calcCourierCollect(order), paymentSplit:splitOf.get(order) };
+      const orderMeta = { lineItems:order.lineItems, returnedItems:order.returnedItems, orderDiscount:order.orderDiscount, preRegistered:order.preRegistered, hasReturn:order.hasReturn, returnShipping:order.returnShipping, courierCollect:calcCourierCollect(order), paymentSplit:splitOf.get(order), orderKind:order.orderKind, multiCycle:order.multiCycle };
       const d = await apiPostLegacy('pay', { orderId:order.id, amount:order.amount.toFixed(2), orderName:order.orderName, batchId, sessionMeta, orderMeta, employee: sessionMeta.employee });
       if (d.success) { order.status = 'done'; order.financialStatus = 'PAID'; successPay++; absorbResult(order, d); }
       else { order.status = 'error'; order.result = 'error'; order.error = d.error||'فشل'; failPay++; if (d.blocked) blockedStop = `${order.orderName || '#'+order.id}: ${d.error||''}`; }
@@ -2633,7 +2710,7 @@ async function doBulkPayAndRefund() {
     try {
       if (!order.saleTransactions || !order.saleTransactions.length) { order.status = 'refund-error'; order.error = 'لا يوجد transaction صالح'; failRefund++; }
       else {
-        const orderMeta = { lineItems:order.lineItems, returnedItems:order.returnedItems, orderDiscount:order.orderDiscount, preRegistered:order.preRegistered, hasReturn:order.hasReturn, returnShipping:order.returnShipping, courierCollect:calcCourierCollect(order), paymentSplit:splitOf.get(order) };
+        const orderMeta = { lineItems:order.lineItems, returnedItems:order.returnedItems, orderDiscount:order.orderDiscount, preRegistered:order.preRegistered, hasReturn:order.hasReturn, returnShipping:order.returnShipping, courierCollect:calcCourierCollect(order), paymentSplit:splitOf.get(order), orderKind:order.orderKind, multiCycle:order.multiCycle };
         const d = await apiPostLegacy('refund', { orderId:order.id, refundAmount:order.refundAmount.toFixed(2), saleTransactions:order.saleTransactions, currency:'EGP', orderName:order.orderName, batchId, sessionMeta, orderMeta, employee: sessionMeta.employee });
         if (d.success) { order.status = 'refund-done'; order.financialStatus = 'REFUNDED'; successRefund++; absorbResult(order, d); }
         else { order.status = 'refund-error'; order.result = 'error'; order.error = d.error||'فشل'; failRefund++; }
@@ -3890,15 +3967,16 @@ function groupRowsIntoSessions(rows, view) {
     const g = groups[batchId];
     if (row.type === 'refund') { g.hasRefund = true; g.totalRefund += parseFloat(row.value_after) || 0; }
     else                       { g.hasPayment = true; g.totalAmount += parseFloat(row.value_after) || 0; }
-    // 🔴 طرق الدفع بتتخزّن **موجبة** حتى في الاسترداد (المبلغ اللي اتدفع للعميل).
-    //    فلازم الجمع يقلب إشارة صفوف الاسترداد، وإلا «كاش + انستاباي + محفظة»
-    //    مابتقفلش على الصافي (2,600 + 999 بدل 2,600 − 999). القلب على
-    //    **مستوى الصف** عشان الجلسة المختلطة (تحصيل + استرداد) تتحسب صح.
+    // 🔴 الإشارة بتتحدد من **نوع الصف** مش من اللي اتخزّن. الموظف كان بيكتب
+    //    الاسترداد بالسالب (١١ من ١٣ جلسة منذ 06-09) أو بالموجب، والقلب القديم
+    //    (`-1 × المخزّن`) كان بيطلّع 10,800 بدل 10,800− لما المخزّن سالب أصلاً
+    //    (جلسة #63578: نقدي 29,800 بدل 8,200). `Math.abs` الأول ← نفس النتيجة
+    //    للصفوف القديمة (الاتنين إشارات) والجديدة (Worker ≥ 3.9.0 بيخزّنها غير سالبة).
     const pm = extra.paymentMethods || {};
     const pmSign = row.type === 'refund' ? -1 : 1;
-    g.pmSum.cash     += pmSign * (parseFloat(pm.cash)     || 0);
-    g.pmSum.instapay += pmSign * (parseFloat(pm.instapay) || 0);
-    g.pmSum.wallet   += pmSign * (parseFloat(pm.wallet)   || 0);
+    g.pmSum.cash     += pmSign * Math.abs(parseFloat(pm.cash)     || 0);
+    g.pmSum.instapay += pmSign * Math.abs(parseFloat(pm.instapay) || 0);
+    g.pmSum.wallet   += pmSign * Math.abs(parseFloat(pm.wallet)   || 0);
     g.actualCollect  += parseFloat(extra.courierCollect) || 0;
     g.rows.push({ entry: row, extra });
   }
@@ -3927,9 +4005,16 @@ function groupRowsIntoSessions(rows, view) {
 // تقسيم لكل أوردر، فبتفضل زي ما هي بدل تخمين.
 function signedSessionMethods(g) {
   const pm = g.firstRowMethods || {};
-  if (!(g.hasRefund && !g.hasPayment)) return pm;
-  const neg = v => (-(parseFloat(v) || 0)).toFixed(2);
-  return { cash: neg(pm.cash), instapay: neg(pm.instapay), wallet: neg(pm.wallet) };
+  // 🔴 `Math.abs` — المخزّن ممكن يكون سالب (الموظف كتبه كده) فالقلب المباشر كان بيرجّعه موجب.
+  if (g.hasRefund && !g.hasPayment) {
+    const neg = v => (-Math.abs(parseFloat(v) || 0)).toFixed(2);
+    return { cash: neg(pm.cash), instapay: neg(pm.instapay), wallet: neg(pm.wallet) };
+  }
+  if (g.hasPayment && !g.hasRefund) {
+    const pos = v => Math.abs(parseFloat(v) || 0).toFixed(2);
+    return { cash: pos(pm.cash), instapay: pos(pm.instapay), wallet: pos(pm.wallet) };
+  }
+  return pm;   // مختلطة قديمة: مفيش تقسيم لكل أوردر — بتفضل زي ما هي بدل تخمين
 }
 function finalizeGroup(g) {
   g.paymentMethods = (g.pmScope === 'order')
@@ -3958,12 +4043,18 @@ function batchShortfall(g) {
 // ─── §LOG-JS::resultBadge — Step 3C: النتيجة تلات حالات ───
 // الجلسة فيها أكتر من صف؛ الأسوأ هو اللي بيتعرض. أي صف بلا `extra.result`
 // (أقدم من Worker v3.5.0) بيخلّي الجلسة "unknown" → "—" مش "✓".
+// 🔴 Step 3C — خريطة واحدة للشاشة وللإكسيل (v1.72.0). قبل كده الإكسيل كان بيكتب
+//    «ناجح» على كل صف (`status:'success'` ثابتة) والشاشة بتعرض «—» للصفوف الأقدم
+//    من Worker v3.5.0 (3,651 صف) — يعني الملف بيدّعي نجاح مش متأكدين منه.
+//    `—` = النتيجة غير مسجّلة (مش «تم» ومش «فشل»).
+const RESULT_LABELS = { success: 'تم', warning: 'تم جزئيًا', error: 'فشل' };
+function resultLabel(v) { return RESULT_LABELS[v] || '—'; }
 function resultBadge(g) {
   const r = g.results || new Set();
-  if (r.has('error'))   return '<span class="res-badge err">✗ فشل</span>';
-  if (r.has('warning')) return '<span class="res-badge warn">⚠ تم جزئيًا</span>';
+  if (r.has('error'))   return `<span class="res-badge err">✗ ${RESULT_LABELS.error}</span>`;
+  if (r.has('warning')) return `<span class="res-badge warn">⚠ ${RESULT_LABELS.warning}</span>`;
   if (r.has('unknown') || !r.size) return '<span class="res-badge unknown" title="سجل أقدم من Worker v3.5.0 — النتيجة ما كانتش بتتسجّل وقتها">—</span>';
-  return '<span class="res-badge ok">✓ تم</span>';
+  return `<span class="res-badge ok">✓ ${RESULT_LABELS.success}</span>`;
 }
 
 // ─── §LOG-JS::sorting — 3 حالات، مستقل تمامًا عن الفلاتر ───
@@ -4056,9 +4147,8 @@ function renderLog(entries) {
       const isRefund = e.type === 'refund';
       const amt = parseFloat(e.value_after) || 0;
       const hasSub = (x.lineItems && x.lineItems.length) || (x.returnedItems && x.returnedItems.length);
-      const orderTypeLbl = x.hasReturn
-        ? ((x.lineItems && x.lineItems.length) ? 'استبدال' : 'استرجاع')
-        : 'عادي';
+      const kindKey = orderKindKey(x, isRefund);
+      const orderTypeLbl = kindBadgeHTML(kindKey, x.multiCycle === true);
       const subId = `logsub-${gi}-${ri}`;
       return `<tr class="log-order-row ${hasSub ? 'has-sub' : ''}" ${hasSub ? `onclick="toggleLogSub('${subId}', this)"` : ''}>
           <td>${orderLink(e.order_name || e.order_id, e.order_id)}${hasSub ? '<span class="lo-arrow">▶</span>' : ''}</td>
@@ -4167,6 +4257,7 @@ function updateExportSelectedUI() {
 // عشان نستخدم نفس منطق v2.0 بالظبط (شيتين + كل التنسيق) من غير أي فقدان.
 function toExportGroups(groups) {
   return groups.map(g => ({
+    key: g.key,
     date: g.timestamp,
     courier: g.courier || null,
     employee: g.employee || null,
@@ -4196,11 +4287,65 @@ function toExportGroups(groups) {
         isRefund,
         refundAmount: isRefund ? e.value_after : null,
         courierCollect: x.courierCollect ?? null,
-        status: 'success',
+        // 🔴 النتيجة من `extra.result` كما هي (null = سجل قديم) — مش `'success'` ثابتة
+        result: x.result ?? null,
+        status: x.result === 'error' ? 'failed' : 'success',
+        notes: e.notes || null,
+        kindKey: orderKindKey(x, isRefund),
+        multiCycle: x.multiCycle === true,
         error: null,
       };
     }),
   }));
+}
+
+// ─── §LOG-JS::export::fileName — اسم الملف يعبّر عن اللي جواه (v1.72.0) ───
+// COD_{مندوب}_{فترة البيانات}[_sel][_partial].xlsx
+//   • الفترة = أيام **بيانات الملف** بتوقيت القاهرة — مش يوم التصدير (وقت التصدير جوّه شيت «معلومات التصدير»).
+//   • مندوب واحد → اسمه · أكتر → N-Couriers · تصدير الكل من غير فلتر مندوب → All.
+//   • `_sel` = جلسات اتحددت يدويًا (مش اليوم كله) · `_partial` = الملف اتقص عند سقف الـ Worker.
+function exportFileName(log, selectedOnly, truncated, courierFilterActive) {
+  const safe = t => String(t).replace(/[\\/:*?"<>|]/g, '').trim().replace(/\s+/g, '-') || 'NoCourier';
+  const days = (log || []).map(e => { const p = cairoParts(e.date); return p ? `${p.year}-${p.month}-${p.day}` : null; }).filter(Boolean).sort();
+  const first = days[0], last = days[days.length - 1];
+  let period = 'NoDate';
+  if (first) {
+    if (first === last) period = first;
+    else period = first.slice(0, 4) === last.slice(0, 4) ? `${first}_to_${last.slice(5)}` : `${first}_to_${last}`;
+  }
+  const names = [...new Set((log || []).map(e => e.courier).filter(Boolean))];
+  let courier;
+  if (names.length === 1) courier = safe(names[0]);
+  else if (!selectedOnly && !courierFilterActive) courier = 'All';
+  else courier = names.length ? `${names.length}-Couriers` : 'NoCourier';
+  return `COD_${courier}_${period}${selectedOnly ? '_sel' : ''}${truncated ? '_partial' : ''}.xlsx`;
+}
+const EXPORT_FILTER_LABELS = { type:'النوع', courier:'المندوب', employee:'الموظف', dateFrom:'من تاريخ', dateTo:'إلى تاريخ',
+  orders:'أرقام الأوردرات', timeFrom:'من وقت', timeTo:'إلى وقت', search:'بحث' };
+function exportFiltersText(params) {
+  const bits = Object.entries(params || {}).filter(([, v]) => v !== '' && v != null).map(([k, v]) => `${EXPORT_FILTER_LABELS[k] || k}: ${v}`);
+  return bits.length ? bits.join(' · ') : 'بلا فلاتر (كل السجل)';
+}
+// نص «ملاحظة النتيجة» — بادج من غير سبب في ملف Excel بلا قيمة (Step 3C)
+function exportResultNote(o) {
+  const bits = [];
+  if (o.result == null) bits.push('سجل قديم — النتيجة ما كانتش بتتسجّل');
+  else if (o.result === 'warning') bits.push(o.notes || 'تم جزئيًا — راجع السجل على الشاشة');
+  if (o.multiCycle) bits.push('أكتر من دورة مرتجع/استبدال — الرسم والقطع مجمّعة من كل الدورات');
+  return bits.join(' · ') || null;
+}
+// 🔴 صف الاسترجاع: القطع الباقية في الأوردر **مش** من فلوس الصف. لو القطع الراجعة + رسم المرتجع
+//    = مبلغ الاسترداد بالظبط، يبقى القطع الباقية سطور مرجعية بس (#63578: راجع ٤ = 10,800 = الصف،
+//    والباقية 2,800 كانت بتتكتب موجبة جنبهم ومجموع السطور بيطلع −8,000 مش −10,800).
+//    الاستبدال المعروف (`exchange`) مابيتلمسش — فيه قطع جديدة في `lineItems`.
+function returnLinesReconcile(o) {
+  if (o.kindKey === 'exchange') return false;
+  const ret = o.returnedItems || [], cur = o.lineItems || [];
+  if (!ret.length || !cur.length) return false;
+  if (o.kindKey === 'partial_return' || o.kindKey === 'full_return') return true;
+  if (!o.isRefund) return false;
+  const retSum = ret.reduce((t, r) => t + (parseFloat(r.discountedUnitPrice) || 0) * (r.quantity || 1), 0);
+  return Math.abs(retSum + (parseFloat(o.returnShipping) || 0) - Math.abs(parseFloat(o.courierCollect) || 0)) < 0.01;
 }
 
 // ─── §LOG-JS::export (XLSX عبر ExcelJS — كل أو المحدد) — شيتين + تنسيق كامل (زي v2.0) ───
@@ -4227,6 +4372,7 @@ async function exportXLSX(selectedOnly) {
     const groups = (window.__logGroups || []).filter(g => selectedLogBatches.has(g.key));
     if (!groups.length) { showToast('اختر عمليات أولاً', 'error'); return; }
     log = toExportGroups(groups);
+    exportTruncInfo = { truncated: false, rows: 0, total: null };   // مفيش سقف على محدد — مايورّثش بانر تصدير سابق
   } else {
     showToast('⏳ جاري تجهيز التصدير...');
     try {
@@ -4267,6 +4413,10 @@ async function exportXLSX(selectedOnly) {
     { header:'النتيجة', key:'result', width:9 },
     { header:'الخطأ', key:'error', width:18 },
     { header:'مسجل مسبقاً', key:'prereg', width:13 },
+    // أعمدة v1.72.0 — في الآخر عن قصد: باقي الكود بيعتمد على أرقام الأعمدة 5/9/11/12/13/14
+    { header:'الوقت', key:'time', width:11 },
+    { header:'الجلسة', key:'session', width:11 },
+    { header:'ملاحظة النتيجة', key:'resultNote', width:36 },
   ];
 
   const HEADER_BG='FFD700', GRAND_BG='1F4E79';
@@ -4285,9 +4435,10 @@ async function exportXLSX(selectedOnly) {
     row.height=20;
   }
   function orderTypeColor(t) {
-    if (t==='استرجاع') return {argb:'FFCC0000'};
-    if (t==='استبدال') return {argb:'FF7030A0'};
     if (t==='شحن إضافي') return {argb:'FFEA580C'};
+    if (t==='استرجاع جزئي / استبدال') return {argb:'FFB45309'};   // تسمية محايدة (سجل قديم)
+    if (/^استرجاع|^استرداد/.test(t)) return {argb:'FFCC0000'};
+    if (t==='استبدال') return {argb:'FF7030A0'};
     return {argb:'FF000000'};
   }
   function applyData(row, isFailed, qty, isReturnLine, orderType, isExtraShipping) {
@@ -4298,7 +4449,7 @@ async function exportXLSX(selectedOnly) {
       if (col<=4) { cell.fill={type:'pattern',pattern:'none'}; return; }
       if (col===5) {
         cell.fill={type:'pattern',pattern:'none'};
-        if (cell.value) { const bold=(cell.value==='استرجاع'||cell.value==='استبدال'||cell.value==='شحن إضافي'); cell.font={size:10,name:'Arial',bold,color:orderTypeColor(cell.value)}; }
+        if (cell.value) { const bold = cell.value !== 'عادي'; cell.font={size:10,name:'Arial',bold,color:orderTypeColor(cell.value)}; }
         return;
       }
       if (isExtraShipping) { cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF7ED'}}; if (col===13) cell.font={size:10,name:'Arial',bold:true,color:{argb:'FFEA580C'}}; return; }
@@ -4311,18 +4462,20 @@ async function exportXLSX(selectedOnly) {
     c12.border={top:{style:'thin',color:{argb:'FFD0D0D0'}},bottom:{style:'thin',color:{argb:'FFD0D0D0'}},left:MED_BORDER,right:MED_BORDER};
     if (isFailed && !isReturnLine) { const rc=row.getCell(14); rc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFCC0000'}}; rc.font={bold:true,color:{argb:'FFFFFFFF'},size:10,name:'Arial'}; }
   }
+  // 🔴 v1.72.0 — نفس مصدر الشاشة (`orderKindKey`/`KIND_META`) — مش `lineItems.length` (كانت بتسمّي أي استرجاع جزئي «استبدال»)
   function getOrderType(o) {
     if (o.isExtraShipping) return 'شحن إضافي';
-    if (o.isRefund) return (o.returnedItems&&o.returnedItems.length>0&&o.lineItems&&o.lineItems.length>0) ? 'استبدال' : 'استرجاع';
-    if (o.hasReturn) return (o.lineItems&&o.lineItems.length>0) ? 'استبدال' : 'استرجاع';
-    return 'عادي';
+    return KIND_META[o.kindKey || orderKindKey(o, o.isRefund)].label;
   }
 
   applyHeader(ws.getRow(1));
   let grandCourierNet = 0;
 
   for (const entry of log) {
-    const date = new Date(entry.date).toLocaleDateString('en-GB');
+    // 🔴 تاريخ القاهرة DD-MM-YYYY (`formatDateForExport` من الـ shell) — مش `toLocaleDateString` بتوقيت جهاز الموظف
+    const date = formatDateForExport(entry.date);
+    const timeTxt = formatTimeForExport(entry.date);
+    const sessionId = /^[0-9a-f]{8}-/.test(entry.key || '') ? String(entry.key).slice(0, 8) : String(entry.key || '').replace(/^(payment|refund)-row-/, 'row-');
     const courier = entry.courier || '';
     const employee = entry.employeeDisplayName || entry.employee || '';
     const extraArr = Array.isArray(entry.extraShipping) ? entry.extraShipping : [];
@@ -4349,7 +4502,17 @@ async function exportXLSX(selectedOnly) {
         shipVal = (o.hasReturn||isRefundRow) ? (parseFloat(o.returnShipping)||0) : 0;
       }
 
-      const writeRow = (item, isFirst, isReturn) => {
+      const resNote = exportResultNote(o);
+      const metaCols = isFirst => ({ time: isFirst?timeTxt:null, session: isFirst?sessionId:null, resultNote: isFirst?resNote:null });
+      const resText = isFailed ? resultLabel('error') : (o.result === 'success' ? 'ناجح' : resultLabel(o.result));   // «ناجح» محفوظة للتوافق مع ملفات قبل كده
+      const writeRow = (item, isFirst, isReturn, isKept) => {
+        if (isKept) {
+          const kq = parseFloat(item.quantity) || 0;
+          const kr = ws.addRow({ courier, sku: '\u2022 باقي في الأوردر: ' + (item.sku||''), qty: kq||null });
+          applyData(kr, false, kq, false, otype, false);
+          kr.eachCell({includeEmpty:false}, cell => { cell.font = { size:10, name:'Arial', italic:true, color:{argb:'FF888888'} }; });
+          return;
+        }
         const qty = isReturn ? -(item.quantity||1) : (parseFloat(item.quantity)||0);
         const unitP = isReturn ? -(parseFloat(item.discountedUnitPrice)||0) : (parseFloat(item.unitPrice)||0);
         const unitD = isReturn ? null : ((item.unitDiscount!=null)?parseFloat(item.unitDiscount):null);
@@ -4360,21 +4523,29 @@ async function exportXLSX(selectedOnly) {
           order: isFirst?(o.orderName||''):null, orderType: isFirst?otype:null,
           sku: skuLabel, qty: qty||null, unit: unitP||null, unitDiscount: unitD||null,
           collect: total||null, orderDiscount: isFirst?odv:null, courierCollect: isFirst?cc:null,
-          ship: isFirst?shipVal:null, result: isFirst?(isFailed?'فشل':'ناجح'):null,
+          ship: isFirst?shipVal:null, result: isFirst?resText:null,
           error: isFirst?(o.error||null):null, prereg: isFirst?(o.preRegistered?'نعم':'لا'):null,
+          ...metaCols(isFirst),
         });
         applyData(r,isFailed,qty,isReturn,otype,false);
+        if (isFirst && o.result === 'warning') { const rc=r.getCell(14); rc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF2CC'}}; rc.font={bold:true,size:10,name:'Arial',color:{argb:'FF92400E'}}; }
       };
 
       if (isFailed) {
-        const r = ws.addRow({date,employee,courier,order:o.orderName||'',orderType:otype,sku:null,qty:null,unit:null,unitDiscount:null,collect:null,orderDiscount:odv,courierCollect:null,ship:shipVal,result:'فشل',error:o.error||null,prereg:o.preRegistered?'نعم':'لا'});
+        const r = ws.addRow({date,employee,courier,order:o.orderName||'',orderType:otype,sku:null,qty:null,unit:null,unitDiscount:null,collect:null,orderDiscount:odv,courierCollect:null,ship:shipVal,result:resText,error:o.error||null,prereg:o.preRegistered?'نعم':'لا',...metaCols(true)});
         applyData(r,true,0,false,otype,false);
       } else {
-        const allItems = [...(o.lineItems||[]).map(li=>({item:li,isReturn:false})), ...(o.returnedItems||[]).map(ri=>({item:ri,isReturn:true}))];
+        // 🔴 صف استرجاع بيتطابق ماليًا: المرتجع الأول (والأوردر/النتيجة متعلقين عليه)، والقطع الباقية سطور مرجعية رمادي بلا قيم
+        const retItems  = (o.returnedItems||[]).map(ri=>({item:ri,isReturn:true}));
+        const curItems  = (o.lineItems||[]).map(li=>({item:li,isReturn:false}));
+        const keptAsRef = returnLinesReconcile(o);
+        const allItems  = keptAsRef
+          ? [...retItems, ...curItems.map(c=>({item:c.item,isReturn:false,isKept:true}))]
+          : [...curItems, ...retItems];
         if (!allItems.length) {
-          const r = ws.addRow({date,employee,courier,order:o.orderName||'',orderType:otype,sku:null,qty:null,unit:null,unitDiscount:null,collect:cc||null,orderDiscount:odv,courierCollect:cc,ship:shipVal,result:'ناجح',error:null,prereg:o.preRegistered?'نعم':'لا'});
+          const r = ws.addRow({date,employee,courier,order:o.orderName||'',orderType:otype,sku:null,qty:null,unit:null,unitDiscount:null,collect:cc||null,orderDiscount:odv,courierCollect:cc,ship:shipVal,result:resText,error:null,prereg:o.preRegistered?'نعم':'لا',...metaCols(true)});
           applyData(r,false,0,false,otype,false);
-        } else { allItems.forEach(({item,isReturn},idx) => writeRow(item,idx===0,isReturn)); }
+        } else { allItems.forEach(({item,isReturn,isKept},idx) => writeRow(item,idx===0,isReturn,isKept)); }
       }
     }
 
@@ -4382,7 +4553,7 @@ async function exportXLSX(selectedOnly) {
       const amount = parseFloat(e.amount)||0;
       if (!amount) continue;
       grandCourierNet -= amount;
-      const r = ws.addRow({ date, employee, courier: e.courier||courier, order: e.orderName||(e.orderId?('#'+e.orderId):''), orderType:'شحن إضافي', sku:null,qty:null,unit:null,unitDiscount:null,collect:null,orderDiscount:null, courierCollect:-amount, ship:amount, result:'ناجح', error:null, prereg:'لا' });
+      const r = ws.addRow({ date, employee, courier: e.courier||courier, order: e.orderName||(e.orderId?('#'+e.orderId):''), orderType:'شحن إضافي', sku:null,qty:null,unit:null,unitDiscount:null,collect:null,orderDiscount:null, courierCollect:-amount, ship:amount, result:'ناجح', error:null, prereg:'لا', time:timeTxt, session:sessionId });
       applyData(r,false,0,false,'شحن إضافي',true);
     }
 
@@ -4399,7 +4570,7 @@ async function exportXLSX(selectedOnly) {
         courierCollect: sf.collect,
         ship: null, result: 'فشل',
         error: `اتحقق على ${entry.batchExpected.orders} أوردر بقيمة ${entry.batchExpected.collect} — اتسجّل ${(entry.orders||[]).length} بقيمة ${entry.actualCollect}`,
-        prereg: null,
+        prereg: null, time: timeTxt, session: sessionId,
       });
       r.eachCell({ includeEmpty:false }, cell => {
         cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFFCCCC' } };
@@ -4508,10 +4679,48 @@ async function exportXLSX(selectedOnly) {
     });
   });
 
+  // ── Sheet 3 — معلومات التصدير (v1.72.0) ───────────────────────
+  // اسم الملف مايقدرش يشيل الفلاتر ولا وقت التصدير ولا هل الملف كامل — فدول هنا.
+  const ws3 = wb.addWorksheet('معلومات التصدير', { views:[{rightToLeft:true}] });
+  ws3.columns = [ { header:'البند', key:'k', width:30 }, { header:'القيمة', key:'v', width:78 } ];
+  ws3.getRow(1).eachCell(cell => {
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+HEADER_BG}};
+    cell.font={bold:true,size:11,name:'Arial'};
+    cell.alignment={horizontal:'center',vertical:'middle',readingOrder:'rightToLeft'};
+  });
+  const nowIso = new Date().toISOString();
+  const dayList = log.map(e => formatDateForExport(e.date)).filter(Boolean);
+  const stamps  = log.map(e => new Date(e.date).getTime()).filter(t => !isNaN(t)).sort((a, b) => a - b);
+  const courierNames = [...new Set(log.map(e => e.courier).filter(Boolean))];
+  const opsCount = log.reduce((n, e) => n + (e.orders || []).length, 0);
+  const infoRows = [
+    ['الأداة', 'تحصيل الأوردرات COD — مركز عمليات الشحن والتحصيل'],
+    ['نسخة الواجهة', TOOL_VERSION],
+    ['وقت التصدير (توقيت القاهرة)', `${formatDateForExport(nowIso)} ${formatTimeForExport(nowIso)}`],
+    ['اتصدّر بواسطة', (currentEmployee && (currentEmployee.displayName || currentEmployee.username)) || '—'],
+    ['نوع التصدير', selectedOnly ? 'جلسات اتحددت يدويًا من الصفحة الحالية (مش بالضرورة اليوم كله)' : 'كل السجل المطابق للفلاتر'],
+    ['الفلاتر', selectedOnly ? '— (اختيار يدوي)' : exportFiltersText(buildLogParams())],
+    ['فترة بيانات الملف', stamps.length ? `${formatDateForExport(new Date(stamps[0]).toISOString())} ← ${formatDateForExport(new Date(stamps[stamps.length - 1]).toISOString())}` : '—'],
+    ['المناديب في الملف', courierNames.join(' · ') || '—'],
+    ['عدد الجلسات', log.length],
+    ['عدد الأوردرات (عمليات)', opsCount],
+    ['الملف كامل؟', exportTruncInfo.truncated
+      ? `⚠️ لأ — اتقص عند ${exportTruncInfo.rows.toLocaleString('en-US')} صف${exportTruncInfo.total != null ? ` من أصل ${exportTruncInfo.total.toLocaleString('en-US')}` : ''}`
+      : (selectedOnly ? 'نعم — الجلسات المحددة بس' : 'نعم')],
+    ['قراءة الأرقام', 'الاسترداد بالسالب · «تحصيل الأوردر كامل» بدون الشحن · «—» أو «سجل قديم» = النتيجة ما كانتش بتتسجّل وقتها'],
+  ];
+  infoRows.forEach(([k, v]) => {
+    const r = ws3.addRow({ k, v });
+    r.eachCell({ includeEmpty:false }, (cell, col) => {
+      cell.font = { size:10, name:'Arial', bold: col === 1 };
+      cell.alignment = { horizontal: col === 1 ? 'center' : 'right', vertical:'middle', wrapText:true, readingOrder:'rightToLeft' };
+    });
+  });
+
   const buffer = await wb.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = URL.createObjectURL(blob), a = document.createElement('a');
-  a.href = url; a.download = `cod-payment-center-${cairoDateStr(cairoNow())}.xlsx`;
+  a.href = url; a.download = exportFileName(log, selectedOnly, exportTruncInfo.truncated, msState.logCourier.selected.size > 0);
   a.click(); URL.revokeObjectURL(url);
 
   // 🔴 Standards #30 — رسالة النجاح في فرع else **بس**. `showToast('تم التصدير')`
