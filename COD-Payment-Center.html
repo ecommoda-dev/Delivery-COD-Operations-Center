@@ -532,7 +532,8 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 .log-tag.type-refund  { background: var(--red-light);   color: var(--red);   border-color: var(--red-border); }
 .log-tag.cr  { background: var(--purple-light); color: var(--purple); border-color: var(--purple-border); }
 .log-tag.emp { background: var(--accent-light); color: var(--accent-dark); border-color: var(--accent-border); }
-.log-cb { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); }
+.log-cb, .log-cb-all { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); }
+.log-cb-all:disabled { cursor: default; opacity: .4; }
 
 .ms-wrap { position: relative; }
 .ms-btn {
@@ -682,11 +683,11 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 
   <div class="main-tabs-bar">
     <button class="main-tab-btn active" id="tabScan" onclick="switchMainTab('scan')">
-      🔫 المسح والتحصيل
+      🔫 تحصيل المناديب
       <span class="mtb-badge" id="tabBadgeCount" style="display:none">0</span>
     </button>
     <button class="main-tab-btn" id="tabLog" onclick="switchMainTab('log')">
-      📜 السجل
+      📜 سجل العمليات
       <span class="mtb-badge" id="tabBadgeLog" style="display:none">0</span>
     </button>
   </div>
@@ -1054,7 +1055,19 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.72.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.73.0</span>
+          <span class="cl-ver-date">03-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>تحديد الكل في سجل العمليات:</strong> checkbox في رأس أول عمود بيحدد كل جلسات <strong>الصفحة المعروضة</strong> للتصدير (وبيبان نص-محدد لو اخترت بعضها). «تصدير المحدد» لسه على نفس النطاق — الصفحة الحالية بس.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>اسم تاب «المسح والتحصيل» بقى <strong>«تحصيل المناديب»</strong>، وتاب «السجل» بقى <strong>«سجل العمليات»</strong> (والرسائل اللي بتشير للتاب).</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>لو الفلتر رجّع صفر نتائج كان اختيار «تصدير المحدد» القديم بيفضل معلّق على جلسات مش ظاهرة — بقى بيتصفّر.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.72.0</span>
           <span class="cl-ver-date">03-11-2026 · Worker v3.9.0</span>
         </div>
         <ul class="cl-items">
@@ -1304,7 +1317,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li>لو فيه أكتر من مندوب في نفس الدفعة، الأداة بتمنع الدفع لحد ما يبقى مندوب واحد فقط.</li>
             <li>إدخال طرق الدفع (نقدي / انستاباي / محفظة) لحد ما المجموع يطابق صافي التحصيل المطلوب.</li>
             <li>تأكيد العملية — الأداة بتنفّذ <code>pay</code> لكل أوردر تحصيل و<code>refund</code> لكل أوردر استرداد بالتتابع، وتسجّل الكل في D1 تحت نفس الـ <code>batchId</code>.</li>
-            <li>مراجعة العمليات السابقة من تاب "السجل" — <strong>فلتر في رأس كل عمود</strong> (قمع ▽: التاريخ · النوع · المندوب · الموظف · رقم الأوردر) وchips للفلاتر المفعّلة تحت صف «النتائج»، وجدول جلسات قابل للتوسيع لكل أوردر ولكل SKU جواه. «النتائج» = عدد الجلسات في الصفحة «(من N عملية مطابقة)». الترتيب بالضغط على العنوان <strong>على الصفحة الحالية (١٠٠ عملية) بس</strong>، وعرض الأعمدة بالسحب (دبل كليك = ضبط) ومحفوظ على جهازك.</li>
+            <li>مراجعة العمليات السابقة من تاب "سجل العمليات" — <strong>فلتر في رأس كل عمود</strong> (قمع ▽: التاريخ · النوع · المندوب · الموظف · رقم الأوردر) وchips للفلاتر المفعّلة تحت صف «النتائج»، وجدول جلسات قابل للتوسيع لكل أوردر ولكل SKU جواه. «النتائج» = عدد الجلسات في الصفحة «(من N عملية مطابقة)». الترتيب بالضغط على العنوان <strong>على الصفحة الحالية (١٠٠ عملية) بس</strong>، وعرض الأعمدة بالسحب (دبل كليك = ضبط) ومحفوظ على جهازك.</li>
           </ol>
 
           <h4>الـ Endpoints الرئيسية</h4>
@@ -1360,8 +1373,8 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li><code>extraEntries[]</code> — أوردرات الشحن الإضافي (منفصلة عن الجدول الرئيسي)</li>
             <li><code>importSource</code> — 'shopify' (getCourierOrders) أو 'osu' (getCourierOrdersToday — تسليمات اليوم Delivered فقط، من D1 مباشرة) — بيتصفّر لـ 'shopify' كل ما تتفتح نافذة الاستيراد</li>
             <li><code>TOOL_VERSION</code> — مصدر واحد لرقم نسخة الواجهة: زرار الهيدر + بادج الـ Changelog + نص شاشة الدخول (<code>#loginVersionText</code>)، كلهم عبر <code>renderVersionUI()</code></li>
-            <li><code>msState</code> — حالة فلاتر الاختيار المتعدد في تاب السجل (logType/logCourier/logEmp) · <code>HF</code> — تعريف قمعات الرؤوس · <code>COL_LS_KEY</code> — مفتاح عروض الأعمدة</li>
-            <li><code>logCurrentPage</code> / <code>logTotalCount</code> — Pagination بتاع تاب السجل (100 صف/صفحة)</li>
+            <li><code>msState</code> — حالة فلاتر الاختيار المتعدد في تاب سجل العمليات (logType/logCourier/logEmp) · <code>HF</code> — تعريف قمعات الرؤوس · <code>COL_LS_KEY</code> — مفتاح عروض الأعمدة</li>
+            <li><code>logCurrentPage</code> / <code>logTotalCount</code> — Pagination بتاع تاب سجل العمليات (100 صف/صفحة)</li>
           </ul>
 
           <h4>NOTES</h4>
@@ -1370,9 +1383,9 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li>الأداة بتمنع الدفع لو فيه أكتر من مندوب واحد في الدفعة، أو لو أي أوردر بحالة S1/S2 غير متوقعة (<code>statusError</code>).</li>
             <li>الشحن الإضافي بيتقبل بس لو S1 ∈ {Returned, Ready, Cancelled} أو S2 ∈ {Returned, Ready}.</li>
             <li>الأوردر العادي (غير شحن إضافي) بيتقبل بس لو S1=Delivered و S2 فارغ أو Returned.</li>
-            <li><code>batchId</code> بيتولّد بالـ Frontend (<code>crypto.randomUUID</code>) ويتبعت مع كل نداء <code>pay</code>/<code>refund</code> في نفس الجلسة، عشان تاب السجل يقدر يجمّعهم في كارت واحد.</li>
+            <li><code>batchId</code> بيتولّد بالـ Frontend (<code>crypto.randomUUID</code>) ويتبعت مع كل نداء <code>pay</code>/<code>refund</code> في نفس الجلسة، عشان تاب سجل العمليات يقدر يجمّعهم في كارت واحد.</li>
             <li><strong>طرق الدفع على مستوى الصف (v3.3.0):</strong> كل صف في D1 بيحمل <strong>حصته</strong> من طرق الدفع، مش إجمالي الجلسة. الصف بيتكتب على النجاح بس، فلو أوردر فشل، قيمته مابتتسجّلش على غيره. <code>extra.pmScope</code> بيفرّق الصفوف الجديدة (<code>'order'</code> — بتتجمع) عن القديمة (<code>'session'</code> — أول صف بس)؛ من غيره جمع الصفوف القديمة بيضرب الإجمالي في عددها.</li>
-            <li><strong>كشف الجلسة الناقصة:</strong> <code>extra.batchExpected</code> بيحفظ عدد الأوردرات وقيمة التحصيل اللي الجلسة اتحققت عليها قبل التنفيذ. تاب السجل والتصدير بيقارنوه بالمسجّل فعلاً — أي فرق = أوردر فشل ومش مسجّل، وبيظهر بادج أحمر وبانر وصف مستقل في الإكسيل. <strong>الفحص بيتعطّل عمداً</strong> لو الجلسة مقصوصة بين صفحتين أو عند سقف التصدير (<code>partialView</code>) — نقص العرض مش نقص فعلي، وإشارة بتولّع غلط أسوأ من مفيش إشارة.</li>
+            <li><strong>كشف الجلسة الناقصة:</strong> <code>extra.batchExpected</code> بيحفظ عدد الأوردرات وقيمة التحصيل اللي الجلسة اتحققت عليها قبل التنفيذ. تاب سجل العمليات والتصدير بيقارنوه بالمسجّل فعلاً — أي فرق = أوردر فشل ومش مسجّل، وبيظهر بادج أحمر وبانر وصف مستقل في الإكسيل. <strong>الفحص بيتعطّل عمداً</strong> لو الجلسة مقصوصة بين صفحتين أو عند سقف التصدير (<code>partialView</code>) — نقص العرض مش نقص فعلي، وإشارة بتولّع غلط أسوأ من مفيش إشارة.</li>
             <li><strong>إعادة التحقق قبل التنفيذ:</strong> <code>confirmBulkPay()</code> بتتحقق مرة واحدة قبل ما ديالوج التأكيد يفتح، و<code>doBulkPayAndRefund()</code> بتعيد التحقق قبل أول نداء — لأن الجدول بيفضل حيّ والديالوج مفتوح. و<code>refocus()</code> بقت بتستثني <code>confirmOverlay</code> عشان السكانر مايضيفش أوردر بعد التحقق.</li>
             <li><code>getCourierOrdersToday</code> عن قصد من غير فلترة canMarkAsPaid — بترجّع كل أوردر اتسجّل Delivered/Returned اليوم حتى لو مش قابل للتحصيل فعلياً (مثلاً S1=Returned كامل)، عشان الموظف يشوف كل حركة اليوم ويقرر بنفسه؛ importCalcStatusError() في الفرونت إند بيمنع تحديده تلقائياً برضو.</li>
           </ul>
@@ -2700,7 +2713,7 @@ async function doBulkPayAndRefund() {
       if (d.success) { order.status = 'done'; order.financialStatus = 'PAID'; successPay++; absorbResult(order, d); }
       else { order.status = 'error'; order.result = 'error'; order.error = d.error||'فشل'; failPay++; if (d.blocked) blockedStop = `${order.orderName || '#'+order.id}: ${d.error||''}`; }
     // 🔴 فشل شبكة/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — الكتابة ممكن تكون تمّت.
-    } catch (e) { order.status = 'error'; order.error = 'ما اتأكدناش إن التحصيل اتسجّل (انقطع الاتصال) — راجع تاب السجل قبل ما تعيد المحاولة'; failPay++; }
+    } catch (e) { order.status = 'error'; order.error = 'ما اتأكدناش إن التحصيل اتسجّل (انقطع الاتصال) — راجع تاب سجل العمليات قبل ما تعيد المحاولة'; failPay++; }
     done++; setProgress(done/total*100); updateStats(); renderTable();
     if (blockedStop) break;
   }
@@ -2715,7 +2728,7 @@ async function doBulkPayAndRefund() {
         if (d.success) { order.status = 'refund-done'; order.financialStatus = 'REFUNDED'; successRefund++; absorbResult(order, d); }
         else { order.status = 'refund-error'; order.result = 'error'; order.error = d.error||'فشل'; failRefund++; }
       }
-    } catch (e) { order.status = 'refund-error'; order.error = 'ما اتأكدناش إن الاسترداد اتسجّل (انقطع الاتصال) — راجع تاب السجل قبل ما تعيد المحاولة'; failRefund++; }
+    } catch (e) { order.status = 'refund-error'; order.error = 'ما اتأكدناش إن الاسترداد اتسجّل (انقطع الاتصال) — راجع تاب سجل العمليات قبل ما تعيد المحاولة'; failRefund++; }
     done++; setProgress(done/total*100); updateStats(); renderTable();
   }
 
@@ -2781,7 +2794,7 @@ async function doBulkPayAndRefund() {
   if (anySuccess && !anyFail && !warnCount && !unloggedCount) { $('pmCash').value=''; $('pmInstapay').value=''; $('pmWallet').value=''; updatePayValidation(); }
 
   // السجل بيتقرأ من D1 مباشرة (get_logs) — مفيش تحديث محلي للـ cache هنا،
-  // logLoaded بيتصفّر عشان أول فتح لتاب السجل بعد كده يعمل fetchLog() تلقائي
+  // logLoaded بيتصفّر عشان أول فتح لتاب سجل العمليات بعد كده يعمل fetchLog() تلقائي
   if (successfulOrders.length) logLoaded = false;
 
   refocus();
@@ -4086,7 +4099,7 @@ function sortableTh(key, label, hf) {
 }
 function logHeadHtml() {
   return `<thead><tr>
-      <th data-col="cb"></th>
+      <th data-col="cb"><input type="checkbox" class="log-cb-all" id="logCbAll" aria-label="تحديد كل جلسات الصفحة للتصدير" title="تحديد كل الجلسات المعروضة في الصفحة للتصدير" onchange="toggleLogSelectAll(this.checked)"></th>
       ${sortableTh('date', 'التاريخ', 'date')}${sortableTh('time', 'الوقت', 'time')}<th data-col="type">النوع${hfBtn('type')}</th>
       ${sortableTh('courier', 'المندوب', 'courier')}${sortableTh('employee', 'الموظف', 'emp')}
       ${sortableTh('count', 'عدد', 'orders,count')}${sortableTh('collect', 'تحصيل', 'collect')}${sortableTh('refund', 'استرداد', 'refund')}
@@ -4120,6 +4133,8 @@ function renderLog(entries) {
   if (!entries.length) {
     // الجدول وعناوينه (والقمع) بيفضلوا ظاهرين — الرسالة صف جوّاه، فالموظف يقدر يشيل الفلتر (#47)
     body.innerHTML = `<table class="log-otbl">${logHeadHtml()}<tbody><tr class="empty-row"><td class="log-none" colspan="12">لا توجد عمليات مطابقة للفلاتر</td></tr></tbody></table>`;
+    // مفيش جلسات معروضة = مفيش اختيار قديم يفضل معلّق (وإلا «تصدير المحدد» كان هيصدّر جلسات مش ظاهرة)
+    window.__logGroups = []; selectedLogBatches.clear(); updateExportSelectedUI();
     $('logSessCount').textContent = '0'; $('logSortNote').hidden = true; syncFunnels(); colLog.maybeInit(); return;
   }
 
@@ -4246,10 +4261,25 @@ function toggleLogBatchSelect(key, checked) {
   checked ? selectedLogBatches.add(key) : selectedLogBatches.delete(key);
   updateExportSelectedUI();
 }
+// تحديد الكل (checkbox رأس العمود): جلسات **الصفحة المعروضة** بس — نفس نطاق «تصدير المحدد» (الاختيار بيتقص على الصفحة
+// الحالية في renderLog)، فمفيش جلسات مخفية بتتحدد من ورا الموظف. ⛔ مش «كل نتائج الفلتر» — ده زرار «تصدير الكل».
+function toggleLogSelectAll(checked) {
+  (window.__logGroups || []).forEach(g => { checked ? selectedLogBatches.add(g.key) : selectedLogBatches.delete(g.key); });
+  document.querySelectorAll('.log-batch-row .log-cb').forEach(c => { c.checked = checked; });
+  updateExportSelectedUI();
+}
 function updateExportSelectedUI() {
   const n = selectedLogBatches.size;
   $('logExportSelCount').textContent = n.toLocaleString('en-US');
   $('logExportSelectedBtn').style.display = n > 0 ? 'flex' : 'none';
+  // حالة checkbox الرأس: كله محدد / بعضه (indeterminate) / ولا حاجة / مفيش جلسات = مقفول
+  const all = $('logCbAll');
+  if (all) {
+    const gs = window.__logGroups || [], sel = gs.filter(g => selectedLogBatches.has(g.key)).length;
+    all.disabled = !gs.length;
+    all.checked = gs.length > 0 && sel === gs.length;
+    all.indeterminate = sel > 0 && sel < gs.length;
+  }
 }
 
 // ─── §LOG-JS::export::adapters — يحوّل شكل بيانات v3.0 (rows[{entry,extra}])
