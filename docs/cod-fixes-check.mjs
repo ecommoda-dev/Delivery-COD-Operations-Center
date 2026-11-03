@@ -23,6 +23,7 @@ const is = (c, m, d = '') => { c ? pass++ : fail++; console.log(c ? '  ✅' : ' 
 const B_COLLECT = 'eff6ac31-8567-4af3-84fe-19f13db9d014', B_REFUND = 'b07c604d-af43-4036-b498-ce7c264480c0';
 const L = (sku, p) => ({ sku, quantity: 1, unitPrice: p.toFixed(2), unitDiscount: null, totalPrice: p.toFixed(2) });
 const RET = (sku, p) => ({ sku, quantity: 1, discountedUnitPrice: p.toFixed(2) });
+let ACC_MODE = false;               // v1.76.0 — صفوف فيها extra.paymentAccounts (Worker ≥ 3.10.0)
 let KIND_MODE = 'legacy';            // legacy = صف D1 زي ما هو · new = بـ orderKind من Worker 3.9.0
 const pay = (id, ts, order, val, cc, items) => ({ id, type: 'payment', timestamp: ts, employee: 'Fady_Mostafa', order_name: order, order_id: String(id), value_after: val, notes: null,
   extra: JSON.stringify({ result: 'success', batchId: B_COLLECT, courier: 'Showroom', employeeDisplayName: 'Fady Mostafa', paymentMethods: { cash: cc.toFixed(2), instapay: '0.00', wallet: '0.00' }, pmScope: 'order',
@@ -44,6 +45,16 @@ const rows = () => [
     extra: JSON.stringify({ batchId: 'old-batch-1', courier: 'Showroom', paymentMethods: { cash: '500.00' }, courierCollect: 500, lineItems: [L('OLD / 1', 500)], returnedItems: [], hasReturn: false }) },
 ];
 
+// 🆕 v1.76.0 — بيحوّل صفوف التحصيل/الاسترداد لتقسيم: انستاباي 10% (فادي/مُرسل نص بنص) + محفظة 5% (إسلام)، والباقي نقدي
+const withAcc = list => list.map(r => {
+  const x = JSON.parse(r.extra); const cc = Math.abs(x.courierCollect || 0);
+  if (!cc || !/^(payment|refund)$/.test(r.type) || x.batchId === 'old-batch-1') return r;
+  const ins = cc * 0.10, wal = cc * 0.05, f2 = n => n.toFixed(2), sg = r.type === 'refund' ? -1 : 1;
+  // الصف القديم بإشارة الموظف: الاسترداد بالسالب — الواجهة بتاخد الإشارة من type الصف
+  x.paymentMethods = { cash: f2(sg * (cc - ins - wal)), instapay: f2(sg * ins), wallet: f2(sg * wal) };
+  x.paymentAccounts = { instapay: { 'فادي': f2(ins / 2), 'مُرسل': f2(ins / 2) }, wallet: { 'إسلام': f2(wal) } };
+  return { ...r, extra: JSON.stringify(x) };
+});
 // ── ExcelJS وهمي بيسجّل الخلايا فعلاً ─────────────────────────────
 const browser = await chromium.launch({ args: ['--no-sandbox'], ...(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {}) });
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } }); const page = await ctx.newPage(); const errs = [];
@@ -66,7 +77,7 @@ const calls = [];
 await page.route('**/*.workers.dev/**', async route => {
   const u = new URL(route.request().url()); const a = u.searchParams.get('action') || '';
   calls.push(a);
-  const R = rows();
+  const R = ACC_MODE ? withAcc(rows()) : rows();
   let out = { ok: true, success: true, version: '99.0.0', checks: [], employees: [], values: [], entries: [], total: 0 };
   if (a === 'get_logs' || a === 'get_logs_export') { out.entries = R; out.total = R.length; out.cap = 5000; out.truncated = false; }
   if (a === 'get_logs_count') out.total = R.length;
@@ -186,7 +197,7 @@ const inp = await page.evaluate(() => {
   el.value = ''; return { afterPaste, toast, blocked: ev.defaultPrevented };
 });
 is(inp.afterPaste === '5' && /بالموجب/.test(inp.toast), 'مدخل سالب (لصق/سهم) بيتحوّل لموجب + توست', JSON.stringify(inp));
-is(inp.blocked === true, 'ضغطة «-» على الكيبورد بتتمنع');
+// v1.75.0 — الخانات المرئية بقت بلاطات (§PAY-TILES) بتشيل أي «-» مكتوبة وبتعرض الإشارة من الصافي؛ سلوكها في docs/cod-pay-ui-check.mjs
 const dlg = await page.evaluate(async () => {
   orders = [{ id: '19096316641602', orderName: '#63578', status: 'refund', amount: -10800, refundAmount: 10800, returnShipping: '0.00', hasReturn: true, courier: 'Showroom',
     lineItems: [{ sku: 'C50 / Light beige / 44', quantity: 1 }], returnedItems: [{ sku: 'x', quantity: 1, discountedUnitPrice: '2800.00' }], saleTransactions: [{ id: 't', amount: 13600 }], orderKind: 'partial_return', multiCycle: false }];
@@ -203,6 +214,29 @@ is(/1 استرداد استرجاع جزئي/.test(dlg.body.replace(/\s+/g, ' ')
 const dlg2 = await page.evaluate(async () => {
   orders[0].multiCycle = true; renderTable(); await confirmBulkPay(); return document.getElementById('confirmBody').innerText; });
 is(/أكتر من دورة/.test(dlg2) && /#63578/.test(dlg2), 'أوردر على أكتر من دورة ← تحذير في نافذة التأكيد (بلا تغيير في الأرقام)');
+is(errs.length === 0, 'صفر خطأ كونسول', errs.slice(0, 3).join(' || '));
+
+console.log('\n══ ⑦ تفصيل حسابات الانستاباي والمحفظة (Worker ≥ 3.10.0) ══');
+KIND_MODE = 'new'; ACC_MODE = false; await open(); await exportSelected();
+is((await dump()).every(sh => sh.name !== 'حسابات الدفع'), 'سجل بلا تفصيل ← مفيش شيت «حسابات الدفع»');
+const shNoAcc = (await dump()).find(sh => sh.name === 'الإجمالي');
+is(shNoAcc.rows[0].v.includes('انستاباي · فادي') && shNoAcc.rows[0].v.indexOf('انستاباي · فادي') >= 10, 'أعمدة الحسابات في شيت «الإجمالي» **في الآخر** (بعد «فرق طرق الدفع عن الصافي»)');
+ACC_MODE = true; await open();
+const collectCell = (await page.locator('.log-batch-row', { hasText: '19,150' }).first().locator('td').nth(9).innerText()).replace(/\s+/g, ' ');
+is(/📱 1,900/.test(collectCell) && /فادي 950/.test(collectCell) && /مُرسل 950/.test(collectCell) && /👛 950/.test(collectCell) && /إسلام 950/.test(collectCell), 'سطر جلسة التحصيل: انستاباي 1,900 (فادي 950 · مُرسل 950) · محفظة 950 (إسلام 950)', collectCell);
+const refundCell = (await page.locator('.log-batch-row', { hasText: 'استرداد' }).first().locator('td').nth(9).innerText()).replace(/\s+/g, ' ');
+is(/−1,080/.test(refundCell) && /فادي −540/.test(refundCell) && /مُرسل −540/.test(refundCell) && /إسلام −540/.test(refundCell), 'جلسة الاسترداد: التفصيل بالسالب (فادي −540 · مُرسل −540 · إسلام −540)', refundCell);
+await exportSelected(); wb = await dump();
+const tx = wb.find(sh => sh.name === 'الإجمالي'), hx = tx.rows[0].v, sr = tx.rows.find(r => r.v[0] === 'Showroom');
+const gv = k => sr.v[hx.indexOf(k)];
+is(gv('انستاباي · فادي') === 410 && gv('انستاباي · مُرسل') === 410 && gv('محفظة · إسلام') === 410 && !gv('انستاباي · إسلام') && !gv('محفظة · فادي'), 'شيت «الإجمالي»: فادي 410 · مُرسل 410 (انستاباي) · إسلام 410 (محفظة) = تحصيل − استرداد', JSON.stringify(hx.map((k, i) => [k, sr.v[i]]).slice(10)));
+is(!gv('انستاباي/محفظة بلا تفصيل حساب'), '«بلا تفصيل حساب» = صفر لما كل الجلسات مفصّلة', String(gv('انستاباي/محفظة بلا تفصيل حساب')));
+const t4 = wb.find(sh => sh.name === 'حسابات الدفع');
+is(!!t4 && t4.rows[0].v.join('|') === 'التاريخ|الوقت|الجلسة|المندوب|الموظف|الطريقة|الحساب|المبلغ', 'شيت «حسابات الدفع» موجود بأعمدته', t4 && t4.rows[0].v.join('|'));
+const L4 = t4 ? t4.rows.slice(1).map(r => `${r.v[5]}|${r.v[6]}|${r.v[7]}`) : [];
+is(['انستاباي|فادي|950', 'انستاباي|مُرسل|950', 'محفظة|إسلام|950', 'انستاباي|فادي|-540', 'انستاباي|مُرسل|-540', 'محفظة|إسلام|-540', 'نقدي|—|-9180'].every(x => L4.includes(x)),
+   'سطر لكل جلسة × طريقة × حساب بإشارة الجلسة (الاسترداد سالب) + سطر النقدي', JSON.stringify(L4));
+is(t4 && t4.rows.slice(1).filter(r => r.v[7] < 0).every(r => r.fonts[7] && r.fonts[7].color === 'FFCC0000'), 'والسالب أحمر');
 is(errs.length === 0, 'صفر خطأ كونسول', errs.slice(0, 3).join(' || '));
 
 await browser.close(); server.close();
