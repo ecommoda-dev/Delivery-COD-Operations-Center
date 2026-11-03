@@ -281,6 +281,8 @@
 .pay-neg .pay-tile-input { color:var(--red); }
 .pay-neg .pay-col-tot { color:var(--red); }
 .pay-tile-rest { border:0; border-radius:8px; background:var(--accent-light); color:var(--accent); font-family:inherit; font-size:11.5px; font-weight:700; padding:6px 10px; cursor:pointer; white-space:nowrap; }
+.pm-acc { display:inline-block; margin-inline-start:4px; font-size:9.5px; font-weight:600; color:var(--text-secondary); white-space:nowrap; }
+.pm-sep { color:var(--text-muted); }
 .extra-shipping-section { background:transparent; border-style:dashed; padding:6px 10px; margin-bottom:0; }
 .extra-shipping-header { margin-bottom:0; }
 #extraShippingSection { margin-top:12px; }
@@ -1088,7 +1090,16 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.75.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.76.0</span>
+          <span class="cl-ver-date">03-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>تقسيمة حسابات انستاباي والمحفظة (فادي · مُرسل · إسلام) بقت متسجّلة:</strong> بتتخزّن في D1 (<code>extra.paymentAccounts</code> لحصة كل أوردر و<code>extra.sessionPaymentAccounts</code> لإجمالي الجلسة)، وظاهرة في السجل جنب كل طريقة دفع، وفي الإكسيل أعمدة حسابات في آخر شيت «الإجمالي» + شيت جديد «حسابات الدفع». الصفوف القديمة بتظهر «بلا تفصيل حساب». <strong>محتاج Worker v3.10.0 قبل الصفحة.</strong></span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block old">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.75.0</span>
           <span class="cl-ver-date">03-11-2026</span>
         </div>
         <ul class="cl-items">
@@ -2502,6 +2513,22 @@ function payReset() {
   PAY_GROUPS.forEach(g => { const el = $(g.hidden); if (el) el.value = ''; });
   payBuild();
 }
+// ─── §PAY::accounts (v1.76.0) ───
+// بيرجّع `{ instapay: {فادي: 100}, wallet: {…} }` من البلاطات — **للطريقة اللي مجموع حساباتها == مجموعها الظاهر بس**
+// (مدخل مباشر على الحاملات المخفية أو فرق مليمات = الطريقة دي من غير تفصيل، والمبلغ الأساسي يفضل سليم).
+function payAccountTotals() {
+  const out = {};
+  [['instapay', 'pmInstapay'], ['wallet', 'pmWallet']].forEach(([m, hid]) => {
+    const accs = {};
+    for (const acc of PAY_ACCOUNTS) {
+      const t = payTiles[`${m}:${acc}`], v = t && t.on ? payNum(t.val) : 0;
+      if (v > 0) accs[acc] = Math.round(v * 100) / 100;
+    }
+    const sum = Math.round(Object.values(accs).reduce((a, b) => a + b, 0) * 100) / 100;
+    if (sum > 0 && Math.abs(sum - payVal(hid)) < 0.005) out[m] = accs;
+  });
+  return out;
+}
 function payRemainFor(key) {
   const others = Object.keys(payTiles).reduce((a, k) => a + (k !== key && payTiles[k].on ? payNum(payTiles[k].val) : 0), 0);
   return Math.max(0, Math.round((Math.abs(getCourierCollectNet()) - others) * 100) / 100);
@@ -2752,17 +2779,17 @@ async function confirmBulkPay() {
 // 🔴 v1.72.0 — الحصص كلها **غير سالبة**. اتجاه الأوردر نفسه محفوظ في `type`
 //    و`courierCollect`، والإشارة بتتحط وقت العرض/التصدير من `type` الصف
 //    (والـ Worker ≥ 3.9.0 بيطبّع كمان). مدخل سالب بيتحوّل لموجب هنا.
-function allocatePaymentSplit(weights, methods) {
-  const n = weights.length;
-  const out = Array.from({ length: n }, () => ({ cash:'0.00', instapay:'0.00', wallet:'0.00' }));
+function allocateKeys(weights, totals) {
+  const n = weights.length, keys = Object.keys(totals);
+  const out = Array.from({ length: n }, () => Object.fromEntries(keys.map(k => [k, '0.00'])));
   if (!n) return out;
 
   const netSign = weights.reduce((s, w) => s + w, 0) < 0 ? -1 : 1;
   const w = weights.map(x => Math.max(x * netSign, 0));
   const W = w.reduce((s, x) => s + x, 0);
 
-  for (const key of ['cash', 'instapay', 'wallet']) {
-    const total = Math.round(Math.abs(parseFloat(methods[key]) || 0) * 100);   // بالقروش · غير سالب
+  for (const key of keys) {
+    const total = Math.round(Math.abs(parseFloat(totals[key]) || 0) * 100);   // بالقروش · غير سالب
     if (!total) continue;
     if (W <= 0) { out[0][key] = (total / 100).toFixed(2); continue; }  // كل الأوزان صفر
     let cum = 0, running = 0;
@@ -2774,6 +2801,9 @@ function allocatePaymentSplit(weights, methods) {
     }
   }
   return out;
+}
+function allocatePaymentSplit(weights, methods) {
+  return allocateKeys(weights, { cash: methods.cash, instapay: methods.instapay, wallet: methods.wallet });
 }
 
 async function doBulkPayAndRefund() {
@@ -2832,6 +2862,23 @@ async function doBulkPayAndRefund() {
   // ترتيب التوزيع = ترتيب تنفيذ اللوبين تحت بالظبط (تحصيل الأول ثم استرداد)
   const splitOrders = [...readyOrders, ...refundOrders];
   const splits = allocatePaymentSplit(splitOrders.map(o => calcCourierCollect(o)||0), { cash, instapay, wallet });
+  // 🆕 v1.76.0 — تفصيل حسابات الانستاباي/المحفظة: بيتوزّع على الأوردرات بنفس الطريقة التراكمية، وحصة الطريقة
+  //    في الصف = مجموع حسابات الصف (فمجموع التفصيل == الحصة بالمليم). الـ Worker ≥ 3.10.0 بيخزّنه في `extra`.
+  const acctTotals = payAccountTotals();
+  const acctFlat = {};
+  Object.entries(acctTotals).forEach(([m, accs]) => Object.entries(accs).forEach(([acc, v]) => { acctFlat[`${m}:${acc}`] = v; }));
+  const acctSplits = Object.keys(acctFlat).length ? allocateKeys(splitOrders.map(o => calcCourierCollect(o)||0), acctFlat) : null;
+  const acctOf = new Map();
+  if (acctSplits) splitOrders.forEach((o, i) => {
+    const pa = {};
+    ['instapay', 'wallet'].forEach(m => {
+      if (!acctTotals[m]) return;
+      const one = {}; let sum = 0;
+      Object.keys(acctTotals[m]).forEach(acc => { const v = acctSplits[i][`${m}:${acc}`]; one[acc] = v; sum += Math.round(parseFloat(v) * 100); });
+      pa[m] = one; splits[i][m] = (sum / 100).toFixed(2);
+    });
+    acctOf.set(o, pa);
+  });
   const splitOf = new Map(splitOrders.map((o, i) => [o, splits[i]]));
 
   const sessionMeta = {
@@ -2839,6 +2886,7 @@ async function doBulkPayAndRefund() {
     employee: currentEmployee ? currentEmployee.username : null,
     employeeDisplayName: currentEmployee ? currentEmployee.displayName : null,
     paymentMethods: { cash:cash.toFixed(2), instapay:instapay.toFixed(2), wallet:wallet.toFixed(2) },
+    paymentAccounts: Object.keys(acctTotals).length ? Object.fromEntries(Object.entries(acctTotals).map(([m, a]) => [m, Object.fromEntries(Object.entries(a).map(([k, v]) => [k, v.toFixed(2)]))])) : null,
     extraShipping: extraEntries.filter(e=>e.status==='ok').map(e => ({ orderId:e.id, orderName:e.orderName||(''+e.id), courier:e.courier||courierName||'', amount:(parseFloat(e.amount)||0).toFixed(2) })),
     extraShippingTotal: extraTotal.toFixed(2),
     // 🆕 اللي الجلسة **اتحققت عليه** قبل التنفيذ. بيتختم على كل صف، فأي جلسة
@@ -2881,7 +2929,7 @@ async function doBulkPayAndRefund() {
   for (const order of readyOrders) {
     order.status = 'loading'; renderTable();
     try {
-      const orderMeta = { lineItems:order.lineItems, returnedItems:order.returnedItems, orderDiscount:order.orderDiscount, preRegistered:order.preRegistered, hasReturn:order.hasReturn, returnShipping:order.returnShipping, courierCollect:calcCourierCollect(order), paymentSplit:splitOf.get(order), orderKind:order.orderKind, multiCycle:order.multiCycle };
+      const orderMeta = { lineItems:order.lineItems, returnedItems:order.returnedItems, orderDiscount:order.orderDiscount, preRegistered:order.preRegistered, hasReturn:order.hasReturn, returnShipping:order.returnShipping, courierCollect:calcCourierCollect(order), paymentSplit:splitOf.get(order), paymentAccounts:acctOf.get(order)||null, orderKind:order.orderKind, multiCycle:order.multiCycle };
       const d = await apiPostLegacy('pay', { orderId:order.id, amount:order.amount.toFixed(2), orderName:order.orderName, batchId, sessionMeta, orderMeta, employee: sessionMeta.employee });
       if (d.success) { order.status = 'done'; order.financialStatus = 'PAID'; successPay++; absorbResult(order, d); }
       else { order.status = 'error'; order.result = 'error'; order.error = d.error||'فشل'; failPay++; if (d.blocked) blockedStop = `${order.orderName || '#'+order.id}: ${d.error||''}`; }
@@ -2896,7 +2944,7 @@ async function doBulkPayAndRefund() {
     try {
       if (!order.saleTransactions || !order.saleTransactions.length) { order.status = 'refund-error'; order.error = 'لا يوجد transaction صالح'; failRefund++; }
       else {
-        const orderMeta = { lineItems:order.lineItems, returnedItems:order.returnedItems, orderDiscount:order.orderDiscount, preRegistered:order.preRegistered, hasReturn:order.hasReturn, returnShipping:order.returnShipping, courierCollect:calcCourierCollect(order), paymentSplit:splitOf.get(order), orderKind:order.orderKind, multiCycle:order.multiCycle };
+        const orderMeta = { lineItems:order.lineItems, returnedItems:order.returnedItems, orderDiscount:order.orderDiscount, preRegistered:order.preRegistered, hasReturn:order.hasReturn, returnShipping:order.returnShipping, courierCollect:calcCourierCollect(order), paymentSplit:splitOf.get(order), paymentAccounts:acctOf.get(order)||null, orderKind:order.orderKind, multiCycle:order.multiCycle };
         const d = await apiPostLegacy('refund', { orderId:order.id, refundAmount:order.refundAmount.toFixed(2), saleTransactions:order.saleTransactions, currency:'EGP', orderName:order.orderName, batchId, sessionMeta, orderMeta, employee: sessionMeta.employee });
         if (d.success) { order.status = 'refund-done'; order.financialStatus = 'REFUNDED'; successRefund++; absorbResult(order, d); }
         else { order.status = 'refund-error'; order.result = 'error'; order.error = d.error||'فشل'; failRefund++; }
@@ -4199,6 +4247,7 @@ function groupRowsIntoSessions(rows, view) {
         batchExpected: extra.batchExpected || null,
         firstRowMethods: extra.paymentMethods || {},
         pmSum: { cash: 0, instapay: 0, wallet: 0 },
+        accSum: { instapay: {}, wallet: {} },
         actualCollect: 0,
         extraShipping: Array.isArray(extra.extraShipping) ? extra.extraShipping : [],
         extraShippingTotal: extra.extraShippingTotal || '0.00',
@@ -4218,6 +4267,12 @@ function groupRowsIntoSessions(rows, view) {
     g.pmSum.cash     += pmSign * Math.abs(parseFloat(pm.cash)     || 0);
     g.pmSum.instapay += pmSign * Math.abs(parseFloat(pm.instapay) || 0);
     g.pmSum.wallet   += pmSign * Math.abs(parseFloat(pm.wallet)   || 0);
+    // 🆕 v1.76.0 — تفصيل الحسابات (Worker ≥ 3.10.0): نفس إشارة `type` الصف، والصفوف الأقدم مالهاش تفصيل
+    const pa = extra.paymentAccounts || {};
+    for (const m of ['instapay', 'wallet']) {
+      const src = pa[m]; if (!src || typeof src !== 'object') continue;
+      for (const [acc, v] of Object.entries(src)) g.accSum[m][acc] = (g.accSum[m][acc] || 0) + pmSign * Math.abs(parseFloat(v) || 0);
+    }
     g.actualCollect  += parseFloat(extra.courierCollect) || 0;
     g.rows.push({ entry: row, extra });
   }
@@ -4237,6 +4292,18 @@ function groupRowsIntoSessions(rows, view) {
   return list;
 }
 
+// 🆕 v1.76.0 — بيشيل الحسابات الصفرية ويرتّب فادي/مُرسل/إسلام الأول وبعدها أي اسم تاني
+function cleanAccounts(src) {
+  const out = {};
+  for (const m of ['instapay', 'wallet']) {
+    const names = Object.keys((src && src[m]) || {}).filter(k => Math.abs(src[m][k]) >= 0.005);
+    if (!names.length) continue;
+    const rank = k => { const i = PAY_ACCOUNTS.indexOf(k); return i < 0 ? 99 : i; };
+    names.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b, 'ar'));
+    out[m] = Object.fromEntries(names.map(k => [k, Math.round(src[m][k] * 100) / 100]));
+  }
+  return out;
+}
 // طرق الدفع المعروضة للجلسة:
 //   pmScope='order'   (v3.3.0+) → كل صف شايل حصته → **الجمع** هو الإجمالي
 //   pmScope='session' (الأقدم)  → كل صف شايل نفس الإجمالي → **أول صف** بس
@@ -4258,6 +4325,7 @@ function signedSessionMethods(g) {
   return pm;   // مختلطة قديمة: مفيش تقسيم لكل أوردر — بتفضل زي ما هي بدل تخمين
 }
 function finalizeGroup(g) {
+  g.paymentAccounts = cleanAccounts(g.accSum);
   g.paymentMethods = (g.pmScope === 'order')
     ? { cash: g.pmSum.cash.toFixed(2), instapay: g.pmSum.instapay.toFixed(2), wallet: g.pmSum.wallet.toFixed(2) }
     : signedSessionMethods(g);
@@ -4419,12 +4487,15 @@ function renderLog(entries) {
     const pmChips = [];
     const pm = g.paymentMethods || {};
     // سالب (استرداد) بيتعرض بعلامة − وباللون الأحمر زي عمود «استرداد»
-    const pmChip = (ico, v) => {
+    const pmChip = (ico, v, m) => {
       const n = parseFloat(v) || 0;
       if (!n) return;
-      pmChips.push(n < 0 ? `<span style="color:var(--red);font-weight:700">${ico} ${fmtSigned(n)}</span>` : `${ico} ${fmt(n)}`);
+      const acc = (g.paymentAccounts || {})[m];
+      const accTxt = acc ? Object.entries(acc).map(([k, a]) => `${esc(k)} ${a < 0 ? fmtSigned(a) : fmt(a)}`).join(' · ') : '';
+      const sub = accTxt ? `<span class="pm-acc" title="تفصيل الحسابات">(${accTxt})</span>` : '';
+      pmChips.push(n < 0 ? `<span style="color:var(--red);font-weight:700">${ico} ${fmtSigned(n)}</span>${sub}` : `${ico} ${fmt(n)}${sub}`);
     };
-    pmChip('💵', pm.cash); pmChip('📱', pm.instapay); pmChip('👛', pm.wallet);
+    pmChip('💵', pm.cash); pmChip('📱', pm.instapay, 'instapay'); pmChip('👛', pm.wallet, 'wallet');
 
     return `<tr class="log-batch-row" id="lbr-${gi}" onclick="toggleBatch(${gi})">
       <td onclick="event.stopPropagation()">
@@ -4439,7 +4510,7 @@ function renderLog(entries) {
       <td>${g.rows.length.toLocaleString('en-US')}${g.shortfall ? `<span class="log-miss" title="جلسة ناقصة">⚠ ${g.shortfall.orders > 0 ? '−'+g.shortfall.orders : 'فرق'}</span>` : ''}</td>
       <td style="color:var(--green);font-family:var(--font-mono);font-weight:700">${g.totalAmount ? fmt(g.totalAmount) : '—'}</td>
       <td style="color:var(--red);font-family:var(--font-mono);font-weight:700">${g.totalRefund ? '−'+fmt(g.totalRefund) : '—'}</td>
-      <td style="font-size:10.5px">${pmChips.join(' ') || '—'}</td>
+      <td style="font-size:10.5px">${pmChips.join(' <span class="pm-sep">·</span> ') || '—'}</td>
       <td>${resultBadge(g)}</td>
       <td><span class="lb-arrow" id="lba-${gi}">▶</span></td>
     </tr>
@@ -4521,6 +4592,7 @@ function toExportGroups(groups) {
     employee: g.employee || null,
     employeeDisplayName: g.employeeDisplayName || null,
     paymentMethods: g.paymentMethods || {},
+    paymentAccounts: g.paymentAccounts || {},
     shortfall: g.shortfall || null,
     batchExpected: g.batchExpected || null,
     actualCollect: g.actualCollect || 0,
@@ -4849,6 +4921,12 @@ async function exportXLSX(selectedOnly) {
 
   // ── Sheet 2 — الإجمالي ────────────────────────────────────────
   const ws2 = wb.addWorksheet('الإجمالي', { views:[{rightToLeft:true}] });
+  // 🆕 v1.76.0 — أعمدة تفصيل الحسابات **في الآخر** (باقي الكود معتمد على أرقام الأعمدة 2..10) + «بلا تفصيل حساب» للصفوف الأقدم
+  const accNames = { instapay: [...PAY_ACCOUNTS], wallet: [...PAY_ACCOUNTS] };
+  for (const e of log) for (const m of ['instapay', 'wallet']) for (const k of Object.keys((e.paymentAccounts || {})[m] || {})) if (!accNames[m].includes(k)) accNames[m].push(k);
+  const ACC_LABEL = { instapay: 'انستاباي', wallet: 'محفظة' };
+  const accCols = [];
+  for (const m of ['instapay', 'wallet']) for (const k of accNames[m]) accCols.push({ m, k, key: `acc_${m}_${k}`, header: `${ACC_LABEL[m]} · ${k}`, width: 16 });
   ws2.columns = [
     { header:'المندوب', key:'courier', width:16 },
     { header:'تحصيل المندوب الصافي بدون شحن', key:'courierNet', width:26 },
@@ -4860,6 +4938,8 @@ async function exportXLSX(selectedOnly) {
     { header:'أوردرات ناقصة', key:'missOrders', width:14 },
     { header:'فرق غير مفسَّر', key:'missCollect', width:16 },
     { header:'فرق طرق الدفع عن الصافي', key:'pmGap', width:22 },
+    ...accCols.map(c => ({ header: c.header, key: c.key, width: c.width })),
+    { header:'انستاباي/محفظة بلا تفصيل حساب', key:'accUnd', width:24 },
   ];
   ws2.getRow(1).eachCell(cell => {
     cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+HEADER_BG}};
@@ -4874,7 +4954,8 @@ async function exportXLSX(selectedOnly) {
   for (const entry of log) {
     const cr = entry.courier || '—';
     const pm = entry.paymentMethods || {};
-    if (!courierTotals[cr]) courierTotals[cr] = { courierNet:0, cash:0, instapay:0, wallet:0, extra:0, orders:0, missOrders:0, missCollect:0 };
+    if (!courierTotals[cr]) courierTotals[cr] = { courierNet:0, cash:0, instapay:0, wallet:0, extra:0, orders:0, missOrders:0, missCollect:0, acc:{}, accSum:0 };
+    for (const c of accCols) { const v = ((entry.paymentAccounts || {})[c.m] || {})[c.k]; if (v) { courierTotals[cr].acc[c.key] = (courierTotals[cr].acc[c.key] || 0) + v; courierTotals[cr].accSum += v; } }
     for (const o of (entry.orders||[])) { courierTotals[cr].courierNet += parseFloat(o.courierCollect)||0; grandNet2 += parseFloat(o.courierCollect)||0; }
     const extraArr = Array.isArray(entry.extraShipping) ? entry.extraShipping : [];
     for (const e of extraArr) { const amt=parseFloat(e.amount)||0; courierTotals[cr].extra+=amt; courierTotals[cr].courierNet-=amt; grandNet2-=amt; }
@@ -4887,14 +4968,16 @@ async function exportXLSX(selectedOnly) {
       courierTotals[cr].missCollect += entry.shortfall.collect;
     }
   }
-  const dataStyle = (cell,col) => { cell.font={size:10,name:'Arial'}; cell.alignment={horizontal:'center',vertical:'middle',readingOrder:'rightToLeft'}; if ((col>=2&&col<=6)||col===9||col===10) cell.numFmt=xlNumFmt(cell.value); };
+  const dataStyle = (cell,col) => { cell.font={size:10,name:'Arial'}; cell.alignment={horizontal:'center',vertical:'middle',readingOrder:'rightToLeft'}; if ((col>=2&&col<=6)||col===9||col===10||col>=11) cell.numFmt=xlNumFmt(cell.value); };
   Object.entries(courierTotals).forEach(([cr,t]) => {
     const hasGap = t.missOrders > 0 || Math.abs(t.missCollect) >= 0.01;
     // طرق الدفع (بعد قلب إشارة الاسترداد) لازم تساوي الصافي — أي رقم غير الصفر يتلوّن.
     const pmGap = Math.round((t.cash + t.instapay + t.wallet - t.courierNet) * 100) / 100;
     const hasPmGap = Math.abs(pmGap) >= 0.01;
     const r = ws2.addRow({ courier:cr, courierNet:t.courierNet, cash:t.cash, instapay:t.instapay, wallet:t.wallet, extra:t.extra>0?t.extra:null, orders:t.orders,
-                           missOrders: t.missOrders||null, missCollect: hasGap ? t.missCollect : null, pmGap });
+                           missOrders: t.missOrders||null, missCollect: hasGap ? t.missCollect : null, pmGap,
+                           ...Object.fromEntries(accCols.map(c => [c.key, t.acc[c.key] || null])),
+                           accUnd: (Math.round((t.instapay + t.wallet - t.accSum) * 100) / 100) || null });
     r.eachCell({includeEmpty:false}, (cell,col) => dataStyle(cell,col));
     // ⛔ المندوب اللي عنده فرق غير مفسَّر يتلوّن — عمود ساكت في ملف طويل
     //    مش إشارة، والسطر ده هو اللي بيخلي المراجعة المالية تشوفه فورًا.
@@ -4920,9 +5003,11 @@ async function exportXLSX(selectedOnly) {
   const grandMissCollect = log.reduce((s,e) => s + (e.shortfall ? e.shortfall.collect : 0), 0);
   const gt = ws2.addRow({ courier:'جميع المناديب', courierNet:grandNet2, cash:grandCash2, instapay:grandInstapay2, wallet:grandWallet2, extra:grandExtra2>0?grandExtra2:null, orders:grandOrders2,
                           missOrders: grandMissOrders||null, missCollect: (grandMissOrders||Math.abs(grandMissCollect)>=0.01) ? grandMissCollect : null,
-                          pmGap: Math.round((grandCash2 + grandInstapay2 + grandWallet2 - grandNet2) * 100) / 100 });
+                          pmGap: Math.round((grandCash2 + grandInstapay2 + grandWallet2 - grandNet2) * 100) / 100,
+                          ...Object.fromEntries(accCols.map(c => [c.key, Object.values(courierTotals).reduce((a, t) => a + (t.acc[c.key] || 0), 0) || null])),
+                          accUnd: (Math.round((grandInstapay2 + grandWallet2 - Object.values(courierTotals).reduce((a, t) => a + t.accSum, 0)) * 100) / 100) || null });
   gt.eachCell({includeEmpty:true}, cell => { cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+GRAND_BG}}; cell.font={bold:true,color:{argb:'FFFFFFFF'},size:11,name:'Arial'}; cell.alignment={horizontal:'center',vertical:'middle',readingOrder:'rightToLeft'}; });
-  [2,3,4,5,6,9,10].forEach(c => { gt.getCell(c).numFmt=xlNumFmt(gt.getCell(c).value); });
+  [2,3,4,5,6,9,10].concat(Array.from({ length: accCols.length + 1 }, (_, i) => 11 + i)).forEach(c => { gt.getCell(c).numFmt=xlNumFmt(gt.getCell(c).value); });
   gt.height=20;
   ws2.views = [{ state:'frozen', ySplit:1, rightToLeft:true }];
 
@@ -4936,6 +5021,46 @@ async function exportXLSX(selectedOnly) {
       cell.font = { ...(cell.font || {}), color:{ argb: onDark ? 'FFFF8A8A' : 'FFCC0000' } };
     });
   });
+
+  // ── Sheet 4 — حسابات الدفع (v1.76.0) ─────────────────────────────
+  // سطر لكل جلسة × طريقة × حساب (فادي · مُرسل · إسلام) بإشارة الجلسة (استرداد = سالب) — بيطلع بس لو في جلسة فيها تفصيل.
+  const accSessions = log.filter(e => Object.keys(e.paymentAccounts || {}).length);
+  if (accSessions.length) {
+    const ws4 = wb.addWorksheet('حسابات الدفع', { views:[{rightToLeft:true}] });
+    ws4.columns = [
+      { header:'التاريخ', key:'date', width:14 }, { header:'الوقت', key:'time', width:12 }, { header:'الجلسة', key:'session', width:14 },
+      { header:'المندوب', key:'courier', width:16 }, { header:'الموظف', key:'employee', width:20 },
+      { header:'الطريقة', key:'method', width:14 }, { header:'الحساب', key:'account', width:14 }, { header:'المبلغ', key:'amount', width:16 },
+    ];
+    ws4.getRow(1).eachCell(cell => {
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+HEADER_BG}};
+      cell.font={bold:true,size:11,name:'Arial'};
+      cell.alignment={horizontal:'center',vertical:'middle',readingOrder:'rightToLeft'};
+    });
+    for (const e of accSessions) {
+      const sid = /^[0-9a-f]{8}-/.test(e.key || '') ? String(e.key).slice(0, 8) : String(e.key || '').replace(/^(payment|refund)-row-/, 'row-');
+      const base = { date: formatDateForExport(e.date), time: formatTimeForExport(e.date), session: sid, courier: e.courier || '', employee: e.employeeDisplayName || e.employee || '' };
+      const lines = [];
+      const cashV = parseFloat((e.paymentMethods || {}).cash) || 0;
+      if (cashV) lines.push(['نقدي', '—', cashV]);
+      for (const m of ['instapay', 'wallet']) {
+        const accs = (e.paymentAccounts || {})[m] || {}, tot = parseFloat((e.paymentMethods || {})[m]) || 0;
+        let det = 0;
+        for (const [k, v] of Object.entries(accs)) { lines.push([ACC_LABEL[m], k, v]); det += v; }
+        const und = Math.round((tot - det) * 100) / 100;
+        if (Math.abs(und) >= 0.01) lines.push([ACC_LABEL[m], 'بلا تفصيل', und]);
+      }
+      for (const [method, account, amount] of lines) {
+        const r = ws4.addRow({ ...base, method, account, amount });
+        r.eachCell({ includeEmpty:false }, (cell, col) => {
+          cell.font = { size:10, name:'Arial', color:{ argb: (col === 8 && amount < 0) ? 'FFCC0000' : 'FF000000' } };
+          cell.alignment = { horizontal:'center', vertical:'middle', readingOrder:'rightToLeft' };
+          if (col === 8) cell.numFmt = xlNumFmt(cell.value);
+        });
+      }
+    }
+    ws4.views = [{ state:'frozen', ySplit:1, rightToLeft:true }];
+  }
 
   // ── Sheet 3 — معلومات التصدير (v1.72.0) ───────────────────────
   // اسم الملف مايقدرش يشيل الفلاتر ولا وقت التصدير ولا هل الملف كامل — فدول هنا.

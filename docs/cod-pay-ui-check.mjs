@@ -194,6 +194,35 @@ is(!mob.overflow && mob.cols === 1, 'مفيش سكرول أفقي والأعمد
 is(errs.length === 0, 'صفر خطأ كونسول', errs.slice(0, 3).join(' || '));
 await page.context().close();
 
+console.log('\n══ ⑫ الإرسال للـ Worker: تفصيل الحسابات في sessionMeta و orderMeta (Worker ≥ 3.10.0) ══');
+({ page, calls, errs } = await open());
+await page.click('[data-courier="Kareem"]'); await page.waitForSelector('#importTableBody tr'); await page.click('#importAddBtn');
+await page.waitForFunction(() => orders.length === 2 && orders.every(o => o.status === 'ready'));
+const tgt = await page.evaluate(() => Math.abs(getCourierCollectNet()));
+await page.click('[data-ptog="instapay:فادي"]'); await page.fill('[data-pin="instapay:فادي"]', '100');
+await page.click('[data-ptog="instapay:مُرسل"]'); await page.fill('[data-pin="instapay:مُرسل"]', '50');
+await page.click('[data-ptog="wallet:إسلام"]'); await page.click('[data-prest="wallet:إسلام"]');
+is(await page.evaluate(() => isPayValid()), 'المجموع مظبوط (انستاباي فادي 100 + مُرسل 50 + محفظة إسلام بالباقي)');
+await page.click('#payBtn'); await page.waitForSelector('#confirmOverlay.open'); await page.click('#confirmOkBtn');
+await page.waitForFunction(() => orders.length === 0, null, { timeout: 8000 });
+const pays = calls.filter(c => c.action === 'pay').map(c => c.body);
+const num = v => Math.round(parseFloat(v) * 100);
+is(pays.length === 2, 'نداءين pay', String(pays.length));
+const wTot = ((tgt - 150) * 100) / 100;
+is(JSON.stringify(pays[0].sessionMeta.paymentAccounts) === JSON.stringify({ instapay: { 'فادي': '100.00', 'مُرسل': '50.00' }, wallet: { 'إسلام': wTot.toFixed(2) } }), 'sessionMeta.paymentAccounts = إجمالي الحسابات كما دخّلها الموظف', JSON.stringify(pays[0].sessionMeta.paymentAccounts));
+is(pays.every(b => b.orderMeta.paymentAccounts && num(b.orderMeta.paymentSplit.instapay) === Object.values(b.orderMeta.paymentAccounts.instapay || {}).reduce((a, v) => a + num(v), 0)
+   && num(b.orderMeta.paymentSplit.wallet) === Object.values(b.orderMeta.paymentAccounts.wallet || {}).reduce((a, v) => a + num(v), 0)), 'كل أوردر: حصة انستاباي والمحفظة == مجموع حسابات الصف بالمليم');
+const sumAcc = (m, k) => pays.reduce((a, b) => a + num((b.orderMeta.paymentAccounts[m] || {})[k] || 0), 0);
+is(sumAcc('instapay', 'فادي') === 10000 && sumAcc('instapay', 'مُرسل') === 5000 && sumAcc('wallet', 'إسلام') === Math.round(wTot * 100), 'مجموع حصص الأوردرات لكل حساب == إجمالي الحساب بالمليم', JSON.stringify([sumAcc('instapay', 'فادي'), sumAcc('instapay', 'مُرسل'), sumAcc('wallet', 'إسلام')]));
+is(pays.every(b => num(b.sessionMeta.paymentMethods.instapay) === 15000 && num(b.sessionMeta.paymentMethods.wallet) === Math.round(wTot * 100)), 'paymentMethods (المجاميع التلاتة) زي ما هي');
+await page.context().close();
+
+console.log('\n══ ⑬ مدخل مباشر على الحاملات (بلا حسابات) = من غير تفصيل ══');
+({ page, calls, errs } = await open());
+const nd = await page.evaluate(() => { payReset(); document.getElementById('pmInstapay').value = '120'; return payAccountTotals(); });
+is(JSON.stringify(nd) === '{}', 'مجموع انستاباي بلا حسابات ← payAccountTotals فاضية (مش بتخمّن)', JSON.stringify(nd));
+await page.context().close();
+
 await browser.close(); server.close();
 console.log(`\n${fail ? '❌' : '✅'} النتيجة: ${pass} عدّى · ${fail} فشل`);
 process.exit(fail ? 1 : 0);
