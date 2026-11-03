@@ -65,7 +65,6 @@
 .card-header { padding:14px 16px 0; font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.5px; margin-bottom:12px; }
 .card-body { padding:0 16px 16px; }
 
-.input-methods { display:flex; flex-direction:column; gap:6px; }
 /* ── §ENTRY-BAR — مربع إدخال موحّد (unified-entry-box.md) ── */
 .entry-bar { display: flex; flex-direction: column; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 6px; transition: border-color .15s; }
 .entry-bar[data-view=manual] { border-top-color: var(--border-strong); }
@@ -106,17 +105,9 @@
 .row-flash td { animation: rowFlash 1s ease; }
 @keyframes rowFlash { 0%, 60% { background: var(--amber-light); } 100% { background: transparent; } }
 
-.input-method { border:0.5px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); transition:all .2s; overflow:hidden; }
-.input-method.active { border-color:var(--accent); background:var(--accent-light); }
-.input-method-header { display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:default; user-select:none; }
-.input-method-icon { font-size:14px; flex-shrink:0; }
-.input-method-label { font-size:12px; font-weight:600; color:var(--text-secondary); flex:1; }
-.input-method.active .input-method-label { color:var(--accent); }
-.input-method-body { padding:0 12px 10px; }
 
 .scanner-wrap { position:relative; }
 .scanner-input { width:100%; padding:8px 12px 8px 34px; border:0.5px solid var(--border-strong); border-radius:var(--radius-sm); background:var(--surface); font-family:var(--font-mono); font-size:14px; color:var(--text-primary); outline:none; direction:ltr; transition:all .2s; }
-.input-method.active .scanner-input { border-color:var(--accent); background:var(--on-accent); box-shadow:0 0 0 2px rgba(37,99,235,.1); }
 .scanner-input::placeholder { color:var(--text-muted); font-size:12px; font-family:var(--font-body); }
 .scanner-icon-wrap { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--accent); font-size:14px; pointer-events:none; }
 .scanner-hint { font-size:11px; color:var(--text-muted); margin-top:4px; }
@@ -129,9 +120,6 @@
 .btn-manual:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
 .btn-manual:disabled { opacity:.4; cursor:not-allowed; }
 
-.btn-import-method { width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:9px 16px; border-radius:var(--radius-sm); border:none; background:var(--accent); color:var(--on-accent); font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; transition:all .2s; }
-.btn-import-method:hover { background:var(--accent-dark); }
-.btn-import-method-courier { font-family:var(--font-mono); font-size:11px; background:rgba(255,255,255,.2); padding:1px 8px; border-radius:10px; }
 
 .not-configured-banner { background:var(--amber-light); border:1px solid var(--amber-border); border-radius:var(--radius-sm); padding:9px 13px; font-size:12px; color:var(--amber); margin-bottom:16px; display:none; }
 .not-configured-banner.show { display:block; }
@@ -163,9 +151,6 @@
 
 .pay-methods-card { display:none; margin-bottom:16px; }
 .pay-methods-card.show { display:block; }
-.courier-banner { display:flex; align-items:center; gap:8px; background:var(--purple-light); border:1px solid var(--purple-border); border-radius:var(--radius-sm); padding:9px 13px; margin-bottom:12px; }
-.courier-banner-label { font-size:11px; color:var(--text-secondary); }
-.courier-banner-name  { font-size:13px; font-weight:700; color:var(--purple); }
 
 .extra-shipping-section { background:var(--orange-light); border:1px solid var(--orange-border); border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:12px; }
 .extra-shipping-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
@@ -213,22 +198,105 @@
 .extra-entry-wrap { display:flex; flex-direction:column; gap:0; }
 .extra-status-err-row { font-size:11px; font-weight:600; color:var(--amber); background:var(--amber-light); border:1px solid var(--amber-border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); padding:4px 10px; display:flex; align-items:center; gap:4px; }
 
-.pay-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:10px; }
-.pay-method-item { background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; }
-.pay-method-label { font-size:10px; color:var(--text-secondary); font-weight:700; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; }
-.pay-method-input { width:100%; background:transparent; border:none; border-bottom:1.5px solid var(--border-strong); color:var(--text-primary); font-family:var(--font-mono); font-size:14px; font-weight:600; outline:none; padding:3px 0; direction:ltr; transition:border-color .2s; }
-.pay-method-input:focus { border-bottom-color:var(--accent); }
-.pay-method-input::placeholder { color:var(--text-muted); font-weight:400; font-size:12px; }
-.pay-validation { display:flex; align-items:center; gap:6px; font-size:12px; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface-2); color:var(--text-secondary); margin-bottom:12px; }
-.pay-validation.ok       { background:var(--green-light); border-color:var(--green-border); color:var(--green); }
-.pay-validation.mismatch { background:var(--red-light);   border-color:var(--red-border);   color:var(--red); }
-.pay-val-text { font-family:var(--font-mono); }
 
-.btn-row { display:flex; gap:8px; margin-bottom:16px; }
+.btn-row { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
 .btn-pay { flex:1; padding:12px; border-radius:var(--radius-sm); border:none; background:var(--accent); color:var(--on-accent); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; transition:all .2s; }
 .btn-pay:hover:not(:disabled) { background:var(--accent-dark); }
 .btn-pay:disabled { opacity:.4; cursor:not-allowed; }
 .btn-pay.has-refund { background:linear-gradient(135deg,var(--accent) 60%,var(--red-dark) 100%); }
+
+.input-methods { display:flex; flex-direction:column; gap:6px; }
+/* ══ §COURIER-STRIP (v1.75.0) — شريط المناديب + لوحة الاستيراد inline ══ */
+.entry-card-body { padding:12px 16px; }
+.entry-card-body .entry-bar { margin-bottom:0; }
+.courier-card .card-body { padding:12px 16px; }
+.courier-chips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.courier-chip { display:inline-flex; align-items:center; gap:6px; min-height:40px; padding:8px 14px; border-radius:10px; border:1px solid var(--border-strong); background:var(--surface); color:var(--text-primary); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:border-color .15s, background .15s; }
+.courier-chip:hover:not(:disabled) { border-color:var(--accent); }
+.courier-chip.sys { border-style:dashed; }
+.courier-chip.on { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+.courier-chip:disabled { opacity:.38; cursor:not-allowed; }
+.courier-chip.on:disabled { opacity:1; cursor:default; }
+.courier-lnk { min-height:40px; padding:0 14px; border-radius:10px; border:1px solid currentColor; background:transparent; color:var(--accent); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+.courier-lnk.bad { color:var(--red); }
+.courier-lnk:disabled { opacity:.4; cursor:not-allowed; }
+.courier-msg { font-size:12px; color:var(--text-muted); }
+.courier-panel { display:flex; flex-direction:column; gap:10px; border-top:1px solid var(--border); margin-top:12px; padding-top:12px; }
+.courier-panel[hidden] { display:none; }
+.import-info { display:flex; align-items:stretch; flex-wrap:wrap; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
+.ib-cell { display:flex; align-items:center; gap:6px; padding:8px 14px; font-size:13px; border-inline-start:1px solid var(--border); }
+.ib-cell:first-child { border-inline-start:0; }
+.ib-cell b { font-size:15px; }
+.ib-ok   { background:var(--green-light); color:var(--green); flex:1; }
+.ib-warn { background:var(--amber-light); color:var(--amber-dark); flex:1; }
+.ib-load { background:var(--accent-light); color:var(--accent); flex:1; }
+.ib-err  { background:var(--red-light); color:var(--red); flex:1; }
+.ib-act  { margin-inline-start:auto; background:var(--surface); }
+.courier-actions { display:flex; align-items:center; gap:8px; }
+
+/* ══ §PAY-TILES (v1.75.0) — طرق الدفع: اختيار مباشر + حسابات انستاباي/المحفظة ══ */
+.pay-meter { border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; background:var(--surface-2); display:flex; flex-direction:column; gap:8px; margin-bottom:12px; transition:background .2s, border-color .2s; }
+.pm-row { display:flex; justify-content:space-between; align-items:flex-end; gap:12px; }
+.pm-cell { display:flex; flex-direction:column; line-height:1.35; }
+.pm-cell span { font-size:11.5px; color:var(--text-secondary); font-weight:600; }
+.pm-cell b { font-family:var(--font-mono); font-variant-numeric:tabular-nums; direction:ltr; text-align:right; }
+#pmRem { font-size:22px; }
+#pmSum { font-size:16px; }
+.pm-bar { height:8px; border-radius:99px; background:var(--border); overflow:hidden; }
+.pm-bar i { display:block; height:100%; width:0; background:var(--accent); border-radius:99px; transition:width .25s; }
+.pay-meter.ok { background:var(--green-light); border-color:var(--green-border); }
+.pay-meter.ok b, .pay-meter.ok #pmLbl { color:var(--green); }
+.pay-meter.ok .pm-bar i { background:var(--green); }
+.pay-meter.over { background:var(--red-light); border-color:var(--red-border); }
+.pay-meter.over b, .pay-meter.over #pmLbl { color:var(--red); }
+.pay-meter.over .pm-bar i { background:var(--red); }
+.pay-neg .pay-meter b, .pay-neg .pay-meter.over #pmLbl { color:var(--red); }
+.pay-neg .pm-bar i { background:var(--red); }
+.pay-cols { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px; }
+@media (max-width:700px) { .pay-cols { grid-template-columns:1fr; } }
+.pay-col { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.pay-col-head { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; padding-bottom:2px; }
+.pay-ico { width:28px; height:28px; border-radius:8px; display:grid; place-items:center; flex:none; }
+.pay-ico svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.pay-col-tot { margin-inline-start:auto; font-family:var(--font-mono); font-size:12px; font-weight:700; direction:ltr; }
+.pay-col-tot:empty { display:none; }
+.pay-col-cash .pay-ico { background:color-mix(in srgb, var(--green) 14%, var(--surface)); color:var(--green); }
+.pay-col-cash .pay-col-tot { color:var(--green); }
+.pay-col-cash .pay-tile:hover { border-color:color-mix(in srgb, var(--green) 55%, var(--border)); }
+.pay-col-cash .pay-tile.sel { border-color:var(--green); background:color-mix(in srgb, var(--green) 7%, var(--surface)); }
+.pay-col-instapay .pay-ico { background:color-mix(in srgb, var(--purple) 14%, var(--surface)); color:var(--purple); }
+.pay-col-instapay .pay-col-tot { color:var(--purple); }
+.pay-col-instapay .pay-tile:hover { border-color:color-mix(in srgb, var(--purple) 55%, var(--border)); }
+.pay-col-instapay .pay-tile.sel { border-color:var(--purple); background:color-mix(in srgb, var(--purple) 7%, var(--surface)); }
+.pay-col-wallet .pay-ico { background:color-mix(in srgb, var(--orange) 14%, var(--surface)); color:var(--orange); }
+.pay-col-wallet .pay-col-tot { color:var(--orange); }
+.pay-col-wallet .pay-tile:hover { border-color:color-mix(in srgb, var(--orange) 55%, var(--border)); }
+.pay-col-wallet .pay-tile.sel { border-color:var(--orange); background:color-mix(in srgb, var(--orange) 7%, var(--surface)); }
+.pay-tile { display:flex; align-items:center; gap:6px; padding:3px 4px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); transition:border-color .15s, background .15s; }
+.pay-tile-name { flex:1; background:none; border:0; color:inherit; cursor:pointer; text-align:right; font-family:inherit; font-size:13px; font-weight:600; padding:7px 8px; min-height:36px; border-radius:7px; }
+.pay-tile.sel .pay-tile-name { flex:0 0 auto; min-width:56px; }
+.pay-tile-body { flex:1; display:flex; gap:6px; align-items:center; min-width:0; }
+.pay-tile-input { flex:1; min-width:0; height:34px; padding:0 10px; border:1px solid var(--border-strong); border-radius:8px; background:var(--surface); color:var(--text-primary); font-family:var(--font-mono); font-size:14px; font-weight:700; direction:ltr; text-align:left; outline:none; }
+.pay-tile-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,.1); }
+.pay-neg .pay-tile-input { color:var(--red); }
+.pay-neg .pay-col-tot { color:var(--red); }
+.pay-tile-rest { border:0; border-radius:8px; background:var(--accent-light); color:var(--accent); font-family:inherit; font-size:11.5px; font-weight:700; padding:6px 10px; cursor:pointer; white-space:nowrap; }
+.extra-shipping-section { background:transparent; border-style:dashed; padding:6px 10px; margin-bottom:0; }
+.extra-shipping-header { margin-bottom:0; }
+#extraShippingSection { margin-top:12px; }
+
+/* ══ §PAY-BAR (v1.75.0) — زرار التسجيل بثلاث خانات: المندوب · الصافي · الإجراء ══ */
+.btn-pay.pay-bar-btn { display:flex; align-items:stretch; flex-wrap:wrap; padding:0; overflow:hidden; text-align:right; min-height:56px; }
+.pb-cell { display:flex; flex-direction:column; justify-content:center; padding:8px 16px; min-width:150px; background:rgba(255,255,255,.14); line-height:1.35; }
+.pb-cell + .pb-cell { border-inline-start:1px solid rgba(255,255,255,.28); }
+.pb-cell small { font-size:11px; font-weight:600; opacity:.85; }
+.pb-cell b { font-size:15px; font-weight:700; }
+.pb-cell b.pb-num { font-family:var(--font-mono); direction:ltr; text-align:right; }
+.pb-act { flex:1; display:flex; align-items:center; justify-content:center; padding:8px 16px; min-width:200px; font-size:14px; font-weight:700; }
+.pay-hint { text-align:center; font-size:12px; color:var(--text-muted); }
+.pay-hint:empty { display:none; }
+.pay-hint.err { color:var(--red); font-weight:600; }
+
 
 .table-wrap { display:none; border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); box-shadow:var(--shadow); margin-bottom:16px; overflow-x:auto; }
 .table-wrap.show { display:block; }
@@ -304,21 +372,6 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
 .s-badge-empty     { color:var(--text-muted); font-size:10px; }
 .s-badge-err       { background:var(--red-light); color:var(--red); border:2px solid var(--red-border); font-weight:800; font-size:10px; }
 
-.import-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:600; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .2s; }
-.import-overlay.open { opacity:1; pointer-events:all; }
-.import-modal { background:var(--surface); border-radius:var(--radius); width:100%; max-width:calc(var(--container-max) * .9); max-height:88vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.2); transform:translateY(14px); transition:transform .2s cubic-bezier(.34,1.56,.64,1); }
-.import-overlay.open .import-modal { transform:translateY(0); }
-.import-modal-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-shrink:0; background:var(--surface); }
-.import-modal-title { font-size:14px; font-weight:700; }
-.import-modal-body { padding:16px 18px; overflow-y:auto; flex:1; }
-.import-modal-footer { padding:12px 18px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:space-between; align-items:center; flex-shrink:0; background:var(--surface); }
-.import-courier-row { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
-.import-courier-select { flex:1; padding:9px 12px; border:1.5px solid var(--border-strong); border-radius:var(--radius-sm); background:var(--surface); font-family:inherit; font-size:13px; color:var(--text-primary); outline:none; cursor:pointer; transition:border-color .2s; appearance:none; -webkit-appearance:none; font-weight:600; }
-.import-courier-select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,.08); }
-.import-fetch-btn { padding:9px 18px; border-radius:var(--radius-sm); border:none; background:var(--accent); color:var(--on-accent); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; transition:all .2s; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; gap:6px; }
-.import-fetch-btn:hover:not(:disabled) { background:var(--accent-dark); }
-.import-fetch-btn:disabled { opacity:.4; cursor:not-allowed; }
-.import-hint { font-size:11px; color:var(--text-muted); margin-bottom:12px; }
 .import-toolbar { display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
 .import-sel-count { font-family:var(--font-mono); font-size:13px; font-weight:800; color:var(--on-accent); background:var(--accent); border:2px solid var(--accent-dark); padding:4px 12px; border-radius:20px; box-shadow:0 2px 6px rgba(37,99,235,.35); }
 .btn-import-sel { padding:5px 12px; border-radius:var(--radius-sm); border:1px solid var(--border-strong); background:var(--surface); color:var(--text-secondary); font-family:inherit; font-size:11px; font-weight:600; cursor:pointer; transition:all .2s; white-space:nowrap; }
@@ -353,10 +406,6 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
 .row-del-btn { background:none; border:none; cursor:pointer; font-size:16px; padding:2px 4px; border-radius:4px; transition:transform .15s; display:inline-flex; align-items:center; justify-content:center; }
 .row-del-btn:hover { transform:scale(1.2); }
 
-.import-source-row { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-.import-source-btn { flex:1; min-width:200px; display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 12px; border-radius:var(--radius-sm); border:2px solid var(--border-strong); background:var(--surface); font-family:inherit; font-size:12.5px; font-weight:700; color:var(--text-secondary); cursor:pointer; transition:all .15s; text-align:center; }
-.import-source-btn:hover { border-color:var(--accent); color:var(--accent); }
-.import-source-btn.active { border-color:var(--accent); background:var(--accent-light); color:var(--accent-dark); }
 
 .confirm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:600; display:none; align-items:center; justify-content:center; padding:20px; }
 .confirm-overlay.open { display:flex; }
@@ -698,8 +747,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
     <div class="not-configured-banner" id="notConfigBanner">⚠ الأداة غير مضبوطة — افتح الإعدادات وأدخل بيانات الاتصال</div>
 
     <div class="card">
-      <div class="card-header">إضافة أوردرات</div>
-      <div class="card-body" style="padding-bottom:16px">
+      <div class="card-body entry-card-body">
         <div class="input-methods">
 
           <!-- §ENTRY-BAR — مربع واحد: الأداة بتعرف النوع من الطول، والإضافة بـ Enter أو «إضافة» بس -->
@@ -718,18 +766,48 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
           </div>
           <div class="bc-fails" id="entryFails" hidden></div>
 
-          <div class="input-method" id="methodImport">
-            <div class="input-method-header">
-              <span class="input-method-icon">🔍</span>
-              <span class="input-method-label">البحث عن أوردرات المندوب</span>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- §COURIER-STRIP — المناديب كلهم ظاهرين في الصفحة؛ الضغطة على الاسم بتبدأ الاستعلام فورًا (تسليمات اليوم أولاً ثم شوبيفاي لو فاضية) -->
+    <div class="card courier-card" id="courierCard">
+      <div class="card-body">
+        <div class="courier-chips" id="courierChips" role="group" aria-label="المناديب"></div>
+        <div class="courier-panel" id="courierPanel" hidden>
+          <div class="import-info" id="importInfo" aria-live="polite"></div>
+          <div id="importTableSection" style="display:none">
+            <div class="import-toolbar">
+              <button class="btn-import-sel" onclick="importSelectAll()">تحديد الكل</button>
+              <button class="btn-import-sel" onclick="importDeselectAll()">إلغاء الكل</button>
+              <span class="import-sel-count" id="importSelCount" style="display:none">0 محدد</span>
             </div>
-            <div class="input-method-body">
-              <button class="btn-import-method" id="importBtn" onclick="openImportModal()">
-                🔍 <span id="importBtnText">البحث عن أوردرات المندوب</span>
-              </button>
+            <div class="import-table-wrap">
+              <table class="import-table">
+                <thead>
+                  <tr>
+                    <th class="col-check"><input type="checkbox" id="importHeadCb" onchange="importToggleAll(this)" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer"></th>
+                    <th>رقم الأوردر</th>
+                    <th>العميل</th>
+                    <th class="col-ltr">إجمالي شوبيفاي</th>
+                    <th class="col-ltr">شحن</th>
+                    <th>تاريخ الإنشاء</th>
+                    <th class="col-center">S1</th>
+                    <th class="col-center">S2</th>
+                    <th class="col-center">الحالة</th>
+                  </tr>
+                </thead>
+                <tbody id="importTableBody"></tbody>
+              </table>
             </div>
           </div>
-
+          <div class="courier-actions">
+            <span class="import-sel-count" id="importSelCountFooter" style="display:none"></span>
+            <div style="flex:1"></div>
+            <button class="btn-modal-cancel" id="importCloseBtn" type="button">إغلاق</button>
+            <button class="btn-import-add" id="importAddBtn" type="button" disabled>➕ <span id="importAddBtnTxt">إضافة المحدد للجدول</span></button>
+          </div>
         </div>
       </div>
     </div>
@@ -745,10 +823,20 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
     <div class="card pay-methods-card" id="payMethodsCard">
       <div class="card-header">طريقة الدفع</div>
       <div class="card-body">
-        <div class="courier-banner">
-          <span class="courier-banner-label">المندوب:</span>
-          <span class="courier-banner-name" id="courierBannerName">—</span>
+        <div class="pay-meter" id="payMeter" aria-live="polite">
+          <div class="pm-row">
+            <div class="pm-cell"><span id="pmLbl">المتبقي</span><b id="pmRem">—</b></div>
+            <div class="pm-cell" style="align-items:flex-end"><span>الإجمالي</span><b id="pmSum">—</b></div>
+          </div>
+          <div class="pm-bar"><i id="pmFill"></i></div>
         </div>
+
+        <div class="pay-cols" id="payTiles"></div>
+        <!-- 🔴 مجاميع الطرق التلاتة — الحاملات اللي باقي المنطق (التحقق · نافذة التأكيد · allocatePaymentSplit · الإرسال) بيقراها.
+             الخانات المرئية فوق بتكتب فيها بعد تجميع حسابات فادي/مُرسل/إسلام. -->
+        <input type="hidden" id="pmCash" oninput="normalizePayInput(this)">
+        <input type="hidden" id="pmInstapay" oninput="normalizePayInput(this)">
+        <input type="hidden" id="pmWallet" oninput="normalizePayInput(this)">
 
         <div class="extra-shipping-section" id="extraShippingSection">
           <div class="extra-shipping-header">
@@ -773,18 +861,16 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
           </div>
           <div class="extra-entries-list" id="extraEntriesList"></div>
         </div>
-
-        <div class="pay-grid">
-          <div class="pay-method-item"><div class="pay-method-label">💵 نقدي</div><input type="number" id="pmCash" class="pay-method-input" min="0" step="0.01" oninput="normalizePayInput(this)" onkeydown="blockPayMinus(event)"></div>
-          <div class="pay-method-item"><div class="pay-method-label">📱 انستاباي</div><input type="number" id="pmInstapay" class="pay-method-input" min="0" step="0.01" oninput="normalizePayInput(this)" onkeydown="blockPayMinus(event)"></div>
-          <div class="pay-method-item"><div class="pay-method-label">👛 محفظة</div><input type="number" id="pmWallet" class="pay-method-input" min="0" step="0.01" oninput="normalizePayInput(this)" onkeydown="blockPayMinus(event)"></div>
-        </div>
-        <div class="pay-validation" id="payValidation"><span class="pay-val-text" id="payValText">أدخل طرق الدفع</span></div>
       </div>
     </div>
 
     <div class="btn-row">
-      <button class="btn-pay" id="payBtn" onclick="confirmBulkPay()" disabled>💵 تسجيل الدفع على شوبيفاي</button>
+      <button class="btn-pay pay-bar-btn" id="payBtn" onclick="confirmBulkPay()" disabled>
+        <span class="pb-cell"><small>المندوب</small><b id="payBarCourier">—</b></span>
+        <span class="pb-cell"><small>صافي تحصيل المندوب</small><b class="pb-num" id="payBarNet">—</b></span>
+        <span class="pb-act" id="payBarLabel">💵 تسجيل الدفع على شوبيفاي</span>
+      </button>
+      <div class="pay-hint" id="payHint" aria-live="polite"></div>
     </div>
 
     <div class="progress-wrap" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
@@ -992,64 +1078,6 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
   </div>
 
 </div>
-<div class="import-overlay" id="importOverlay" onclick="closeImportOnBackdrop(event)">
-  <div class="import-modal">
-    <div class="import-modal-header">
-      <div class="import-modal-title">🚚 استيراد أوردرات من مندوب</div>
-      <button class="modal-close-x" onclick="closeImportModal()">✕</button>
-    </div>
-    <div class="import-modal-body">
-      <div class="import-source-row" id="importSourceRow">
-        <button class="import-source-btn active" id="srcShopifyBtn" onclick="setImportSource('shopify')">🛒 من شوبيفاي مباشرة</button>
-        <button class="import-source-btn" id="srcOsuBtn" onclick="setImportSource('osu')">🚚 من تسليمات اليوم المسجّلة</button>
-      </div>
-      <div class="import-courier-row">
-        <select id="importCourierSelect" class="import-courier-select">
-          <option value="">جاري تحميل المناديب...</option>
-        </select>
-        <button class="import-fetch-btn" id="importFetchBtn" onclick="importFetchOrders()" disabled>
-          <span id="importFetchBtnTxt">🔍 استعلام</span>
-        </button>
-      </div>
-      <div class="import-hint" id="importHint">اختر مندوباً واستعلم عن الأوردرات</div>
-      <div id="importTableSection" style="display:none">
-        <div class="import-toolbar">
-          <button class="btn-import-sel" onclick="importSelectAll()">تحديد الكل</button>
-          <button class="btn-import-sel" onclick="importDeselectAll()">إلغاء الكل</button>
-          <span class="import-sel-count" id="importSelCount" style="display:none">0 محدد</span>
-        </div>
-        <div class="import-table-wrap">
-          <table class="import-table">
-            <thead>
-              <tr>
-                <th class="col-check"><input type="checkbox" id="importHeadCb" onchange="importToggleAll(this)" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer"></th>
-                <th>رقم الأوردر</th>
-                <th>العميل</th>
-                <th class="col-ltr">إجمالي شوبيفاي</th>
-                <th class="col-ltr">شحن</th>
-                <th>تاريخ الإنشاء</th>
-                <th class="col-center">S1</th>
-                <th class="col-center">S2</th>
-                <th class="col-center">الحالة</th>
-              </tr>
-            </thead>
-            <tbody id="importTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="import-empty" id="importEmptyMsg" style="display:none"></div>
-    </div>
-    <div class="import-modal-footer">
-      <span class="import-sel-count" id="importSelCountFooter" style="display:none"></span>
-      <div style="flex:1"></div>
-      <button class="btn-modal-cancel" onclick="closeImportModal()">إلغاء</button>
-      <button class="btn-import-add" id="importAddBtn" onclick="importAddSelected()" disabled>
-        ➕ <span id="importAddBtnTxt">إضافة المحدد للجدول</span>
-      </button>
-    </div>
-  </div>
-</div>
-
 <div class="eco-overlay" id="changelogOverlay" onclick="if(event.target===this)closeChangelog()">
   <div class="eco-modal">
     <div class="eco-modal-hdr">
@@ -1060,7 +1088,21 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.74.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.75.0</span>
+          <span class="cl-ver-date">03-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>شريط المناديب في الصفحة:</strong> كل المناديب ظاهرين، وضغطة على الاسم بتبدأ الاستعلام فورًا في «تسليمات اليوم المسجّلة». لو مفيش تسليمات اليوم بيكمّل لوحده على شوبيفاي ومكتوب بوضوح «المصدر: شوبيفاي مباشرة». النتيجة بتظهر في الصفحة نفسها بدل النافذة، وشريطها مقسّم: «عدد X أوردرات» · «المصدر» · زرار تغيير المصدر.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>جلسة التحصيل لمندوب واحد:</strong> بعد إضافة الأوردرات باقي المناديب بيتقفلوا (Inactive) والمختار عليه 🔒. «تغيير المندوب» (بتأكيد وبيمسح الأوردرات) في نفس صف المناديب، وبيتفتحوا لوحدهم لما الجدول يفضى.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>طرق الدفع بقت «اختيار مباشر»:</strong> نقدي + انستاباي + محفظة، وانستاباي والمحفظة كل واحدة فيها حسابات <strong>فادي · مُرسل · إسلام</strong>. ضغطة على الحساب بتفتح خانة فاضية تكتب فيها، و«الباقي» بيملاها. عدّاد ثابت بـ«المتبقي» و«الإجمالي». في الصافي السالب كل المبالغ بتتكتب بالسالب وبالأحمر (الاتجاه من نوع الأوردر زي v1.72.0).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>زرار التسجيل بثلاث خانات:</strong> المندوب · صافي تحصيل المندوب · الإجراء. بانر «المندوب:» وجملة «المندوب يستحق منا…» اتشالوا. وعنوان «إضافة أوردرات» اتشال عشان المربع يبقى compact.</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span>تفصيل «أنهي حساب» بيظهر في نافذة التأكيد بس؛ المخزّن في السجل لسه نقدي/انستاباي/محفظة (الـ Worker ما اتعدّلش).</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.74.0</span>
           <span class="cl-ver-date">03-11-2026</span>
         </div>
         <ul class="cl-items">
@@ -1365,7 +1407,8 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li><code>§TOOL-JS</code> — إضافة/حذف الأوردرات، الحسابات (<code>calcCourierCollect</code>)، جدول العرض، طرق الدفع، التأكيد والتنفيذ الجماعي (pay/refund)</li>
             <li><code>§TOOL-JS::allocatePaymentSplit</code> — توزيع طرق الدفع على أوردرات الجلسة بالتناسب مع تحصيل كل أوردر. توزيع تراكمي عشان مجموع الحصص يساوي المُدخل بالمليم. الوزن للأوردرات اللي على نفس اتجاه صافي الجلسة بس</li>
             <li><code>§TOOL-JS::alertPartialFailure</code> — نافذة إقرار بتوقف الموظف لما جلسة تخلص بنجاح جزئي، وبتقوله بالجنيه إيه اللي اتقبض ومش مسجّل</li>
-            <li><code>§TOOL-JS::import</code> — نافذة استيراد أوردرات مندوب — مصدرين (<code>importSource</code>: 'shopify' | 'osu') بنفس جدول العرض والـ helpers (importRenderTable/importMakeRow/importCalcStatusError)</li>
+            <li><code>§TOOL-JS::courier</code> — شريط المناديب + استيراد الأوردرات inline: تسليمات اليوم المسجّلة (<code>getCourierOrdersToday</code>) ثم شوبيفاي (<code>getCourierOrders</code>) تلقائيًا لو فاضية · قفل جلسة المندوب الواحد (<code>courierLock</code>) · نفس جدول العرض والـ helpers (importRenderTable/importMakeRow/importCalcStatusError)</li>
+            <li><code>§TOOL-JS::pay-tiles</code> — طرق الدفع: بلاطات اختيار مباشر لحسابات (نقدي · انستاباي/محفظة × فادي/مُرسل/إسلام). الحسابات بتتجمّع في المجاميع التلاتة على <code>pmCash/pmInstapay/pmWallet</code> (مخفية) وباقي المنطق ما اتغيّرش. المبلغ بيتعرض بالسالب وبالأحمر لما صافي الجلسة سالب (القيمة المخزّنة موجبة)</li>
             <li><code>§LOG-JS</code> — جدول جلسات قابل للتوسيع (جلسة ← أوردر ← SKUs) · Pagination بصفحات (١٠٠/صفحة) عبر <code>get_logs</code> + <code>get_logs_count</code> · فلاتر server-side (<code>buildLogParams</code> مصدر واحد لـ<code>get_logs</code> و<code>get_logs_count</code> و<code>get_logs_export</code>) · تصدير XLSX للكل أو للمحدد عبر ExcelJS</li>
             <li><code>§LOG-JS::header-filters</code> — القمع ▽ في رأس العمود (<code>HF</code> · <code>hfToggle</code> · <code>#hfPop</code>): بيحرّك نفس قوايم الفلاتر القديمة لقايمة <code>position:fixed</code> وبيرجّعها. لوحة الفلاتر القديمة <code>#logFiltersHolder</code> <strong>مخفية وهي حاملة الحالة — ممنوع تتشال</strong>. tooltip بقيم الفلتر المفعّل بس (<code>#hfTip</code>).</li>
             <li><code>§LOG-JS::filters-v86</code> — فلاتر السجل الجديدة (<code>F86</code>): رقم الأوردر بتوكنز + اقتراحات (<code>get_log_suggest</code>) · أرقام عدد/تحصيل/استرداد (<code>countFrom/To/In</code>…، القايمة من <code>get_log_num_values</code>) · وقت اليوم (<code>timeFrom/timeTo</code> بتوقيت القاهرة) · تاريخ بأقسام. كلها server-side (Worker ≥ 3.8.0) ومجاميع الجلسة بتتحسب على الجلسة كلها بغض النظر عن باقي الفلاتر.</li>
@@ -1386,7 +1429,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li><code>TOOL_NAME</code> — <strong>اتشال من الواجهة</strong>. قيمة <code>tool</code> في جدول logs (<code>cod_payment</code>) متحدّدة في كود الـ Worker ومابتتبعتش من العميل — قيمة جاية من العميل معناها أي طلب معاه السر يقدر يكتب صفوف بأي اسم أداة في الجدول المشترك.</li>
             <li><code>orders[]</code> — الأوردرات في الجدول الرئيسي (تحصيل/استرجاع/استبدال)</li>
             <li><code>extraEntries[]</code> — أوردرات الشحن الإضافي (منفصلة عن الجدول الرئيسي)</li>
-            <li><code>importSource</code> — 'shopify' (getCourierOrders) أو 'osu' (getCourierOrdersToday — تسليمات اليوم Delivered فقط، من D1 مباشرة) — بيتصفّر لـ 'shopify' كل ما تتفتح نافذة الاستيراد</li>
+            <li><code>importSource</code> / <code>importPhase</code> / <code>importAuto</code> — 'osu' (getCourierOrdersToday — تسليمات اليوم Delivered فقط، من D1 مباشرة) هو الافتراضي عند اختيار مندوب، و'shopify' (getCourierOrders) بيتفتح تلقائيًا لو فاضي أو بزرار · <code>lockedCourier</code> — المندوب المقفول عليه الجلسة · <code>payTiles</code> — حالة بلاطات الدفع</li>
             <li><code>TOOL_VERSION</code> — مصدر واحد لرقم نسخة الواجهة: زرار الهيدر + بادج الـ Changelog + نص شاشة الدخول (<code>#loginVersionText</code>)، كلهم عبر <code>renderVersionUI()</code></li>
             <li><code>msState</code> — حالة فلاتر الاختيار المتعدد في تاب سجل العمليات (logType/logCourier/logEmp) · <code>HF</code> — تعريف قمعات الرؤوس · <code>COL_LS_KEY</code> — مفتاح عروض الأعمدة</li>
             <li><code>logCurrentPage</code> / <code>logTotalCount</code> — Pagination بتاع تاب سجل العمليات (100 صف/صفحة)</li>
@@ -1511,6 +1554,7 @@ function onSettingsSaved() {
   updateConfigBanner();
   loadLogCourierFilter();
   loadLogEmployeeFilter();
+  if (typeof courierLoadList === 'function') courierLoadList();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1758,34 +1802,24 @@ function syncEntryLock() {
   if (xi) xi.disabled = lock;
   if (xb) xb.disabled = lock;
   entryRenderFails();
+  if (typeof renderCourierChips === 'function') renderCourierChips();
   if (!lock && $('panelScan').classList.contains('active') && !$('extraAddPanel').classList.contains('show')) entryInput.focus();
 }
 
-function setActiveMethod(methodId) { /* باقي كارت «البحث عن أوردرات المندوب» بس — مفيش كروت سكانر/يدوي */ }
-function updateImportBtn() {
-  const courier = getReadyCourier();
-  const textEl = $('importBtnText'), methodEl = $('methodImport');
-  if (!textEl) return;
-  if (courier) {
-    textEl.innerHTML = `البحث عن أوردرات <span class="btn-import-method-courier">${esc(courier)}</span>`;
-    if (methodEl) methodEl.classList.add('active');
-  } else {
-    textEl.textContent = 'البحث عن أوردرات المندوب';
-    if (methodEl) methodEl.classList.remove('active');
-  }
-}
+// ⛔ v1.75.0 — كارت «البحث عن أوردرات المندوب» اتشال؛ شريط المناديب (§COURIER-STRIP) بيتبني في السكربت التاني.
+function updateImportBtn() { if (typeof renderCourierChips === 'function') renderCourierChips(); }
 
 // ⚠️ `confirmOverlay` مستثنى زي `importOverlay` بالظبط — من غيره السكانر
 //    بيفضل ماسك الفوكس والديالوج مفتوح، فمسحة واحدة بتضيف أوردر **بعد** ما
 //    الفلوس اتحققت. (الاتجاه المعاكس لعطل 05-09-2026 — نفس السبب البنيوي.)
 function refocus() {
   if (!currentEmployee) return;
-  if ($('panelScan').classList.contains('active') && !$('extraAddPanel').classList.contains('show') && !$('importOverlay').classList.contains('open') && !$('confirmOverlay').classList.contains('open') && !entryInput.disabled) {
+  if ($('panelScan').classList.contains('active') && !$('extraAddPanel').classList.contains('show') && !$('confirmOverlay').classList.contains('open') && !entryInput.disabled) {
     entryInput.focus();
   }
 }
 document.addEventListener('click', e => {
-  const skip = ['.settings-overlay','.eco-overlay','.confirm-overlay','.import-overlay','.log-tab-wrap','.pay-methods-card','.table-wrap','.result-box','.entry-bar','.bc-fails','#settingsBtn','#extraAddPanel'];
+  const skip = ['.settings-overlay','.eco-overlay','.confirm-overlay','.courier-card','.log-tab-wrap','.pay-methods-card','.table-wrap','.result-box','.entry-bar','.bc-fails','#settingsBtn','#extraAddPanel'];
   if (skip.some(s => e.target.closest(s))) return;
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
   setTimeout(refocus, 50);
@@ -2404,39 +2438,137 @@ function blockPayMinus(e) {
 }
 function isPayEmpty()  { return !$('pmCash').value && !$('pmInstapay').value && !$('pmWallet').value; }
 
+// ─── §TOOL-JS::pay-tiles (v1.75.0) ───
+// طرق الدفع: «اختيار مباشر». الحسابات السبعة ظاهرة (نقدي · انستاباي × فادي/مُرسل/إسلام · محفظة × نفس الحسابات).
+// ضغطة على الحساب بتفتح خانة **فاضية** تكتب فيها المبلغ، و«الباقي» بيملاها بالمتبقي.
+// 🔴 الحسابات للإدخال والعرض بس: بتتجمّع في **ثلاث مجاميع** (نقدي · انستاباي · محفظة) على الحاملات المخفية
+//    pmCash/pmInstapay/pmWallet، وباقي المنطق (التحقق · allocatePaymentSplit · الإرسال للـ Worker) ما اتغيّرش.
+//    ⛔ تفصيل «أنهي حساب» ما بيتخزّنش في D1 (الـ Worker بيعرف نقدي/انستاباي/محفظة بس) — بيظهر في نافذة التأكيد فقط.
+// 🔴 في الجلسة اللي صافيها سالب المبالغ بتتعرض بالسالب وبالأحمر؛ القيمة المخزّنة موجبة والإشارة للعرض بس
+//    (نفس قرار v1.72.0: الاتجاه من نوع الأوردرات مش من الإشارة).
+const PAY_ACCOUNTS = ['فادي', 'مُرسل', 'إسلام'];
+const PAY_GROUPS = [
+  { id: 'cash',     label: 'نقدي',     hidden: 'pmCash',     accounts: [] },
+  { id: 'instapay', label: 'انستاباي', hidden: 'pmInstapay', accounts: PAY_ACCOUNTS },
+  { id: 'wallet',   label: 'محفظة',    hidden: 'pmWallet',   accounts: PAY_ACCOUNTS },
+];
+const PAY_ICON = {
+  cash:     '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v.01M18 14.5v.01"/></svg>',
+  instapay: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M12.8 8.2 10.4 12.2h3.2L11.2 16.2"/></svg>',
+  wallet:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6H18v3"/><rect x="3" y="8" width="18" height="12" rx="2.5"/><circle cx="16.5" cy="14" r="1.1"/></svg>',
+};
+let payTiles = {};   // key → { on, val }   (val = أرقام فقط بلا إشارة)
+const payKey = (g, acc) => acc ? `${g.id}:${acc}` : g.id;
+const payNeg = () => getCourierCollectNet() < 0;
+const payDisp = v => v ? (payNeg() ? '-' : '') + v : '';
+const payNum = v => parseFloat(v) || 0;
+const payGroupSum = g => Object.keys(payTiles).filter(k => k === g.id || k.startsWith(g.id + ':')).reduce((a, k) => a + (payTiles[k].on ? payNum(payTiles[k].val) : 0), 0);
+
+function payBuild() {
+  const host = $('payTiles'); if (!host) return;
+  host.innerHTML = PAY_GROUPS.map(g => {
+    const items = g.accounts.length ? g.accounts : [''];
+    return `<div class="pay-col pay-col-${g.id}"><div class="pay-col-head"><span class="pay-ico">${PAY_ICON[g.id]}</span><span>${g.label}</span><span class="pay-col-tot" data-ptot="${g.id}"></span></div>` +
+      items.map(acc => {
+        const k = payKey(g, acc), t = payTiles[k] || { on: false, val: '' };
+        const label = esc(acc || 'المبلغ');
+        return `<div class="pay-tile${t.on ? ' sel' : ''}" data-pk="${esc(k)}"><button type="button" class="pay-tile-name" data-ptog="${esc(k)}" aria-pressed="${t.on}">${label}</button>` +
+          (t.on ? `<div class="pay-tile-body"><input class="pay-tile-input" data-pin="${esc(k)}" type="text" inputmode="decimal" autocomplete="off" dir="ltr" aria-label="${esc(g.label + (acc ? ' - ' + acc : ''))}" value="${esc(payDisp(t.val))}"><button type="button" class="pay-tile-rest" data-prest="${esc(k)}">الباقي</button></div>` : '') +
+          `</div>`;
+      }).join('') + `</div>`;
+  }).join('');
+  payAggregate();
+}
+
+// بيجمّع الحسابات في المجاميع التلاتة على الحاملات المخفية ثم بيحدّث التحقق
+function payAggregate() {
+  PAY_GROUPS.forEach(g => { const sum = Math.round(payGroupSum(g) * 100) / 100; $(g.hidden).value = sum > 0 ? String(sum) : ''; });
+  updatePayValidation();
+}
+// بيزامن علامة السالب على الخانات المعروضة وإجماليات الأعمدة (الصافي ممكن يتغيّر بعد الكتابة)
+function payFormat() {
+  const card = $('payMethodsCard'); if (!card) return;
+  const neg = payNeg();
+  card.classList.toggle('pay-neg', neg);
+  document.querySelectorAll('.pay-tile-input').forEach(inp => {
+    const t = payTiles[inp.dataset.pin]; if (!t) return;
+    const want = payDisp(t.val);
+    if (inp.value !== want) inp.value = want;
+  });
+  PAY_GROUPS.forEach(g => { const el = card.querySelector(`[data-ptot="${g.id}"]`); if (!el) return; const v = Math.round(payGroupSum(g) * 100) / 100; el.textContent = v > 0 ? (neg ? '-' : '') + fmt(v) + ' ج' : ''; });
+}
+function payReset() {
+  payTiles = {};
+  PAY_GROUPS.forEach(g => { const el = $(g.hidden); if (el) el.value = ''; });
+  payBuild();
+}
+function payRemainFor(key) {
+  const others = Object.keys(payTiles).reduce((a, k) => a + (k !== key && payTiles[k].on ? payNum(payTiles[k].val) : 0), 0);
+  return Math.max(0, Math.round((Math.abs(getCourierCollectNet()) - others) * 100) / 100);
+}
+(function payWire() {
+  const host = $('payTiles'); if (!host) return;
+  host.addEventListener('click', e => {
+    const tog = e.target.closest('[data-ptog]');
+    if (tog) {
+      const k = tog.dataset.ptog, t = payTiles[k];
+      if (t && t.on) delete payTiles[k]; else payTiles[k] = { on: true, val: '' };
+      payBuild();
+      const inp = host.querySelector(`[data-pin="${CSS.escape(k)}"]`); if (inp) inp.focus();
+      return;
+    }
+    const rest = e.target.closest('[data-prest]');
+    if (rest) {
+      const k = rest.dataset.prest; if (!payTiles[k]) return;
+      const r = payRemainFor(k); payTiles[k].val = r > 0 ? String(r) : '';
+      const inp = host.querySelector(`[data-pin="${CSS.escape(k)}"]`); if (inp) inp.value = payDisp(payTiles[k].val);
+      payAggregate(); if (inp) inp.focus();
+    }
+  });
+  host.addEventListener('input', e => {
+    const inp = e.target.closest('[data-pin]'); if (!inp) return;
+    const k = inp.dataset.pin; if (!payTiles[k]) return;
+    let d = inp.value.replace(/[٠-٩]/g, c => '٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[^\d.]/g, '');
+    const dot = d.indexOf('.'); if (dot >= 0) d = d.slice(0, dot + 1) + d.slice(dot + 1).replace(/\./g, '');
+    payTiles[k].val = d;
+    const want = payDisp(d); if (inp.value !== want) inp.value = want;
+    payAggregate();
+  });
+  host.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || !e.target.matches('.pay-tile-input')) return;
+    e.preventDefault();
+    const all = [...host.querySelectorAll('.pay-tile-input')], i = all.indexOf(e.target);
+    (all[i + 1] || e.target).focus();
+  });
+})();
+
+
 function updatePayMethodsCard() {
   const readyOrders = orders.filter(o => o.status === 'ready');
   const refundOrders = orders.filter(o => o.status === 'refund');
   const card = $('payMethodsCard');
   if (!readyOrders.length && !refundOrders.length) { card.classList.remove('show'); return; }
   card.classList.add('show');
-  const courier = getReadyCourier(), courierErr = getReadyCourierError();
-  $('courierBannerName').textContent = courierErr ? '⚠ خطأ في المندوب' : (courier || '—');
-  $('courierBannerName').style.color = courierErr ? 'var(--red)' : 'var(--purple)';
   updatePayValidation();
 }
 
 function updatePayValidation() {
-  const el = $('payValidation'), textEl = $('payValText');
   const target = getCourierCollectNet(), entered = getPaySum();
   const extraTotal = getTotalExtraShipping();
   $('extraNet').textContent = extraTotal > 0 ? `صافي اليوم: ${fmtSigned(target)}` : '';
 
-  if (isPayEmpty()) {
-    el.className = 'pay-validation';
-    textEl.textContent = target < 0
-      ? `المندوب يستحق منا ${fmt(Math.abs(target))} EGP — أدخل المبلغ الذي ستدفعه له`
-      : `أدخل طرق الدفع — المجموع يجب يساوي ${fmtSigned(target)}`;
-  } else {
-    const absTarget = Math.abs(target);
-    const diff = Math.abs(Math.abs(entered) - absTarget);
-    if (diff < 0.01) { el.className = 'pay-validation ok'; textEl.textContent = `✓ المجموع مظبوط — ${fmt(Math.abs(entered))}`; }
-    else {
-      el.className = 'pay-validation mismatch';
-      const dir = Math.abs(entered) > absTarget ? `زيادة ${fmt(Math.abs(entered)-absTarget)}` : `ناقص ${fmt(absTarget-Math.abs(entered))}`;
-      textEl.textContent = `المجموع ${fmt(Math.abs(entered))} — ${dir}`;
-    }
-  }
+  // العدّاد: «المتبقي» و«الإجمالي» (المكتوب) بس — الإشارة سالبة لو صافي الجلسة سالب
+  const abs = Math.abs(target), neg = target < 0;
+  const rem = Math.round((abs - entered) * 100) / 100;
+  const ok = !isPayEmpty() && Math.abs(rem) < 0.01, over = rem < -0.009;
+  const money = v => (neg && v > 0 ? '−' : '') + fmt(v) + ' ج';
+  const meter = $('payMeter');
+  meter.className = 'pay-meter' + (ok ? ' ok' : over ? ' over' : '');
+  $('pmLbl').textContent = over ? 'زيادة' : 'المتبقي';
+  $('pmRem').textContent = money(over ? -rem : Math.max(rem, 0));
+  $('pmSum').textContent = money(entered);
+  $('pmFill').style.width = (abs > 0 ? Math.min(100, entered / abs * 100) : 0) + '%';
+  payFormat();
   updatePayBtn();
 }
 
@@ -2481,9 +2613,26 @@ function updatePayBtn() {
   const btn = $('payBtn');
   const needsPayValid = hasReady;
   btn.disabled = (!hasReady && !hasRefund) || !!courierErr || (needsPayValid && !isPayValid()) || isProcessing || hasStatusErr || (typeof entryFails !== 'undefined' && entryFails.length > 0);
-  if (hasReady && hasRefund) { btn.textContent = '💵 تسجيل الدفع + 💸 تنفيذ الاسترداد'; btn.classList.add('has-refund'); }
-  else if (hasRefund && !hasReady) { btn.textContent = '💸 تنفيذ الاسترداد'; btn.classList.add('has-refund'); }
-  else { btn.textContent = '💵 تسجيل الدفع على شوبيفاي'; btn.classList.remove('has-refund'); }
+  // §PAY-BAR — الزرار ثلاث خانات (المندوب · صافي التحصيل · الإجراء)؛ النص بيتكتب في خانة الإجراء بس
+  let label;
+  if (hasReady && hasRefund) label = '💵 تسجيل الدفع + 💸 تنفيذ الاسترداد';
+  else if (hasRefund && !hasReady) label = '💸 تنفيذ الاسترداد';
+  else label = '💵 تسجيل الدفع على شوبيفاي';
+  btn.classList.toggle('has-refund', hasRefund);
+  $('payBarLabel').textContent = label;
+  const courier = getReadyCourier(), has = hasReady || hasRefund;
+  const nameEl = $('payBarCourier');
+  nameEl.textContent = courierErr ? '⚠ خطأ في المندوب' : (courier || '—');
+  nameEl.style.color = courierErr ? 'var(--red-lighter, #fecaca)' : '';
+  $('payBarNet').textContent = has ? fmtSigned(getCourierCollectNet()) : '—';
+  const hintEl = $('payHint');
+  let hint = '', err = false;
+  if (courierErr) { hint = courierErr; err = true; }
+  else if (hasReady && !isPayValid()) {
+    const rem = Math.round((Math.abs(getCourierCollectNet()) - getPaySum()) * 100) / 100;
+    hint = isPayEmpty() ? 'أدخل مبالغ طرق الدفع لتفعيل التسجيل' : (rem > 0 ? `المتبقي ${fmt(rem)} ج` : `زيادة ${fmt(-rem)} ج عن المطلوب`);
+  }
+  hintEl.textContent = hint; hintEl.classList.toggle('err', err);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2514,6 +2663,15 @@ function openAlert(headerHTML, bodyHTML, okLabel, okClass, onAck) {
   $('confirmOverlay').classList.add('open');
 }
 function closeConfirm() { $('confirmOverlay').classList.remove('open'); }
+
+// تفصيل حسابات الطريقة في نافذة التأكيد (للمراجعة مع المندوب — مش بيتخزّن في D1)
+function payAccountsRows(groupId) {
+  return PAY_ACCOUNTS.map(acc => {
+    const t = payTiles[`${groupId}:${acc}`];
+    const v = t && t.on ? payNum(t.val) : 0;
+    return v > 0 ? `<div class="confirm-detail-row" style="padding:4px 14px 4px 0"><span class="confirm-detail-label">↳ ${esc(acc)}</span><span class="confirm-detail-val" style="font-size:12px">${fmt(v)} جنيه</span></div>` : '';
+  }).join('');
+}
 
 async function confirmBulkPay() {
   const readyOrders = orders.filter(o => o.status === 'ready');
@@ -2560,8 +2718,8 @@ async function confirmBulkPay() {
       <span style="font-family:var(--font-mono);font-size:18px;font-weight:800;color:${totalNet<0?'var(--red)':'var(--green)'}">${fmtSigned(totalNet)} جنيه</span>
     </div>
     ${cash>0?`<div class="confirm-detail-row"><span class="confirm-detail-label">💵 نقدي</span><span class="confirm-detail-val">${fmt(cash)} جنيه</span></div>`:''}
-    ${instapay>0?`<div class="confirm-detail-row"><span class="confirm-detail-label">📱 انستاباي</span><span class="confirm-detail-val">${fmt(instapay)} جنيه</span></div>`:''}
-    ${wallet>0?`<div class="confirm-detail-row"><span class="confirm-detail-label">👛 محفظة</span><span class="confirm-detail-val">${fmt(wallet)} جنيه</span></div>`:''}`;
+    ${instapay>0?`<div class="confirm-detail-row"><span class="confirm-detail-label">📱 انستاباي</span><span class="confirm-detail-val">${fmt(instapay)} جنيه</span></div>`+payAccountsRows('instapay'):''}
+    ${wallet>0?`<div class="confirm-detail-row"><span class="confirm-detail-label">👛 محفظة</span><span class="confirm-detail-val">${fmt(wallet)} جنيه</span></div>`+payAccountsRows('wallet'):''}`;
 
   const bodyHTML = `${paySection}
     ${multiCycleOrders.length ? `<div class="confirm-warning" style="background:var(--amber-light);border-color:var(--amber-border)">
@@ -2806,7 +2964,7 @@ async function doBulkPayAndRefund() {
     showResult(false, 'فشلت جميع العمليات', 'راجع الجدول');
   }
 
-  if (anySuccess && !anyFail && !warnCount && !unloggedCount) { $('pmCash').value=''; $('pmInstapay').value=''; $('pmWallet').value=''; updatePayValidation(); }
+  if (anySuccess && !anyFail && !warnCount && !unloggedCount) { payReset(); }
 
   // السجل بيتقرأ من D1 مباشرة (get_logs) — مفيش تحديث محلي للـ cache هنا،
   // logLoaded بيتصفّر عشان أول فتح لتاب سجل العمليات بعد كده يعمل fetchLog() تلقائي
@@ -2875,107 +3033,145 @@ function hideResult() { $('resultBox').className = 'result-box'; }
 </script>
 <script>
 // ══════════════════════════════════════════════════════════════
-// §TOOL-JS::import — Courier Import Modal (v3.0.0 — مصدرين: شوبيفاي / OSU)
+// §TOOL-JS::courier — شريط المناديب + استيراد أوردرات المندوب inline (v1.75.0)
 // ══════════════════════════════════════════════════════════════
-let importOrders = [], importLoading = false;
-let importSource = 'shopify'; // 'shopify' (getCourierOrders) | 'osu' (getCourierOrdersToday — تسليمات اليوم من D1)
+// 🔴 المناديب كلهم ظاهرين في الصفحة. الضغطة على الاسم بتبدأ الاستعلام فورًا:
+//    ١) «تسليمات اليوم المسجّلة» (getCourierOrdersToday) ← ٢) لو فاضية: شوبيفاي مباشرة (getCourierOrders) تلقائيًا،
+//    والشاشة بتكتب بوضوح إن المصدر اتغيّر (بدل ما الموظف يفتكر إنها من التسليمات المسجّلة).
+// 🔴 جلسة التحصيل لمندوب واحد: لما يبقى في أوردرات في الجدول (أو الإضافة شغّالة) باقي المناديب بيتقفلوا،
+//    و«تغيير المندوب» (بتأكيد في نفس الصف) بيمسح الأوردرات ويفك القفل.
+let courierList = [], courierListState = 'idle';   // idle | loading | ok | empty | error | unconfigured
+let importOrders = [], importCourier = null, importSource = null, importAuto = false, importPhase = 'idle', importErr = '', importSeq = 0;
+let lockedCourier = null, importAdding = false, courierConfirm = false;
+const COURIER_SYS = new Set(['Bosta', 'Showroom']);
+const courierLock = () => getReadyCourier() || lockedCourier || null;
 
-function setImportSource(src) {
-  importSource = src;
-  $('srcShopifyBtn').classList.toggle('active', src === 'shopify');
-  $('srcOsuBtn').classList.toggle('active', src === 'osu');
-  importOrders = [];
-  $('importTableSection').style.display = 'none';
-  $('importEmptyMsg').style.display = 'none';
-  const hasCourier = !!$('importCourierSelect').value;
-  $('importFetchBtn').disabled = !hasCourier;
-  if (!hasCourier) { $('importHint').textContent = 'اختر مندوباً للاستعلام عن أوردراته'; return; }
-  $('importHint').textContent = src === 'osu'
-    ? 'اضغط استعلام لجلب تسليمات اليوم (Delivered) لهذا المندوب من سجل تحديث الحالة'
-    : 'اضغط استعلام لجلب أوردرات هذا المندوب من شوبيفاي مباشرة';
-}
-
-function importReset() {
-  importOrders = []; importLoading = false; importSource = 'shopify';
-  $('srcShopifyBtn').classList.add('active'); $('srcOsuBtn').classList.remove('active');
-  const sel = $('importCourierSelect');
-  if (sel) sel.selectedIndex = 0;
-  $('importFetchBtn').disabled = true;
-  $('importTableSection').style.display = 'none';
-  $('importEmptyMsg').style.display = 'none';
-  if ($('importHeadCb')) $('importHeadCb').checked = false;
-  $('importHint').textContent = 'اختر مندوباً للاستعلام عن أوردراته';
-  [$('importSelCount'), $('importSelCountFooter')].forEach(el => { if (el) el.style.display = 'none'; });
-  $('importAddBtn').disabled = true;
-  $('importAddBtnTxt').textContent = 'إضافة المحدد للجدول';
-}
-function openImportModal() { importReset(); $('importOverlay').classList.add('open'); importLoadCouriers(); }
-function closeImportModal() { $('importOverlay').classList.remove('open'); importReset(); refocus(); }
-function closeImportOnBackdrop(e) { if (e.target === $('importOverlay')) closeImportModal(); }
-
-async function importLoadCouriers() {
-  const sel = $('importCourierSelect'), btn = $('importFetchBtn'), hint = $('importHint');
-  if (!isConfigured()) { sel.innerHTML = '<option value="">أدخل Worker URL في الإعدادات أولاً</option>'; btn.disabled = true; hint.textContent = '⚠ الأداة غير مضبوطة'; return; }
-  const activeCourier = getReadyCourier();
-  sel.innerHTML = '<option value="">جاري تحميل المناديب...</option>';
-  btn.disabled = true; hint.textContent = 'جاري تحميل قائمة المناديب...';
+async function courierLoadList() {
+  if (!isConfigured()) { courierListState = 'unconfigured'; courierList = []; renderCourierChips(); return; }
+  courierListState = 'loading'; renderCourierChips();
   try {
-    const data = await apiPostLegacy('getCourierValues', {});
-    if (data.success && data.values?.length) {
-      let values = data.values;
-      if (activeCourier) values = values.filter(v => v === activeCourier);
-      if (values.length) {
-        sel.innerHTML = '<option value="">اختر مندوباً...</option>' + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
-        if (values.length === 1) { sel.value = values[0]; btn.disabled = false; } else { btn.disabled = true; }
-        hint.textContent = activeCourier ? `يظهر فقط مندوب الأوردرات الحالية: ${activeCourier}` : 'اختر مندوباً للاستعلام عن أوردراته';
-      } else {
-        sel.innerHTML = `<option value="">${esc(activeCourier)} — غير موجود في القائمة</option>`;
-        hint.textContent = `المندوب الحالي (${activeCourier}) غير موجود في الـ metafield choices`;
-      }
-    } else { sel.innerHTML = '<option value="">لا توجد مناديب</option>'; hint.textContent = 'لا توجد مناديب محددة في الـ metafield definition'; }
-  } catch { sel.innerHTML = '<option value="">خطأ في التحميل</option>'; hint.textContent = 'خطأ في تحميل قائمة المناديب'; }
+    const d = await apiPostLegacy('getCourierValues', {});
+    if (d.success && d.values && d.values.length) { courierList = d.values; courierListState = 'ok'; }
+    else { courierList = []; courierListState = 'empty'; }
+  } catch { courierList = []; courierListState = 'error'; }
+  renderCourierChips();
 }
 
-$('importCourierSelect').addEventListener('change', () => {
-  const hasCourier = !!$('importCourierSelect').value;
-  $('importFetchBtn').disabled = !hasCourier || importLoading;
-});
+function renderCourierChips() {
+  const box = $('courierChips'); if (!box) return;
+  if (!orders.length && !extraEntries.length && !importAdding) lockedCourier = null;
+  const lock = courierLock();
+  if (!courierList.length) {
+    const msg = { loading: 'جاري تحميل المناديب...', unconfigured: '⚠ الأداة غير مضبوطة — افتح الإعدادات وأدخل بيانات الاتصال', empty: 'لا توجد مناديب محددة في الـ metafield definition', error: 'خطأ في تحميل قائمة المناديب' }[courierListState] || '';
+    box.innerHTML = `<span class="courier-msg">${msg}</span>` + (courierListState === 'error' ? `<button type="button" class="courier-lnk" data-cact="reload">إعادة المحاولة</button>` : '');
+    return;
+  }
+  let h = courierList.map(n => {
+    const on = n === importCourier || n === lock, dis = !!lock && n !== lock;
+    return `<button type="button" class="courier-chip${on ? ' on' : ''}${COURIER_SYS.has(n) ? ' sys' : ''}" data-courier="${esc(n)}" aria-pressed="${on}" ${dis ? 'disabled' : ''}>${esc(n)}${n === lock ? ' 🔒' : ''}</button>`;
+  }).join('');
+  if (lock) h += courierConfirm
+    ? `<button type="button" class="courier-lnk bad" data-cact="change-yes">تأكيد التغيير</button><button type="button" class="courier-lnk" data-cact="change-no">إلغاء</button>`
+    : `<button type="button" class="courier-lnk" data-cact="change" ${isProcessing ? 'disabled' : ''}>تغيير المندوب</button>`;
+  box.innerHTML = h;
+}
 
-async function importFetchOrders() {
-  const courier = $('importCourierSelect').value;
-  if (!courier || importLoading) return;
+function renderImportInfo() {
+  const el = $('importInfo'), n = esc(importCourier || '');
+  const cell = (cls, html) => `<div class="ib-cell ${cls}">${html}</div>`;
+  const btn = (act, txt) => `<div class="ib-cell ib-act"><button type="button" class="courier-lnk" data-iact="${act}">${txt}</button></div>`;
+  let h = '';
+  if (importPhase === 'loading') {
+    const msg = importSource === 'osu' ? 'جاري البحث في تسليمات اليوم المسجّلة...'
+      : (importAuto ? `لا توجد تسليمات مسجّلة اليوم للمندوب ${n}، جاري البحث في شوبيفاي...` : `جاري الاستعلام عن أوردرات ${n} من شوبيفاي...`);
+    h = cell('ib-load', `<span class="spinner"></span> ${msg}`);
+  } else if (importPhase === 'error') {
+    h = cell('ib-err', esc(importErr)) + btn('retry', 'إعادة المحاولة') + (importSource === 'osu' ? btn('shop', 'ابحث عن كل أوردرات المندوب من شوبيفاي مباشرة') : '');
+  } else if (!importOrders.length) {
+    h = importSource === 'osu'
+      ? cell('ib-warn', `لا توجد تسليمات أو مرتجعات مسجّلة اليوم للمندوب ${n}`) + btn('shop', 'ابحث عن كل أوردرات المندوب من شوبيفاي مباشرة')
+      : cell('ib-warn', importAuto ? `لا توجد تسليمات مسجّلة اليوم للمندوب ${n}، ولا أوردرات مؤهلة في شوبيفاي` : `لا توجد أوردرات مؤهلة للمندوب ${n} - المصدر: <b>شوبيفاي مباشرة</b>`) + btn('osu', 'رجوع لتسليمات اليوم');
+  } else {
+    h = cell('', `عدد <b>${importOrders.length}</b> أوردرات`);
+    if (importSource === 'osu') h += cell('ib-ok', 'المصدر: <b>تسليمات اليوم المسجّلة</b>') + btn('shop', 'ابحث عن كل أوردرات المندوب من شوبيفاي مباشرة');
+    else if (importAuto) h += cell('ib-warn', `لا توجد تسليمات مسجّلة اليوم للمندوب ${n} - المصدر: <b>شوبيفاي مباشرة</b>`) + btn('osu', 'رجوع لتسليمات اليوم');
+    else h += cell('ib-warn', 'المصدر: <b>شوبيفاي مباشرة</b>') + btn('osu', 'رجوع لتسليمات اليوم');
+  }
+  el.innerHTML = h;
+}
+
+function renderCourierPanel() {
+  const p = $('courierPanel'); if (!p) return;
+  if (!importCourier) { p.hidden = true; return; }
+  p.hidden = false;
+  renderImportInfo();
+  const showTable = importPhase === 'done' && importOrders.length > 0;
+  $('importTableSection').style.display = showTable ? 'block' : 'none';
+  if (showTable) importRenderTable(); else { $('importTableBody').innerHTML = ''; importOnCheckChange(); }
+}
+
+function importPanelClose() {
+  importSeq++; importCourier = null; importSource = null; importPhase = 'idle'; importOrders = []; importAuto = false;
+  renderCourierPanel(); renderCourierChips(); refocus();
+}
+
+function courierPick(name) {
+  const lock = courierLock();
+  if (lock && name !== lock) return;
+  if (importCourier === name && importPhase !== 'idle') { importPanelClose(); return; }   // ضغطة تانية على نفس الاسم = قفل اللوحة
+  courierConfirm = false;
+  importCourier = name; renderCourierChips();
+  importFetch('osu', { fallback: true });
+}
+
+async function importFetch(src, opts = {}) {
+  const courier = importCourier; if (!courier) return;
   if (!isConfigured()) { openSettings(); return; }
-  importLoading = true;
-  const btn = $('importFetchBtn'), txt = $('importFetchBtnTxt');
-  btn.disabled = true; txt.innerHTML = '<span class="spinner"></span> جاري...';
-  const isOsu = importSource === 'osu';
-  $('importHint').textContent = isOsu
-    ? `جاري جلب تسليمات/مرتجعات ${courier} المسجّلة اليوم...`
-    : `جاري الاستعلام عن أوردرات ${courier}...`;
-  $('importTableSection').style.display = 'none'; $('importEmptyMsg').style.display = 'none';
-  importOrders = [];
+  const seq = ++importSeq;                         // أي نتيجة متأخرة بعد تبديل المندوب/المصدر بتتجاهَل
+  importSource = src; importAuto = !!opts.auto; importPhase = 'loading'; importErr = ''; importOrders = [];
+  renderCourierPanel();
   try {
-    const action = isOsu ? 'getCourierOrdersToday' : 'getCourierOrders';
-    const data = await apiPostLegacy(action, { courier });
-    if (!data.success) { $('importHint').textContent = data.error || 'خطأ في الاستعلام'; }
+    const data = await apiPostLegacy(src === 'osu' ? 'getCourierOrdersToday' : 'getCourierOrders', { courier });
+    if (seq !== importSeq) return;
+    if (!data.success) { importPhase = 'error'; importErr = data.error || 'خطأ في الاستعلام'; }
     else {
       importOrders = data.orders || [];
-      if (!importOrders.length) {
-        const emptyMsg = isOsu ? `لا توجد تسليمات أو مرتجعات مسجّلة اليوم لـ ${courier}` : `لا توجد أوردرات مؤهلة لـ ${courier}`;
-        $('importHint').textContent = emptyMsg;
-        $('importEmptyMsg').textContent = emptyMsg;
-        $('importEmptyMsg').style.display = 'block';
-      } else {
-        const eligible = importOrders.filter(o => !importCalcStatusError(o) && !orders.some(ex => ex.id === o.id));
-        const errs = importOrders.filter(o => !!importCalcStatusError(o));
-        $('importHint').textContent = `تم الاستعلام — ${eligible.length} مؤهل، ${errs.length} خطأ حالة`;
-        $('importTableSection').style.display = 'block';
-        importRenderTable();
-      }
+      if (!importOrders.length && src === 'osu' && opts.fallback) { importFetch('shopify', { auto: true }); return; }
+      importPhase = 'done';
     }
-  } catch { $('importHint').textContent = 'خطأ في الاتصال'; }
-  importLoading = false; btn.disabled = false; txt.textContent = '🔍 استعلام';
+  } catch { if (seq !== importSeq) return; importPhase = 'error'; importErr = 'خطأ في الاتصال'; }
+  renderCourierPanel();
+  if (importPhase === 'done' && src === 'osu') importSelectAll();   // تسليمات اليوم المسجّلة = هي نفسها اللي هتتحصّل؛ شوبيفاي بيفضل اختيار صريح
 }
+
+function courierChangeConfirmed() {
+  if (isProcessing) return;
+  courierConfirm = false; lockedCourier = null;
+  orders = []; extraEntries = [];
+  $('tableWrap').classList.remove('show'); $('statsBar').classList.remove('show');
+  importPanelClose(); payReset();
+  updateStats(); updatePayBtn(); renderTable(); renderExtraEntries(); hideResult(); updatePayMethodsCard(); updateImportBtn(); refocus();
+}
+
+$('courierChips').addEventListener('click', e => {
+  const c = e.target.closest('[data-courier]');
+  if (c) { if (!c.disabled) courierPick(c.dataset.courier); return; }
+  const a = e.target.closest('[data-cact]'); if (!a) return;
+  const act = a.dataset.cact;
+  if (act === 'change') { courierConfirm = true; renderCourierChips(); }
+  else if (act === 'change-no') { courierConfirm = false; renderCourierChips(); }
+  else if (act === 'change-yes') courierChangeConfirmed();
+  else if (act === 'reload') courierLoadList();
+});
+$('importInfo').addEventListener('click', e => {
+  const a = e.target.closest('[data-iact]'); if (!a) return;
+  const act = a.dataset.iact;
+  if (act === 'shop') importFetch('shopify');
+  else if (act === 'osu') importFetch('osu');
+  else if (act === 'retry') importFetch(importSource || 'osu', { auto: importAuto, fallback: importSource === 'osu' });
+});
+$('importAddBtn').addEventListener('click', () => importAddSelected());
+$('importCloseBtn').addEventListener('click', importPanelClose);
 
 function importFmtDate(iso) { if (!iso) return '—'; const d = new Date(iso); return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`; }
 function importCalcStatusError(o) {
@@ -3056,9 +3252,11 @@ async function importAddSelected() {
   const sel = importGetSelected();
   if (!sel.length) return;
   if (!isConfigured()) { openSettings(); return; }
-  closeImportModal();
+  importAdding = true; lockedCourier = importCourier; courierConfirm = false;   // القفل فورًا — الإضافة بتتم واحد واحد
+  importPanelClose();
   showToast(`➕ جاري إضافة ${sel.length} أوردر...`);
   for (const o of sel) { if (orders.some(ex => ex.id === o.id)) continue; await addOrder(o.id); }
+  importAdding = false; renderCourierChips();
 }
 </script>
 <script>
@@ -4823,6 +5021,8 @@ checkWorkerVersion(PAGE_WORKERS);   // محميّ جوّاه بـ isConfigured()
 initLogTypeFilter();      // قايمة ثابتة — مفيش نداء شبكة
 loadLogCourierFilter();   // محميّ جوّاه
 loadLogEmployeeFilter();  // محميّ جوّاه
+payBuild();               // خانات طرق الدفع (§PAY-TILES)
+courierLoadList();        // شريط المناديب (§COURIER-STRIP) — محميّ جوّاه بـ isConfigured()
 
 // ⛔ `loadEmployeesList()` اتشالت مع شاشة الدخول — كانت بتملا قايمة الدخول.
 </script>

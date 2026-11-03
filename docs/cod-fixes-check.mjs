@@ -186,7 +186,7 @@ const inp = await page.evaluate(() => {
   el.value = ''; return { afterPaste, toast, blocked: ev.defaultPrevented };
 });
 is(inp.afterPaste === '5' && /بالموجب/.test(inp.toast), 'مدخل سالب (لصق/سهم) بيتحوّل لموجب + توست', JSON.stringify(inp));
-is(inp.blocked === true, 'ضغطة «-» على الكيبورد بتتمنع');
+// v1.75.0 — الخانات المرئية بقت بلاطات (§PAY-TILES) بتشيل أي «-» مكتوبة وبتعرض الإشارة من الصافي؛ سلوكها في docs/cod-pay-ui-check.mjs
 const dlg = await page.evaluate(async () => {
   orders = [{ id: '19096316641602', orderName: '#63578', status: 'refund', amount: -10800, refundAmount: 10800, returnShipping: '0.00', hasReturn: true, courier: 'Showroom',
     lineItems: [{ sku: 'C50 / Light beige / 44', quantity: 1 }], returnedItems: [{ sku: 'x', quantity: 1, discountedUnitPrice: '2800.00' }], saleTransactions: [{ id: 't', amount: 13600 }], orderKind: 'partial_return', multiCycle: false }];
