@@ -312,6 +312,23 @@ is(await page.locator('#logCbAll').isDisabled() && await page.locator('#logExpor
 await page.click('#logClearAllBtn'); await page.waitForTimeout(500);
 is(await page.locator('.log-batch-row').count() === 3 && !(await page.locator('#logCbAll').isDisabled()), 'الجلسات رجعت ← الرأس شغّال تاني');
 
+console.log('\n══ v1.74.0 — مربع رقم الأوردر الظاهر ══');
+is(await page.locator('#logOrdQuick').isVisible(), 'مربع «🔍 رقم الأوردر» ظاهر في صف النتائج');
+const q0 = calls.length;
+await page.fill('#logOrdQuick', '٥٥٠١'); await page.waitForTimeout(700);
+const qc = calls.slice(q0).filter(c => c.a === 'get_logs').pop();
+is(qc && qc.q.orders === '5501', 'الكتابة بتفلتر لايف (عربي→إنجليزي) بباراميتر orders');
+await page.press('#logOrdQuick', 'Enter'); await page.waitForTimeout(600);
+is(await page.inputValue('#logOrdQuick') === '' && await page.locator('#chipsRow-search .ms-chip', { hasText: '5501' }).count() === 1, 'Enter بيثبّت الرقم توكن (chip) ويفضّي المربع');
+await page.fill('#logOrdQuick', '5502'); await page.press('#logOrdQuick', 'Enter'); await page.waitForTimeout(600);
+const qc2 = calls.filter(c => c.a === 'get_logs').pop();
+is(qc2.q.orders === '5501,5502', 'رقم تاني = OR (٥٥٠١,٥٥٠٢)');
+await page.locator('.hfn[data-hf="orders"]').click();
+is(await page.locator('#hfPop .f86-toks .ms-chip', { hasText: '5502' }).count() === 1, 'القمع على «عدد» بيعرض نفس التوكنز (متزامنين)');
+await page.keyboard.press('Escape');
+await page.click('#logClearAllBtn'); await page.waitForTimeout(500);
+is(await page.inputValue('#logOrdQuick') === '', 'مسح كل الفلاتر بيفضّي المربع');
+
 console.log('\n══ مصدر الفلاتر ══');
 const exp = calls.filter(c => c.a === 'get_logs' || c.a === 'get_logs_count');
 is(exp.length >= 2, 'get_logs و get_logs_count اتنادوا');

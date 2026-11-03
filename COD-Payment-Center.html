@@ -397,6 +397,8 @@ tbody tr.detail-row td { padding:0 12px 12px; border-bottom:1px solid var(--bord
 .log-finput:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(37,99,235,.08);}
 .log-finput.has-value{border-color:var(--accent);background:var(--accent-light);}
 .log-finput.w-search{width:200px;}
+.log-ordq{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text-primary);}
+.log-ordq .log-finput{width:150px;direction:ltr;text-align:left;}
 .log-clear-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--red-border);border-radius:var(--radius-sm);font-family:inherit;font-size:12px;font-weight:600;color:var(--red);background:var(--red-light);cursor:pointer;transition:all .15s;white-space:nowrap;height:34px;}
 .log-clear-btn:hover{background:var(--red);color:var(--on-accent);border-color:var(--red);}
 .log-stats-bar{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--surface-2);flex-wrap:wrap;}
@@ -944,6 +946,9 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
       </div>
 
       <div class="log-stats-bar">
+        <label class="log-ordq" title="بحث برقم الأوردر — اكتب الرقم وهيفلتر لايف، وEnter بيثبّته كتوكن (تقدر تضيف أكتر من رقم). نفس فلتر القمع على عمود «عدد»">🔍 رقم الأوردر
+          <input type="text" class="log-finput" id="logOrdQuick" autocomplete="off" spellcheck="false" inputmode="numeric" aria-label="بحث برقم الأوردر">
+        </label>
         <button class="log-refresh-btn" onclick="fetchLog()">↺ تحديث</button>
         <button class="log-clear-btn" id="logClearAllBtn" onclick="clearLogFilters()">✕ مسح كل الفلاتر</button>
         <div class="log-stat-chip filtered" title="السجل بيعرض جلسات؛ كل جلسة فيها أوردر أو أكتر. الرقم التاني بيعدّ العمليات (الأوردرات) المطابقة للفلاتر في كل الصفحات">النتائج: <strong id="logSessCount">—</strong> جلسة<span class="log-stat-sub">(من <strong id="logFilteredCount">—</strong> عملية مطابقة)</span></div>
@@ -1055,7 +1060,17 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.73.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.74.0</span>
+          <span class="cl-ver-date">03-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>مربع «🔍 رقم الأوردر» ظاهر في سجل العمليات</strong> جنب «تحديث»: اكتب الرقم والجدول بيتفلتر لايف، وEnter بيثبّته (تقدر تضيف أكتر من رقم). هو نفس فلتر قمع «عدد» — الاتنين متزامنين.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.73.0</span>
           <span class="cl-ver-date">03-11-2026</span>
         </div>
         <ul class="cl-items">
@@ -3246,6 +3261,9 @@ function hfToggle(key, btn) {
   if (first) first.focus();
 }
 function syncFunnels() {
+  const oq = $('logOrdQuick');   // المربع الظاهر بيعكس F86.pending (نفس حالة قمع «عدد») — إلا وهو بيتكتب فيه
+  if (oq && document.activeElement !== oq) oq.value = F86.pending || '';
+  if (oq) oq.classList.toggle('has-value', !!(F86.pending || F86.tok.length));
   document.querySelectorAll('.hfn[data-hf]').forEach(b => b.classList.toggle('on', !!HF[b.dataset.hf].active()));
   if (hfOpen) { const nb = document.querySelector(`.hfn[data-hf="${hfOpen.key}"]`); if (nb) { hfOpen.btn = nb; hfPlace(); } }
 }
@@ -3532,6 +3550,18 @@ hfPopEl.addEventListener('pointerdown', e => {
   if (s.dataset.sec === 'range') { a.sel.clear(); document.querySelectorAll('#f86NumList input').forEach(c => c.checked = false); }
   else { a.from = a.to = ''; $('f86NF').value = ''; $('f86NT').value = ''; }
   markNumPop(); syncFunnels(); f86Refetch(150);
+});
+// المربع الظاهر «🔍 رقم الأوردر» (v1.74.0): نفس F86 بالظبط — الكتابة فلتر لايف، وEnter بيثبّتها توكنز
+$('logOrdQuick').addEventListener('input', e => {
+  const t = e.target, v = latinDigits(t.value); if (v !== t.value) t.value = v;
+  F86.pending = v; ordRenderToks(); syncFunnels(); f86Refetch(350);
+});
+$('logOrdQuick').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const parts = orderParts(F86.pending);
+  if (parts.length) { ordAdd(parts); }
+  $('logOrdQuick').value = '';
 });
 hfPopEl.addEventListener('input', e => {
   const t = e.target;
