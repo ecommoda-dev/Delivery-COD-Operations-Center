@@ -64,7 +64,7 @@ const TOOLS = [
     workerKey: 'codPayment',
     host:      'cod-payment-center-worker.ecommoda-dev.workers.dev',
     oldSecret: 'cod_payment_center_worker_secret',
-    tabs:      2,
+    tabs:      3,                       // تحصيل المناديب · تحصيل بوسطة (v1.77.0) · سجل العمليات
     source:    'COD-Payment-Center',
   },
   {
