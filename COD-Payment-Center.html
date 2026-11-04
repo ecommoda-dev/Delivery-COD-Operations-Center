@@ -710,6 +710,60 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 .page-btn { padding: 6px 14px; border-radius: 7px; border: 1px solid var(--border-strong); background: var(--on-accent); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); color: var(--text-primary); }
 .page-btn:hover:not(:disabled) { background: var(--accent-light); border-color: var(--accent-border); color: var(--accent); }
 .page-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ══════════════════════════════════════════════════════════════
+   §BOSTA-CSS — تاب «تحصيل بوسطة» (v1.77.0) — توكنز الشِل بس، صفر لون حرفي
+   ══════════════════════════════════════════════════════════════ */
+/* ثلاث تابات على الموبايل — بلا سكرول أفقي (التاب التالت اتضاف v1.77.0) */
+@media (max-width:520px) { .main-tabs-bar { gap:2px; padding:4px; } .main-tab-btn { min-width:0; padding:8px 3px; font-size:11.5px; white-space:normal; line-height:1.35; } }
+.bx-drop { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:22px 16px; border:2px dashed var(--border); border-radius:var(--radius); background:var(--bg); cursor:pointer; text-align:center; transition:border-color .15s, background .15s; }
+.bx-drop:hover, .bx-drop.over { border-color:var(--accent); background:var(--accent-light); }
+.bx-drop.busy { opacity:.55; cursor:not-allowed; }
+.bx-drop b { font-size:14px; }
+.bx-drop small { color:var(--text-secondary); font-size:12px; }
+.bx-fileerr { display:none; margin-top:12px; background:var(--red-light); border:1px solid var(--red-border); color:var(--red); border-radius:var(--radius-sm); padding:10px 14px; font-size:13px; line-height:1.7; }
+.bx-fileerr.show { display:block; }
+.bx-fileerr ul { margin:6px 18px 0 0; padding:0; }
+.bx-sum { display:none; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-bottom:12px; }
+.bx-sum.show { display:grid; }
+.bx-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 12px; }
+.bx-card small { display:block; color:var(--text-secondary); font-size:11px; margin-bottom:2px; }
+.bx-card b { font-family:var(--font-mono); font-size:16px; direction:ltr; display:inline-block; }
+.bx-card.ok { border-color:var(--green-border); background:var(--green-light); } .bx-card.ok b { color:var(--green); }
+.bx-card.err { border-color:var(--red-border); background:var(--red-light); } .bx-card.err b { color:var(--red); }
+.bx-card.info { border-color:var(--blue-border); background:var(--blue-light); } .bx-card.info b { color:var(--blue); }
+.bx-card.pur { border-color:var(--purple-border); background:var(--purple-light); } .bx-card.pur b { color:var(--purple); }
+.bx-bar { display:none; align-items:stretch; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+.bx-bar.show { display:flex; }
+.bx-run { flex:1; min-width:260px; padding:12px; border-radius:var(--radius-sm); border:none; background:var(--accent); color:var(--on-accent); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; }
+.bx-run:hover:not(:disabled) { background:var(--accent-dark); }
+.bx-run:disabled { opacity:.4; cursor:not-allowed; }
+.bx-sec { padding:12px 16px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface); color:var(--text-primary); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+.bx-sec:disabled { opacity:.4; cursor:not-allowed; }
+.bx-hint { width:100%; font-size:12px; color:var(--text-secondary); min-height:16px; }
+.bx-hint.err { color:var(--red); }
+#bxTableWrap { display:none; } #bxTableWrap.show { display:block; }
+#bxTable { width:100%; border-collapse:collapse; font-size:12.5px; }
+#bxTable th { text-align:right; font-size:12px; font-weight:700; padding:8px 10px; background:var(--bg); border-bottom:2px solid var(--border); white-space:nowrap; }
+#bxTable td { padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
+#bxTable td.col-ltr, #bxTable th.col-ltr { direction:ltr; text-align:left; font-family:var(--font-mono); white-space:nowrap; }
+#bxTable td.col-center { text-align:center; }
+#bxTable tr.bx-error td { background:var(--red-light); }
+#bxTable tr.bx-failed td, #bxTable tr.bx-unknown td { background:var(--amber-light); }
+#bxTable tr.bx-registered td, #bxTable tr.bx-ready td { background:transparent; }
+#bxTable tr.bx-done td { background:var(--purple-light); }
+.bx-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; white-space:nowrap; }
+.bx-badge.ready { background:var(--green-light); color:var(--green); border:1px solid var(--green-border); }
+.bx-badge.zero { background:var(--blue-light); color:var(--blue); border:1px solid var(--blue-border); }
+.bx-badge.done { background:var(--purple-light); color:var(--purple); border:1px solid var(--purple-border); }
+.bx-badge.error { background:var(--red-light); color:var(--red); border:1px solid var(--red-border); }
+.bx-badge.warn { background:var(--amber-light); color:var(--amber-dark); border:1px solid var(--amber-border); }
+.bx-badge.wait { background:var(--bg); color:var(--text-secondary); border:1px solid var(--border); }
+.bx-slot { font-weight:800; font-family:var(--font-mono); }
+.bx-pre { color:var(--purple); font-size:10px; margin-right:4px; }
+.bx-why { font-size:12px; line-height:1.6; max-width:520px; }
+.bx-neg { color:var(--red); }
+.log-tag.bx-co { background:var(--purple-light); color:var(--purple); }
 </style>
 <body>
 <!-- ══════════════════════════════════════════════════════════════
@@ -738,6 +792,9 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
     <button class="main-tab-btn active" id="tabScan" onclick="switchMainTab('scan')">
       🔫 تحصيل المناديب
       <span class="mtb-badge" id="tabBadgeCount" style="display:none">0</span>
+    </button>
+    <button class="main-tab-btn" id="tabBosta" onclick="switchMainTab('bosta')">
+      🚚 تحصيل بوسطة
     </button>
     <button class="main-tab-btn" id="tabLog" onclick="switchMainTab('log')">
       📜 سجل العمليات
@@ -896,6 +953,51 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════ §BOSTA-TAB — تحصيل بوسطة (v1.77.0) ══════════ -->
+  <div class="tab-panel" id="panelBosta">
+    <div class="not-configured-banner" id="bxNotConfig">⚠ الأداة غير مضبوطة — افتح الإعدادات وأدخل بيانات الاتصال</div>
+
+    <div class="card">
+      <div class="card-body entry-card-body">
+        <label class="bx-drop" id="bxDrop" for="bxFile" tabindex="0">
+          <b>📂 ارفع ملف «Cash Cycles» من بوسطة (.xlsx)</b>
+          <small>اسحب الملف هنا أو اضغط للاختيار — شيت واحد اسمه <code>Cash Cycles</code> · التسجيل على <b>الإجمالي</b> (COD + Online) بدون شحن</small>
+        </label>
+        <input type="file" id="bxFile" accept=".xlsx" hidden>
+        <div class="bx-fileerr" id="bxFileErr" role="alert"></div>
+      </div>
+    </div>
+
+    <div class="bx-sum" id="bxSum"></div>
+    <div class="bx-bar" id="bxBar">
+      <button type="button" class="bx-run" id="bxRun" disabled>💵 سجّل</button>
+      <button type="button" class="bx-sec" id="bxRecheck" disabled>🔄 إعادة فحص الملف</button>
+      <button type="button" class="bx-sec" id="bxNew">📂 ملف تاني</button>
+      <div class="bx-hint" id="bxHint" aria-live="polite"></div>
+    </div>
+    <div class="progress-wrap" id="bxProgress"><div class="progress-bar" id="bxProgressBar"></div></div>
+    <div class="result-box" id="bxResult"><div class="result-title" id="bxResultTitle"></div><div class="result-detail" id="bxResultDetail"></div></div>
+
+    <div class="table-wrap" id="bxTableWrap">
+      <table id="bxTable">
+        <thead>
+          <tr>
+            <th class="col-ltr" data-eco-nofilter>صف</th>
+            <th>رقم الأوردر</th>
+            <th class="col-ltr" data-eco-nofilter>رقم التتبع</th>
+            <th class="col-center">النوع</th>
+            <th class="col-ltr" data-eco-nofilter>الإجمالي (COD+Online)</th>
+            <th class="col-ltr" data-eco-nofilter>مستحق شوبيفاي</th>
+            <th class="col-ltr" data-eco-nofilter>Net Value</th>
+            <th class="col-center">الحالة</th>
+            <th data-eco-nofilter>السبب</th>
+          </tr>
+        </thead>
+        <tbody id="bxBody"></tbody>
       </table>
     </div>
   </div>
@@ -1090,7 +1192,18 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.76.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.77.0</span>
+          <span class="cl-ver-date">04-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>تاب «🚚 تحصيل بوسطة»:</strong> ارفع ملف «Cash Cycles» من بوسطة والأداة تفحص كل صف (قواعد الملف + مطابقة الإجمالي COD+Online لمستحق شوبيفاي بالقرش + المندوب Bosta + رقم التتبع S1/S2 + معادلة Net Value) وتسجّل الصالح تحصيلاً/استرداداً على شوبيفاي. الصف المخالف مايتسجّلش ويظهر سببه في الجدول. التسجيل على <strong>الإجمالي بدون شحن</strong>.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>الخزنة:</strong> الصف بيتسجّل في السجل بـ<code>courierCollect = Net Value</code> (اللي بوسطة حوّلته بعد رسومها)، والـ Cash-out كله جلسة واحدة (<code>bosta-&lt;Cash-out ID&gt;</code>) بتظهر «ناقصة» في الخزنة لحد ما كل الصفوف تتسجّل. شحنات «بدون تحصيل» (ملغي · استبدال بلا فرق) بتتسجّل كمان لرسومها.</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span>إعادة رفع نفس الملف آمنة — الصف المسجّل بيظهر «مسجّل سابقًا» ومابيتكررش. الأوردر المسجّل مسبقًا بيتعلّم 📋 بس (PRE_REG_KV ما اتلمسش). يتطلب Worker <code>3.11.0</code> — <strong>انشره قبل الصفحة</strong>.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block old">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.76.0</span>
           <span class="cl-ver-date">03-11-2026</span>
         </div>
         <ul class="cl-items">
@@ -1385,6 +1498,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li>لو فيه أكتر من مندوب في نفس الدفعة، الأداة بتمنع الدفع لحد ما يبقى مندوب واحد فقط.</li>
             <li>إدخال طرق الدفع (نقدي / انستاباي / محفظة) لحد ما المجموع يطابق صافي التحصيل المطلوب.</li>
             <li>تأكيد العملية — الأداة بتنفّذ <code>pay</code> لكل أوردر تحصيل و<code>refund</code> لكل أوردر استرداد بالتتابع، وتسجّل الكل في D1 تحت نفس الـ <code>batchId</code>.</li>
+            <li><strong>🚚 تاب «تحصيل بوسطة»:</strong> ارفع ملف Cash Cycles (شيت واحد باسمه، Cash-out ID وPaid At موحّدين) ← الأداة تفحص كل صف عبر الـ Worker (<code>bostaValidate</code>) ← سجّل الصالح (<code>bostaPay</code>). التسجيل على الإجمالي COD+Online بدون شحن، والخزنة بتتوقع Net Value (<code>extra.courierCollect</code>) والجلسة ناقصة لحد اكتمال الـ Cash-out. إعادة رفع الملف آمنة (فحص D1 بـ Cash-out ID + رقم التتبع).</li>
             <li>مراجعة العمليات السابقة من تاب "سجل العمليات" — <strong>فلتر في رأس كل عمود</strong> (قمع ▽: التاريخ · النوع · المندوب · الموظف · رقم الأوردر) وchips للفلاتر المفعّلة تحت صف «النتائج»، وجدول جلسات قابل للتوسيع لكل أوردر ولكل SKU جواه. «النتائج» = عدد الجلسات في الصفحة «(من N عملية مطابقة)». الترتيب بالضغط على العنوان <strong>على الصفحة الحالية (١٠٠ عملية) بس</strong>، وعرض الأعمدة بالسحب (دبل كليك = ضبط) ومحفوظ على جهازك.</li>
           </ol>
 
@@ -1656,8 +1770,10 @@ let currentTab = 'scan';
 function switchMainTab(tab) {
   currentTab = tab;
   $('tabScan').classList.toggle('active', tab === 'scan');
+  $('tabBosta').classList.toggle('active', tab === 'bosta');
   $('tabLog').classList.toggle('active', tab === 'log');
   $('panelScan').classList.toggle('active', tab === 'scan');
+  $('panelBosta').classList.toggle('active', tab === 'bosta');
   $('panelLog').classList.toggle('active', tab === 'log');
   if (tab === 'scan') refocus();
   if (tab === 'log' && !logLoaded) fetchLog();
@@ -4245,6 +4361,8 @@ function groupRowsIntoSessions(rows, view) {
         pmScope: extra.pmScope || 'session',
         sessionPaymentMethods: extra.sessionPaymentMethods || extra.paymentMethods || {},
         batchExpected: extra.batchExpected || null,
+        // 🆕 v1.77.0 — جلسة تحصيل بوسطة (extra.source) — Net Value هو اللي الخزنة بتتوقعه
+        isBosta: extra.source === 'bosta_cash_cycle', cashOutId: extra.cashOutId || null,
         firstRowMethods: extra.paymentMethods || {},
         pmSum: { cash: 0, instapay: 0, wallet: 0 },
         accSum: { instapay: {}, wallet: {} },
@@ -4463,9 +4581,9 @@ function renderLog(entries) {
       const subId = `logsub-${gi}-${ri}`;
       return `<tr class="log-order-row ${hasSub ? 'has-sub' : ''}" ${hasSub ? `onclick="toggleLogSub('${subId}', this)"` : ''}>
           <td>${orderLink(e.order_name || e.order_id, e.order_id)}${hasSub ? '<span class="lo-arrow">▶</span>' : ''}</td>
-          <td>${orderTypeLbl}${x.preRegistered ? ' <span style="color:var(--purple);font-size:10px">📋</span>' : ''}</td>
+          <td>${x.source === 'bosta_cash_cycle' ? `<span class="bx-slot">${esc(x.slot || '')}</span> ${x.noCollection ? '<small>بدون تحصيل</small>' : ''}` : orderTypeLbl}${x.preRegistered ? ' <span style="color:var(--purple);font-size:10px">📋</span>' : ''}</td>
           <td style="color:${isRefund?'var(--red)':'var(--green)'};font-family:var(--font-mono);font-weight:700">${isRefund?'−':''}${fmt(amt)}</td>
-          <td>${esc(e.notes) || '—'}</td>
+          <td>${esc(e.notes) || '—'}${x.source === 'bosta_cash_cycle' ? `<br><small style="font-family:var(--font-mono);direction:ltr;display:inline-block">Net ${fmtSigned(parseFloat(x.netValue) || 0)} · تتبع ${esc(x.trackingNumber || '')}</small>` : ''}</td>
         </tr>
         ${hasSub ? `<tr class="log-sub-row hidden" id="${subId}"><td colspan="4"><div class="log-sub-inner"><table class="log-detail-tbl">
             <thead><tr><th>SKU</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
@@ -4505,7 +4623,7 @@ function renderLog(entries) {
       <td>${formatDate(g.timestamp)}</td>
       <td>${formatTimeOnly(g.timestamp)}</td>
       <td>${typeTag}</td>
-      <td>${g.courier ? `<span class="log-tag cr">🛵 ${esc(g.courier)}</span>` : '—'}</td>
+      <td>${g.courier ? `<span class="log-tag cr">🛵 ${esc(g.courier)}</span>` : '—'}${g.isBosta && g.cashOutId ? ` <span class="log-tag bx-co" title="Cash-out ID">${esc(g.cashOutId)}</span>` : ''}</td>
       <td>${(g.employeeDisplayName || g.employee) ? `<span class="log-tag emp">👤 ${esc((g.employeeDisplayName || g.employee).replace(/_/g,' '))}</span>` : '—'}</td>
       <td>${g.rows.length.toLocaleString('en-US')}${g.shortfall ? `<span class="log-miss" title="جلسة ناقصة">⚠ ${g.shortfall.orders > 0 ? '−'+g.shortfall.orders : 'فرق'}</span>` : ''}</td>
       <td style="color:var(--green);font-family:var(--font-mono);font-weight:700">${g.totalAmount ? fmt(g.totalAmount) : '—'}</td>
@@ -4517,7 +4635,11 @@ function renderLog(entries) {
     <tr class="log-detail-row" id="lbd-${gi}" style="display:none">
       <td colspan="12">
         <div class="log-detail-inner">
-          ${g.shortfall ? `<div class="log-miss-banner">⛔ <strong>جلسة ناقصة.</strong>
+          ${g.shortfall && g.isBosta ? `<div class="log-miss-banner">⛔ <strong>Cash-out ناقص.</strong>
+            الملف فيه <strong>${Number(g.batchExpected.orders).toLocaleString('en-US')}</strong> صف بصافي (Net Value) <strong>${fmtSigned(parseFloat(g.batchExpected.collect))}</strong> جنيه،
+            والمسجّل <strong>${g.rows.length.toLocaleString('en-US')}</strong> صف بصافي <strong>${fmtSigned(g.actualCollect)}</strong> جنيه.
+            الصفوف الباقية لسه ما اتسجّلتش (أخطاء في الملف أو انقطاع) — ارفع الملف تاني من تاب «تحصيل بوسطة». <strong>موظف الخزنة ما يأكّدش الجلسة قبل ما تكتمل.</strong></div>` : ''}
+          ${g.shortfall && !g.isBosta ? `<div class="log-miss-banner">⛔ <strong>جلسة ناقصة.</strong>
             الجلسة اتحققت على <strong>${Number(g.batchExpected.orders).toLocaleString('en-US')}</strong> أوردر بقيمة تحصيل
             <strong>${fmtSigned(parseFloat(g.batchExpected.collect))}</strong> جنيه، والمسجّل فعلاً
             <strong>${g.rows.length.toLocaleString('en-US')}</strong> أوردر بقيمة <strong>${fmtSigned(g.actualCollect)}</strong> جنيه —
@@ -5150,4 +5272,340 @@ payBuild();               // خانات طرق الدفع (§PAY-TILES)
 courierLoadList();        // شريط المناديب (§COURIER-STRIP) — محميّ جوّاه بـ isConfigured()
 
 // ⛔ `loadEmployeesList()` اتشالت مع شاشة الدخول — كانت بتملا قايمة الدخول.
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// §BOSTA-JS — تاب «تحصيل بوسطة» (v1.77.0 · طلب أحمد 04-11-2026)
+// ══════════════════════════════════════════════════════════════
+// الفكرة: الموظف بيرفع ملف «Cash Cycles» اللي بوسطة بتبعته مع كل تحويل، والأداة:
+//   ١) تقرا الملف (ExcelJS) وتفحص قواعد **الملف كله** (شيت واحد باسمه · Cash-out ID وPaid At موحّدين · الهيدر).
+//   ٢) تبعت الصفوف للـ Worker (`bostaValidate` · ١٥ صف في النداء) — هو اللي بيحكم صف صف (شوبيفاي + D1).
+//   ٣) صف مخالف = مايتسجّلش ويتعرض سببه في الجدول؛ باقي الصفوف عادي.
+//   ٤) «سجّل» = `bostaPay` صف ورا صف (المتوقع يتعاد فحصه لحظة الكتابة).
+// 🔴 على شوبيفاي: الإجمالي (COD + Online) == المستحق بالقرش. ⛔ أي رسوم شحن مابتتحسبش.
+// 🔴 في الخزنة: الرقم الفعلي = Net Value (بعد رسوم بوسطة) — الـ Worker بيكتبه في `extra.courierCollect`.
+// 🔴 الجلسة في الخزنة = كل صفوف الـ Cash-out، فبتفضل «ناقصة» لحد ما كل الصفوف تتسجّل — الخزنة ما تأكّدش قبلها.
+// ⚠️ إعادة رفع نفس الملف آمنة: الصف المسجّل بيرجع «مسجّل سابقًا» ومابيتكتبش تاني (فحص D1 بـ Cash-out ID + رقم التتبع).
+// ⛔ مفيش لمس لـ PRE_REG_KV — الأوردر المسجّل مسبقًا بيتعلّم 📋 بس (بند 14).
+const BX_SHEET = 'Cash Cycles';
+const BX_COLS = ['Business ID', 'Order Id', 'Order Type', 'Order Status', 'Order Reference', 'COD', 'Online Payment Amount',
+  'Total Fees', 'Flex Ship Amount', 'Net Value', 'Payment Status', 'Paid At', 'Cash-out ID'];
+const BX_CHUNK = 15, BX_PAR = 2;
+const BX = { phase: 'idle', fileName: '', ctx: null, rows: [], busy: false, seq: 0, fileErrors: [], enhanced: false };
+window.__bxBusy = false;
+
+const bxP = v => { if (v === null || v === undefined || v === '') return null; const n = Number(String(v).replace(/,/g, '').trim()); return Number.isFinite(n) ? Math.round(n * 100) : null; };
+const bxM = p => p === null || p === undefined ? '—' : fmtSigned(p / 100);
+const bxDate = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : (s || '—'); };
+
+// ── قراءة الملف ──────────────────────────────────────────────
+function bxCell(v) {
+  if (v === null || v === undefined) return '';
+  if (v instanceof Date) return v;
+  if (typeof v === 'object') {
+    if ('result' in v) return bxCell(v.result);
+    if (Array.isArray(v.richText)) return v.richText.map(t => t.text).join('');
+    if ('text' in v) return String(v.text);
+    return String(v);
+  }
+  return v;
+}
+function bxDateStr(v) {
+  if (v instanceof Date && !isNaN(v)) return v.toISOString().slice(0, 10);
+  const s = String(v || '').trim();
+  let m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s); if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s); if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  return '';
+}
+const bxMoney = v => (v instanceof Date) ? '' : (typeof v === 'number' ? v : String(v ?? '').trim());
+
+async function bxParse(file) {
+  const errs = [];
+  if (typeof ExcelJS === 'undefined') return { errs: ['مكتبة قراءة الإكسيل ما اتحمّلتش — راجع الاتصال وحدّث الصفحة'] };
+  if (!/\.xlsx$/i.test(file.name)) return { errs: ['الملف لازم يكون .xlsx'] };
+  if (file.size > 15 * 1024 * 1024) return { errs: ['الملف أكبر من 15 ميجا'] };
+  const wb = new ExcelJS.Workbook();
+  try { await wb.xlsx.load(await file.arrayBuffer()); } catch (e) { return { errs: ['الملف ما اتفتحش — مش xlsx سليم'] }; }
+  const names = wb.worksheets.map(w => w.name);
+  if (names.length !== 1) errs.push(`الملف لازم يكون فيه شيت واحد بس — لقينا ${names.length}: ${names.map(n => '«' + n + '»').join('، ')}`);
+  if (!names.includes(BX_SHEET)) { errs.push(`مفيش شيت اسمه «${BX_SHEET}»`); return { errs }; }
+  const ws = wb.getWorksheet(BX_SHEET);
+  const head = {};
+  ws.getRow(1).eachCell({ includeEmpty: false }, (c, i) => { head[String(bxCell(c.value)).trim()] = i; });
+  const missing = BX_COLS.filter(h => !head[h]);
+  if (missing.length) { errs.push(`أعمدة ناقصة في الشيت: ${missing.join('، ')}`); return { errs }; }
+  const rows = [];
+  ws.eachRow({ includeEmpty: false }, (row, n) => {
+    if (n === 1) return;
+    const g = h => bxCell(row.getCell(head[h]).value);
+    const vals = BX_COLS.map(g);
+    if (vals.every(v => v === '' || v === null)) return;
+    rows.push({
+      rowNo: n, trackingNumber: String(g('Order Id')).trim(), orderRef: String(g('Order Reference')).trim(),
+      orderType: String(g('Order Type')).trim(), orderStatus: String(g('Order Status')).trim(),
+      businessId: String(g('Business ID')).trim(), paymentStatus: String(g('Payment Status')).trim(),
+      cashOutId: String(g('Cash-out ID')).trim(), paidAt: bxDateStr(g('Paid At')),
+      cod: bxMoney(g('COD')), online: bxMoney(g('Online Payment Amount')), netValue: bxMoney(g('Net Value')),
+      totalFees: bxMoney(g('Total Fees')), flexShipAmount: bxMoney(g('Flex Ship Amount')),
+    });
+  });
+  if (!rows.length) errs.push('الشيت مفيهوش صفوف');
+  // 🔴 قواعد الملف: قيمة واحدة بالظبط (غير كده ملف مخلوط ← الملف كله يقف)
+  const uniq = (key, label) => {
+    const m = new Map(); rows.forEach(r => m.set(r[key], (m.get(r[key]) || 0) + 1));
+    if (m.size > 1) errs.push(`${label} مش موحّد في الملف: ${[...m].map(([v, c]) => `«${v || 'فاضي'}» (${c} صف)`).join(' · ')}`);
+    else if (rows.length && ![...m.keys()][0]) errs.push(`${label} فاضي`);
+  };
+  if (rows.length) { uniq('cashOutId', 'Cash-out ID'); uniq('paidAt', 'Paid At'); }
+  return { errs, rows };
+}
+
+// ── الحالة ───────────────────────────────────────────────────
+function bxMakeRows(parsed) {
+  const seenT = new Map(), seenR = new Map();
+  return parsed.map(raw => {
+    const slot = String(raw.orderType).toUpperCase() === 'SEND' ? 'S1' : 'S2';
+    const cod = bxP(raw.cod), onl = bxP(raw.online);
+    const r = { raw, rowNo: raw.rowNo, slot, grossP: (cod !== null && onl !== null) ? cod + onl : null, netP: bxP(raw.netValue),
+      status: 'pending', reasons: [], res: null, orderId: null, orderName: null, shopify: null, pre: null };
+    const rk = String(raw.orderRef).replace(/^#/, '') + '|' + slot;
+    if (raw.trackingNumber && seenT.has(raw.trackingNumber)) { r.status = 'error'; r.reasons.push(`رقم التتبع متكرر في الملف (الصف ${seenT.get(raw.trackingNumber)})`); }
+    else if (raw.orderRef && seenR.has(rk)) { r.status = 'error'; r.reasons.push(`نفس الأوردر (${slot}) متكرر في الملف (الصف ${seenR.get(rk)})`); }
+    if (raw.trackingNumber && !seenT.has(raw.trackingNumber)) seenT.set(raw.trackingNumber, raw.rowNo);
+    if (raw.orderRef && !seenR.has(rk)) seenR.set(rk, raw.rowNo);
+    return r;
+  });
+}
+function bxMakeCtx(rows) {
+  const first = rows[0].raw;
+  return {
+    cashOutId: first.cashOutId, paidAt: first.paidAt, rowsTotal: rows.length,
+    netTotal: (rows.reduce((s, r) => s + (r.netP || 0), 0) / 100).toFixed(2),
+    payOrders: rows.filter(r => r.grossP !== null && r.grossP >= 0).length,
+    refundOrders: rows.filter(r => r.grossP !== null && r.grossP < 0).length,
+  };
+}
+const bxIs = (...st) => r => st.includes(r.status);
+const bxSum = (rows, f) => rows.reduce((s, r) => s + f(r), 0);
+
+// ── الفحص عبر الـ Worker ─────────────────────────────────────
+async function bxValidate(list) {
+  const seq = BX.seq;
+  BX.phase = 'checking';
+  list.forEach(r => { if (!(r.status === 'error' && r.res === null)) { r.status = 'checking'; r.reasons = []; r.warn = null; } });   // أخطاء الملف المحلية (تكرار) بتفضل
+  bxRender();
+  const todo = list.filter(r => r.status === 'checking');
+  const chunks = []; for (let i = 0; i < todo.length; i += BX_CHUNK) chunks.push(todo.slice(i, i + BX_CHUNK));
+  let done = 0, next = 0;
+  const total = todo.length;
+  bxProgress(total ? 0 : 100);
+  const worker = async () => {
+    while (next < chunks.length) {
+      const ch = chunks[next++];
+      try {
+        const d = await apiPostLegacy('bostaValidate', { rows: ch.map(r => r.raw), ctx: BX.ctx });
+        if (seq !== BX.seq) return;
+        if (!d || !Array.isArray(d.results) || d.results.length !== ch.length) throw new Error((d && d.error) || 'رد غير متوقع من الـ Worker');
+        d.results.forEach((res, i) => bxApply(ch[i], res));
+      } catch (e) {
+        if (seq !== BX.seq) return;
+        ch.forEach(r => { r.status = 'unknown'; r.reasons = [`تعذّر الفحص: ${e.message || 'خطأ في الاتصال'} — اضغط «إعادة فحص الملف»`]; });
+      }
+      done += ch.length; bxProgress(done / total * 100); bxRender();
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(BX_PAR, chunks.length) }, worker));
+  if (seq !== BX.seq) return;
+  BX.phase = 'ready'; bxProgress(null); bxRender();
+}
+function bxApply(r, res) {
+  r.res = res; r.status = res.status; r.reasons = res.reasons || [];
+  r.orderId = res.orderId; r.orderName = res.orderName; r.shopify = res.shopify; r.pre = res.preRegistered;
+  if (res.status === 'done') r.reasons = r.reasons.length ? r.reasons : ['اتسجّل قبل كده'];
+}
+function bxProgress(pct) {
+  const w = $('bxProgress'), b = $('bxProgressBar');
+  if (pct === null) { w.classList.remove('show'); return; }
+  w.classList.add('show'); b.style.width = Math.max(2, Math.min(100, pct)) + '%';
+}
+
+// ── الرسم ────────────────────────────────────────────────────
+const BX_ST = {
+  pending: ['wait', '⏳ في الانتظار'], checking: ['wait', '⏳ بيتفحص'], ready: ['ready', '✅ جاهز'], ready_zero: ['zero', '✅ جاهز — بدون تحصيل'],
+  done: ['done', '🟣 مسجّل سابقًا'], error: ['error', '⛔ خطأ'], unknown: ['warn', '⚠ تعذّر'], running: ['wait', '⏳ بيتسجّل'],
+  registered: ['ready', '✔ تم التسجيل'], failed: ['error', '⛔ فشل التسجيل'],
+};
+function bxRowHtml(r, i) {
+  const [cls, lbl] = BX_ST[r.status] || BX_ST.pending;
+  const name = r.orderName || (r.raw.orderRef ? (String(r.raw.orderRef).startsWith('#') ? r.raw.orderRef : '#' + r.raw.orderRef) : '—');
+  const gross = r.grossP === null ? '—' : `<span class="${r.grossP < 0 ? 'bx-neg' : ''}">${bxM(r.grossP)}</span>`;
+  const net = r.netP === null ? '—' : `<span class="${r.netP < 0 ? 'bx-neg' : ''}">${bxM(r.netP)}</span>`;
+  const why = r.reasons.length ? r.reasons.map(esc).join('<br>') : (r.status === 'ready_zero' ? 'مفيش تحصيل على شوبيفاي — هيتسجّل لرسوم بوسطة (Net Value)' : '');
+  return `<tr class="bx-${r.status}" data-i="${i}">
+    <td class="col-ltr">${r.rowNo}</td>
+    <td>${r.orderId ? orderLink(name, r.orderId) : esc(name)}${r.pre ? '<span class="bx-pre" title="مسجّل مسبقًا (PRE_REG_KV) — ما اتلمسش">📋</span>' : ''}</td>
+    <td class="col-ltr">${esc(r.raw.trackingNumber || '—')}</td>
+    <td class="col-center"><span class="bx-slot">${r.slot}</span> <small>${esc(r.raw.orderType || '')}</small></td>
+    <td class="col-ltr">${gross}</td>
+    <td class="col-ltr">${r.shopify === null || r.shopify === undefined ? '—' : bxM(bxP(r.shopify))}</td>
+    <td class="col-ltr">${net}</td>
+    <td class="col-center"><span class="bx-badge ${cls}">${lbl}</span></td>
+    <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}</td>
+  </tr>`;
+}
+function bxRender() {
+  const rows = BX.rows, has = rows.length > 0;
+  $('bxTableWrap').classList.toggle('show', has);
+  $('bxSum').classList.toggle('show', has);
+  $('bxBar').classList.toggle('show', has);
+  $('bxBody').innerHTML = rows.map(bxRowHtml).join('');
+  if (has && !BX.enhanced && typeof ecoTblEnhance === 'function') { try { ecoTblEnhance($('bxTable')); BX.enhanced = true; } catch (e) { /* الفلاتر تحسين مش شرط */ } }
+  const reg = rows.filter(bxIs('ready', 'ready_zero')), err = rows.filter(bxIs('error', 'failed')), unk = rows.filter(bxIs('unknown', 'pending', 'checking'));
+  const done = rows.filter(bxIs('done', 'registered'));
+  const card = (cls, k, v) => `<div class="bx-card ${cls}"><small>${k}</small><b>${v}</b></div>`;
+  if (has) {
+    const c = BX.ctx;
+    $('bxSum').innerHTML =
+      card('', 'Cash-out ID', esc(c.cashOutId)) + card('', 'تاريخ الدفع', bxDate(c.paidAt)) + card('', 'صفوف الملف', rows.length) +
+      card('ok', 'جاهز للتسجيل', reg.length) + card('pur', 'مسجّل', done.length) + card('err', 'أخطاء', err.length) +
+      (unk.length ? card('', 'لسه/تعذّر', unk.length) : '') +
+      card('info', 'إجمالي COD+Online', bxM(bxSum(rows, r => r.grossP || 0))) +
+      card('info', 'Net Value للملف', bxM(bxP(c.netTotal))) +
+      card('pur', 'Net المسجّل', bxM(bxSum(done, r => r.netP || 0)));
+  }
+  const checking = BX.phase === 'checking' || BX.phase === 'parsing';
+  const run = $('bxRun');
+  const canRun = has && !checking && !BX.busy && reg.length > 0 && isConfigured();
+  run.disabled = !canRun;
+  run.textContent = reg.length ? `💵 سجّل ${reg.length} أوردر (Net ${bxM(bxSum(reg, r => r.netP || 0))} ج)` : '💵 مفيش صفوف جاهزة للتسجيل';
+  $('bxRecheck').disabled = !has || checking || BX.busy;
+  $('bxNew').disabled = BX.busy;
+  $('bxDrop').classList.toggle('busy', BX.busy || checking);
+  const hint = $('bxHint'); let t = '', e = false;
+  if (!isConfigured()) { t = 'الأداة غير مضبوطة — افتح الإعدادات'; e = true; }
+  else if (checking) t = 'بيتفحص الملف على شوبيفاي…';
+  else if (has && !reg.length && !err.length && !unk.length) t = 'كل صفوف الملف اتسجّلت ✔';
+  else if (err.length) t = `${err.length} صف فيهم خطأ مش هيتسجّلوا — الجلسة هتفضل ناقصة في الخزنة لحد ما يتصلّحوا`;
+  hint.textContent = t; hint.classList.toggle('err', e);
+  $('bxNotConfig').classList.toggle('show', !isConfigured());
+}
+function bxRowUpdate(i) {
+  const tr = $('bxBody').querySelector(`tr[data-i="${i}"]`);
+  if (tr) tr.outerHTML = bxRowHtml(BX.rows[i], i);
+}
+function bxShowFileErr(errs) {
+  const el = $('bxFileErr');
+  el.innerHTML = errs.length ? `⛔ <b>الملف مرفوض — مفيش حاجة اتسجّلت</b><ul>${errs.map(e => `<li>${esc(e)}</li>`).join('')}</ul>` : '';
+  el.classList.toggle('show', errs.length > 0);
+}
+function bxResetAll() {
+  BX.seq++; BX.phase = 'idle'; BX.rows = []; BX.ctx = null; BX.fileName = ''; BX.busy = false; window.__bxBusy = false;
+  bxShowFileErr([]); bxProgress(null); $('bxResult').className = 'result-box'; $('bxFile').value = '';
+  bxRender();
+}
+
+// ── رفع الملف ────────────────────────────────────────────────
+async function bxLoad(file) {
+  if (!file || BX.busy || BX.phase === 'checking') return;
+  if (!isConfigured()) { showToast('الأداة غير مضبوطة', 'error'); return; }
+  bxResetAll();
+  const seq = BX.seq; BX.phase = 'parsing'; BX.fileName = file.name;
+  const p = await bxParse(file);
+  if (seq !== BX.seq) return;
+  if (p.errs && p.errs.length) { BX.phase = 'idle'; bxShowFileErr(p.errs); playBeep('error'); bxRender(); return; }
+  BX.rows = bxMakeRows(p.rows); BX.ctx = bxMakeCtx(BX.rows);
+  await bxValidate(BX.rows);
+}
+
+// ── التسجيل ──────────────────────────────────────────────────
+function bxAskRun() {
+  const reg = BX.rows.filter(bxIs('ready', 'ready_zero'));
+  if (!reg.length || BX.busy) return;
+  const pay = reg.filter(r => r.status === 'ready' && r.grossP > 0), ref = reg.filter(r => r.status === 'ready' && r.grossP < 0), zero = reg.filter(r => r.status === 'ready_zero');
+  const err = BX.rows.filter(bxIs('error', 'failed', 'unknown'));
+  const row = (k, v, cls = '') => `<div class="confirm-detail-row"><span class="confirm-detail-label">${k}</span><span class="confirm-detail-val ${cls}">${v}</span></div>`;
+  const body = `
+    ${row('Cash-out', esc(BX.ctx.cashOutId))}${row('تاريخ الدفع', bxDate(BX.ctx.paidAt))}
+    ${pay.length ? row(`تحصيل على شوبيفاي (${pay.length})`, bxM(bxSum(pay, r => r.grossP)) + ' ج', 'green') : ''}
+    ${ref.length ? row(`استرداد على شوبيفاي (${ref.length})`, bxM(bxSum(ref, r => r.grossP)) + ' ج', 'red') : ''}
+    ${zero.length ? row(`بدون تحصيل — رسوم بوسطة فقط (${zero.length})`, 'مفيش حركة على شوبيفاي') : ''}
+    <div style="background:var(--green-light);border:2px solid var(--green-border);border-radius:var(--radius-sm);padding:8px 14px;margin:6px 0;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:13px;font-weight:700">Net Value (اللي هتتوقعه الخزنة)</span>
+      <span style="font-family:var(--font-mono);font-size:18px;font-weight:800;direction:ltr">${bxM(bxSum(reg, r => r.netP || 0))}</span></div>
+    ${err.length ? `<div class="confirm-warning" style="background:var(--amber-light);border-color:var(--amber-border)"><span class="confirm-warning-icon">⚠️</span>
+      <div><div class="confirm-warning-title">${err.length} صف مش هيتسجّل</div>
+      <div class="confirm-warning-text">الجلسة هتفضل <b>ناقصة</b> في الخزنة — موظف الخزنة ما يأكّدش قبل ما كل صفوف الـ Cash-out تتسجّل.</div></div></div>` : ''}
+    <div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span>
+      <div><div class="confirm-warning-title">تحذير — لا يمكن التراجع</div>
+      <div class="confirm-warning-text">التحصيل والاسترداد بيتسجّلوا فعليًا على شوبيفاي. راجع الأرقام قبل التأكيد.</div></div></div>`;
+  openConfirm('✅ تأكيد تسجيل تحصيل بوسطة', body, `تأكيد وتسجيل ${reg.length} أوردر`, 'green-btn', bxRun);
+}
+async function bxRun() {
+  const seq = BX.seq;
+  const idx = BX.rows.map((r, i) => i).filter(i => bxIs('ready', 'ready_zero')(BX.rows[i]));
+  if (!idx.length || BX.busy) return;
+  BX.busy = true; window.__bxBusy = true; $('bxResult').className = 'result-box';
+  bxRender();
+  const emp = currentEmployee ? currentEmployee.username : null;
+  let ok = 0, already = 0, fail = 0, unlogged = 0, stopped = null, n = 0;
+  for (const i of idx) {
+    if (seq !== BX.seq) break;
+    const r = BX.rows[i]; r.status = 'running'; r.reasons = []; bxRowUpdate(i);
+    let d;
+    try { d = await apiPostLegacy('bostaPay', { row: r.raw, ctx: BX.ctx, employee: emp }); }
+    catch (e) {
+      // 🔴 انقطاع/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — الكتابة ممكن تكون تمّت. نقف.
+      r.status = 'unknown'; r.reasons = ['ما اتأكدناش إن التسجيل تم (انقطع الاتصال) — أعد رفع الملف: الصف اللي اتسجّل هيظهر «مسجّل سابقًا»'];
+      stopped = `${r.orderName || r.raw.orderRef}: ${e.message || 'انقطع الاتصال'}`; bxRowUpdate(i); break;
+    }
+    if (d && d.success) {
+      if (d.status === 'already') { r.status = 'done'; r.reasons = ['اتسجّل قبل كده']; already++; }
+      else { r.status = 'registered'; r.reasons = d.actions || []; ok++; }
+      if (d.logged === false) { unlogged++; r.warn = `اتنفّذ على شوبيفاي لكن ما اتسجّلش في السجل${d.logError ? ' (' + d.logError + ')' : ''}`; }
+    } else { r.status = 'failed'; r.reasons = [(d && d.error) || 'فشل']; fail++; }
+    n++; bxProgress(n / idx.length * 100); bxRowUpdate(i);
+  }
+  BX.busy = false; window.__bxBusy = false; bxProgress(null);
+  if (seq !== BX.seq) return;
+  bxRender();
+  const left = BX.rows.filter(bxIs('error', 'failed', 'unknown', 'ready', 'ready_zero')).length;
+  const parts = []; if (ok) parts.push(`✅ اتسجّل ${ok}`); if (already) parts.push(`🟣 سبق تسجيله ${already}`); if (fail) parts.push(`⛔ فشل ${fail}`);
+  const box = $('bxResult');
+  if (stopped) {
+    playBeep('error');
+    box.className = 'result-box show-error'; $('bxResultTitle').textContent = '⛔ التسجيل وقف — مش متأكدين من آخر صف';
+    $('bxResultDetail').textContent = `${stopped}. ${parts.join(' — ')}. أعد رفع نفس الملف: اللي اتسجّل هيظهر «مسجّل سابقًا» ومش هيتكرر.`;
+    openAlert('⛔ التسجيل وقف', `<div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span><div><div class="confirm-warning-title">انقطع الاتصال أثناء التسجيل</div><div class="confirm-warning-text">آخر صف مش متأكد إنه اتسجّل. <b>أعد رفع نفس الملف</b> — الأداة مش هتكرر أي صف اتسجّل.</div></div></div>`, 'تمام', 'green-btn');
+  } else if (fail || unlogged || left) {
+    playBeep('error');
+    box.className = 'result-box show-warn'; $('bxResultTitle').textContent = `⚠ تم جزئيًا — ${parts.join(' — ')}`;
+    $('bxResultDetail').textContent = `باقي ${left} صف مش متسجّل — الجلسة ناقصة في الخزنة، وموظف الخزنة ما يأكّدش قبل الاكتمال.` + (unlogged ? ` ${unlogged} صف اتنفّذ على شوبيفاي لكن ما اتسجّلش في السجل.` : '');
+  } else {
+    playBeep('success');
+    box.className = 'result-box show-success'; $('bxResultTitle').textContent = `✅ الـ Cash-out اتسجّل كامل — ${parts.join(' — ')}`;
+    $('bxResultDetail').textContent = `الجلسة كاملة في الخزنة (${BX.ctx.rowsTotal} صف · Net ${bxM(bxP(BX.ctx.netTotal))} ج) وجاهزة للتأكيد.`;
+  }
+  logLoaded = false;
+}
+
+// ── ربط الأحداث ──────────────────────────────────────────────
+(function bxInit() {
+  const drop = $('bxDrop'), inp = $('bxFile');
+  inp.addEventListener('change', () => { const f = inp.files && inp.files[0]; inp.value = ''; if (f) bxLoad(f); });
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) bxLoad(f); });
+  drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inp.click(); } });
+  drop.addEventListener('click', e => { if (BX.busy || BX.phase === 'checking') e.preventDefault(); });
+  $('bxRun').addEventListener('click', bxAskRun);
+  $('bxNew').addEventListener('click', () => { if (!BX.busy) bxResetAll(); });
+  $('bxRecheck').addEventListener('click', () => {
+    if (BX.busy || BX.phase === 'checking' || !BX.rows.length) return;
+    $('bxResult').className = 'result-box';
+    BX.seq++; bxValidate(BX.rows);
+  });
+  window.addEventListener('beforeunload', e => { if (BX.busy) { e.preventDefault(); e.returnValue = ''; } });
+  bxRender();
+})();
 </script>

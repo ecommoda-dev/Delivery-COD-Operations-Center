@@ -140,7 +140,9 @@ const ECO_WORKERS = {
   //    وعلى `extra.paymentMethods` غير السالبة. على Worker أقدم: الأوردر بلا `orderKind` فالتسمية بتفضل **محايدة**
   //    («استرجاع جزئي / استبدال») بدل الدقيقة، وطرق الدفع الجديدة ممكن تتخزّن بإشارة الموظف (العرض بيتحمّل الاتنين).
   //    **انشر الـ Worker قبل الصفحة.**
-  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.10.0', label: 'تحصيل الأوردرات COD' },
+  // 🔴 `codPayment.min = '3.11.0'` (04-11-2026) — تاب «تحصيل بوسطة» بينادي `bostaValidate`/`bostaPay`. على Worker أقدم النداء بيرجّع
+  //    «action غير معروف» (400) فالتاب مابيشتغلش — فالحارس بيسمّي الأداة والنسخة. **انشر الـ Worker قبل الصفحة.**
+  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.11.0', label: 'تحصيل الأوردرات COD' },
 
   // 🔴 **التسليم الجزئي (v1.10.0) — تالت أداة مدموجة، وأول واحدة من غير
   //    رابط قديم شغّال.** الأداتين اللي فوق (`orderStatus`/`codPayment`)
@@ -235,7 +237,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.76.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.77.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
@@ -323,6 +325,7 @@ const ECO_HUB = {
     if (typeof uploadRunning !== 'undefined' && uploadRunning) return true;  // Bosta-Orders-Upload
     if (typeof cnBusy !== 'undefined' && cnBusy) return true;                // Courier-Names
     if (typeof isProcessing !== 'undefined' && isProcessing) return true;    // COD-Payment-Center (pay/refund)
+    if (typeof window !== 'undefined' && window.__bxBusy) return true;      // COD-Payment-Center — تاب تحصيل بوسطة (bostaPay)
     return false;
   },
   secretNote:  "السر المشترك لمجموعة <code>delivery_cod_ops</code> — <b>قيمة واحدة لكل Workers المركز</b>، ومستقلة عن سر محطة المخزن",
