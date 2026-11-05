@@ -223,6 +223,29 @@ const nd = await page.evaluate(() => { payReset(); document.getElementById('pmIn
 is(JSON.stringify(nd) === '{}', 'مجموع انستاباي بلا حسابات ← payAccountTotals فاضية (مش بتخمّن)', JSON.stringify(nd));
 await page.context().close();
 
+console.log('\n══ ⑭ الشحن الإضافي: الإجمالي = البنود المتحقق منها بس (v1.78.0 · جلسة 5f1af2a7) ══');
+({ page, calls, errs } = await open());
+const xs = await page.evaluate(() => {
+  extraEntries = [
+    { id: '1', orderName: '#61774', amount: '75', status: 'ok' },
+    { id: '2', orderName: null, amount: '75', status: 'notfound', error: 'غير موجود' },
+    { id: '3', orderName: null, amount: '75', status: 'error', error: 'خطأ في الاتصال' },
+    { id: '4', orderName: null, amount: '75', status: 'loading' }];
+  const listTotal = extraEntries.filter(e => e.status === 'ok').reduce((a, e) => a + (parseFloat(e.amount) || 0), 0);
+  const r = { total: getTotalExtraShipping(), listTotal, err: getExtraNotOkError(), notOk: getExtraNotOk().length };
+  extraEntries = extraEntries.filter(e => e.status === 'ok');
+  r.after = { total: getTotalExtraShipping(), err: getExtraNotOkError() };
+  extraEntries = [];
+  r.empty = { total: getTotalExtraShipping(), err: getExtraNotOkError() };
+  return r;
+});
+is(xs.total === 75 && xs.total === xs.listTotal, 'الإجمالي = مجموع البنود ok بس (75) — مش 300 زي الأول', JSON.stringify(xs));
+is(xs.notOk === 3 && /3 بند شحن إضافي مش متحقق منه/.test(xs.err || '') && /غير موجود/.test(xs.err) && /خطأ في الاتصال/.test(xs.err), 'رسالة الحظر بتعدّ البنود الـ 3 وبتذكر السبب', xs.err);
+is(xs.after.total === 75 && xs.after.err === null, 'بعد حذف البنود الفاشلة: الإجمالي 75 ومفيش حظر', JSON.stringify(xs.after));
+is(xs.empty.total === 0 && xs.empty.err === null, 'من غير شحن إضافي: صفر ومفيش حظر', JSON.stringify(xs.empty));
+is(errs.length === 0, 'مفيش pageerror', errs.join(' | '));
+await page.context().close();
+
 await browser.close(); server.close();
 console.log(`\n${fail ? '❌' : '✅'} النتيجة: ${pass} عدّى · ${fail} فشل`);
 process.exit(fail ? 1 : 0);
