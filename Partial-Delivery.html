@@ -130,42 +130,98 @@
 .pd-result.already  .badge { color: var(--neutral-dark); }
 .pd-result ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: 12.5px; }
 
-/* ── data table (log tab) ── */
-.unified-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: visible; }
-.section-divider { border-top: 1px solid var(--border); }
-.log-toolbar { display: flex; gap: 10px; padding: 14px; flex-wrap: wrap; align-items: center; }
-.log-toolbar .srch-wrap { position: relative; flex: 1; min-width: 200px; }
-.log-toolbar .srch-wrap input {
-  width: 100%; padding: 9px 12px 9px 34px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-size: 13px;
-}
-.log-toolbar .srch-wrap input.has-value { border-color: var(--accent-border); background: var(--accent-light); }
-.log-toolbar .srch-wrap .ic { position: absolute; right: auto; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-.results-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-top: 1px solid var(--border); font-size: 13px; }
-.results-count { font-weight: 800; font-size: 14px; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 6px; padding: 3px 10px; }
-.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-.data-table th, .data-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: right; }
-.data-table th { background: var(--surface-2); font-weight: 700; border-bottom: 2px solid var(--border); position: sticky; top: 57px; }
+/* ── data table (سجل العمليات) — القسم الموحّد: فلاتر في رأس العمود (Standards #47–#50) ──
+   كارت واحد: صف النتائج ← chips ← الجدول. مفيش قسم فلاتر فوق الجدول. ممنوع overflow:hidden على الكارت. */
+.unified-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; }
+.tbl-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; background: var(--surface-2); border-radius: var(--radius) var(--radius) 0 0; cursor: pointer; user-select: none; transition: background .12s; flex-wrap: wrap; }
+.tbl-bar:hover { background: var(--surface-hover); }
+.tbl-bar-right, .tbl-bar-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tbl-toggle { font-size: 13px; color: var(--text-muted); transition: transform .25s; }
+.tbl-toggle.open { transform: rotate(180deg); }
+.results-wrap { display: flex; align-items: center; gap: 8px; }
+.results-label { font-size: 14px; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
+.results-count { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; height: 34px; padding: 0 10px; font-family: var(--font-mono); font-size: 17px; font-weight: 800; color: var(--purple); background: var(--purple-light); border: 1.5px solid var(--purple-border); border-radius: var(--radius-sm); }
+
+/* «مسح كل الفلاتر» و«مسح الاختيار» (جوّه القوايم) = نفس الكلاس بالظبط */
+.clear-btn { display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: var(--radius-sm); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; height: 34px; border: 1px solid var(--red-border); color: var(--red); background: var(--red-light); }
+.clear-btn:hover { background: var(--red); color: var(--on-accent); border-color: var(--red); }
+.clear-btn.inactive { border-color: var(--border); color: var(--text-muted); background: var(--surface-2); cursor: not-allowed; opacity: .6; }
+.clear-btn.inactive:hover { background: var(--surface-2); color: var(--text-muted); border-color: var(--border); }
+.pop .clear-btn { height: 30px; padding: 4px 10px; }
+
+/* chips — سطر لكل فلتر، واسم الفلتر مرة واحدة في أوله */
+.chips-zone { display: flex; flex-direction: column; gap: 6px; }
+.chips-zone.pad { padding: 10px 16px; border-top: 1px solid var(--border); }
+.chips-zone:empty { display: none; }
+.ms-chips-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chips-label { font-size: 11.5px; font-weight: 700; color: var(--text-mid); white-space: nowrap; }
+.lchip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; border-radius: 14px; background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-dark); font-size: 12px; font-weight: 700; }
+.lchip button { border: none; background: none; color: inherit; cursor: pointer; font-size: 11px; font-weight: 800; padding: 1px 5px; border-radius: 50%; }
+.lchip button:hover { background: var(--accent); color: var(--on-accent); }
+
+/* طي/فتح الجدول بدون سقف ارتفاع ثابت (Standards #46) + سكرول داخلي بعناوين ثابتة (#49) */
+.tbl-body-wrap { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr; transition: grid-template-rows .3s ease; }
+.tbl-body-wrap > * { min-height: 0; }
+.tbl-body-wrap.collapsed { grid-template-rows: 0fr; overflow: hidden; }
+.tbl-body-wrap.collapsed > * { overflow: hidden; }
+.tbl-scroll { max-height: 68vh; overflow: auto; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); border-inline-start: 1px solid var(--border); text-align: center; vertical-align: middle; white-space: normal; overflow-wrap: anywhere; }
+.data-table th:first-child, .data-table td:first-child { border-inline-start: none; }
+.data-table thead th { position: sticky; top: 0; z-index: 20; background: var(--surface-2); font-size: var(--th-size); font-weight: var(--th-weight); color: var(--th-color); border-bottom: none; box-shadow: inset 0 -2px 0 var(--border-strong); }
+.data-table tbody td { font-size: var(--td-size); font-weight: var(--td-weight); color: var(--text-primary); }
+.data-table tbody tr:hover td { background: var(--surface-hover); }
+.data-table td.notes { text-align: right; }
+.th-in { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: center; }
+.th-flt { min-width: 22px; height: 22px; padding: 0 3px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 2px; font-family: inherit; font-size: 10px; font-weight: 800; }
+.th-flt svg { width: 14px; height: 14px; }
+.th-flt:hover { background: var(--accent-light); color: var(--accent); }
+th.flt-on .th-flt { background: var(--accent-light); border-color: var(--accent-border); color: var(--accent); }
 .result-chip { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
 .result-chip.success { background: var(--green-light); color: var(--green-dark); }
 .result-chip.warning  { background: var(--amber-light); color: var(--amber-dark); }
 .result-chip.error    { background: var(--red-light); color: var(--red-dark); }
 .result-chip.rejected, .result-chip.already { background: var(--surface-2); color: var(--neutral-dark); }
-.pagination-row { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; }
+.pagination-row { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border-top: 1px solid var(--border); }
 .page-info { font-size: 13px; color: var(--text-secondary); font-family: var(--font-mono); padding: 0 8px; }
 .page-btn { padding: 6px 14px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
 .page-btn:disabled { opacity: .4; cursor: not-allowed; }
-.export-warn { margin: 0 14px 12px; padding: 10px 14px; border-radius: 9px; background: var(--amber-light); border: 1px solid var(--amber); color: var(--amber-dark); font-size: 13px; font-weight: 600; }
+.export-warn { margin: 12px 14px 0; padding: 10px 14px; border-radius: 9px; background: var(--amber-light); border: 1px solid var(--amber); color: var(--amber-dark); font-size: 13px; font-weight: 600; }
 
-/* ── multi-select filter (compact) ── */
-.ms-wrap { position: relative; }
-.ms-btn { padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: var(--font-body); }
-.ms-btn.active { border-color: var(--accent); color: var(--accent); }
-.ms-list { position: absolute; top: 100%; margin-top: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 400; min-width: 200px; max-height: 260px; overflow-y: auto; display: none; }
-.ms-list.open { display: block; }
-.ms-ftr-top { padding: 8px 10px; border-bottom: 1px solid var(--border); }
-.ms-ftr-top button { font-size: 11.5px; color: var(--red); background: none; border: none; cursor: pointer; font-weight: 700; }
-.ms-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; font-size: 12.5px; cursor: pointer; }
+/* قوايم الفلتر العائمة — position:fixed على body (مش جوّه الجدول) و z-index 200 */
+.pop { position: fixed; z-index: 200; width: 268px; max-height: 72vh; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); box-shadow: 0 8px 24px rgba(0,0,0,.14); }
+.pop.wide { width: 340px; }
+.pop-hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.pop-body { overflow: auto; padding: 8px; }
+.pop-body > .sec + .sec { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 8px; }
+.pop-hint { font-size: 11.5px; color: var(--text-secondary); margin-top: 8px; line-height: 1.7; }
+.pop .srch-wrap { position: relative; margin-bottom: 6px; }
+.pop .srch-wrap .ic { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+.pop .inp { width: 100%; min-width: 0; height: 34px; padding: 0 8px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; font-size: 12.5px; background: var(--surface); }
+.pop .srch-wrap .inp { padding-left: 34px; }
+.pop .inp.has-value { border-color: var(--accent-border); background: var(--accent-light); }
+.ms-ftr-top { display: flex; justify-content: flex-end; padding: 0 2px 6px; }
+.ms-ftr-top button { border: none; background: none; color: var(--accent); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.ms-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
 .ms-item:hover { background: var(--surface-hover); }
+.ms-item input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.pills { display: grid; gap: 5px; }
+.pills.c3 { grid-template-columns: repeat(3, 1fr); }
+.pills.c4 { grid-template-columns: repeat(2, 1fr); }
+.pills.c6 { grid-template-columns: repeat(4, 1fr); }
+.pills button { padding: 6px 4px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--text-primary); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.pills button:hover { background: var(--accent-light); border-color: var(--accent-border); color: var(--accent); }
+.pills button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.yr-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
+.yr-row button { min-width: 30px; height: 28px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--text-primary); font-family: inherit; font-weight: 700; cursor: pointer; }
+.yr-row button:disabled { opacity: .35; cursor: not-allowed; }
+.yr-row button.yr-all { padding: 0 14px; font-family: var(--font-mono); }
+.yr-row button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.rng { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rng > div { min-width: 0; }
+.rng label { display: block; font-size: 11.5px; font-weight: 700; color: var(--text-mid); margin-bottom: 4px; }
+.pop .inp[type="date"] { padding: 0 8px; }
+.tip { position: fixed; z-index: 210; max-width: 300px; background: var(--neutral-dark); color: var(--on-accent); font-size: 12px; font-weight: 600; line-height: 1.7; padding: 6px 10px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.2); pointer-events: none; word-break: break-word; }
 
 /* ── confirm dialog content — الـ shell بيدّي .eco-overlay/.eco-modal بس،
    مالوش نافذة تأكيد خالص، فمحتواها الخاص فاضل هنا ── */
@@ -189,7 +245,7 @@
 <div class="container">
   <div class="main-tabs-bar">
     <button class="main-tab-btn active" id="tabTool" onclick="switchMainTab('tool')">📦 تسليم جزئي</button>
-    <button class="main-tab-btn" id="tabLog" onclick="switchMainTab('log')">🧾 السجل</button>
+    <button class="main-tab-btn" id="tabLog" onclick="switchMainTab('log')">🧾 سجل العمليات</button>
   </div>
 
   <!-- ══════════════ §TOOL ══════════════ -->
@@ -221,43 +277,38 @@
 
   <!-- ══════════════ §LOG ══════════════ -->
   <div id="logTabContent" style="display:none;">
+    <!-- 🔴 القسم الموحّد (Standards #47): كارت واحد — صف النتائج ← chips ← الجدول.
+         الفلاتر في رأس كل عمود (قمع ▽ جنب الاسم) ومفيش شريط فلاتر فوق الجدول. -->
     <div class="unified-section">
-      <div class="log-toolbar">
-        <div class="srch-wrap">
-          <span class="ic">🔍</span>
-          <input type="text" id="logSearch" placeholder="ابحث برقم الأوردر أو الملاحظات">
+      <div class="tbl-bar" onclick="toggleTable()">
+        <div class="tbl-bar-right">
+          <span class="tbl-toggle open" id="tblToggleIcon">▲</span>
+          <div class="results-wrap">
+            <span class="results-label">النتائج:</span>
+            <span class="results-count" id="logResultsCount">—</span>
+          </div>
         </div>
-        <div class="ms-wrap">
-          <button class="ms-btn" id="msBtn-employee" onclick="msToggle('employee')">👤 الموظف</button>
-          <div class="ms-list" id="msList-employee"></div>
+        <div class="tbl-bar-left">
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); exportLogXLSX();">⬇️ تصدير XLSX</button>
+          <button class="clear-btn inactive" id="logClearAll" onclick="event.stopPropagation(); clearAllFilters();">✕ مسح كل الفلاتر</button>
         </div>
-        <div class="ms-wrap">
-          <button class="ms-btn" id="msBtn-type" onclick="msToggle('type')">📋 النوع</button>
-          <div class="ms-list" id="msList-type"></div>
-        </div>
-        <input type="date" id="logDateFrom" onclick="this.showPicker&&this.showPicker();" onchange="onLogFilterChange()">
-        <input type="date" id="logDateTo" onclick="this.showPicker&&this.showPicker();" onchange="onLogFilterChange()">
-        <button class="btn btn-outline btn-sm" onclick="exportLogXLSX()">⬇️ تصدير XLSX</button>
       </div>
       <div class="export-warn" id="logExportWarn" style="display:none;"></div>
-      <div class="section-divider"></div>
-      <div style="overflow-x:auto;">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>الوقت</th><th>الأوردر</th><th>النوع</th><th>النتيجة</th><th>الموظف</th><th>ملاحظات</th>
-            </tr>
-          </thead>
-          <tbody id="logTableBody"></tbody>
-        </table>
-      </div>
-      <div class="results-row">
-        <span>النتائج: <span class="results-count" id="logResultsCount">—</span></span>
-      </div>
-      <div class="pagination-row" id="paginationRow" style="display:none;">
-        <button class="page-btn" id="btnPrevPage" onclick="goPage(-1)">→ السابق</button>
-        <span class="page-info" id="pageInfo"></span>
-        <button class="page-btn" id="btnNextPage" onclick="goPage(1)">التالي ←</button>
+      <div class="chips-zone pad" id="logChips"></div>
+      <div class="tbl-body-wrap" id="tblBodyWrap">
+        <div>
+          <div class="tbl-scroll">
+            <table class="data-table" id="logTable">
+              <thead><tr id="logHeadRow"></tr></thead>
+              <tbody id="logTableBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination-row" id="paginationRow" style="display:none;">
+            <button class="page-btn" id="btnPrevPage" onclick="goPage(-1)">→ السابق</button>
+            <span class="page-info" id="pageInfo"></span>
+            <button class="page-btn" id="btnNextPage" onclick="goPage(1)">التالي ←</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -276,9 +327,12 @@
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge">v1.64.0</span>
-          <span class="cl-ver-date">31-10-2026</span>
+          <span class="cl-ver-date">08-11-2026</span>
         </div>
         <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔴 <strong>تاب «السجل» بقى «سجل العمليات» وبالمعيار الموحّد للجداول</strong> (<code>ecommoda-html-builder</code> v8.7.0 · Standards #47): الفلاتر في <strong>رأس كل عمود</strong> (قمع ▽ جنب الاسم: التاريخ · الأوردر/الملاحظات · النوع · الموظف) بدل شريط الفلاتر اللي كان فوق الجدول، وصف «النتائج» + «تصدير XLSX» + «مسح كل الفلاتر» فوق الجدول، وسطر chips لكل فلتر مفعّل، وطي/فتح الجدول. فلتر التاريخ بفترات سريعة (اليوم … آخر 90 يوم · الشهر/العام الحالي والسابق · شهر/عام محدد · من/إلى) <strong>من غير فترة افتراضية</strong>، وحدود اليوم بتوقيت القاهرة. الفلترة لسه server-side من <code>logParams()</code> — نفس الـ Worker من غير أي تعديل.</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>صفوف السجل كانت بتختفي تحت عناوين الجدول:</strong> عنوان الجدول كان <code>sticky</code> بـ <code>top:57px</code> جوّه حاوية سكرول، فكان بينزل فوق أول صف ويغطّيه (العدّاد يقول «النتائج: 1» والجدول شكله فاضي). العناوين دلوقتي ثابتة جوّه سكرول داخلي (<code>max-height:68vh</code>)، وحقول التاريخ مابقتش بتعرض <code>dd-----yyyy</code>.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>عمود «النتيجة» بقى بالعربي (تم · تم جزئيًا · فشل · خلاص متعمل) بدل <code>success</code>/<code>warning</code> — في الجدول وفي ملف XLSX، و«التاريخ» و«الوقت» عمودين منفصلين، ورقم الأوردر لينك شوبيفاي من <code>orderLink()</code>. مفيش أسهم ترتيب لأن الـ Worker مالوش ترتيب من السيرفر (سهم بيرتّب الصفحة المعروضة بس = جدول بيكدب).</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>مربع البحث بقى «مربع إدخال موحّد»</strong> (ecommoda-html-builder v8.5.0): الأداة بتعرف النوع من الطول (١–٧ أرقام = رقم أوردر · ١٣–١٥ = باركود فاتورة شوبيفاي) · البحث <strong>بـ Enter أو «بحث» بس</strong> (المؤقّت التلقائي اتحذف) · الـ chip بيتبع النوع · الفشل والرفض في صندوق أحمر بسطر قصير + ✕ وزرار الحذف مقفول لحد ما يتفضّى · ٣ أصوات (صح · خطأ · مكرر) · توست بألوان وأيقونات ومدد · مفيش placeholder.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>كل ألفاظ «شيل / اتشال» بقت <strong>«حذف / احذف / تم الحذف»</strong> في الأزرار والتأكيد والسجل وسجل الإصدارات (وفي نص السجل اللي الـ Worker بيكتبه).</span></li>
         </ul>
@@ -385,7 +439,7 @@
             <tr><th>action</th><th>الوصف</th></tr>
             <tr><td>lookup_order</td><td>قراءة أوردر بالاسم أو بالـ ID + فحص الأهلية</td></tr>
             <tr><td>remove_items</td><td>الفعل الأساسي — إلغاء فلفلمنت → تعديل أوردر → إعادة فلفلمنت (كتابة)</td></tr>
-            <tr><td>get_logs / get_logs_count / get_logs_export</td><td>تاب السجل</td></tr>
+            <tr><td>get_logs / get_logs_count / get_logs_export</td><td>تاب سجل العمليات</td></tr>
           </table>
         </div>
       </details>
@@ -397,7 +451,7 @@
             <li>§ENTRY-CONFIG / §ENTRY / §ENTRY-BAR / §FAILS — مربع الإدخال الموحّد: التعرّف بالطول (١–٧ رقم أوردر · ١٣–١٥ باركود فاتورة) · البحث بـ Enter أو «بحث» بس · الـ chip بيتبع النوع · الفشل في صندوق أحمر</li>
             <li>§ORDER-JS — عرض الأوردر والمنتجات وحالة الأهلية</li>
             <li>§REMOVE-JS — تأكيد الحذف والنداء الفعلي وعرض الحالات الأربعة</li>
-            <li>§LOG-JS — جدول السجل والفلاتر والتصدير</li>
+            <li>§LOG-JS — تاب سجل العمليات: جدول بفلاتر في رأس العمود (قمع ▽ لكل عمود) · chips · «مسح كل الفلاتر» · صفحات · تصدير XLSX. الفلترة كلها server-side من <code>logParams()</code> (مفيش ترتيب لأن الـ Worker مالوش <code>sortBy</code>)</li>
           </ul>
           <h4>KEY VARIABLES</h4>
           <ul>
@@ -839,69 +893,346 @@ function renderRemoveResult(d) {
 }
 
 // ══════════════════════════════════════════════════════
-// §LOG-JS — multi-select minimal + server pagination
+// §LOG-JS — سجل العمليات: فلاتر رأس العمود (server-side) + chips + صفحات + تصدير
+//   🔴 الفلترة كلها بتتبعت للـ Worker من `logParams()` (Log Filter Model v2) — الفلاتر هنا
+//      مجرد واجهة بتكتب في الحالة `lf`، فمصدر الباراميترات واحد لـ get_logs/get_logs_count/get_logs_export.
+//   ⚠️ الترتيب من السيرفر مش متاح في الـ Worker (مفيش sortBy) — فمفيش أسهم ترتيب في الرؤوس
+//      (سهم بيرتّب الصفحة المعروضة بس = جدول بيكدب).
 // ══════════════════════════════════════════════════════
 const LOG_PAGE_SIZE = 100;
 let logCurrentPage = 1, logTotalCount = 0, logSearchTimer = null;
-const msState = { employee: new Set(), type: new Set() };
 const TYPE_LABELS = { remove_item: 'حذف منتج', remove_failed: 'فشل الحذف', rejected: 'مرفوض' };
+// §RESULT::labels — مصدر واحد للجدول وللتصدير (Step 3C)
+const RESULT_LABELS = { success: 'تم', warning: 'تم جزئيًا', error: 'فشل', rejected: 'مرفوض', already: 'خلاص متعمل' };
+const resultLabel = (v) => RESULT_LABELS[v] || '—';
 let allEmployeesCache = null;
 
-document.getElementById('logSearch').addEventListener('input', function () {
-  this.classList.toggle('has-value', !!this.value);
-  clearTimeout(logSearchTimer);
-  logSearchTimer = setTimeout(() => { logCurrentPage = 1; fetchLog(); }, 400);
-});
+// أعمدة الجدول — `f` = نوع الفلتر (بدون f = مفيش فلتر على العمود ده)
+const LOG_COLS = [
+  { k: 'date',     l: 'التاريخ',  f: 'date' },
+  { k: 'time',     l: 'الوقت' },
+  { k: 'order',    l: 'الأوردر', f: 'text' },
+  { k: 'type',     l: 'النوع',    f: 'ms' },
+  { k: 'result',   l: 'النتيجة' },
+  { k: 'employee', l: 'الموظف',   f: 'ms' },
+  { k: 'notes',    l: 'ملاحظات' },
+];
+const FLT_LABEL = { date: 'التاريخ', order: 'الأوردر / الملاحظات', type: 'النوع', employee: 'الموظف' };
+const FLT_ORDER = ['date', 'order', 'type', 'employee'];   // ترتيب سطور الـ chips
+const SEARCH_MIN = 10;                                       // بحث داخل قايمة القيم من 10 عناصر
+const FUNNEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></svg>';
 
-function msToggle(key) {
-  document.querySelectorAll('.ms-list').forEach(l => { if (l.id !== `msList-${key}`) l.classList.remove('open'); });
-  document.getElementById(`msList-${key}`).classList.toggle('open');
+// حالة الفلاتر — الفلتر الفاضي = مش مبعوت (يعني "الكل")، ومفيش فترة افتراضية (الحالة المحايدة = بلا فلتر تاريخ)
+const lf = { ms: { type: new Set(), employee: new Set() }, q: '', date: { preset: '', month: '', from: '', to: '' } };
+
+const PRESETS = {
+  today: 'اليوم', yesterday: 'أمس', last3: 'آخر 3 أيام', last7: 'آخر 7 أيام', last14: 'آخر 14 يوم',
+  last21: 'آخر 21 يوم', last30: 'آخر 30 يوم', last60: 'آخر 60 يوم', last90: 'آخر 90 يوم',
+  thisMonth: 'الشهر الحالي', lastMonth: 'الشهر السابق', thisYear: 'العام الحالي', lastYear: 'العام السابق',
+};
+const DAY_PRESETS = ['today', 'yesterday', 'last3', 'last7', 'last14', 'last21', 'last30', 'last60', 'last90'];
+const QUICK_PRESETS = ['thisMonth', 'lastMonth', 'thisYear', 'lastYear'];
+const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
+// ── تواريخ بتوقيت القاهرة (YYYY-MM-DD) — حساب على النص بدل Date محلي ──────────────
+const pad2 = (n) => String(n).padStart(2, '0');
+function dayAdd(s, n) { const d = new Date(`${s}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+function monthEndStr(y, m) { return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10); }   // m = 1..12
+function fmtD(v) { if (!v) return '—'; const p = String(v).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : v; }
+function presetRange(p) {
+  const t = cairoDayStr(new Date());
+  const [y, m] = t.split('-').map(Number);
+  if (p === 'today') return [t, t];
+  if (p === 'yesterday') { const d = dayAdd(t, -1); return [d, d]; }
+  const n = /^last(\d+)$/.exec(p);
+  if (n) return [dayAdd(t, -(Number(n[1]) - 1)), t];
+  if (p === 'thisMonth') return [`${y}-${pad2(m)}-01`, monthEndStr(y, m)];
+  if (p === 'lastMonth') { const py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1; return [`${py}-${pad2(pm)}-01`, monthEndStr(py, pm)]; }
+  if (p === 'thisYear') return [`${y}-01-01`, `${y}-12-31`];
+  if (p === 'lastYear') return [`${y - 1}-01-01`, `${y - 1}-12-31`];
+  return ['', ''];
 }
-document.addEventListener('click', (e) => {
-  if (!document.contains(e.target)) return;
-  if (e.target.closest('.ms-wrap')) return;
-  document.querySelectorAll('.ms-list').forEach(l => l.classList.remove('open'));
-});
+function monthRange(ym) {            // 'YYYY-MM' → الشهر التقويمي كامل · 'YYYY' → العام كله
+  const [y, m] = ym.split('-').map(Number);
+  return m ? [`${y}-${pad2(m)}-01`, monthEndStr(y, m)] : [`${y}-01-01`, `${y}-12-31`];
+}
+function dateLabel() {
+  const d = lf.date;
+  if (d.preset) return PRESETS[d.preset];
+  if (d.month) { const [y, m] = d.month.split('-').map(Number); return m ? `${MONTH_NAMES[m - 1]} ${y}` : `عام ${y}`; }
+  return `من 📅 ${fmtD(d.from)} إلى 📅 ${fmtD(d.to)}`;
+}
 
-async function syncMsItems() {
-  if (!allEmployeesCache) {
-    try { allEmployeesCache = (await apiGet('get_employees')).employees || []; } catch { allEmployeesCache = []; }
+// ── حالة الفلاتر: عدّ · نص · أي فلتر مفعّل ───────────────────────────────────────
+function msLabel(key, v) {
+  if (key === 'type') return TYPE_LABELS[v] || v;
+  const e = (allEmployeesCache || []).find(x => x.username === v);
+  return e ? e.display_name : v;
+}
+function activeCount(key) {
+  if (key === 'date') return (lf.date.from || lf.date.to) ? 1 : 0;
+  if (key === 'order') return lf.q.trim() ? 1 : 0;
+  return lf.ms[key].size;
+}
+// 🔴 `!!value` مش `!== null` (Standards باج anyFilterActive) — الفلتر اللي مالوش الخاصية قيمته undefined
+function anyFilterActive() {
+  return lf.ms.type.size > 0 || lf.ms.employee.size > 0 || !!lf.q.trim() || !!lf.date.from || !!lf.date.to;
+}
+function tipText(key) {                               // مفيش اختيار = '' = مفيش tooltip خالص
+  if (!activeCount(key)) return '';
+  if (key === 'date') return dateLabel();
+  if (key === 'order') return lf.q.trim();
+  return [...lf.ms[key]].map(v => msLabel(key, v)).join('، ');
+}
+
+function buildHead() {
+  document.getElementById('logHeadRow').innerHTML = LOG_COLS.map(c => {
+    const fk = c.f ? ({ date: 'date', text: 'order', ms: c.k })[c.f] : '';
+    return `<th${fk ? ` data-fk="${fk}"` : ''}><div class="th-in"><span class="th-label">${c.l}</span>` +
+      (fk ? `<button type="button" class="th-flt" data-flt="${fk}" aria-label="فلتر ${esc(c.l)}">${FUNNEL}<b class="th-cnt"></b></button>` : '') +
+      `</div></th>`;
+  }).join('');
+}
+function updateStates() {
+  const on = anyFilterActive();
+  document.getElementById('logClearAll').classList.toggle('inactive', !on);
+  document.querySelectorAll('#logHeadRow th[data-fk]').forEach(th => {
+    const n = activeCount(th.dataset.fk);
+    th.classList.toggle('flt-on', n > 0);
+    th.querySelector('.th-cnt').textContent = n > 1 ? n : (n ? '●' : '');
+  });
+}
+
+// ── chips: سطر لكل فلتر، واسم الفلتر مرة واحدة في أوله ──────────────────────────
+function renderChips() {
+  const chip = (text, rm) => `<span class="lchip">${esc(text)}<button type="button" data-rm="${esc(rm)}" aria-label="إزالة">✕</button></span>`;
+  const rows = [];
+  FLT_ORDER.forEach(k => {
+    if (!activeCount(k)) return;
+    let chips;
+    if (k === 'date') chips = chip(dateLabel(), 'date::');
+    else if (k === 'order') chips = chip(lf.q.trim(), 'order::');
+    else chips = [...lf.ms[k]].map(v => chip(msLabel(k, v), `${k}::${v}`)).join('');
+    rows.push(`<div class="ms-chips-row"><span class="chips-label">${FLT_LABEL[k]}</span>${chips}</div>`);
+  });
+  document.getElementById('logChips').innerHTML = rows.join('');
+}
+function removeChip(spec) {
+  const [k, ...rest] = spec.split('::');
+  const v = rest.join('::');
+  if (k === 'date') lf.date = { preset: '', month: '', from: '', to: '' };
+  else if (k === 'order') lf.q = '';
+  else lf.ms[k].delete(v);
+  onLogFilterChange();
+  if (popEl) refreshPop();
+}
+function clearKey(key) {
+  if (key === 'date') lf.date = { preset: '', month: '', from: '', to: '' };
+  else if (key === 'order') lf.q = '';
+  else lf.ms[key].clear();
+  onLogFilterChange();
+}
+function clearAllFilters() {
+  if (!anyFilterActive()) return;
+  lf.ms.type.clear(); lf.ms.employee.clear(); lf.q = '';
+  lf.date = { preset: '', month: '', from: '', to: '' };
+  closePop();
+  onLogFilterChange();
+}
+
+// ── القوايم العائمة: position:fixed على body، قايمة واحدة مفتوحة في أي وقت ─────────
+let popEl = null, popKey = null, popBtn = null, popYear = null, tipEl = null;
+
+function msOptions(key) {
+  if (key === 'type') return Object.entries(TYPE_LABELS).map(([v, l]) => ({ v, l }));
+  return (allEmployeesCache || []).map(e => ({ v: e.username, l: e.display_name }));
+}
+function popHtml(key) {
+  const head = `<div class="pop-hd"><b>${esc(FLT_LABEL[key])}</b><button type="button" class="clear-btn" data-clear>✕ مسح الاختيار</button></div>`;
+  if (key === 'type' || key === 'employee') {
+    const opts = msOptions(key), sel = lf.ms[key];
+    return head + `<div class="pop-body">` +
+      (opts.length >= SEARCH_MIN ? `<div class="srch-wrap"><span class="ic">🔍</span><input type="text" class="inp" data-msq autocomplete="off" aria-label="بحث في القايمة"></div>` : '') +
+      `<div class="ms-ftr-top"><button type="button" data-all>تحديد الكل</button></div>` +
+      (opts.length ? opts.map(o => `<label class="ms-item" data-label="${esc(o.l)}"><input type="checkbox" data-msv="${esc(o.v)}" ${sel.has(o.v) ? 'checked' : ''}><span>${esc(o.l)}</span></label>`).join('')
+                    : '<div class="pop-hint">القايمة فاضية.</div>') +
+      `</div>`;
   }
-  renderMsList('employee', allEmployeesCache.map(e => ({ value: e.username, label: e.display_name })));
-  renderMsList('type', Object.entries(TYPE_LABELS).map(([value, label]) => ({ value, label })));
+  if (key === 'order') {
+    return head + `<div class="pop-body"><div class="srch-wrap"><span class="ic">🔍</span><input type="text" class="inp${lf.q ? ' has-value' : ''}" data-q value="${esc(lf.q)}" autocomplete="off" aria-label="بحث برقم الأوردر أو الملاحظات"></div>` +
+      `<div class="pop-hint">بيدوّر في رقم الأوردر والملاحظات — الفلتر بيتطبّق وإنت بتكتب، و<b>Enter</b> بيقفل القايمة والفلتر يفضل.</div></div>`;
+  }
+  // date
+  const d = lf.date, curY = Number(cairoDayStr(new Date()).slice(0, 4));
+  const pills = (list, cls) => `<div class="pills ${cls}">${list.map(p => `<button type="button" data-preset="${p}" class="${d.preset === p ? 'on' : ''}">${PRESETS[p]}</button>`).join('')}</div>`;
+  const months = MONTH_NAMES.map((n, i) => { const ym = `${popYear}-${pad2(i + 1)}`; return `<button type="button" data-m="${ym}" class="${d.month === ym ? 'on' : ''}">${n}</button>`; }).join('');
+  return head + `<div class="pop-body">` +
+    `<div class="sec">${pills(DAY_PRESETS, 'c3')}</div>` +
+    `<div class="sec">${pills(QUICK_PRESETS, 'c4')}</div>` +
+    `<div class="sec"><div class="yr-row"><button type="button" data-yr="-1" ${popYear <= curY - 10 ? 'disabled' : ''} aria-label="السنة السابقة">›</button>` +
+      `<button type="button" class="yr-all ${d.month === String(popYear) ? 'on' : ''}" data-yrall>${popYear}</button>` +
+      `<button type="button" data-yr="1" ${popYear >= curY ? 'disabled' : ''} aria-label="السنة التالية">‹</button></div><div class="pills c6">${months}</div></div>` +
+    `<div class="sec"><div class="rng"><div><label>من تاريخ</label><input type="date" class="inp" data-d="from" value="${esc(d.from)}"></div>` +
+      `<div><label>إلى تاريخ</label><input type="date" class="inp" data-d="to" value="${esc(d.to)}"></div></div></div></div>`;
 }
-function renderMsList(key, options) {
-  const list = document.getElementById(`msList-${key}`);
-  list.innerHTML = `<div class="ms-ftr-top"><button onclick="msClear('${key}')">مسح الاختيار</button></div>` +
-    options.map(o => `<label class="ms-item"><input type="checkbox" data-v="${esc(o.value)}" ${msState[key].has(o.value) ? 'checked' : ''} onchange="msItemChange('${key}', this)"> ${esc(o.label)}</label>`).join('');
-  const btn = document.getElementById(`msBtn-${key}`);
-  btn.classList.toggle('active', msState[key].size > 0);
+function positionPop() {
+  if (!popEl || !popBtn) return;
+  const r = popBtn.getBoundingClientRect(), w = popEl.offsetWidth, h = popEl.offsetHeight;
+  let left = r.right - w;
+  if (left < 8) left = 8;
+  if (left + w > innerWidth - 8) left = innerWidth - w - 8;
+  let top = r.bottom + 6;
+  if (top + h > innerHeight - 8) top = Math.max(8, innerHeight - h - 8);
+  popEl.style.left = `${left}px`; popEl.style.top = `${top}px`;
 }
-function msItemChange(key, el) {
-  const v = el.dataset.v;
-  if (el.checked) msState[key].add(v); else msState[key].delete(v);
-  document.getElementById(`msBtn-${key}`).classList.toggle('active', msState[key].size > 0);
-  onLogFilterChange();
+function openPop(key, btn) {
+  closePop(); hideTip();
+  popKey = key; popBtn = btn;
+  if (key === 'date') {
+    const m = lf.date.month || lf.date.from;
+    popYear = Number((m || cairoDayStr(new Date())).slice(0, 4));
+  }
+  popEl = document.createElement('div');
+  popEl.className = `pop${key === 'date' ? ' wide' : ''}`;
+  popEl.innerHTML = popHtml(key);
+  document.body.appendChild(popEl);
+  positionPop();
+  const f = popEl.querySelector('input[data-q],input[data-msq]');
+  if (f) f.focus();
 }
-function msClear(key) {
-  msState[key].clear();
-  syncMsItems();
-  onLogFilterChange();
+function refreshPop() {
+  if (!popEl) return;
+  const keep = popEl.querySelector('.pop-body')?.scrollTop || 0;
+  popEl.innerHTML = popHtml(popKey);
+  popEl.querySelector('.pop-body').scrollTop = keep;
+  positionPop();
+}
+function closePop() { if (popEl) { popEl.remove(); popEl = popKey = popBtn = null; } }
+function togglePop(key, btn) { if (popEl && popKey === key) closePop(); else openPop(key, btn); }
+
+function showTip(btn) {
+  hideTip();
+  const k = btn.dataset.flt;
+  if (popEl && popKey === k) return;
+  const txt = tipText(k);
+  if (!txt) return;
+  tipEl = document.createElement('div'); tipEl.className = 'tip'; tipEl.textContent = txt;
+  document.body.appendChild(tipEl);
+  const r = btn.getBoundingClientRect();
+  tipEl.style.top = `${r.bottom + 6}px`;
+  tipEl.style.left = `${Math.max(8, Math.min(innerWidth - tipEl.offsetWidth - 8, r.left + r.width / 2 - tipEl.offsetWidth / 2))}px`;
+}
+function hideTip() { if (tipEl) { tipEl.remove(); tipEl = null; } }
+
+function popAction(t) {
+  const k = popKey;
+  if (t.closest('[data-clear]')) { clearKey(k); refreshPop(); return; }
+  if (t.closest('[data-all]')) { msOptions(k).forEach(o => lf.ms[k].add(o.v)); onLogFilterChange(); refreshPop(); return; }
+  const pr = t.closest('[data-preset]');
+  if (pr) {
+    const p = pr.dataset.preset;
+    if (lf.date.preset === p) lf.date = { preset: '', month: '', from: '', to: '' };
+    else { const [f, to] = presetRange(p); lf.date = { preset: p, month: '', from: f, to }; }
+    onLogFilterChange(); refreshPop(); return;
+  }
+  const mb = t.closest('[data-m]');
+  if (mb) {
+    const ym = mb.dataset.m;
+    if (lf.date.month === ym) lf.date = { preset: '', month: '', from: '', to: '' };
+    else { const [f, to] = monthRange(ym); lf.date = { preset: '', month: ym, from: f, to }; }
+    onLogFilterChange(); refreshPop(); return;
+  }
+  if (t.closest('[data-yrall]')) {
+    const ym = String(popYear);
+    if (lf.date.month === ym) lf.date = { preset: '', month: '', from: '', to: '' };
+    else { const [f, to] = monthRange(ym); lf.date = { preset: '', month: ym, from: f, to }; }
+    onLogFilterChange(); refreshPop(); return;
+  }
+  const yb = t.closest('[data-yr]');
+  if (yb && !yb.disabled) { popYear += Number(yb.dataset.yr); refreshPop(); return; }
+  // الضغط في أي مكان بحقل التاريخ يفتح لوحة التاريخ (جوّه iframe بيرمي SecurityError فبنبلعه)
+  if (t.matches('input[type="date"]')) { try { t.showPicker && t.showPicker(); } catch (e) { /* مقصود */ } }
 }
 
-function onLogFilterChange() { logCurrentPage = 1; clearExportWarn(); fetchLog(); }
+// listener واحد على document. 🔴 حارس `document.contains` أول سطر (Standards #32): أي إعادة رسم
+// للقايمة بتشيل العنصر المضغوط من الـ DOM قبل ما الحدث يوصل، والقايمة كانت بتتقفل بعد أول اختيار.
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  if (!document.contains(t)) return;
+  const fb = t.closest('[data-flt]');
+  if (fb) { togglePop(fb.dataset.flt, fb); return; }
+  if (popEl && popEl.contains(t)) { popAction(t); return; }
+  const rm = t.closest('[data-rm]');
+  if (rm) { removeChip(rm.dataset.rm); return; }
+  closePop();
+});
+// checkbox القيم: change مش click (الضغط على الـ label بيطلّع click مرتين) ومن غير إعادة رسم القايمة
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (!popEl || !popEl.contains(t)) return;
+  if (t.matches('input[data-msv]')) {
+    const s = lf.ms[popKey];
+    if (t.checked) s.add(t.dataset.msv); else s.delete(t.dataset.msv);
+    onLogFilterChange();
+  } else if (t.matches('input[data-d]')) {
+    lf.date[t.dataset.d] = t.value;       // تعديل يدوي بيمسح الفترة السريعة والشهر المحدد
+    lf.date.preset = ''; lf.date.month = '';
+    onLogFilterChange(); refreshPop();
+  }
+});
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (!popEl || !popEl.contains(t)) return;
+  if (t.matches('input[data-q]')) {
+    lf.q = t.value;
+    t.classList.toggle('has-value', !!t.value.trim());
+    updateStates(); renderChips();            // الحالة فورًا، والنداء بعد 400ms من آخر حرف
+    clearTimeout(logSearchTimer);
+    logSearchTimer = setTimeout(() => { logCurrentPage = 1; clearExportWarn(); fetchLog(); }, 400);
+  } else if (t.matches('input[data-msq]')) {   // بحث داخل قايمة القيم (إخفاء/إظهار بس)
+    const q = t.value.trim().toLowerCase();
+    popEl.querySelectorAll('.ms-item').forEach(el => { el.style.display = !q || el.dataset.label.toLowerCase().includes(q) ? '' : 'none'; });
+  }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && popEl) { closePop(); return; }
+  // Enter جوّه أي حقل بحث/تاريخ في القايمة = اقفل القايمة والفلتر يفضل
+  if (e.key === 'Enter' && popEl && popEl.contains(e.target) && e.target.matches('input[data-q],input[data-d]')) {
+    e.preventDefault(); e.target.blur();
+    if (e.target.matches('input[data-q]')) { clearTimeout(logSearchTimer); logCurrentPage = 1; clearExportWarn(); fetchLog(); }
+    closePop();
+  }
+});
+document.addEventListener('mouseover', (e) => { const b = e.target.closest && e.target.closest('[data-flt]'); if (b) showTip(b); });
+document.addEventListener('mouseout',  (e) => { if (e.target.closest && e.target.closest('[data-flt]')) hideTip(); });
+window.addEventListener('scroll', (e) => { hideTip(); if (popEl && !popEl.contains(e.target)) positionPop(); }, true);
+window.addEventListener('resize', positionPop);
+
+function toggleTable() {
+  const c = document.getElementById('tblBodyWrap').classList.toggle('collapsed');
+  document.getElementById('tblToggleIcon').classList.toggle('open', !c);
+  closePop();
+}
+
+async function ensureEmployees() {
+  if (allEmployeesCache) return;
+  try { allEmployeesCache = (await apiGet('get_employees')).employees || []; } catch { allEmployeesCache = []; }
+  renderChips();           // أسماء الموظفين في الـ chips بتتحسب من الكاش
+}
+
+function onLogFilterChange() { logCurrentPage = 1; clearExportWarn(); updateStates(); renderChips(); fetchLog(); }
 function clearExportWarn() { const w = document.getElementById('logExportWarn'); w.style.display = 'none'; w.innerHTML = ''; }
 
+// 🔴 مصدر واحد للباراميترات — بتستخدمه التلات نداءات (get_logs · get_logs_count · get_logs_export)
 function logParams() {
   const p = {};
-  if (msState.employee.size) p.employees = [...msState.employee].join(',');
-  if (msState.type.size)     p.types     = [...msState.type].join(',');
-  const search = document.getElementById('logSearch').value.trim();
+  if (lf.ms.employee.size) p.employees = [...lf.ms.employee].join(',');
+  if (lf.ms.type.size)     p.types     = [...lf.ms.type].join(',');
+  const search = lf.q.trim();
   if (search) p.search = search;
-  const dateFrom = document.getElementById('logDateFrom').value;
-  const dateTo   = document.getElementById('logDateTo').value;
-  if (dateFrom) p.dateFrom = dateFrom + 'T00:00:00.000Z';
-  if (dateTo)   p.dateTo   = dateTo   + 'T23:59:59.999Z';
+  // اليوم بتوقيت القاهرة (مش UTC) — بداية يوم "من" ونهاية يوم "إلى" (cairoDayStartMs في core.js)
+  if (lf.date.from) { const ms = cairoDayStartMs(lf.date.from); if (!isNaN(ms)) p.dateFrom = new Date(ms).toISOString(); }
+  if (lf.date.to)   { const ms = cairoDayStartMs(dayAdd(lf.date.to, 1)); if (!isNaN(ms)) p.dateTo = new Date(ms - 1).toISOString(); }
   return p;
 }
 
@@ -925,18 +1256,18 @@ function safeExtra(entry) { try { return entry.extra ? JSON.parse(entry.extra) :
 
 function renderLog(entries) {
   const body = document.getElementById('logTableBody');
-  if (!entries.length) { body.innerHTML = '<tr><td colspan="6" class="q-empty">مفيش نتايج</td></tr>'; return; }
+  if (!entries.length) { body.innerHTML = `<tr><td colspan="${LOG_COLS.length}" class="q-empty">مفيش نتايج</td></tr>`; return; }
   body.innerHTML = entries.map(e => {
-    const extra = safeExtra(e);
-    const result = extra.result || null;
-    const chip = result ? `<span class="result-chip ${result}">${esc(result)}</span>` : '—';
+    const result = safeExtra(e).result || null;
+    const chip = result ? `<span class="result-chip ${esc(result)}">${esc(resultLabel(result))}</span>` : '—';   // صف قديم من غير result = «—» مش «✓»
     return `<tr>
-      <td>${esc(formatDateTime(e.timestamp))}</td>
-      <td>${e.order_id ? `<a class="order-link" href="https://admin.shopify.com/store/6c7e1a-53/orders/${esc(e.order_id)}" target="_blank" rel="noopener">${esc(e.order_name || e.order_id)}</a>` : '—'}</td>
+      <td>${esc(formatDate(e.timestamp))}</td>
+      <td>${esc(formatTimeOnly(e.timestamp))}</td>
+      <td>${e.order_id ? orderLink(e.order_name || e.order_id, e.order_id) : '—'}</td>
       <td>${esc(TYPE_LABELS[e.type] || e.type)}</td>
       <td>${chip}</td>
       <td>${esc(e.employee || '—')}</td>
-      <td>${esc(e.notes || '—')}</td>
+      <td class="notes">${esc(e.notes || '—')}</td>
     </tr>`;
   }).join('');
 }
@@ -963,9 +1294,10 @@ async function exportLogXLSX() {
   catch (e) { showToast(`تعذّر التصدير: ${e.message}`, 'error'); return; }
   const entries = data.entries || [];
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet('السجل');
+  const ws = wb.addWorksheet('سجل العمليات');
   ws.columns = [
-    { header: 'الوقت', key: 'timestamp', width: 22 },
+    { header: 'التاريخ', key: 'date', width: 14 },
+    { header: 'الوقت', key: 'time', width: 12 },
     { header: 'الأوردر', key: 'order_name', width: 14 },
     { header: 'النوع', key: 'type', width: 14 },
     { header: 'النتيجة', key: 'result', width: 12 },
@@ -973,8 +1305,9 @@ async function exportLogXLSX() {
     { header: 'ملاحظات', key: 'notes', width: 40 },
   ];
   entries.forEach(e => ws.addRow({
-    timestamp: e.timestamp, order_name: e.order_name || e.order_id || '', type: TYPE_LABELS[e.type] || e.type,
-    result: safeExtra(e).result || '', employee: e.employee || '', notes: e.notes || '',
+    date: formatDateForExport(e.timestamp), time: formatTimeForExport(e.timestamp),
+    order_name: e.order_name || e.order_id || '', type: TYPE_LABELS[e.type] || e.type,
+    result: safeExtra(e).result ? resultLabel(safeExtra(e).result) : '', employee: e.employee || '', notes: e.notes || '',
   }));
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], { type: 'application/octet-stream' });
@@ -1012,7 +1345,8 @@ function switchMainTab(tab) {
   document.getElementById('logTabContent').style.display  = tab === 'log' ? '' : 'none';
   document.getElementById('tabTool').classList.toggle('active', tab === 'tool');
   document.getElementById('tabLog').classList.toggle('active', tab === 'log');
-  if (tab === 'log') { syncMsItems(); fetchLog(); }
+  closePop(); hideTip();
+  if (tab === 'log') { ensureEmployees(); fetchLog(); }
 }
 
 document.addEventListener('keydown', (e) => {
@@ -1034,6 +1368,9 @@ document.getElementById('headerMount').innerHTML = ecoHeader({
 });
 
 renderVersionUI();
+
+// تاب سجل العمليات: رؤوس الأعمدة + حالة الفلاتر الأولى (محايدة — مفيش فلتر)
+buildHead(); updateStates(); renderChips();
 
 // ⚠️ حارس النسخة بياخد مفاتيح الـ Workers اللي الصفحة بتناديها — رسالة
 //    «الـ Worker نسخة قديمة» من غير اسم الأداة بتخلّي الموظف يدوّر.
