@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- skills: html-builder v8.6.0 (جدول السجل: #47 #49 #50 #51 + بنود v8.6.0 — توكنز · نافذة أرقام · وقت · تاريخ بأقسام · أعمدة متماثلة) · v8.5.0 (مربع الإدخال) · v6.6.0 (باقي الصفحة) · worker-builder v2.1.0 · constants v1.8.0 — 02-11-2026 -->
+<!-- skills: html-builder v8.7.0 (تاب تحصيل بوسطة: القسم الموحّد + مربع الرفع + ملخّص — 09-11-2026) · v8.6.0 (جدول السجل: #47 #49 #50 #51 + بنود v8.6.0 — توكنز · نافذة أرقام · وقت · تاريخ بأقسام · أعمدة متماثلة) · v8.5.0 (مربع الإدخال) · v6.6.0 (باقي الصفحة) · worker-builder v2.1.0 · constants v1.8.0 — 02-11-2026 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>تحصيل الأوردرات COD — مركز عمليات الشحن والتحصيل</title>
@@ -712,27 +712,86 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 .page-btn:disabled { opacity: .4; cursor: not-allowed; }
 
 /* ══════════════════════════════════════════════════════════════
-   §BOSTA-CSS — تاب «تحصيل بوسطة» (v1.77.0) — توكنز الشِل بس، صفر لون حرفي
+   §BOSTA-CSS — تاب «تحصيل بوسطة» (v1.77.0 · أُعيد بناؤه v1.81.0 على html-builder v8.7.0)
+   توكنز الشِل بس · صفر لون حرفي · كل كلاسات الجدول بادئتها bt- عشان ما تتصادمش مع جدول السجل
    ══════════════════════════════════════════════════════════════ */
 /* ثلاث تابات على الموبايل — بلا سكرول أفقي (التاب التالت اتضاف v1.77.0) */
 @media (max-width:520px) { .main-tabs-bar { gap:2px; padding:4px; } .main-tab-btn { min-width:0; padding:8px 3px; font-size:11.5px; white-space:normal; line-height:1.35; } }
-.bx-drop { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:22px 16px; border:2px dashed var(--border); border-radius:var(--radius); background:var(--bg); cursor:pointer; text-align:center; transition:border-color .15s, background .15s; }
-.bx-drop:hover, .bx-drop.over { border-color:var(--accent); background:var(--accent-light); }
+
+/* ── ① مربع الرفع ── */
+.bx-drop { position:relative; display:flex; align-items:center; gap:18px; padding:22px 24px; border:2px dashed var(--border-strong); border-radius:var(--radius); background:var(--surface-2); cursor:pointer; transition:border-color .15s, background .15s, box-shadow .15s; }
+.bx-drop:hover, .bx-drop:focus-visible, .bx-drop.over { border-color:var(--accent); background:var(--accent-light); }
+.bx-drop:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.bx-drop.over { box-shadow:0 0 0 4px var(--accent-border); }
 .bx-drop.busy { opacity:.55; cursor:not-allowed; }
-.bx-drop b { font-size:14px; }
-.bx-drop small { color:var(--text-secondary); font-size:12px; }
+.bx-drop-ico { flex:0 0 auto; width:68px; height:68px; border-radius:50%; display:grid; place-items:center; background:var(--surface); border:2px solid var(--accent-border); color:var(--accent); transition:transform .2s, border-color .15s; }
+.bx-drop-ico svg { width:36px; height:36px; }
+.bx-drop-ico .bx-ico-file { display:none; }
+.bx-drop:hover .bx-drop-ico, .bx-drop.over .bx-drop-ico { transform:translateY(-3px); border-color:var(--accent); }
+.bx-drop-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+.bx-drop-title { font-size:15px; font-weight:800; overflow-wrap:anywhere; }
+.bx-drop-sub { font-size:12.5px; font-weight:600; color:var(--text-mid); overflow-wrap:anywhere; }
+.bx-drop-sub u { color:var(--accent-dark); font-weight:700; text-underline-offset:3px; }
+.bx-drop-rules { display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
+.bx-rule { font-size:11.5px; font-weight:700; color:var(--text-mid); background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:2px 10px; }
+.bx-rule code { font-family:var(--font-mono); }
+.bx-drop-cta { flex:0 0 auto; padding:10px 20px; border-radius:var(--radius-sm); background:var(--accent); color:var(--on-accent); font-size:13px; font-weight:800; white-space:nowrap; transition:background .15s; }
+.bx-drop:hover .bx-drop-cta { background:var(--accent-dark); }
+/* بعد ما الملف يتحمّل: شريط مضغوط بنفس الصندوق (الاستبدال بالسحب أو الضغط) */
+.bx-drop.compact { padding:12px 16px; gap:14px; border-width:1px; border-style:solid; border-color:var(--green-border); background:var(--green-light); }
+.bx-drop.compact:hover, .bx-drop.compact.over { border-color:var(--accent); background:var(--accent-light); }
+.bx-drop.compact .bx-drop-ico { width:44px; height:44px; border-color:var(--green-border); color:var(--green); }
+.bx-drop.compact .bx-drop-ico svg { width:24px; height:24px; }
+.bx-drop.compact .bx-ico-up { display:none; }
+.bx-drop.compact .bx-ico-file { display:block; }
+.bx-drop.compact .bx-drop-rules { display:none; }
+.bx-drop.compact .bx-drop-title { font-size:14px; direction:ltr; text-align:right; }
+.bx-drop.compact .bx-drop-cta { padding:7px 14px; background:var(--surface); color:var(--accent-dark); border:1px solid var(--accent-border); }
+.bx-drop.compact:hover .bx-drop-cta { background:var(--accent); color:var(--on-accent); }
+@media (max-width:620px) {
+  .bx-drop { flex-direction:column; text-align:center; padding:18px 14px; }
+  .bx-drop-rules { justify-content:center; }
+  .bx-drop.compact { flex-direction:row; flex-wrap:wrap; text-align:start; }
+  .bx-drop.compact .bx-drop-body { flex:1 1 150px; }
+  .bx-drop.compact .bx-drop-cta { flex:1 1 100%; text-align:center; }
+}
+@media (prefers-reduced-motion:reduce) { .bx-drop, .bx-drop-ico, .bx-drop-cta { transition:none; } .bx-drop:hover .bx-drop-ico, .bx-drop.over .bx-drop-ico { transform:none; } }
 .bx-fileerr { display:none; margin-top:12px; background:var(--red-light); border:1px solid var(--red-border); color:var(--red); border-radius:var(--radius-sm); padding:10px 14px; font-size:13px; line-height:1.7; }
 .bx-fileerr.show { display:block; }
 .bx-fileerr ul { margin:6px 18px 0 0; padding:0; }
-.bx-sum { display:none; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-bottom:12px; }
-.bx-sum.show { display:grid; }
-.bx-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 12px; }
-.bx-card small { display:block; color:var(--text-secondary); font-size:11px; margin-bottom:2px; }
-.bx-card b { font-family:var(--font-mono); font-size:16px; direction:ltr; display:inline-block; }
-.bx-card.ok { border-color:var(--green-border); background:var(--green-light); } .bx-card.ok b { color:var(--green); }
-.bx-card.err { border-color:var(--red-border); background:var(--red-light); } .bx-card.err b { color:var(--red); }
-.bx-card.info { border-color:var(--blue-border); background:var(--blue-light); } .bx-card.info b { color:var(--blue); }
-.bx-card.pur { border-color:var(--purple-border); background:var(--purple-light); } .bx-card.pur b { color:var(--purple); }
+
+/* ── ② ملخّص الملف: هوية الملف ← عدّادات الحالة (بتفلتر الجدول) ← الفلوس ── */
+.bx-sum { display:none; flex-direction:column; gap:10px; margin-bottom:12px; }
+.bx-sum.show { display:flex; }
+.bx-meta { display:flex; flex-wrap:wrap; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+.bx-meta > div { flex:1 1 150px; min-width:0; padding:10px 16px; display:flex; flex-direction:column; gap:2px; border-inline-start:1px solid var(--border); }
+.bx-meta > div:first-child { flex:2 1 230px; border-inline-start:none; }
+.bx-meta small { font-size:11.5px; font-weight:700; color:var(--text-mid); }
+.bx-meta b { font-family:var(--font-mono); font-size:15px; font-weight:800; direction:ltr; text-align:right; overflow-wrap:anywhere; }
+.bx-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
+.bx-stat { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:var(--radius); border:1px solid var(--border); border-inline-start-width:5px; background:var(--surface); box-shadow:var(--shadow); cursor:pointer; text-align:start; font:inherit; color:inherit; transition:background .15s, border-color .15s, box-shadow .15s; }
+.bx-stat:hover { background:var(--surface-hover); }
+.bx-stat:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.bx-stat > span { display:flex; align-items:baseline; justify-content:space-between; gap:10px; min-width:0; width:100%; }
+.bx-stat small { font-size:12px; font-weight:700; color:var(--text-mid); }
+.bx-stat b { font-family:var(--font-mono); font-size:24px; font-weight:800; line-height:1.15; direction:ltr; text-align:right; }
+.bx-stat.zero { opacity:.6; }
+.bx-stat.ok { border-inline-start-color:var(--green); } .bx-stat.ok b { color:var(--green-dark); } .bx-stat.ok.on { background:var(--green-light); border-color:var(--green); }
+.bx-stat.pur { border-inline-start-color:var(--purple); } .bx-stat.pur b { color:var(--purple); } .bx-stat.pur.on { background:var(--purple-light); border-color:var(--purple); }
+.bx-stat.err { border-inline-start-color:var(--red); } .bx-stat.err b { color:var(--red-dark); } .bx-stat.err.on { background:var(--red-light); border-color:var(--red); }
+.bx-stat.warn { border-inline-start-color:var(--amber); } .bx-stat.warn b { color:var(--amber-dark); } .bx-stat.warn.on { background:var(--amber-light); border-color:var(--amber); }
+.bx-stat.on { box-shadow:var(--shadow-md); }
+.bx-money { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
+.bx-m { padding:12px 16px; border-radius:var(--radius); border:1px solid var(--blue-border); background:var(--blue-light); display:flex; flex-direction:column; gap:3px; min-width:0; }
+.bx-m small { font-size:12px; font-weight:700; color:var(--text-mid); }
+.bx-m b { font-family:var(--font-mono); font-size:19px; font-weight:800; direction:ltr; text-align:right; color:var(--blue); overflow-wrap:anywhere; }
+.bx-m em { font-style:normal; font-size:11.5px; font-weight:700; color:var(--text-mid); }
+.bx-m.pur { border-color:var(--purple-border); background:var(--purple-light); } .bx-m.pur b { color:var(--purple); }
+.bx-m.ok { border-color:var(--green-border); background:var(--green-light); } .bx-m.ok b { color:var(--green-dark); }
+.bx-m-bar { height:6px; border-radius:6px; background:var(--surface); border:1px solid var(--purple-border); overflow:hidden; margin-top:3px; }
+.bx-m-bar i { display:block; height:100%; width:0; background:var(--purple); transition:width .3s; }
+
+/* ── شريط الأزرار ── */
 .bx-bar { display:none; align-items:stretch; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
 .bx-bar.show { display:flex; }
 .bx-run { flex:1; min-width:260px; padding:12px; border-radius:var(--radius-sm); border:none; background:var(--accent); color:var(--on-accent); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; }
@@ -742,16 +801,106 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 .bx-sec:disabled { opacity:.4; cursor:not-allowed; }
 .bx-hint { width:100%; font-size:12px; color:var(--text-secondary); min-height:16px; }
 .bx-hint.err { color:var(--red); }
-#bxTableWrap { display:none; } #bxTableWrap.show { display:block; }
-#bxTable { width:100%; border-collapse:collapse; font-size:12.5px; }
-#bxTable th { text-align:right; font-size:12px; font-weight:700; padding:8px 10px; background:var(--bg); border-bottom:2px solid var(--border); white-space:nowrap; }
-#bxTable td { padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
-#bxTable td.col-ltr, #bxTable th.col-ltr { direction:ltr; text-align:left; font-family:var(--font-mono); white-space:nowrap; }
-#bxTable td.col-center { text-align:center; }
+
+/* ── ③ الجدول — القسم الموحّد (data-table-standard v8.7.0): كارت واحد ← صف النتائج ← chips ← جدول بفلاتر في رأس العمود ── */
+.bt-section { display:none; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:16px; min-width:0; }
+.bt-section.show { display:block; }
+.bt-clear { display:flex; align-items:center; gap:5px; padding:6px 12px; border-radius:var(--radius-sm); font:inherit; font-size:12px; font-weight:700; cursor:pointer; transition:all .15s; white-space:nowrap; height:34px; border:1px solid var(--red-border); color:var(--red); background:var(--red-light); }
+.bt-clear:hover { background:var(--red); color:var(--on-accent); border-color:var(--red); }
+.bt-clear.inactive { border-color:var(--border); color:var(--text-muted); background:var(--surface-2); cursor:not-allowed; opacity:.6; }
+.bt-clear.inactive:hover { background:var(--surface-2); color:var(--text-muted); border-color:var(--border); }
+.bt-bar { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 16px; background:var(--surface-2); cursor:pointer; user-select:none; flex-wrap:wrap; border-radius:var(--radius) var(--radius) 0 0; }
+.bt-bar:hover { background:var(--surface-hover); }
+.bt-bar-r, .bt-bar-l { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.bt-tog { font-size:13px; color:var(--text-muted); transition:transform .25s; }
+.bt-tog.open { transform:rotate(180deg); }
+.bt-results { display:flex; align-items:center; gap:8px; }
+.bt-results-l { font-size:14px; font-weight:800; white-space:nowrap; }
+.bt-results-n { display:inline-flex; align-items:center; justify-content:center; min-width:44px; height:34px; padding:0 10px; font-family:var(--font-mono); font-size:17px; font-weight:800; color:var(--purple); background:var(--purple-light); border:1.5px solid var(--purple-border); border-radius:var(--radius-sm); }
+.bt-results-of { font-size:12px; font-weight:600; color:var(--text-mid); }
+.bt-chips { display:flex; flex-direction:column; gap:6px; padding:10px 16px; border-top:1px solid var(--border); }
+.bt-chips:empty { display:none; }
+.bt-chips-row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.bt-chips-l { font-size:11.5px; font-weight:700; color:var(--text-mid); white-space:nowrap; }
+.bt-chip { display:inline-flex; align-items:center; gap:5px; background:var(--accent-light); border:1px solid var(--accent-border); color:var(--accent-dark); border-radius:20px; padding:2px 4px 2px 10px; font-size:12px; font-weight:700; }
+.bt-chip button { border:none; background:var(--accent-border); color:var(--accent-dark); width:18px; height:18px; border-radius:50%; cursor:pointer; font-size:10px; line-height:1; }
+.bt-chip button:hover { background:var(--accent); color:var(--on-accent); }
+.bt-wrap { display:grid; grid-template-columns:minmax(0, 1fr); grid-template-rows:1fr; transition:grid-template-rows .3s ease; }
+.bt-wrap > * { min-height:0; min-width:0; }
+.bt-wrap.collapsed { grid-template-rows:0fr; overflow:hidden; }
+.bt-wrap.collapsed > * { overflow:hidden; }
+.bt-scroll { max-height:68vh; overflow:auto; }
+#bxTable { width:100%; border-collapse:collapse; table-layout:fixed; font-size:var(--td-size); }
+#bxTable.auto { table-layout:auto; }
+#bxTable thead th { position:sticky; top:0; z-index:20; background:var(--surface-2); color:var(--th-color); font-weight:var(--th-weight); font-size:var(--th-size); padding:10px 6px; text-align:center; white-space:normal; box-shadow:inset 0 -2px 0 var(--border-strong); }
+#bxTable tbody td { text-align:center; padding:9px 6px; border-bottom:1px solid var(--border); vertical-align:middle; white-space:normal; overflow-wrap:anywhere; font-size:var(--td-size); font-weight:var(--td-weight); }
+#bxTable thead th, #bxTable tbody td { border-inline-start:1px solid var(--border); }
+#bxTable thead th:first-child, #bxTable tbody td:first-child { border-inline-start:none; }
+#bxTable td.col-ltr { direction:ltr; font-family:var(--font-mono); white-space:nowrap; }
+#bxTable td.bx-why { text-align:start; }
+#bxTable tbody tr:hover td { filter:brightness(.97); }
 #bxTable tr.bx-error td { background:var(--red-light); }
 #bxTable tr.bx-failed td, #bxTable tr.bx-unknown td { background:var(--amber-light); }
 #bxTable tr.bx-registered td, #bxTable tr.bx-ready td { background:transparent; }
 #bxTable tr.bx-done td { background:var(--purple-light); }
+#bxTable.measuring th, #bxTable.measuring td { white-space:nowrap; }
+#bxTable.measuring .bt-th-in { flex-wrap:nowrap; max-width:none; }
+.bt-th-in { display:inline-flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:5px; max-width:100%; }
+.bt-th-label { cursor:pointer; user-select:none; padding:2px 4px; border-radius:5px; transition:background .12s, color .12s; }
+.bt-th-label:hover, #bxTable th.sorted .bt-th-label { background:var(--accent-light); color:var(--accent-dark); }
+.bt-th-label:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+.bt-sort { display:inline-block; font-size:10px; color:var(--accent); font-weight:900; }
+.bt-sort.active { margin-inline-start:4px; }
+.bt-flt { min-width:22px; height:22px; padding:0 3px; border:1px solid transparent; border-radius:6px; background:transparent; color:var(--text-muted); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:2px; font-size:10px; font-weight:800; }
+.bt-flt svg { width:14px; height:14px; }
+.bt-flt:hover { background:var(--accent-light); color:var(--accent); }
+#bxTable th.flt-on .bt-flt { background:var(--accent-light); border-color:var(--accent-border); color:var(--accent); }
+.bt-empty { padding:40px; text-align:center; color:var(--text-mid); font-weight:700; }
+.bt-rz { position:absolute; top:0; bottom:0; inset-inline-end:0; width:10px; cursor:col-resize; touch-action:none; z-index:3; }
+.bt-rz::after { content:''; position:absolute; top:24%; bottom:24%; inset-inline-end:3px; width:2px; border-radius:2px; background:var(--border-strong); transition:background .12s, top .12s, bottom .12s; }
+.bt-rz:hover::after, .bt-rz.active::after { background:var(--accent); top:8%; bottom:8%; }
+body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select:none !important; }
+#bxTable col.hl { background:var(--accent-light); }
+.bt-wbadge { position:fixed; z-index:220; bottom:calc(14px + env(safe-area-inset-bottom, 0px)); left:50%; transform:translateX(-50%); background:var(--neutral-dark); color:var(--on-accent); font-size:12.5px; font-weight:700; padding:6px 14px; border-radius:20px; pointer-events:none; box-shadow:var(--shadow-md); }
+/* القايمة العائمة (position:fixed على body — z 200 تحت الهيدر 300 والمودالات 600) */
+.bt-pop { position:fixed; z-index:200; width:268px; max-width:calc(100vw - 16px); background:var(--surface); border:1px solid var(--border-strong); border-radius:var(--radius-sm); box-shadow:var(--shadow-md); max-height:72vh; display:flex; flex-direction:column; }
+.bt-pop-hd { flex-shrink:0; padding:9px 12px; font-weight:800; font-size:12.5px; border-bottom:1px solid var(--border); background:var(--surface-2); border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
+.bt-pop-hd.has-act { display:flex; align-items:center; justify-content:space-between; gap:8px; padding-block:6px; }
+.bt-pop-body { padding:10px 12px; display:flex; flex-direction:column; gap:9px; overflow:auto; min-height:0; }
+.bt-pop .bt-clear { height:30px; padding:4px 10px; font-size:12px; }
+.bt-pop-top { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid var(--border); }
+.bt-lnk { border:none; background:none; font:inherit; font-size:12px; font-weight:700; cursor:pointer; color:var(--accent); }
+.bt-lnk:hover { text-decoration:underline; }
+.bt-in { width:100%; height:36px; border:1.5px solid var(--border-strong); border-radius:var(--radius-sm); padding:0 11px; font:inherit; font-size:13px; font-weight:600; color:var(--text-primary); background:var(--surface); outline:none; transition:border-color .15s, background .15s; }
+.bt-in:focus { border-color:var(--accent); }
+.bt-in.has-value { border-color:var(--accent); background:var(--accent-light); }
+.bt-srch { padding:8px 10px 0; }
+.bt-search { position:relative; }
+.bt-search .bt-in { padding-left:34px; }
+.bt-search span { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:14px; color:var(--text-muted); pointer-events:none; }
+.bt-list { overflow:auto; padding:4px; }
+.bt-item { display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:6px; cursor:pointer; font-size:12.5px; font-weight:600; user-select:none; }
+.bt-item:hover, .bt-item.act { background:var(--surface-hover); }
+.bt-item .cb { width:16px; height:16px; border:1.5px solid var(--border-strong); border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:11px; color:var(--on-accent); flex-shrink:0; }
+.bt-item.on .cb { background:var(--accent); border-color:var(--accent); }
+.bt-item.on .cb::after { content:'✓'; }
+.bt-cnt { margin-inline-start:auto; font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--text-mid); background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:0 7px; }
+.bt-sub { font-size:11px; font-weight:600; color:var(--text-mid); direction:ltr; }
+.bt-rng { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.bt-rng > div { min-width:0; }
+.bt-pop-body label { font-size:11.5px; font-weight:700; color:var(--text-mid); display:block; margin-bottom:3px; }
+.bt-sec { display:flex; flex-direction:column; gap:5px; transition:opacity .15s; }
+.bt-pop-body > .bt-sec + .bt-sec { border-top:1px solid var(--border); padding-top:8px; }
+.bt-sec.dim { opacity:.4; } .bt-sec.dim:hover { opacity:.8; }
+.bt-sec-h { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:22px; }
+.bt-sec-t { font-size:11px; font-weight:800; color:var(--text-mid); }
+.bt-toks { display:flex; flex-wrap:wrap; gap:6px; }
+.bt-toks:empty { display:none; }
+.bt-sugg { border:1px solid var(--border); border-radius:var(--radius-sm); max-height:236px; overflow:auto; padding:3px; }
+.bt-sugg:empty { display:none; }
+.bt-sg-note { padding:6px 8px; font-size:11.5px; font-weight:600; color:var(--text-mid); }
+.bt-hint { font-size:11.5px; font-weight:600; color:var(--text-mid); line-height:1.8; }
+.bt-tip { position:fixed; z-index:210; max-width:300px; background:var(--neutral-dark); color:var(--on-accent); font-size:12px; font-weight:600; line-height:1.7; padding:6px 10px; border-radius:6px; box-shadow:var(--shadow-md); pointer-events:none; word-break:break-word; }
 .bx-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700; white-space:nowrap; }
 .bx-badge.ready { background:var(--green-light); color:var(--green); border:1px solid var(--green-border); }
 .bx-badge.zero { background:var(--blue-light); color:var(--blue); border:1px solid var(--blue-border); }
@@ -761,7 +910,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 .bx-badge.wait { background:var(--bg); color:var(--text-secondary); border:1px solid var(--border); }
 .bx-slot { font-weight:800; font-family:var(--font-mono); }
 .bx-pre { color:var(--purple); font-size:10px; margin-right:4px; }
-.bx-why { font-size:12px; line-height:1.6; max-width:520px; }
+.bx-why { font-size:12px; line-height:1.6; }
 .bx-neg { color:var(--red); }
 .log-tag.bx-co { background:var(--purple-light); color:var(--purple); }
 </style>
@@ -957,21 +1106,36 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
     </div>
   </div>
 
-  <!-- ══════════ §BOSTA-TAB — تحصيل بوسطة (v1.77.0) ══════════ -->
+  <!-- ══════════ §BOSTA-TAB — تحصيل بوسطة (v1.77.0 · أُعيد بناؤه v1.81.0) ══════════ -->
   <div class="tab-panel" id="panelBosta">
     <div class="not-configured-banner" id="bxNotConfig">⚠ الأداة غير مضبوطة — افتح الإعدادات وأدخل بيانات الاتصال</div>
 
+    <!-- ① مربع الرفع — نفس الصندوق بيتحوّل لشريط مضغوط بعد تحميل الملف (استبدال بالسحب أو الضغط) -->
     <div class="card">
       <div class="card-body entry-card-body">
         <label class="bx-drop" id="bxDrop" for="bxFile" tabindex="0">
-          <b>📂 ارفع ملف «Cash Cycles» من بوسطة (.xlsx)</b>
-          <small>اسحب الملف هنا أو اضغط للاختيار — شيت واحد اسمه <code>Cash Cycles</code> · التسجيل على <b>الإجمالي</b> (COD + Online) بدون شحن</small>
+          <span class="bx-drop-ico" aria-hidden="true">
+            <svg class="bx-ico-up" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 35a9 9 0 0 1-1.6-17.9 12 12 0 0 1 23.3 2.6A7.7 7.7 0 0 1 35 35"/><path d="M24 40V23"/><path d="m17.5 29.5 6.5-6.5 6.5 6.5"/></svg>
+            <svg class="bx-ico-file" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6h17l9 9v27H12z"/><path d="M29 6v9h9"/><path d="m18 29 5 5 8-10"/></svg>
+          </span>
+          <span class="bx-drop-body">
+            <span class="bx-drop-title" id="bxDropTitle">ارفع ملف «Cash Cycles» من بوسطة</span>
+            <span class="bx-drop-sub" id="bxDropSub">اسحب الملف وأفلته هنا، أو <u>اختاره من جهازك</u></span>
+            <span class="bx-drop-rules">
+              <span class="bx-rule"><code>.xlsx</code></span>
+              <span class="bx-rule">شيت واحد اسمه <code>Cash Cycles</code></span>
+              <span class="bx-rule">حتى 15 ميجا</span>
+              <span class="bx-rule">التسجيل على <b>الإجمالي</b> (COD + Online) بدون شحن</span>
+            </span>
+          </span>
+          <span class="bx-drop-cta" id="bxDropCta">اختيار ملف</span>
         </label>
         <input type="file" id="bxFile" accept=".xlsx" hidden>
         <div class="bx-fileerr" id="bxFileErr" role="alert"></div>
       </div>
     </div>
 
+    <!-- ② ملخّص الملف (بيتبني من الحالة في bxRender) -->
     <div class="bx-sum" id="bxSum"></div>
     <div class="bx-bar" id="bxBar">
       <button type="button" class="bx-run" id="bxRun" disabled>💵 سجّل</button>
@@ -982,23 +1146,19 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
     <div class="progress-wrap" id="bxProgress"><div class="progress-bar" id="bxProgressBar"></div></div>
     <div class="result-box" id="bxResult"><div class="result-title" id="bxResultTitle"></div><div class="result-detail" id="bxResultDetail"></div></div>
 
-    <div class="table-wrap" id="bxTableWrap">
-      <table id="bxTable">
-        <thead>
-          <tr>
-            <th class="col-ltr" data-eco-nofilter>صف</th>
-            <th>رقم الأوردر</th>
-            <th class="col-ltr" data-eco-nofilter>رقم التتبع</th>
-            <th class="col-center">النوع</th>
-            <th class="col-ltr" data-eco-nofilter>الإجمالي (COD+Online)</th>
-            <th class="col-ltr" data-eco-nofilter>مستحق شوبيفاي</th>
-            <th class="col-ltr" data-eco-nofilter>Net Value</th>
-            <th class="col-center">الحالة</th>
-            <th data-eco-nofilter>السبب</th>
-          </tr>
-        </thead>
-        <tbody id="bxBody"></tbody>
-      </table>
+    <!-- ③ القسم الموحّد (html-builder v8.7.0 · data-table-standard): كارت واحد ← صف النتائج ← chips ← جدول بفلاتر رأس العمود -->
+    <div class="bt-section" id="bxTableWrap">
+      <div class="bt-bar" id="btBar" tabindex="0" role="button" aria-label="طي الجدول وفتحه">
+        <div class="bt-bar-r">
+          <span class="bt-tog open" id="btTog">▲</span>
+          <div class="bt-results"><span class="bt-results-l">النتائج:</span><span class="bt-results-n" id="btCount">—</span><span class="bt-results-of" id="btOf"></span></div>
+        </div>
+        <div class="bt-bar-l"><button class="bt-clear inactive" type="button" id="btClearAll" data-btclear>✕ مسح كل الفلاتر</button></div>
+      </div>
+      <div class="bt-chips" id="btChips"></div>
+      <div class="bt-wrap" id="btWrap"><div><div class="bt-scroll" id="btScroll">
+        <table id="bxTable" class="auto measuring"><colgroup id="btCg"></colgroup><thead id="btHead"></thead><tbody id="bxBody"></tbody></table>
+      </div></div></div>
     </div>
   </div>
 
@@ -1192,7 +1352,20 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.78.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.81.0</span>
+          <span class="cl-ver-date">09-11-2026 · تاب «تحصيل بوسطة» (html-builder v8.7.0)</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>جدول الصفوف على المعيار الموحّد:</strong> كارت واحد (صف «النتائج» ← chips ← جدول) · عناوين ثابتة بسكرول داخلي · <strong>قمع فلتر في رأس كل عمود</strong> (قيم · أرقام بنافذة نطاق/قايمة · بحث بتوكنز واقتراحات) · ترتيب 3 حالات · سحب عرض الأعمدة (دبل كليك = ضبط) · «مسح كل الفلاتر» · tooltip بقيم الفلتر. اتشال بار «فلتر مفعّل» القديم.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>مربع الرفع:</strong> أيقونة رفع وزرار «اختيار ملف» وشرائح شروط الملف، وبعد التحميل بيتحوّل لشريط مضغوط باسم الملف وحجمه وعدد صفوفه (الاستبدال بالسحب أو الضغط).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>مربعات الملخّص:</strong> هوية الملف في شريط واحد (Cash-out ID ما بقاش بيتقصّ) · عدّادات الحالة بقت <strong>فلاتر</strong> (الضغط على «أخطاء» بيعرض الأخطاء بس) · شريط تقدّم لـNet المسجّل.</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span>تعديل في صفحة الهب بس (صفر تعديل في الـ Worker ولا <code>min</code>) — <code>port-standalone.py</code> بيمسحه.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block old">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.78.0</span>
           <span class="cl-ver-date">05-11-2026 · الواجهة الأصلية v3.7.1</span>
         </div>
         <ul class="cl-items">
@@ -1547,6 +1720,7 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
             <li><code>§TOOL-JS::pay-tiles</code> — طرق الدفع: بلاطات اختيار مباشر لحسابات (نقدي · انستاباي/محفظة × فادي/مُرسل/إسلام). الحسابات بتتجمّع في المجاميع التلاتة على <code>pmCash/pmInstapay/pmWallet</code> (مخفية) وباقي المنطق ما اتغيّرش. المبلغ بيتعرض بالسالب وبالأحمر لما صافي الجلسة سالب (القيمة المخزّنة موجبة)</li>
             <li><code>§LOG-JS</code> — جدول جلسات قابل للتوسيع (جلسة ← أوردر ← SKUs) · Pagination بصفحات (١٠٠/صفحة) عبر <code>get_logs</code> + <code>get_logs_count</code> · فلاتر server-side (<code>buildLogParams</code> مصدر واحد لـ<code>get_logs</code> و<code>get_logs_count</code> و<code>get_logs_export</code>) · تصدير XLSX للكل أو للمحدد عبر ExcelJS</li>
             <li><code>§LOG-JS::header-filters</code> — القمع ▽ في رأس العمود (<code>HF</code> · <code>hfToggle</code> · <code>#hfPop</code>): بيحرّك نفس قوايم الفلاتر القديمة لقايمة <code>position:fixed</code> وبيرجّعها. لوحة الفلاتر القديمة <code>#logFiltersHolder</code> <strong>مخفية وهي حاملة الحالة — ممنوع تتشال</strong>. tooltip بقيم الفلتر المفعّل بس (<code>#hfTip</code>).</li>
+            <li><code>§BOSTA-JS::table</code> — جدول صفوف «تحصيل بوسطة» على المعيار الموحّد (<code>bt</code> · <code>btApply</code> · <code>BT_COLS</code>): فلترة/ترتيب client-side على <code>BX.rows</code> (فلاتر قيم · أرقام نطاق/قايمة متبادلة · بحث بتوكنز واقتراحات)، قايمة عائمة <code>.bt-pop</code> على body (z 200) بحارس <code>document.contains</code>، chips، tooltip، سحب العرض (<code>btW</code> · محفوظ في <code>dco_col_widths_v1_COD-Payment-Center.html_bosta</code>). عدّادات الملخّص (<code>data-btcard</code>) بتكتب في فلتر الحالة. كلاسات الجدول <code>bt-*</code> مستقلة عن جدول السجل.</li>
             <li><code>§LOG-JS::filters-v86</code> — فلاتر السجل الجديدة (<code>F86</code>): رقم الأوردر بتوكنز + اقتراحات (<code>get_log_suggest</code>) · أرقام عدد/تحصيل/استرداد (<code>countFrom/To/In</code>…، القايمة من <code>get_log_num_values</code>) · وقت اليوم (<code>timeFrom/timeTo</code> بتوقيت القاهرة) · تاريخ بأقسام. كلها server-side (Worker ≥ 3.8.0) ومجاميع الجلسة بتتحسب على الجلسة كلها بغض النظر عن باقي الفلاتر.</li>
             <li><code>§LOG-JS::col-widths</code> — سحب عرض الأعمدة (<code>colLog</code>): كل الأعمدة متماثلة بالتناسب (<code>effective</code> · <code>ResizeObserver</code> · حارس العرض المنفوخ)، <code>colgroup</code> + <code>table-layout:fixed</code>، دبل كليك = ضبط بـ<code>Range</code>، محفوظ في <code>localStorage[dco_col_widths_v1_…_log]</code>. بيقرا <code>tHead.rows[0].cells</code> بس (تفاصيل الجلسة جواها جداول فرعية).</li>
             <li><code>§ENTRY-BAR</code> — مربع الإدخال الموحّد: النوع بالطول (١–٧ رقم أوردر · ١٣–١٥ باركود فاتورة)، Enter أو «إضافة» بس، والفشل في صندوق أحمر يقفل زرار التسجيل.</li>
@@ -5322,7 +5496,10 @@ const BX_SHEET = 'Cash Cycles';
 const BX_COLS = ['Business ID', 'Order Id', 'Order Type', 'Order Status', 'Order Reference', 'COD', 'Online Payment Amount',
   'Total Fees', 'Flex Ship Amount', 'Net Value', 'Payment Status', 'Paid At', 'Cash-out ID'];
 const BX_CHUNK = 15, BX_PAR = 2;
-const BX = { phase: 'idle', fileName: '', ctx: null, rows: [], busy: false, seq: 0, fileErrors: [], enhanced: false };
+const BX = { phase: 'idle', fileName: '', fileSize: 0, ctx: null, rows: [], busy: false, seq: 0, fileErrors: [] };
+const BX_DROP_TITLE = 'ارفع ملف «Cash Cycles» من بوسطة';
+const BX_DROP_SUB = 'اسحب الملف وأفلته هنا، أو <u>اختاره من جهازك</u>';
+const bxSize = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' ميجا' : Math.max(1, Math.round(n / 1024)).toLocaleString('en-US') + ' كيلوبايت';
 window.__bxBusy = false;
 
 const bxP = v => { if (v === null || v === undefined || v === '') return null; const n = Number(String(v).replace(/,/g, '').trim()); return Number.isFinite(n) ? Math.round(n * 100) : null; };
@@ -5447,7 +5624,7 @@ async function bxValidate(list) {
   };
   await Promise.all(Array.from({ length: Math.min(BX_PAR, chunks.length) }, worker));
   if (seq !== BX.seq) return;
-  BX.phase = 'ready'; bxProgress(null); bxRender();
+  BX.phase = 'ready'; bxProgress(null); bxRender(); btRemeasure();
 }
 function bxApply(r, res) {
   r.res = res; r.status = res.status; r.reasons = res.reasons || [];
@@ -5489,21 +5666,30 @@ function bxRender() {
   $('bxTableWrap').classList.toggle('show', has);
   $('bxSum').classList.toggle('show', has);
   $('bxBar').classList.toggle('show', has);
-  $('bxBody').innerHTML = rows.map(bxRowHtml).join('');
-  if (has && !BX.enhanced && typeof ecoTblEnhance === 'function') { try { ecoTblEnhance($('bxTable')); BX.enhanced = true; } catch (e) { /* الفلاتر تحسين مش شرط */ } }
+  btApply();
   const reg = rows.filter(bxIs('ready', 'ready_zero')), err = rows.filter(bxIs('error', 'failed')), unk = rows.filter(bxIs('unknown', 'pending', 'checking'));
   const done = rows.filter(bxIs('done', 'registered'));
-  const card = (cls, k, v) => `<div class="bx-card ${cls}"><small>${k}</small><b>${v}</b></div>`;
   if (has) {
-    const c = BX.ctx;
+    const c = BX.ctx, netAll = bxP(c.netTotal) || 0, netDone = bxSum(done, r => r.netP || 0), netReady = bxSum(reg, r => r.netP || 0);
+    const pct = netAll > 0 ? Math.max(0, Math.min(100, Math.round(netDone / netAll * 100))) : 0;
+    const stat = (g, cls, label, n) => `<button type="button" class="bx-stat ${cls}${n ? '' : ' zero'}" data-btcard="${g}" aria-pressed="false"><span><small>${label}</small><b>${n}</b></span></button>`;
     $('bxSum').innerHTML =
-      card('', 'Cash-out ID', esc(c.cashOutId)) + card('', 'تاريخ الدفع', bxDate(c.paidAt)) + card('', 'صفوف الملف', rows.length) +
-      card('ok', 'جاهز للتسجيل', reg.length) + card('pur', 'مسجّل', done.length) + card('err', 'أخطاء', err.length) +
-      (unk.length ? card('', 'لسه/تعذّر', unk.length) : '') +
-      card('info', 'إجمالي COD+Online', bxM(bxSum(rows, r => r.grossP || 0))) +
-      card('info', 'Net Value للملف', bxM(bxP(c.netTotal))) +
-      card('pur', 'Net المسجّل', bxM(bxSum(done, r => r.netP || 0)));
+      `<div class="bx-meta"><div><small>Cash-out ID</small><b title="${esc(c.cashOutId)}">${esc(c.cashOutId)}</b></div><div><small>تاريخ الدفع</small><b>${bxDate(c.paidAt)}</b></div><div><small>صفوف الملف</small><b>${rows.length}</b></div></div>` +
+      `<div class="bx-stats">${stat('ok', 'ok', 'جاهز للتسجيل', reg.length)}${stat('pur', 'pur', 'مسجّل', done.length)}${stat('err', 'err', 'أخطاء', err.length)}${unk.length ? stat('warn', 'warn', 'لسه/تعذّر', unk.length) : ''}</div>` +
+      `<div class="bx-money"><div class="bx-m"><small>إجمالي COD+Online</small><b>${bxM(bxSum(rows, r => r.grossP || 0))}</b></div>` +
+      `<div class="bx-m"><small>Net Value للملف</small><b>${bxM(netAll)}</b></div>` +
+      `<div class="bx-m pur"><small>Net المسجّل</small><b>${bxM(netDone)}</b><div class="bx-m-bar"><i style="width:${pct}%"></i></div><em>${pct}% من Net الملف</em></div>` +
+      (reg.length ? `<div class="bx-m ok"><small>Net الجاهز للتسجيل</small><b>${bxM(netReady)}</b></div>` : '') + `</div>`;
+    btSyncCards();
   }
+  // مربع الرفع: بعد تحميل الملف بيتحوّل لشريط مضغوط باسم الملف وحجمه وحالته
+  const loaded = has || BX.phase === 'parsing';
+  $('bxDrop').classList.toggle('compact', loaded);
+  $('bxDropTitle').textContent = loaded ? BX.fileName : BX_DROP_TITLE;
+  $('bxDropSub').innerHTML = !loaded ? BX_DROP_SUB
+    : BX.phase === 'parsing' ? 'بيقرا الملف…'
+    : `${esc(bxSize(BX.fileSize))} · ${rows.length.toLocaleString('en-US')} صف · اسحب ملف تاني هنا للاستبدال`;
+  $('bxDropCta').textContent = loaded ? 'استبدال الملف' : 'اختيار ملف';
   const checking = BX.phase === 'checking' || BX.phase === 'parsing';
   const run = $('bxRun');
   const canRun = has && !checking && !BX.busy && reg.length > 0 && isConfigured();
@@ -5530,17 +5716,521 @@ function bxShowFileErr(errs) {
   el.classList.toggle('show', errs.length > 0);
 }
 function bxResetAll() {
-  BX.seq++; BX.phase = 'idle'; BX.rows = []; BX.ctx = null; BX.fileName = ''; BX.busy = false; window.__bxBusy = false;
+  BX.seq++; BX.phase = 'idle'; BX.rows = []; BX.ctx = null; BX.fileName = ''; BX.fileSize = 0; BX.busy = false; window.__bxBusy = false;
+  btClearAll(); bt.sort = { key: null, dir: null }; btClosePop();   // ملف جديد = فلاتر وترتيب جداد
   bxShowFileErr([]); bxProgress(null); $('bxResult').className = 'result-box'; $('bxFile').value = '';
   bxRender();
 }
+
+// ══════════════════════════════════════════════════════════════
+// §BOSTA-JS::table — القسم الموحّد لجدول الصفوف (html-builder v8.7.0 · data-table-standard · طلب أحمد 09-11-2026)
+// ══════════════════════════════════════════════════════════════
+// كارت واحد: صف النتائج ← chips ← جدول بعناوين ثابتة وفلاتر في رأس العمود وترتيب 3 حالات وسحب عرض الأعمدة.
+// 🔴 كله client-side على صفوف الملف المحمّلة (≤ مئات الصفوف) — «النتائج» = filtered.length (الاستثناء server-side للسجل بس).
+// 🔴 `BX.rows` هي المصدر الوحيد؛ الجدول بيترسم منها بـ`btApply()` (فلترة ← ترتيب ← رسم) وعدّادات الملخّص بتفلتر بنفس الحالة.
+// ⚠️ كل كلاسات الجدول بادئتها `bt-` والأحداث `data-bt*` — جدول «سجل العمليات» ليه محرّكه الخاص ومايتصادمش معاه.
+const BT_LS = 'dco_col_widths_v1_COD-Payment-Center.html_bosta';   // ⚠️ أضفت/شلت عمود؟ ارفع _v1 → _v2
+const BT_SEARCH_MIN = 10;                                          // بحث جوّه قايمة القيم من 10 قيم فأكتر
+const BT_MIN_W = 64, BT_MAX_W = 700, BT_INIT_CAP = 260, BT_SOFT_MIN = 90;
+const BT_COLS = [
+  { k: 'row', l: 'صف', t: 'num' },
+  { k: 'order', l: 'رقم الأوردر', t: 'q' },
+  { k: 'track', l: 'رقم التتبع', t: 'q' },
+  { k: 'type', l: 'النوع', t: 'ms' },
+  { k: 'gross', l: 'الإجمالي (COD+Online)', t: 'num' },
+  { k: 'due', l: 'مستحق شوبيفاي', t: 'num' },
+  { k: 'net', l: 'Net Value', t: 'num' },
+  { k: 'status', l: 'الحالة', t: 'ms' },
+  { k: 'why', l: 'السبب', t: 'q' },
+];
+const BT_T = k => BT_COLS.find(c => c.k === k).t;
+const BT_L = k => BT_COLS.find(c => c.k === k).l;
+const BT_FUNNEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></svg>';
+// مجموعات الحالة اللي عدّادات الملخّص بتفلتر بيها (transient زي running/checking برّه)
+const BX_GROUPS = { ok: ['ready', 'ready_zero'], pur: ['done', 'registered'], err: ['error', 'failed'], warn: ['unknown', 'pending', 'checking'] };
+const bt = {
+  ms: { type: new Set(), status: new Set() }, num: {}, tok: { order: [], track: [], why: [] }, q: { order: '', track: '', why: '' },
+  sort: { key: null, dir: null }, pop: null, popKey: null, popAnchor: null, popQ: '', sugg: -1, tip: null,
+};
+BT_COLS.filter(c => c.t === 'num').forEach(c => { bt.num[c.k] = { mode: 'list', sel: new Set(), from: '', to: '' }; });
+let btQOrders = [], btQTracks = [], btQWhy = [];
+
+// ── قيم الأعمدة (مصدر واحد للفلتر والترتيب والقوايم) ─────────
+const bxName = r => r.orderName || (r.raw.orderRef ? (String(r.raw.orderRef).startsWith('#') ? r.raw.orderRef : '#' + r.raw.orderRef) : '—');
+const bxWhy = r => (r.reasons.length ? r.reasons.join(' · ') : (r.status === 'ready_zero' ? 'مفيش تحصيل على شوبيفاي — هيتسجّل لرسوم بوسطة (Net Value)' : '')) + (r.warn ? ' · ' + r.warn : '');
+const btNumOrNull = v => (v === null || v === undefined || v === '' || !Number.isFinite(Number(v))) ? null : Number(v);
+function btVal(r, k) {
+  switch (k) {
+    case 'row': return r.rowNo;
+    case 'order': return bxName(r);
+    case 'track': return String(r.raw.trackingNumber || '');
+    case 'type': return `${r.slot} · ${r.raw.orderType || '—'}`;
+    case 'gross': return r.grossP === null ? null : r.grossP / 100;
+    case 'due': return btNumOrNull(r.shopify);
+    case 'net': return r.netP === null ? null : r.netP / 100;
+    case 'status': return (BX_ST[r.status] || BX_ST.pending)[1];
+    case 'why': return bxWhy(r);
+  }
+  return '';
+}
+const btLatin = s => String(s).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+const btDigits = s => btLatin(s).replace(/\D/g, '');
+const btParts = v => btLatin(v).split(/\D+/).filter(Boolean);   // المسافة/الفاصلة بين رقمين = رقم تاني (OR)
+function btNorm(s) {
+  return btLatin(String(s).toLowerCase()).replace(/[ً-ٰٟـ]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/\s+/g, ' ').trim();
+}
+const btQClean = k => k === 'why' ? btNorm(bt.q[k]) : btDigits(bt.q[k]);
+const btQOn = k => bt.tok[k].length > 0 || !!btQClean(k);
+function btBuildQ() {
+  btQOrders = [...bt.tok.order, ...btParts(bt.q.order)];
+  btQTracks = [...bt.tok.track, ...btParts(bt.q.track)];
+  btQWhy = [...bt.tok.why, bt.q.why].map(g => btNorm(g).split(' ').filter(Boolean)).filter(a => a.length);
+}
+function btItems(k) {
+  const m = new Map();
+  BX.rows.forEach(r => { const v = btVal(r, k); if (v === null || v === '') return; const key = String(v); m.set(key, (m.get(key) || 0) + 1); });
+  const num = BT_T(k) === 'num';
+  const a = [...m].map(([v, c]) => ({ v, c, t: num && k !== 'row' ? fmtSigned(+v) : v }));
+  if (num) a.sort((x, y) => (+x.v) - (+y.v));
+  else if (k === 'status') { const ord = Object.values(BX_ST).map(s => s[1]); a.sort((x, y) => ord.indexOf(x.v) - ord.indexOf(y.v)); }
+  else a.sort((x, y) => x.v.localeCompare(y.v, 'ar'));
+  return a;
+}
+const btSelOf = k => BT_T(k) === 'ms' ? bt.ms[k] : bt.num[k].sel;
+
+// ── الفلترة ───────────────────────────────────────────────
+function btPass(r) {
+  for (const k in bt.ms) { const s = bt.ms[k]; if (s.size && !s.has(btVal(r, k))) return false; }
+  for (const k in bt.num) {
+    const a = bt.num[k], v = btVal(r, k);
+    if (a.mode === 'list') { if (a.sel.size && (v === null || !a.sel.has(String(v)))) return false; }
+    else if (a.from !== '' || a.to !== '') {
+      if (v === null) return false;
+      const f = a.from !== '' ? +a.from : -Infinity, t = a.to !== '' ? +a.to : Infinity;
+      if (v < f || v > t) return false;
+    }
+  }
+  if (btQOrders.length) { const d = btDigits(btVal(r, 'order')); if (!btQOrders.some(t => d.includes(t))) return false; }
+  if (btQTracks.length) { const d = btVal(r, 'track'); if (!btQTracks.some(t => d.includes(t))) return false; }
+  if (btQWhy.length) { const n = btNorm(btVal(r, 'why')); if (!btQWhy.some(g => g.every(w => n.includes(w)))) return false; }
+  return true;
+}
+function btActiveCount(k) {
+  const t = BT_T(k);
+  if (t === 'ms') return bt.ms[k].size;
+  if (t === 'num') { const a = bt.num[k]; return a.mode === 'list' ? a.sel.size : ((a.from !== '' || a.to !== '') ? 1 : 0); }
+  return bt.tok[k].length + (btQClean(k) ? 1 : 0);
+}
+// ⚠️ `!!value` مش `!== null` — undefined !== null = true (أخطر باج في المعيار: الزرار يفضل مولّع للأبد)
+function btAnyActive() {
+  return Object.keys(bt.ms).some(k => bt.ms[k].size > 0)
+    || Object.keys(bt.num).some(k => { const a = bt.num[k]; return a.sel.size > 0 || !!a.from || !!a.to; })
+    || ['order', 'track', 'why'].some(btQOn);
+}
+function btClearAll() {
+  Object.keys(bt.ms).forEach(k => bt.ms[k].clear());
+  Object.keys(bt.num).forEach(k => { bt.num[k] = { mode: 'list', sel: new Set(), from: '', to: '' }; });
+  ['order', 'track', 'why'].forEach(k => { bt.q[k] = ''; bt.tok[k] = []; });
+}
+
+// ── الترتيب — 3 حالات، مستقل عن الفلاتر (والأيقونة تظهر عند التفعيل بس) ──
+function btToggleSort(k) {
+  if (bt.sort.key !== k) bt.sort = { key: k, dir: 'asc' };
+  else if (bt.sort.dir === 'asc') bt.sort.dir = 'desc';
+  else bt.sort = { key: null, dir: null };
+  btApply();
+}
+function btSortVal(r, k) {
+  const v = btVal(r, k);
+  if (k === 'order') { const d = btDigits(v); return d ? +d : null; }
+  return v === '' ? null : v;
+}
+function btSort(list) {
+  const { key, dir } = bt.sort; if (!key) return list;
+  const d = dir === 'asc' ? 1 : -1;
+  return [...list].sort((a, b) => {   // نسخة جديدة — ممنوع تعديل المصفوفة الأصلية
+    const x = btSortVal(a.r, key), y = btSortVal(b.r, key);
+    if (x === null && y === null) return 0; if (x === null) return 1; if (y === null) return -1;   // الفاضي آخر الترتيب في الاتجاهين
+    return (typeof x === 'string' ? x.localeCompare(y, 'ar', { numeric: true }) : x - y) * d;
+  });
+}
+
+// ── الرسم ─────────────────────────────────────────────────
+function btMount() {
+  $('btCg').innerHTML = BT_COLS.map(c => `<col data-c="${c.k}">`).join('');
+  $('btHead').innerHTML = '<tr>' + BT_COLS.map(c =>
+    `<th data-col="${c.k}" data-fk="${c.k}"><div class="bt-th-in"><span class="bt-th-label" data-btsort="${c.k}" tabindex="0" role="button">${esc(c.l)}<span class="bt-sort"></span></span>` +
+    `<button class="bt-flt" type="button" data-btflt="${c.k}" aria-label="فلتر ${esc(c.l)}">${BT_FUNNEL}<b class="bt-thc"></b></button></div><span class="bt-rz" data-btrz="${c.k}"></span></th>`).join('') + '</tr>';
+}
+const btChip = (t, rm) => `<span class="bt-chip">${esc(t)}<button type="button" data-btrm="${esc(rm)}" aria-label="إزالة">✕</button></span>`;
+const btChipRow = (label, chips) => `<div class="bt-chips-row"><span class="bt-chips-l">${esc(label)}:</span>${chips.join('')}</div>`;
+function btRenderChips() {
+  const rows = [];
+  Object.keys(bt.ms).forEach(k => { if (bt.ms[k].size) rows.push(btChipRow(BT_L(k), [...bt.ms[k]].map(v => btChip(v, `ms:${k}:${v}`)))); });
+  Object.keys(bt.num).forEach(k => {
+    const a = bt.num[k];
+    if (a.mode === 'list' && a.sel.size) rows.push(btChipRow(BT_L(k), [...a.sel].sort((x, y) => x - y).map(v => btChip(k === 'row' ? v : fmtSigned(+v), `num:${k}:${v}`))));
+    if (a.mode === 'range' && (a.from !== '' || a.to !== '')) rows.push(btChipRow(BT_L(k), [btChip(`من ${a.from || '—'} إلى ${a.to || '—'}`, `range:${k}:`)]));
+  });
+  ['order', 'track', 'why'].forEach(k => {
+    const cs = bt.tok[k].map((t, i) => btChip(k === 'order' ? '#' + t : t, `tok:${k}:${i}`));
+    if (btQClean(k)) cs.push(btChip(bt.q[k].trim(), `q:${k}:`));
+    if (cs.length) rows.push(btChipRow(BT_L(k), cs));
+  });
+  $('btChips').innerHTML = rows.join('');
+}
+function btSyncCards() {   // عدّاد الملخّص «مفعّل» لما فلتر الحالة == مجموعته بالظبط
+  document.querySelectorAll('#bxSum [data-btcard]').forEach(b => {
+    const want = btGroupLabels(b.dataset.btcard), have = bt.ms.status;
+    const on = want.size > 0 && want.size === have.size && [...want].every(v => have.has(v));
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+function btGroupLabels(g) {
+  const s = new Set(); BX.rows.forEach(r => { if (BX_GROUPS[g].includes(r.status)) s.add(btVal(r, 'status')); }); return s;
+}
+function btStates() {
+  $('btClearAll').classList.toggle('inactive', !btAnyActive());
+  document.querySelectorAll('#bxTable th[data-fk]').forEach(th => {
+    const k = th.dataset.fk, n = btActiveCount(k), act = bt.sort.key === k;
+    th.classList.toggle('flt-on', n > 0);
+    const c = th.querySelector('.bt-thc'); if (c) c.textContent = n > 1 ? n : (n ? '●' : '');
+    th.classList.toggle('sorted', act);
+    const si = th.querySelector('.bt-sort'); if (si) { si.textContent = act ? (bt.sort.dir === 'asc' ? '▲' : '▼') : ''; si.classList.toggle('active', act); }
+  });
+  btSyncCards();
+}
+function btApply() {
+  btHideTip(); btBuildQ();
+  const all = BX.rows.map((r, i) => ({ r, i })), f = all.filter(x => btPass(x.r)), s = btSort(f);
+  $('bxBody').innerHTML = s.length ? s.map(x => bxRowHtml(x.r, x.i)).join('')
+    : `<tr><td colspan="${BT_COLS.length}" class="bt-empty">${all.length ? 'مفيش نتايج مطابقة للفلاتر' : '—'}</td></tr>`;
+  $('btCount').textContent = f.length.toLocaleString('en-US');
+  $('btOf').textContent = f.length !== all.length ? `من ${all.length.toLocaleString('en-US')} صف` : '';
+  btRenderChips(); btStates(); btApplyW(); btTryInit();
+}
+
+// ── القايمة العائمة (position:fixed على body) ───────────────
+function btClosePop() { if (bt.pop) bt.pop.remove(); bt.pop = null; bt.popKey = null; bt.popAnchor = null; bt.popQ = ''; bt.sugg = -1; }
+function btOpenPop(k, anchor) {
+  btHideTip();
+  if (bt.popKey === k && bt.popAnchor === anchor) { btClosePop(); return; }
+  btClosePop(); bt.popKey = k; bt.popAnchor = anchor;
+  bt.pop = document.createElement('div'); bt.pop.className = 'bt-pop'; document.body.appendChild(bt.pop);
+  btBuildPop();
+  const f = bt.pop.querySelector('[data-btfocus]'); if (f) f.focus();
+}
+function btPlace() {
+  if (!bt.pop || !bt.popAnchor) return;
+  if (!document.contains(bt.popAnchor)) { btClosePop(); return; }
+  const r = bt.popAnchor.getBoundingClientRect(), w = bt.pop.offsetWidth, h = bt.pop.offsetHeight;
+  bt.pop.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + 'px';
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  bt.pop.style.top = top + 'px';
+}
+function btListHtml(k) {
+  const q = bt.popQ.trim().toLowerCase(), sel = btSelOf(k);
+  const its = btItems(k).filter(i => !q || i.t.toLowerCase().includes(q));
+  return its.map(i => `<div class="bt-item ${sel.has(i.v) ? 'on' : ''}" data-btms="${esc(i.v)}"><span class="cb"></span><span>${esc(i.t)}</span><span class="bt-cnt">${i.c}</span></div>`).join('') || '<div class="bt-sg-note">لا نتائج</div>';
+}
+function btSuggItems(k) {
+  const ps = btParts(bt.q[k]), p = k === 'why' ? null : ps[ps.length - 1];
+  if (k === 'why' || !p) return { items: [], more: 0 };
+  const done = new Set(bt.tok[k]);
+  const hit = BX.rows.filter(r => (k === 'order' ? btDigits(btVal(r, 'order')) : btVal(r, 'track')).includes(p));
+  const seen = new Set(), all = [];
+  hit.forEach(r => {
+    const v = k === 'order' ? btDigits(btVal(r, 'order')) : btVal(r, 'track');
+    if (!v || done.has(v) || seen.has(v)) return; seen.add(v);
+    all.push({ v, t: k === 'order' ? btVal(r, 'order') : v, s: k === 'order' ? btVal(r, 'track') : btVal(r, 'order') });
+  });
+  all.sort((a, b) => (+b.v) - (+a.v));
+  return { items: all.slice(0, 10), more: Math.max(0, all.length - 10) };
+}
+function btSuggHtml(k) {
+  if (k === 'why' || !btQClean(k)) return '';
+  const { items, more } = btSuggItems(k);
+  if (!items.length) return '<div class="bt-sg-note">مفيش اقتراحات — Enter بيضيف اللي كتبته كبحث جزئي</div>';
+  return items.map((i, n) => `<div class="bt-item ${n === bt.sugg ? 'act' : ''}" data-btsg="${n}" data-btsgv="${esc(i.v)}"><span>${esc(i.t)}</span><span class="bt-sub">${esc(i.s)}</span></div>`).join('')
+    + (more ? `<div class="bt-sg-note">+${more} أخرى — كمّل الكتابة لتضييق النتائج</div>` : '');
+}
+function btRenderSugg() { const el = bt.pop && bt.pop.querySelector('#btSugg'); if (el) { el.innerHTML = btSuggHtml(bt.popKey); btPlace(); } }
+function btMarkSugg() { if (!bt.pop) return; bt.pop.querySelectorAll('[data-btsg]').forEach((b, n) => { b.classList.toggle('act', n === bt.sugg); if (n === bt.sugg) b.scrollIntoView({ block: 'nearest' }); }); }
+function btPickSugg(k, v) {
+  const ps = btParts(bt.q[k]);
+  ps.slice(0, -1).concat(v).forEach(n => { if (!bt.tok[k].includes(n)) bt.tok[k].push(n); });
+  bt.q[k] = ''; bt.sugg = -1; btBuildPop(); btApply();
+  const f = bt.pop && bt.pop.querySelector('[data-btfocus]'); if (f) f.focus();
+}
+function btCommitTok(k) {   // Enter = ضيف المكتوب كتوكن (chip) وفضّي الحقل
+  let added = false;
+  if (k === 'why') {
+    const v = bt.q.why.trim().replace(/\s+/g, ' '), n = btNorm(v);
+    if (n) { added = true; if (!bt.tok.why.some(t => btNorm(t) === n)) bt.tok.why.push(v); }
+  } else btParts(bt.q[k]).forEach(n => { added = true; if (!bt.tok[k].includes(n)) bt.tok[k].push(n); });
+  if (!added) return false;
+  bt.q[k] = ''; btBuildPop(); btApply();
+  const f = bt.pop && bt.pop.querySelector('[data-btfocus]'); if (f) f.focus();
+  return true;
+}
+function btBuildPop() {
+  const k = bt.popKey, ty = BT_T(k), L = esc(BT_L(k)); let h = '';
+  const clearBtn = act => `<button class="bt-clear" type="button" data-btact="${act}">✕ مسح الاختيار</button>`;
+  const search = () => btItems(k).length >= BT_SEARCH_MIN ? '<div class="bt-srch"><input class="bt-in" id="btPopSearch" data-btmsq aria-label="بحث في القيم" autocomplete="off"></div>' : '';
+  if (ty === 'ms') {
+    h = `<div class="bt-pop-hd">${L}</div><div class="bt-pop-top">${clearBtn('clear')}<button class="bt-lnk" type="button" data-btact="all">تحديد الكل</button></div>${search()}<div class="bt-list">${btListHtml(k)}</div>`;
+  } else if (ty === 'num') {
+    const a = bt.num[k];
+    h = `<div class="bt-pop-hd has-act"><span>${L}</span>${clearBtn('clear')}</div><div class="bt-pop-body">` +
+      `<div class="bt-sec ${a.mode === 'list' && a.sel.size ? 'dim' : ''}" data-btsec="range"><div class="bt-sec-t">نطاق (من — إلى)</div><div class="bt-rng">` +
+      `<div><label for="btRf">من</label><input id="btRf" type="number" step="any" class="bt-in" data-btr="from" data-btrk="${k}" value="${esc(a.from)}"></div>` +
+      `<div><label for="btRt">إلى</label><input id="btRt" type="number" step="any" class="bt-in" data-btr="to" data-btrk="${k}" value="${esc(a.to)}"></div></div></div>` +
+      `<div class="bt-sec ${a.mode === 'range' && (a.from !== '' || a.to !== '') ? 'dim' : ''}" data-btsec="list"><div class="bt-sec-h"><span class="bt-sec-t">أو اختار قيم</span><button class="bt-lnk" type="button" data-btact="all">تحديد الكل</button></div>` +
+      `${btItems(k).length >= BT_SEARCH_MIN ? '<input class="bt-in" id="btPopSearch" data-btmsq aria-label="بحث في القيم" autocomplete="off">' : ''}<div class="bt-list">${btListHtml(k)}</div></div></div>`;
+  } else {
+    h = `<div class="bt-pop-hd">${L}</div><div class="bt-pop-body"><div class="bt-search"><input id="btQ" class="bt-in ${btQClean(k) ? 'has-value' : ''}" data-btq="${k}" value="${esc(bt.q[k])}" ` +
+      `aria-label="${k === 'why' ? 'اكتب كلمة واضغط Enter' : 'اكتب رقم واضغط Enter'}" autocomplete="off" data-btfocus><span aria-hidden="true">🔍</span></div>` +
+      `<div class="bt-sugg" id="btSugg">${btSuggHtml(k)}</div><div class="bt-toks">${bt.tok[k].map((t, i) => btChip(k === 'order' ? '#' + t : t, `tok:${k}:${i}`)).join('')}</div>` +
+      `<div class="bt-hint">${k === 'why' ? 'كل كلمة لازم تتوافر في السبب (بأي ترتيب) — Enter بيضيف بحث تاني «أو»' : 'Enter بيضيف الرقم كبحث «أو» — المسافة بين رقمين = أوردر تاني'}</div>${clearBtn('qclear')}</div>`;
+  }
+  bt.pop.innerHTML = h; btPlace();
+}
+function btMarkNumPop() {
+  if (!bt.pop || BT_T(bt.popKey) !== 'num') return;
+  const a = bt.num[bt.popKey], rS = bt.pop.querySelector('[data-btsec="range"]'), lS = bt.pop.querySelector('[data-btsec="list"]');
+  if (rS) rS.classList.toggle('dim', a.mode === 'list' && a.sel.size > 0);
+  if (lS) lS.classList.toggle('dim', a.mode === 'range' && (a.from !== '' || a.to !== ''));
+}
+function btRenderList() { const l = bt.pop && bt.pop.querySelector('.bt-list'); if (l) l.innerHTML = btListHtml(bt.popKey); }
+function btSyncInputs() {
+  document.querySelectorAll('[data-btr]').forEach(i => { const n = bt.num[i.dataset.btrk]; if (n) i.value = n[i.dataset.btr]; });
+  document.querySelectorAll('[data-btq]').forEach(i => { i.value = bt.q[i.dataset.btq]; i.classList.toggle('has-value', !!i.value.trim()); });
+}
+function btPopAction(t) {
+  const k = bt.popKey, ty = BT_T(k);
+  const sg = t.closest('[data-btsg]'); if (sg) { btPickSugg(k, sg.dataset.btsgv); return; }
+  const it = t.closest('.bt-item');
+  if (it && it.dataset.btms !== undefined) {
+    const s = btSelOf(k), v = it.dataset.btms; s.has(v) ? s.delete(v) : s.add(v);
+    if (ty === 'num') { const n = bt.num[k]; n.mode = 'list'; n.from = n.to = ''; btSyncInputs(); }
+    btRenderList(); btMarkNumPop(); btApply(); return;
+  }
+  const tr = t.closest('[data-btrm^="tok:"]');
+  if (tr) { const [, key, i] = tr.dataset.btrm.split(':'); bt.tok[key].splice(+i, 1); btBuildPop(); btApply(); const f = bt.pop && bt.pop.querySelector('[data-btfocus]'); if (f) f.focus(); return; }
+  const a = t.closest('[data-btact]'); if (!a) return;
+  const act = a.dataset.btact;
+  if (act === 'clear') {
+    if (ty === 'num') { const n = bt.num[k]; n.sel.clear(); n.from = n.to = ''; } else bt.ms[k].clear();
+    btSyncInputs(); btBuildPop(); btApply();
+  } else if (act === 'all') {
+    const s = btSelOf(k), q = bt.popQ.trim().toLowerCase();
+    btItems(k).filter(i => !q || i.t.toLowerCase().includes(q)).forEach(i => s.add(i.v));
+    if (ty === 'num') { const n = bt.num[k]; n.mode = 'list'; n.from = n.to = ''; btSyncInputs(); }   // القايمة والنطاق متبادلين
+    btRenderList(); btMarkNumPop(); btApply();
+  } else if (act === 'qclear') { bt.q[k] = ''; bt.tok[k] = []; btSyncInputs(); btBuildPop(); btApply(); }
+}
+
+// ── tooltip القمع: قيم الفلتر المفعّل بس (مفيش اختيار = مفيش tooltip) ──
+function btTipText(k) {
+  if (!btActiveCount(k)) return '';
+  const t = BT_T(k);
+  if (t === 'ms') return [...bt.ms[k]].join('، ');
+  if (t === 'num') { const a = bt.num[k]; return a.mode === 'list' ? [...a.sel].sort((x, y) => x - y).map(v => k === 'row' ? v : fmtSigned(+v)).join('، ') : `من ${a.from || '—'} إلى ${a.to || '—'}`; }
+  return [...bt.tok[k], ...(btQClean(k) ? [bt.q[k].trim()] : [])].join(' أو ');
+}
+function btHideTip() { if (bt.tip) bt.tip.remove(); bt.tip = null; }
+function btShowTip(btn) {
+  btHideTip();
+  const txt = btTipText(btn.dataset.btflt);
+  if (!txt || bt.popAnchor === btn) return;
+  bt.tip = document.createElement('div'); bt.tip.className = 'bt-tip'; bt.tip.textContent = txt; document.body.appendChild(bt.tip);
+  const r = btn.getBoundingClientRect(), w = bt.tip.offsetWidth, h = bt.tip.offsetHeight;
+  bt.tip.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + 'px';
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+  bt.tip.style.top = top + 'px';
+}
+
+// ── الأحداث — listener واحد على document + حارس المعيار #32 ──
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (!document.contains(t)) return;   // 🔴 إعادة رسم القايمة بتشيل العنصر المضغوط قبل ما الحدث يوصل — من غير السطر ده القايمة بتتقفل بعد أول اختيار
+  const trg = t.closest && t.closest('[data-btflt]');
+  if (trg) { e.stopPropagation(); btOpenPop(trg.dataset.btflt, trg); return; }
+  if (bt.pop && bt.pop.contains(t)) { btPopAction(t); return; }
+  if (bt.pop) btClosePop();
+  const rm = t.closest && t.closest('[data-btrm]');
+  if (rm) {
+    const [type, key, ...rest] = rm.dataset.btrm.split(':'), v = rest.join(':');
+    if (type === 'ms') bt.ms[key].delete(v);
+    else if (type === 'num') bt.num[key].sel.delete(v);
+    else if (type === 'range') bt.num[key].from = bt.num[key].to = '';
+    else if (type === 'q') bt.q[key] = '';
+    else if (type === 'tok') bt.tok[key].splice(+v, 1);
+    btSyncInputs(); btApply(); return;
+  }
+  if (t.closest && t.closest('[data-btclear]')) { e.stopPropagation(); if (btAnyActive()) { btClearAll(); btSyncInputs(); btApply(); } return; }
+  const so = t.closest && t.closest('[data-btsort]'); if (so) { btToggleSort(so.dataset.btsort); return; }
+  const cd = t.closest && t.closest('[data-btcard]');
+  if (cd) {   // عدّاد الملخّص = فلتر الحالة (ضغطة تانية بتلغيه)
+    const want = btGroupLabels(cd.dataset.btcard);
+    if (!want.size) return;
+    const same = want.size === bt.ms.status.size && [...want].every(v => bt.ms.status.has(v));
+    bt.ms.status = same ? new Set() : want;
+    btApply(); return;
+  }
+  if (t.closest && t.closest('#btBar')) { $('btWrap').classList.toggle('collapsed'); $('btTog').classList.toggle('open'); }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.btq !== undefined) { bt.q[t.dataset.btq] = t.value; t.classList.toggle('has-value', !!t.value.trim()); btApply(); bt.sugg = -1; btRenderSugg(); }
+  else if (t.dataset && t.dataset.btr) { const n = bt.num[t.dataset.btrk]; n[t.dataset.btr] = t.value; n.mode = 'range'; if (n.sel.size) { n.sel.clear(); btRenderList(); } btMarkNumPop(); btApply(); }
+  else if (t.dataset && t.dataset.btmsq !== undefined) { bt.popQ = t.value; btRenderList(); }
+});
+document.addEventListener('scroll', e => { btPlace(); if (!(e.target && e.target.closest && e.target.closest('.bt-pop'))) btHideTip(); }, true);
+document.addEventListener('mouseover', e => { const b = e.target.closest && e.target.closest('.bt-flt'); if (b) btShowTip(b); else if (bt.tip) btHideTip(); });
+document.addEventListener('mouseout', e => { if (!e.relatedTarget) btHideTip(); });
+document.addEventListener('keydown', e => {
+  const t = e.target, inPop = bt.pop && bt.pop.contains(t), isQ = inPop && t.matches && t.matches('input[data-btq]');
+  if (e.key === 'Escape') { btClosePop(); return; }
+  if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && isQ && bt.popKey !== 'why') {
+    const n = bt.pop.querySelectorAll('[data-btsg]').length;
+    if (n) { e.preventDefault(); bt.sugg = e.key === 'ArrowDown' ? (bt.sugg + 1) % n : (bt.sugg <= 0 ? n - 1 : bt.sugg - 1); btMarkSugg(); return; }
+  }
+  if (e.key === 'Enter' && !e.isComposing && isQ) {
+    const ac = bt.pop.querySelector('[data-btsg].act, .bt-item.act[data-btsg]');
+    if (ac) { e.preventDefault(); btPickSugg(bt.popKey, ac.dataset.btsgv); return; }
+    if (btCommitTok(bt.popKey)) { e.preventDefault(); return; }
+  }
+  if (e.key === 'Enter' && inPop && t.matches && t.matches('input[data-btq],input[data-btr]')) { e.preventDefault(); t.blur(); btClosePop(); return; }   // Enter = اقفل القايمة والفلتر يفضل
+  if ((e.key === 'Enter' || e.key === ' ') && t.matches) {
+    if (t.matches('[data-btsort]')) { e.preventDefault(); btToggleSort(t.dataset.btsort); }
+    else if (t.id === 'btBar') { e.preventDefault(); $('btWrap').classList.toggle('collapsed'); $('btTog').classList.toggle('open'); }
+  }
+});
+
+// ── عرض الأعمدة بالسحب (§ 9ب) — «كل الأعمدة متماثلة بالتناسب» ──
+// W = العرض المفضّل · E = المعروض (بيتحسب من مساحة الكارت): المجموع أصغر ← تمدّد بالتناسب · أكبر ← ضغط على مرحلتين (90 ثم 64) · مش هيتّسع ← سكرول أفقي.
+const btW = { w: {}, ready: false, drag: null, badge: null, raf: 0, pending: false, custom: false };
+function btRemeasure() { if (btW.ready && !btW.custom && !btLoadW()) { btW.ready = false; btInitW(); } }   // القياس الأول كان قبل وصول الأسباب — طول ما الموظف ما سحبش عمود بإيده بنعيد القياس
+const btAvail = () => { const s = $('btScroll'); return s ? s.clientWidth : 0; };
+const btSave = () => { try { localStorage.setItem(BT_LS, JSON.stringify(btW.w)); } catch (e) { /* تفضيل شاشة مش شرط */ } };
+function btLoadW() {
+  try { const s = JSON.parse(localStorage.getItem(BT_LS) || 'null'); return s && BT_COLS.every(c => typeof s[c.k] === 'number' && s[c.k] >= BT_MIN_W && s[c.k] <= BT_MAX_W) ? s : null; } catch (e) { return null; }
+}
+function btEffective(avail, pinKey) {
+  const d = btW.drag, free = !!(d && d.free), pin = pinKey !== undefined ? pinKey : ((d && !d.free) ? d.k : null);
+  const sumOf = o => BT_COLS.reduce((a, c) => a + o[c.k], 0), W = btW.w, E = {};
+  BT_COLS.forEach(c => { E[c.k] = W[c.k]; });
+  const S = sumOf(E);
+  if (S > avail && !free) {
+    for (const lim of [BT_SOFT_MIN, BT_MIN_W]) {
+      const need = sumOf(E) - avail; if (need <= 0) break;
+      let ex = 0; BT_COLS.forEach(c => { if (c.k !== pin) ex += E[c.k] - Math.min(E[c.k], lim); });
+      if (ex <= 0) continue;
+      const r = Math.min(1, need / ex);
+      BT_COLS.forEach(c => { if (c.k === pin) return; const w = E[c.k], f = Math.min(w, lim); E[c.k] = Math.max(f, Math.floor(w - (w - f) * r)); });
+    }
+    if (sumOf(E) > avail) BT_COLS.forEach(c => { E[c.k] = W[c.k]; });
+  } else if (S < avail) {
+    const others = BT_COLS.filter(c => c.k !== pin), target = avail - (pin ? W[pin] : 0), so = others.reduce((a, c) => a + W[c.k], 0), f = target / so;
+    others.forEach(c => { E[c.k] = Math.floor(W[c.k] * f); });
+    E[others[others.length - 1].k] += target - others.reduce((a, c) => a + E[c.k], 0);   // باقي القسمة
+  }
+  return { E, sum: sumOf(E) };
+}
+function btApplyW() {
+  if (!btW.ready) return;
+  const avail = btAvail(); if (avail <= 0) return;
+  const { E, sum } = btEffective(avail);
+  document.querySelectorAll('#btCg col').forEach(c => { c.style.width = E[c.dataset.c] + 'px'; });
+  $('bxTable').style.width = sum + 'px';
+}
+function btFitWidth(i) {   // أطول محتوى في العمود (nowrap) + 16px
+  const t = $('bxTable'), had = t.classList.contains('measuring'); t.classList.add('measuring');
+  let w = t.querySelectorAll('thead th')[i].querySelector('.bt-th-in').getBoundingClientRect().width + 16;
+  t.querySelectorAll('tbody tr').forEach(tr => {
+    const td = tr.children[i]; if (!td || td.classList.contains('bt-empty')) return;
+    const rg = document.createRange(); rg.selectNodeContents(td); w = Math.max(w, rg.getBoundingClientRect().width + 16);
+  });
+  if (!had) t.classList.remove('measuring');
+  return w;
+}
+function btInitW() {
+  const t = $('bxTable'); let saved = btLoadW();
+  t.classList.add('auto', 'measuring'); t.style.width = '';
+  document.querySelectorAll('#btCg col').forEach(c => { c.style.width = ''; });
+  const nat = {};
+  t.querySelectorAll('thead th').forEach(th => { nat[th.dataset.col] = Math.min(BT_INIT_CAP, Math.max(BT_MIN_W, Math.round(th.getBoundingClientRect().width))); });
+  const avail = btAvail();
+  if (saved && BT_COLS.reduce((a, c) => a + saved[c.k], 0) > Math.max(2 * avail, 2000)) saved = null;   // 🛡️ محفوظ منفوخ → قياس جديد (من غير ما نمسح المخزّن)
+  BT_COLS.forEach(c => { btW.w[c.k] = saved ? saved[c.k] : nat[c.k]; });
+  t.classList.remove('auto', 'measuring');
+  btW.ready = true; btApplyW();
+}
+function btTryInit() {   // الجدول مخفي لحد أول ملف → القياس بيستنى يبان + الخط يتحمّل
+  if (btW.ready || btW.pending || !BX.rows.length || btAvail() <= 0) return;
+  btW.pending = true;
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => { btW.pending = false; if (!btW.ready && BX.rows.length && btAvail() > 0) btInitW(); });
+}
+const btBake = pin => { const { E } = btEffective(btAvail(), pin); BT_COLS.forEach(c => { btW.w[c.k] = E[c.k]; }); };   // المعروض فعلًا يبقى هو المفضّل
+function btCapFor(k) {
+  let floors = 0; BT_COLS.forEach(c => { if (c.k !== k) floors += Math.min(btW.w[c.k], BT_SOFT_MIN); });
+  const room = btAvail() - floors;
+  return room < btW.w[k] ? { cap: BT_MAX_W, free: true } : { cap: Math.min(BT_MAX_W, room), free: false };
+}
+const btShowBadge = txt => { if (!btW.badge) { btW.badge = document.createElement('div'); btW.badge.className = 'bt-wbadge'; document.body.appendChild(btW.badge); } btW.badge.textContent = txt; };
+const btHideBadge = () => { if (btW.badge) btW.badge.remove(); btW.badge = null; };
+document.addEventListener('pointerdown', e => {
+  const h = e.target.closest && e.target.closest('[data-btrz]'); if (!h || !btW.ready) return;
+  if (e.button !== undefined && e.button !== 0) return;
+  e.preventDefault(); e.stopPropagation(); btClosePop(); btHideTip();
+  const k = h.dataset.btrz, prev = Object.assign({}, btW.w);
+  btBake(null); const c = btCapFor(k);
+  btW.drag = { k, prev, moved: false, x: e.clientX, w: btW.w[k], cap: c.cap, free: c.free, sign: getComputedStyle($('bxTable')).direction === 'rtl' ? -1 : 1, h };
+  try { h.setPointerCapture(e.pointerId); } catch (_) { /* مش شرط */ }
+  h.classList.add('active'); document.body.classList.add('bt-resizing');
+  const col = document.querySelector(`#btCg col[data-c="${k}"]`); if (col) col.classList.add('hl');
+  btShowBadge(btW.w[k] + ' px');
+});
+document.addEventListener('pointermove', e => {
+  const d = btW.drag; if (!d) return;
+  const raw = Math.round(d.w + d.sign * (e.clientX - d.x));   // RTL: السحب لليسار = توسيع
+  d.moved = true; btW.w[d.k] = Math.max(BT_MIN_W, Math.min(d.cap, raw));
+  btApplyW(); btShowBadge(btW.w[d.k] + ' px' + (raw > d.cap && !d.free ? ' · أقصى مساحة متاحة' : ''));
+});
+function btEndDrag() {
+  const d = btW.drag; if (!d) return;
+  d.h.classList.remove('active'); document.body.classList.remove('bt-resizing');
+  document.querySelectorAll('#btCg col.hl').forEach(c => c.classList.remove('hl'));
+  if (d.moved) btBake(d.k); else Object.assign(btW.w, d.prev);   // كليك من غير سحب ما يغيّرش حاجة
+  if (d.moved) btW.custom = true;
+  btW.drag = null; btHideBadge(); btApplyW(); btSave();
+}
+document.addEventListener('pointerup', btEndDrag);
+document.addEventListener('pointercancel', btEndDrag);
+document.addEventListener('dblclick', e => {   // دبل كليك = ضبط تلقائي على أطول محتوى (في حدود المساحة)
+  const h = e.target.closest && e.target.closest('[data-btrz]'); if (!h || !btW.ready) return;
+  const k = h.dataset.btrz, i = BT_COLS.findIndex(c => c.k === k); if (i < 0) return;
+  const want = Math.max(BT_MIN_W, Math.min(BT_MAX_W, Math.ceil(btFitWidth(i))));
+  btBake(null); const c = btCapFor(k);
+  btW.w[k] = Math.max(BT_MIN_W, Math.min(c.cap, want));
+  btW.custom = true; btBake(k); btApplyW(); btSave();
+  if (want > c.cap && !c.free) showToast('العمود وصل لأقصى مساحة متاحة في الكارت', 'neutral');
+});
+(function btWatch() {   // أي تغيّر في عرض الكارت (ريسايز · سكرول عمودي ظهر/اختفى · طي/فتح · الجدول ظهر لأول مرة) ← إعادة حساب
+  const sc = $('btScroll'); if (!sc) return;
+  const kick = () => { if (!btW.raf) btW.raf = requestAnimationFrame(() => { btW.raf = 0; if (btW.ready) btApplyW(); else btTryInit(); }); };
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(kick).observe(sc);
+  window.addEventListener('resize', kick);
+})();
+btMount();
 
 // ── رفع الملف ────────────────────────────────────────────────
 async function bxLoad(file) {
   if (!file || BX.busy || BX.phase === 'checking') return;
   if (!isConfigured()) { showToast('الأداة غير مضبوطة', 'error'); return; }
   bxResetAll();
-  const seq = BX.seq; BX.phase = 'parsing'; BX.fileName = file.name;
+  const seq = BX.seq; BX.phase = 'parsing'; BX.fileName = file.name; BX.fileSize = file.size; bxRender();
   const p = await bxParse(file);
   if (seq !== BX.seq) return;
   if (p.errs && p.errs.length) { BX.phase = 'idle'; bxShowFileErr(p.errs); playBeep('error'); bxRender(); return; }
