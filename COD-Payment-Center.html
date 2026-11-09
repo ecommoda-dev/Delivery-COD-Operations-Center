@@ -719,35 +719,38 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 @media (max-width:520px) { .main-tabs-bar { gap:2px; padding:4px; } .main-tab-btn { min-width:0; padding:8px 3px; font-size:11.5px; white-space:normal; line-height:1.35; } }
 
 /* ── ① مربع الرفع ── */
-.bx-drop { position:relative; display:flex; align-items:center; gap:18px; padding:22px 24px; border:2px dashed var(--border-strong); border-radius:var(--radius); background:var(--surface-2); cursor:pointer; transition:border-color .15s, background .15s, box-shadow .15s; }
+.bx-drop { position:relative; display:flex; align-items:center; gap:12px; padding:9px 14px; border:1.5px dashed var(--border-strong); border-radius:var(--radius); background:var(--surface-2); cursor:pointer; transition:border-color .15s, background .15s, box-shadow .15s; }
 .bx-drop:hover, .bx-drop:focus-visible, .bx-drop.over { border-color:var(--accent); background:var(--accent-light); }
 .bx-drop:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .bx-drop.over { box-shadow:0 0 0 4px var(--accent-border); }
 .bx-drop.busy { opacity:.55; cursor:not-allowed; }
-.bx-drop-ico { flex:0 0 auto; width:68px; height:68px; border-radius:50%; display:grid; place-items:center; background:var(--surface); border:2px solid var(--accent-border); color:var(--accent); transition:transform .2s, border-color .15s; }
-.bx-drop-ico svg { width:36px; height:36px; }
+.bx-drop-ico { flex:0 0 auto; width:40px; height:40px; border-radius:50%; display:grid; place-items:center; background:var(--surface); border:1px solid var(--accent-border); color:var(--accent); transition:transform .2s, border-color .15s; }
+.bx-drop-ico svg { width:22px; height:22px; }
 .bx-drop-ico .bx-ico-file { display:none; }
 .bx-drop:hover .bx-drop-ico, .bx-drop.over .bx-drop-ico { transform:translateY(-3px); border-color:var(--accent); }
-.bx-drop-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
-.bx-drop-title { font-size:15px; font-weight:800; overflow-wrap:anywhere; }
-.bx-drop-sub { font-size:12.5px; font-weight:600; color:var(--text-mid); overflow-wrap:anywhere; }
+.bx-drop-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.bx-drop-title { font-size:14px; font-weight:800; overflow-wrap:anywhere; }
+.bx-drop-sub { font-size:12px; font-weight:600; color:var(--text-mid); overflow-wrap:anywhere; }
 .bx-drop-sub u { color:var(--accent-dark); font-weight:700; text-underline-offset:3px; }
 .bx-drop-rules { display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
 .bx-rule { font-size:11.5px; font-weight:700; color:var(--text-mid); background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:2px 10px; }
 .bx-rule code { font-family:var(--font-mono); }
-.bx-drop-cta { flex:0 0 auto; padding:10px 20px; border-radius:var(--radius-sm); background:var(--accent); color:var(--on-accent); font-size:13px; font-weight:800; white-space:nowrap; transition:background .15s; }
+.bx-drop-cta { flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:var(--radius-sm); background:var(--accent); color:var(--on-accent); font-size:13px; font-weight:800; white-space:nowrap; transition:background .15s; }
 .bx-drop:hover .bx-drop-cta { background:var(--accent-dark); }
 /* بعد ما الملف يتحمّل: شريط مضغوط بنفس الصندوق (الاستبدال بالسحب أو الضغط) */
-.bx-drop.compact { padding:12px 16px; gap:14px; border-width:1px; border-style:solid; border-color:var(--green-border); background:var(--green-light); }
+.bx-drop.compact { padding:7px 12px; gap:12px; border-width:1px; border-style:solid; border-color:var(--green-border); background:var(--green-light); }
 .bx-drop.compact:hover, .bx-drop.compact.over { border-color:var(--accent); background:var(--accent-light); }
-.bx-drop.compact .bx-drop-ico { width:44px; height:44px; border-color:var(--green-border); color:var(--green); }
-.bx-drop.compact .bx-drop-ico svg { width:24px; height:24px; }
+.bx-drop.compact .bx-drop-ico { width:36px; height:36px; border-color:var(--green-border); color:var(--green); }
+.bx-drop.compact .bx-drop-ico svg { width:20px; height:20px; }
 .bx-drop.compact .bx-ico-up { display:none; }
 .bx-drop.compact .bx-ico-file { display:block; }
 .bx-drop.compact .bx-drop-rules { display:none; }
 .bx-drop.compact .bx-drop-title { font-size:14px; direction:ltr; text-align:right; }
-.bx-drop.compact .bx-drop-cta { padding:7px 14px; background:var(--surface); color:var(--accent-dark); border:1px solid var(--accent-border); }
-.bx-drop.compact:hover .bx-drop-cta { background:var(--accent); color:var(--on-accent); }
+.bx-card-body { padding:6px 8px; }
+.bx-drop-cta svg { width:15px; height:15px; flex:0 0 auto; }
+/* 🔴 «استبدال الملف» بإطار أحمر + أيقونة تبديل — وبيطلب تأكيد قبل ما يفتح اختيار الملف (bxAskReplace) */
+.bx-drop.compact .bx-drop-cta { padding:5px 12px; background:var(--red-light); color:var(--red); border:1.5px solid var(--red); }
+.bx-drop.compact:hover .bx-drop-cta { background:var(--red); color:var(--on-accent); }
 @media (max-width:620px) {
   .bx-drop { flex-direction:column; text-align:center; padding:18px 14px; }
   .bx-drop-rules { justify-content:center; }
@@ -761,43 +764,46 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 .bx-fileerr ul { margin:6px 18px 0 0; padding:0; }
 
 /* ── ② ملخّص الملف: هوية الملف ← عدّادات الحالة (بتفلتر الجدول) ← الفلوس ── */
-.bx-sum { display:none; flex-direction:column; gap:10px; margin-bottom:12px; }
+.bx-sum { display:none; flex-direction:column; gap:6px; margin-bottom:8px; }
 .bx-sum.show { display:flex; }
 .bx-meta { display:flex; flex-wrap:wrap; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
-.bx-meta > div { flex:1 1 150px; min-width:0; padding:10px 16px; display:flex; flex-direction:column; gap:2px; border-inline-start:1px solid var(--border); }
-.bx-meta > div:first-child { flex:2 1 230px; border-inline-start:none; }
-.bx-meta small { font-size:11.5px; font-weight:700; color:var(--text-mid); }
-.bx-meta b { font-family:var(--font-mono); font-size:15px; font-weight:800; direction:ltr; text-align:right; overflow-wrap:anywhere; }
-.bx-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
-.bx-stat { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:var(--radius); border:1px solid var(--border); border-inline-start-width:5px; background:var(--surface); box-shadow:var(--shadow); cursor:pointer; text-align:start; font:inherit; color:inherit; transition:background .15s, border-color .15s, box-shadow .15s; }
+.bx-meta > div { flex:1 1 130px; min-width:0; padding:5px 14px; display:flex; flex-direction:column; gap:0; border-inline-start:1px solid var(--border); }
+.bx-meta > div:first-child { flex:2 1 200px; border-inline-start:none; }
+.bx-meta small { font-size:11px; font-weight:700; color:var(--text-mid); }
+.bx-meta b { font-family:var(--font-mono); font-size:14px; font-weight:800; direction:ltr; text-align:right; overflow-wrap:anywhere; }
+/* شريط واحد: عدّادات الحالة (بتفلتر الجدول) + الفلوس في كارت واحد */
+.bx-one { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; padding:8px 14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+.bx-stats { display:flex; flex-wrap:wrap; gap:6px; }
+.bx-stat { display:inline-flex; align-items:center; padding:3px 12px; border-radius:999px; border:1px solid var(--border-strong); background:var(--surface); cursor:pointer; font:inherit; color:inherit; transition:background .15s, border-color .15s, box-shadow .15s; }
 .bx-stat:hover { background:var(--surface-hover); }
 .bx-stat:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-.bx-stat > span { display:flex; align-items:baseline; justify-content:space-between; gap:10px; min-width:0; width:100%; }
+.bx-stat > span { display:inline-flex; align-items:center; gap:7px; }
+.bx-stat > span::before { content:""; width:.6em; height:.6em; border-radius:50%; background:currentColor; flex:0 0 auto; }
 .bx-stat small { font-size:12px; font-weight:700; color:var(--text-mid); }
-.bx-stat b { font-family:var(--font-mono); font-size:24px; font-weight:800; line-height:1.15; direction:ltr; text-align:right; }
-.bx-stat.zero { opacity:.6; }
-.bx-stat.ok { border-inline-start-color:var(--green); } .bx-stat.ok b { color:var(--green-dark); } .bx-stat.ok.on { background:var(--green-light); border-color:var(--green); }
-.bx-stat.pur { border-inline-start-color:var(--purple); } .bx-stat.pur b { color:var(--purple); } .bx-stat.pur.on { background:var(--purple-light); border-color:var(--purple); }
-.bx-stat.err { border-inline-start-color:var(--red); } .bx-stat.err b { color:var(--red-dark); } .bx-stat.err.on { background:var(--red-light); border-color:var(--red); }
-.bx-stat.warn { border-inline-start-color:var(--amber); } .bx-stat.warn b { color:var(--amber-dark); } .bx-stat.warn.on { background:var(--amber-light); border-color:var(--amber); }
-.bx-stat.on { box-shadow:var(--shadow-md); }
-.bx-money { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
-.bx-m { padding:12px 16px; border-radius:var(--radius); border:1px solid var(--blue-border); background:var(--blue-light); display:flex; flex-direction:column; gap:3px; min-width:0; }
-.bx-m small { font-size:12px; font-weight:700; color:var(--text-mid); }
-.bx-m b { font-family:var(--font-mono); font-size:19px; font-weight:800; direction:ltr; text-align:right; color:var(--blue); overflow-wrap:anywhere; }
-.bx-m em { font-style:normal; font-size:11.5px; font-weight:700; color:var(--text-mid); }
-.bx-m.pur { border-color:var(--purple-border); background:var(--purple-light); } .bx-m.pur b { color:var(--purple); }
-.bx-m.ok { border-color:var(--green-border); background:var(--green-light); } .bx-m.ok b { color:var(--green-dark); }
-.bx-m-bar { height:6px; border-radius:6px; background:var(--surface); border:1px solid var(--purple-border); overflow:hidden; margin-top:3px; }
-.bx-m-bar i { display:block; height:100%; width:0; background:var(--purple); transition:width .3s; }
+.bx-stat b { font-family:var(--font-mono); font-size:16px; font-weight:800; line-height:1.3; direction:ltr; text-align:right; color:var(--text-primary); }
+.bx-stat.zero { opacity:.55; }
+.bx-stat.ok { color:var(--green); border-color:var(--green-border); background:var(--green-light); }
+.bx-stat.pur { color:var(--purple); border-color:var(--purple-border); background:var(--purple-light); }
+.bx-stat.err { color:var(--red); border-color:var(--red-border); background:var(--red-light); }
+.bx-stat.warn { color:var(--amber-dark); border-color:var(--amber-border); background:var(--amber-light); }
+.bx-stat.pre { color:var(--purple); border-style:dashed; border-color:var(--purple-border); background:var(--surface); }
+.bx-stat.pre > span::before { display:none; }
+.bx-stat.on { box-shadow:var(--shadow-md); border-width:2px; padding:2px 11px; }
+.bx-money { display:flex; flex-wrap:wrap; margin-inline-start:auto; row-gap:6px; }
+.bx-m { padding:0 14px; border-inline-start:1px solid var(--border); display:flex; flex-direction:column; gap:0; min-width:0; }
+.bx-m:first-child { border-inline-start:none; padding-inline-start:0; }
+.bx-m small { font-size:11px; font-weight:700; color:var(--text-mid); white-space:nowrap; }
+.bx-m b { font-family:var(--font-mono); font-size:16px; font-weight:800; direction:ltr; text-align:right; color:var(--blue); }
+.bx-m.pur b { color:var(--purple); }
+.bx-m.ok b { color:var(--green-dark); }
 
 /* ── شريط الأزرار ── */
-.bx-bar { display:none; align-items:stretch; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+.bx-bar { display:none; align-items:stretch; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
 .bx-bar.show { display:flex; }
-.bx-run { flex:1; min-width:260px; padding:12px; border-radius:var(--radius-sm); border:none; background:var(--accent); color:var(--on-accent); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; }
+.bx-run { flex:1; min-width:260px; padding:9px; border-radius:var(--radius-sm); border:none; background:var(--accent); color:var(--on-accent); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; }
 .bx-run:hover:not(:disabled) { background:var(--accent-dark); }
 .bx-run:disabled { opacity:.4; cursor:not-allowed; }
-.bx-sec { padding:12px 16px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface); color:var(--text-primary); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+.bx-sec { padding:9px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface); color:var(--text-primary); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; }
 .bx-sec:disabled { opacity:.4; cursor:not-allowed; }
 .bx-hint { width:100%; font-size:12px; color:var(--text-secondary); min-height:16px; }
 .bx-hint.err { color:var(--red); }
@@ -909,7 +915,8 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 .bx-badge.warn { background:var(--amber-light); color:var(--amber-dark); border:1px solid var(--amber-border); }
 .bx-badge.wait { background:var(--bg); color:var(--text-secondary); border:1px solid var(--border); }
 .bx-slot { font-weight:800; font-family:var(--font-mono); }
-.bx-pre { color:var(--purple); font-size:10px; margin-right:4px; }
+.bx-badge.prereg { background:var(--purple-light); color:var(--purple); border:1px solid var(--purple-border); }
+.bx-prenone { font-size:11px; font-weight:600; color:var(--text-secondary); white-space:nowrap; }
 .bx-why { font-size:12px; line-height:1.6; }
 .bx-neg { color:var(--red); }
 .log-tag.bx-co { background:var(--purple-light); color:var(--purple); }
@@ -1112,7 +1119,7 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
     <!-- ① مربع الرفع — نفس الصندوق بيتحوّل لشريط مضغوط بعد تحميل الملف (استبدال بالسحب أو الضغط) -->
     <div class="card">
-      <div class="card-body entry-card-body">
+      <div class="card-body bx-card-body">
         <label class="bx-drop" id="bxDrop" for="bxFile" tabindex="0">
           <span class="bx-drop-ico" aria-hidden="true">
             <svg class="bx-ico-up" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 35a9 9 0 0 1-1.6-17.9 12 12 0 0 1 23.3 2.6A7.7 7.7 0 0 1 35 35"/><path d="M24 40V23"/><path d="m17.5 29.5 6.5-6.5 6.5 6.5"/></svg>
@@ -1140,7 +1147,6 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
     <div class="bx-bar" id="bxBar">
       <button type="button" class="bx-run" id="bxRun" disabled>💵 سجّل</button>
       <button type="button" class="bx-sec" id="bxRecheck" disabled>🔄 إعادة فحص الملف</button>
-      <button type="button" class="bx-sec" id="bxNew">📂 ملف تاني</button>
       <div class="bx-hint" id="bxHint" aria-live="polite"></div>
     </div>
     <div class="progress-wrap" id="bxProgress"><div class="progress-bar" id="bxProgressBar"></div></div>
@@ -1352,7 +1358,20 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.81.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.82.0</span>
+          <span class="cl-ver-date">09-11-2026 · تاب «تحصيل بوسطة» — تصميم مضغوط + عمود التسجيل المسبق</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>عمود «التسجيل المسبق»</strong> في جدول الصفوف: باج <b>📋 مسجل مسبقاً</b> للأوردر اللي فلوسه اتسجّلت في أداة التسجيل المسبق، و«غير مسجّل» لغيره، وله فلتر قمع. وعدّاد «📋 مسجل مسبقاً» في الملخّص بيفلتره. (علامة 📋 الصغيرة جنب رقم الأوردر اتشالت.)</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>تصميم مضغوط:</strong> مربع الرفع شريط واحد · الملخّص كارت واحد (عدّادات الحالة + الفلوس) · شريط الأزرار أنحف. شريط تقدّم Net اتشال.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>«استبدال الملف»</strong> بإطار أحمر وأيقونة تبديل، وبيطلب <b>تأكيد</b> قبل الاستبدال (بالضغط أو بسحب ملف). زرار «ملف تاني» اتشال.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نصوص:</strong> «جاري فحص» بدل «بيتفحص» · «لا يوجد» بدل «مفيش» في رسائل الصفحة · «لن يتم تسجيلهم» بدل «مش هيتسجّلوا».</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.82.0</span>
           <span class="cl-ver-date">09-11-2026 · تاب «تحصيل بوسطة» (html-builder v8.7.0)</span>
         </div>
         <ul class="cl-items">
@@ -2009,7 +2028,7 @@ const entryInR = (n, r) => n >= r.min && n <= r.max;
 function entryClassify(raw) {
   const n = entryNormalize(raw);
   if (!n.clean) return { kind: 'empty' };
-  if (!n.numeric) return { kind: 'invalid', reason: 'اكتب رقم الأوردر أو اسكن باركود الفاتورة — مفيش حروف' };
+  if (!n.numeric) return { kind: 'invalid', reason: 'اكتب رقم الأوردر أو اسكن باركود الفاتورة — لا يوجد حروف' };
   const tokens = [...new Set(n.clean.split(/[\s,،;]+/).filter(Boolean))];
   if (tokens.length > 1) return { kind: 'invalid', reason: `${tokens.length} أرقام — أضف أوردر واحد في المرة` };
   const v = tokens[0], len = v.length;
@@ -2181,7 +2200,7 @@ async function entrySubmit(c) {
       let d;
       try { d = await apiPostLegacy('resolveByName', { orderName: '#' + c.value }); }
       catch (e) { entryAddFail('#' + c.value, 'تعذّر الاتصال — راجع النت وجرّب تاني'); return; }
-      if (!d.success || !d.orderId) { entryAddFail('#' + c.value, d.notFound ? 'مفيش أوردر بالرقم ده على شوبيفاي' : 'خطأ في الاستعلام'); return; }
+      if (!d.success || !d.orderId) { entryAddFail('#' + c.value, d.notFound ? 'لا يوجد أوردر بالرقم ده على شوبيفاي' : 'خطأ في الاستعلام'); return; }
       id = String(d.orderId);
       const dup2 = orders.findIndex(o => String(o.id) === id);
       if (dup2 >= 0) { entryDup(dup2); return; }
@@ -2190,7 +2209,7 @@ async function entrySubmit(c) {
     const o = orders.find(x => String(x.id) === id);
     if (!o || o.status === 'error' || o.status === 'notfound') {
       playBeep('fail');
-      entryToast(`${c.type === 'order_name' ? '#' + c.value : id} — ${o && o.status === 'notfound' ? 'مفيش أوردر بباركود الفاتورة ده على شوبيفاي' : 'تعذّر الاستعلام عن الأوردر'}`, 'error');
+      entryToast(`${c.type === 'order_name' ? '#' + c.value : id} — ${o && o.status === 'notfound' ? 'لا يوجد أوردر بباركود الفاتورة ده على شوبيفاي' : 'تعذّر الاستعلام عن الأوردر'}`, 'error');
     } else {
       playBeep('success');
       entryToast(`اتضاف ${o.orderName || '#' + c.value}`, 'success');
@@ -3134,13 +3153,13 @@ async function doBulkPayAndRefund() {
   const extraErrNow = getExtraNotOkError();
   if (extraErrNow) {
     playBeep('error');
-    showResult(false, '⛔ الجدول اتغيّر بعد التأكيد — مفيش أي عملية اتنفّذت', extraErrNow);
+    showResult(false, '⛔ الجدول اتغيّر بعد التأكيد — لا يوجد أي عملية اتنفّذت', extraErrNow);
     isProcessing = false; syncEntryLock(); updatePayBtn(); updatePayMethodsCard();
     return;
   }
   if (readyOrders.length && !isPayValid()) {
     playBeep('error');
-    showResult(false, '⛔ الجدول اتغيّر بعد التأكيد — مفيش أي عملية اتنفّذت',
+    showResult(false, '⛔ الجدول اتغيّر بعد التأكيد — لا يوجد أي عملية اتنفّذت',
       `المطلوب دلوقتي ${fmtSigned(getCourierCollectNet())} والمُدخل ${fmt(getPaySum())} — راجع الأرقام واضغط تسجيل الدفع من تاني.`);
     isProcessing = false; syncEntryLock(); updatePayBtn(); updatePayMethodsCard();
     return;
@@ -3169,7 +3188,7 @@ async function doBulkPayAndRefund() {
     isProcessing = false; syncEntryLock();
     if (problems.length) {
       playBeep('error'); renderTable(); updatePayBtn(); updatePayMethodsCard();
-      showResult(false, '⛔ الجلسة اتوقفت — مفيش أي عملية اتنفّذت', problems.join(' • '));
+      showResult(false, '⛔ الجلسة اتوقفت — لا يوجد أي عملية اتنفّذت', problems.join(' • '));
       return;
     }
   }
@@ -3964,7 +3983,7 @@ function renderTimePop(pop) {
       <div class="f86-dual"><div class="f86-track"></div><div class="f86-fill" id="f86TmFill"></div>
         <input type="range" min="0" max="1440" step="1" id="f86TmA" aria-label="بداية الوقت"><input type="range" min="0" max="1440" step="1" id="f86TmB" aria-label="نهاية الوقت"></div></div>
     <div class="f86-sec f86-tfs"><label class="f86-lab">من وقت<button type="button" class="f86-inp f86-tf" data-tf="from"></button></label><label class="f86-lab">إلى وقت<button type="button" class="f86-inp f86-tf" data-tf="to"></button></label></div>
-    <div class="f86-err" id="f86TmErr" hidden>وقت «من» بعد وقت «إلى» — مفيش نتايج</div>`);
+    <div class="f86-err" id="f86TmErr" hidden>وقت «من» بعد وقت «إلى» — لا يوجد نتايج</div>`);
   tmSyncUI(true);
 }
 
@@ -3988,7 +4007,7 @@ async function ordSuggest() {
     const more = (d.total || 0) - sgItems.length;
     $('f86Sugg').innerHTML = sgItems.length
       ? sgItems.map((s, i) => `<div class="f86-sg" role="option" data-sg="${i}">${esc(s.name)}<span class="f86-n">${s.count} ${s.count === 1 ? 'عملية' : 'عمليات'}</span></div>`).join('') + (more > 0 ? `<div class="f86-more">+${more} أخرى — كمّل الكتابة لتضييق النتائج</div>` : '')
-      : '<div class="f86-more">مفيش اقتراحات — Enter بيضيف اللي كتبته كبحث جزئي</div>';
+      : '<div class="f86-more">لا يوجد اقتراحات — Enter بيضيف اللي كتبته كبحث جزئي</div>';
   } catch { if ($('f86Sugg')) $('f86Sugg').innerHTML = ''; }
 }
 function ordAdd(list) {
@@ -4024,7 +4043,7 @@ function numListHtml(k) {
   const v = numVals[k]; if (!v) return '<div class="f86-more">جاري التحميل…</div>';
   const q = ($('f86NumQ') || {}).value || '';
   const items = v.filter(x => !q || fmtN(x.v).includes(latinDigits(q)));
-  return items.length ? items.map(x => `<label class="f86-it"><input type="checkbox" data-nv="${x.v}"${F86.num[k].sel.has(String(x.v)) ? ' checked' : ''}><span>${fmtN(x.v)}</span><span class="f86-n">(${x.n})</span></label>`).join('') : '<div class="f86-more">مفيش قيم</div>';
+  return items.length ? items.map(x => `<label class="f86-it"><input type="checkbox" data-nv="${x.v}"${F86.num[k].sel.has(String(x.v)) ? ' checked' : ''}><span>${fmtN(x.v)}</span><span class="f86-n">(${x.n})</span></label>`).join('') : '<div class="f86-more">لا يوجد قيم</div>';
 }
 function renderNumPop(pop, k) {
   const a = F86.num[k];
@@ -5498,6 +5517,7 @@ const BX_COLS = ['Business ID', 'Order Id', 'Order Type', 'Order Status', 'Order
 const BX_CHUNK = 15, BX_PAR = 2;
 const BX = { phase: 'idle', fileName: '', fileSize: 0, ctx: null, rows: [], busy: false, seq: 0, fileErrors: [] };
 const BX_DROP_TITLE = 'ارفع ملف «Cash Cycles» من بوسطة';
+const BX_ICO_SWAP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 20v-4h-4"/></svg>';
 const BX_DROP_SUB = 'اسحب الملف وأفلته هنا، أو <u>اختاره من جهازك</u>';
 const bxSize = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' ميجا' : Math.max(1, Math.round(n / 1024)).toLocaleString('en-US') + ' كيلوبايت';
 window.__bxBusy = false;
@@ -5536,7 +5556,7 @@ async function bxParse(file) {
   try { await wb.xlsx.load(await file.arrayBuffer()); } catch (e) { return { errs: ['الملف ما اتفتحش — مش xlsx سليم'] }; }
   const names = wb.worksheets.map(w => w.name);
   if (names.length !== 1) errs.push(`الملف لازم يكون فيه شيت واحد بس — لقينا ${names.length}: ${names.map(n => '«' + n + '»').join('، ')}`);
-  if (!names.includes(BX_SHEET)) { errs.push(`مفيش شيت اسمه «${BX_SHEET}»`); return { errs }; }
+  if (!names.includes(BX_SHEET)) { errs.push(`لا يوجد شيت اسمه «${BX_SHEET}»`); return { errs }; }
   const ws = wb.getWorksheet(BX_SHEET);
   const head = {};
   ws.getRow(1).eachCell({ includeEmpty: false }, (c, i) => { head[String(bxCell(c.value)).trim()] = i; });
@@ -5639,24 +5659,29 @@ function bxProgress(pct) {
 
 // ── الرسم ────────────────────────────────────────────────────
 const BX_ST = {
-  pending: ['wait', '⏳ في الانتظار'], checking: ['wait', '⏳ بيتفحص'], ready: ['ready', '✅ جاهز'], ready_zero: ['zero', '✅ جاهز — بدون تحصيل'],
+  pending: ['wait', '⏳ في الانتظار'], checking: ['wait', '⏳ جاري فحص'], ready: ['ready', '✅ جاهز'], ready_zero: ['zero', '✅ جاهز — بدون تحصيل'],
   done: ['done', '🟣 مسجّل سابقًا'], error: ['error', '⛔ خطأ'], unknown: ['warn', '⚠ تعذّر'], running: ['wait', '⏳ بيتسجّل'],
   registered: ['ready', '✔ تم التسجيل'], failed: ['error', '⛔ فشل التسجيل'],
 };
+// 📋 التسجيل المسبق (PRE_REG_KV) — الـ Worker بيرجّع `preRegistered` من `bostaValidate` (قراءة بس · ما بيتلمسش).
+// ⚠️ الصف اللي لسه ما اتفحصش (ما جاش له رد) = null → «—» ومش «غير مسجّل»: «ما اتفحصش» ≠ «مش مسجّل».
+const BX_PRE_YES = '📋 مسجل مسبقاً', BX_PRE_NO = 'غير مسجّل';
+const bxPreLabel = r => r.pre ? BX_PRE_YES : (r.res ? BX_PRE_NO : null);
 function bxRowHtml(r, i) {
   const [cls, lbl] = BX_ST[r.status] || BX_ST.pending;
   const name = r.orderName || (r.raw.orderRef ? (String(r.raw.orderRef).startsWith('#') ? r.raw.orderRef : '#' + r.raw.orderRef) : '—');
   const gross = r.grossP === null ? '—' : `<span class="${r.grossP < 0 ? 'bx-neg' : ''}">${bxM(r.grossP)}</span>`;
   const net = r.netP === null ? '—' : `<span class="${r.netP < 0 ? 'bx-neg' : ''}">${bxM(r.netP)}</span>`;
-  const why = r.reasons.length ? r.reasons.map(esc).join('<br>') : (r.status === 'ready_zero' ? 'مفيش تحصيل على شوبيفاي — هيتسجّل لرسوم بوسطة (Net Value)' : '');
+  const why = r.reasons.length ? r.reasons.map(esc).join('<br>') : (r.status === 'ready_zero' ? 'لا يوجد تحصيل على شوبيفاي — هيتسجّل لرسوم بوسطة (Net Value)' : '');
   return `<tr class="bx-${r.status}" data-i="${i}">
     <td class="col-ltr">${r.rowNo}</td>
-    <td>${r.orderId ? orderLink(name, r.orderId) : esc(name)}${r.pre ? '<span class="bx-pre" title="مسجّل مسبقًا (PRE_REG_KV) — ما اتلمسش">📋</span>' : ''}</td>
+    <td>${r.orderId ? orderLink(name, r.orderId) : esc(name)}</td>
     <td class="col-ltr">${esc(r.raw.trackingNumber || '—')}</td>
     <td class="col-center"><span class="bx-slot">${r.slot}</span> <small>${esc(r.raw.orderType || '')}</small></td>
     <td class="col-ltr">${gross}</td>
     <td class="col-ltr">${r.shopify === null || r.shopify === undefined ? '—' : bxM(bxP(r.shopify))}</td>
     <td class="col-ltr">${net}</td>
+    <td class="col-center">${bxPreLabel(r) === null ? '—' : r.pre ? `<span class="bx-badge prereg" title="فلوسه اتسجّلت على شوبيفاي في أداة التسجيل المسبق — لا يوجد تحصيل جديد عليه (PRE_REG_KV ما اتلمسش)">${BX_PRE_YES}</span>` : `<span class="bx-prenone">${BX_PRE_NO}</span>`}</td>
     <td class="col-center"><span class="bx-badge ${cls}">${lbl}</span></td>
     <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}</td>
   </tr>`;
@@ -5671,15 +5696,16 @@ function bxRender() {
   const done = rows.filter(bxIs('done', 'registered'));
   if (has) {
     const c = BX.ctx, netAll = bxP(c.netTotal) || 0, netDone = bxSum(done, r => r.netP || 0), netReady = bxSum(reg, r => r.netP || 0);
-    const pct = netAll > 0 ? Math.max(0, Math.min(100, Math.round(netDone / netAll * 100))) : 0;
     const stat = (g, cls, label, n) => `<button type="button" class="bx-stat ${cls}${n ? '' : ' zero'}" data-btcard="${g}" aria-pressed="false"><span><small>${label}</small><b>${n}</b></span></button>`;
+    const preN = rows.filter(r => r.pre).length;   // 📋 بيفلتر عمود «التسجيل المسبق» (data-btpre)
+    const preStat = `<button type="button" class="bx-stat pre${preN ? '' : ' zero'}" data-btpre="1" aria-pressed="false" title="الصفوف المسجّلة مسبقًا في أداة التسجيل المسبق"><span><small>${BX_PRE_YES}</small><b>${preN}</b></span></button>`;
     $('bxSum').innerHTML =
       `<div class="bx-meta"><div><small>Cash-out ID</small><b title="${esc(c.cashOutId)}">${esc(c.cashOutId)}</b></div><div><small>تاريخ الدفع</small><b>${bxDate(c.paidAt)}</b></div><div><small>صفوف الملف</small><b>${rows.length}</b></div></div>` +
-      `<div class="bx-stats">${stat('ok', 'ok', 'جاهز للتسجيل', reg.length)}${stat('pur', 'pur', 'مسجّل', done.length)}${stat('err', 'err', 'أخطاء', err.length)}${unk.length ? stat('warn', 'warn', 'لسه/تعذّر', unk.length) : ''}</div>` +
+      `<div class="bx-one"><div class="bx-stats">${stat('ok', 'ok', 'جاهز للتسجيل', reg.length)}${stat('pur', 'pur', 'مسجّل', done.length)}${stat('err', 'err', 'أخطاء', err.length)}${unk.length ? stat('warn', 'warn', 'لسه/تعذّر', unk.length) : ''}${preStat}</div>` +
       `<div class="bx-money"><div class="bx-m"><small>إجمالي COD+Online</small><b>${bxM(bxSum(rows, r => r.grossP || 0))}</b></div>` +
       `<div class="bx-m"><small>Net Value للملف</small><b>${bxM(netAll)}</b></div>` +
-      `<div class="bx-m pur"><small>Net المسجّل</small><b>${bxM(netDone)}</b><div class="bx-m-bar"><i style="width:${pct}%"></i></div><em>${pct}% من Net الملف</em></div>` +
-      (reg.length ? `<div class="bx-m ok"><small>Net الجاهز للتسجيل</small><b>${bxM(netReady)}</b></div>` : '') + `</div>`;
+      `<div class="bx-m pur"><small>Net المسجّل</small><b>${bxM(netDone)}</b></div>` +
+      (reg.length ? `<div class="bx-m ok"><small>Net الجاهز للتسجيل</small><b>${bxM(netReady)}</b></div>` : '') + `</div></div>`;
     btSyncCards();
   }
   // مربع الرفع: بعد تحميل الملف بيتحوّل لشريط مضغوط باسم الملف وحجمه وحالته
@@ -5689,20 +5715,19 @@ function bxRender() {
   $('bxDropSub').innerHTML = !loaded ? BX_DROP_SUB
     : BX.phase === 'parsing' ? 'بيقرا الملف…'
     : `${esc(bxSize(BX.fileSize))} · ${rows.length.toLocaleString('en-US')} صف · اسحب ملف تاني هنا للاستبدال`;
-  $('bxDropCta').textContent = loaded ? 'استبدال الملف' : 'اختيار ملف';
+  $('bxDropCta').innerHTML = loaded ? BX_ICO_SWAP + 'استبدال الملف' : 'اختيار ملف';
   const checking = BX.phase === 'checking' || BX.phase === 'parsing';
   const run = $('bxRun');
   const canRun = has && !checking && !BX.busy && reg.length > 0 && isConfigured();
   run.disabled = !canRun;
-  run.textContent = reg.length ? `💵 سجّل ${reg.length} أوردر (Net ${bxM(bxSum(reg, r => r.netP || 0))} ج)` : '💵 مفيش صفوف جاهزة للتسجيل';
+  run.textContent = reg.length ? `💵 سجّل ${reg.length} أوردر (Net ${bxM(bxSum(reg, r => r.netP || 0))} ج)` : '💵 لا يوجد صفوف جاهزة للتسجيل';
   $('bxRecheck').disabled = !has || checking || BX.busy;
-  $('bxNew').disabled = BX.busy;
   $('bxDrop').classList.toggle('busy', BX.busy || checking);
   const hint = $('bxHint'); let t = '', e = false;
   if (!isConfigured()) { t = 'الأداة غير مضبوطة — افتح الإعدادات'; e = true; }
-  else if (checking) t = 'بيتفحص الملف على شوبيفاي…';
+  else if (checking) t = 'جاري فحص الملف على شوبيفاي…';
   else if (has && !reg.length && !err.length && !unk.length) t = 'كل صفوف الملف اتسجّلت ✔';
-  else if (err.length) t = `${err.length} صف فيهم خطأ مش هيتسجّلوا — الجلسة هتفضل ناقصة في الخزنة لحد ما يتصلّحوا`;
+  else if (err.length) t = `${err.length} صف فيهم خطأ لن يتم تسجيلهم — الجلسة هتفضل ناقصة في الخزنة لحد ما يتصلّحوا`;
   hint.textContent = t; hint.classList.toggle('err', e);
   $('bxNotConfig').classList.toggle('show', !isConfigured());
 }
@@ -5712,7 +5737,7 @@ function bxRowUpdate(i) {
 }
 function bxShowFileErr(errs) {
   const el = $('bxFileErr');
-  el.innerHTML = errs.length ? `⛔ <b>الملف مرفوض — مفيش حاجة اتسجّلت</b><ul>${errs.map(e => `<li>${esc(e)}</li>`).join('')}</ul>` : '';
+  el.innerHTML = errs.length ? `⛔ <b>الملف مرفوض — لا يوجد حاجة اتسجّلت</b><ul>${errs.map(e => `<li>${esc(e)}</li>`).join('')}</ul>` : '';
   el.classList.toggle('show', errs.length > 0);
 }
 function bxResetAll() {
@@ -5729,7 +5754,7 @@ function bxResetAll() {
 // 🔴 كله client-side على صفوف الملف المحمّلة (≤ مئات الصفوف) — «النتائج» = filtered.length (الاستثناء server-side للسجل بس).
 // 🔴 `BX.rows` هي المصدر الوحيد؛ الجدول بيترسم منها بـ`btApply()` (فلترة ← ترتيب ← رسم) وعدّادات الملخّص بتفلتر بنفس الحالة.
 // ⚠️ كل كلاسات الجدول بادئتها `bt-` والأحداث `data-bt*` — جدول «سجل العمليات» ليه محرّكه الخاص ومايتصادمش معاه.
-const BT_LS = 'dco_col_widths_v1_COD-Payment-Center.html_bosta';   // ⚠️ أضفت/شلت عمود؟ ارفع _v1 → _v2
+const BT_LS = 'dco_col_widths_v2_COD-Payment-Center.html_bosta';   // ⚠️ أضفت/شلت عمود؟ ارفع _v1 → _v2
 const BT_SEARCH_MIN = 10;                                          // بحث جوّه قايمة القيم من 10 قيم فأكتر
 const BT_MIN_W = 64, BT_MAX_W = 700, BT_INIT_CAP = 260, BT_SOFT_MIN = 90;
 const BT_COLS = [
@@ -5740,6 +5765,7 @@ const BT_COLS = [
   { k: 'gross', l: 'الإجمالي (COD+Online)', t: 'num' },
   { k: 'due', l: 'مستحق شوبيفاي', t: 'num' },
   { k: 'net', l: 'Net Value', t: 'num' },
+  { k: 'pre', l: 'التسجيل المسبق', t: 'ms' },
   { k: 'status', l: 'الحالة', t: 'ms' },
   { k: 'why', l: 'السبب', t: 'q' },
 ];
@@ -5749,7 +5775,7 @@ const BT_FUNNEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 // مجموعات الحالة اللي عدّادات الملخّص بتفلتر بيها (transient زي running/checking برّه)
 const BX_GROUPS = { ok: ['ready', 'ready_zero'], pur: ['done', 'registered'], err: ['error', 'failed'], warn: ['unknown', 'pending', 'checking'] };
 const bt = {
-  ms: { type: new Set(), status: new Set() }, num: {}, tok: { order: [], track: [], why: [] }, q: { order: '', track: '', why: '' },
+  ms: { type: new Set(), pre: new Set(), status: new Set() }, num: {}, tok: { order: [], track: [], why: [] }, q: { order: '', track: '', why: '' },
   sort: { key: null, dir: null }, pop: null, popKey: null, popAnchor: null, popQ: '', sugg: -1, tip: null,
 };
 BT_COLS.filter(c => c.t === 'num').forEach(c => { bt.num[c.k] = { mode: 'list', sel: new Set(), from: '', to: '' }; });
@@ -5757,7 +5783,7 @@ let btQOrders = [], btQTracks = [], btQWhy = [];
 
 // ── قيم الأعمدة (مصدر واحد للفلتر والترتيب والقوايم) ─────────
 const bxName = r => r.orderName || (r.raw.orderRef ? (String(r.raw.orderRef).startsWith('#') ? r.raw.orderRef : '#' + r.raw.orderRef) : '—');
-const bxWhy = r => (r.reasons.length ? r.reasons.join(' · ') : (r.status === 'ready_zero' ? 'مفيش تحصيل على شوبيفاي — هيتسجّل لرسوم بوسطة (Net Value)' : '')) + (r.warn ? ' · ' + r.warn : '');
+const bxWhy = r => (r.reasons.length ? r.reasons.join(' · ') : (r.status === 'ready_zero' ? 'لا يوجد تحصيل على شوبيفاي — هيتسجّل لرسوم بوسطة (Net Value)' : '')) + (r.warn ? ' · ' + r.warn : '');
 const btNumOrNull = v => (v === null || v === undefined || v === '' || !Number.isFinite(Number(v))) ? null : Number(v);
 function btVal(r, k) {
   switch (k) {
@@ -5768,6 +5794,7 @@ function btVal(r, k) {
     case 'gross': return r.grossP === null ? null : r.grossP / 100;
     case 'due': return btNumOrNull(r.shopify);
     case 'net': return r.netP === null ? null : r.netP / 100;
+    case 'pre': return bxPreLabel(r);
     case 'status': return (BX_ST[r.status] || BX_ST.pending)[1];
     case 'why': return bxWhy(r);
   }
@@ -5885,6 +5912,10 @@ function btSyncCards() {   // عدّاد الملخّص «مفعّل» لما ف
     const on = want.size > 0 && want.size === have.size && [...want].every(v => have.has(v));
     b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
+  document.querySelectorAll('#bxSum [data-btpre]').forEach(b => {
+    const on = bt.ms.pre.size === 1 && bt.ms.pre.has(BX_PRE_YES);
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
 }
 function btGroupLabels(g) {
   const s = new Set(); BX.rows.forEach(r => { if (BX_GROUPS[g].includes(r.status)) s.add(btVal(r, 'status')); }); return s;
@@ -5904,7 +5935,7 @@ function btApply() {
   btHideTip(); btBuildQ();
   const all = BX.rows.map((r, i) => ({ r, i })), f = all.filter(x => btPass(x.r)), s = btSort(f);
   $('bxBody').innerHTML = s.length ? s.map(x => bxRowHtml(x.r, x.i)).join('')
-    : `<tr><td colspan="${BT_COLS.length}" class="bt-empty">${all.length ? 'مفيش نتايج مطابقة للفلاتر' : '—'}</td></tr>`;
+    : `<tr><td colspan="${BT_COLS.length}" class="bt-empty">${all.length ? 'لا يوجد نتايج مطابقة للفلاتر' : '—'}</td></tr>`;
   $('btCount').textContent = f.length.toLocaleString('en-US');
   $('btOf').textContent = f.length !== all.length ? `من ${all.length.toLocaleString('en-US')} صف` : '';
   btRenderChips(); btStates(); btApplyW(); btTryInit();
@@ -5950,7 +5981,7 @@ function btSuggItems(k) {
 function btSuggHtml(k) {
   if (k === 'why' || !btQClean(k)) return '';
   const { items, more } = btSuggItems(k);
-  if (!items.length) return '<div class="bt-sg-note">مفيش اقتراحات — Enter بيضيف اللي كتبته كبحث جزئي</div>';
+  if (!items.length) return '<div class="bt-sg-note">لا يوجد اقتراحات — Enter بيضيف اللي كتبته كبحث جزئي</div>';
   return items.map((i, n) => `<div class="bt-item ${n === bt.sugg ? 'act' : ''}" data-btsg="${n}" data-btsgv="${esc(i.v)}"><span>${esc(i.t)}</span><span class="bt-sub">${esc(i.s)}</span></div>`).join('')
     + (more ? `<div class="bt-sg-note">+${more} أخرى — كمّل الكتابة لتضييق النتائج</div>` : '');
 }
@@ -6070,6 +6101,12 @@ document.addEventListener('click', e => {
   }
   if (t.closest && t.closest('[data-btclear]')) { e.stopPropagation(); if (btAnyActive()) { btClearAll(); btSyncInputs(); btApply(); } return; }
   const so = t.closest && t.closest('[data-btsort]'); if (so) { btToggleSort(so.dataset.btsort); return; }
+  const pp = t.closest && t.closest('[data-btpre]');
+  if (pp) {   // عدّاد «مسجل مسبقاً» = فلتر عمود التسجيل المسبق (ضغطة تانية بتلغيه)
+    const on = bt.ms.pre.size === 1 && bt.ms.pre.has(BX_PRE_YES);
+    bt.ms.pre = on ? new Set() : new Set([BX_PRE_YES]);
+    btApply(); return;
+  }
   const cd = t.closest && t.closest('[data-btcard]');
   if (cd) {   // عدّاد الملخّص = فلتر الحالة (ضغطة تانية بتلغيه)
     const want = btGroupLabels(cd.dataset.btcard);
@@ -6239,6 +6276,15 @@ async function bxLoad(file) {
 }
 
 // ── التسجيل ──────────────────────────────────────────────────
+// 🔁 استبدال ملف محمّل = تأكيد الأول (الفلاتر والترتيب بيتمسحوا والملف الجديد بيتفحص من الأول). مفيش ملف = بدون تأكيد.
+function bxAskReplace(go) {
+  if (!BX.rows.length) { go(); return; }
+  const regd = BX.rows.filter(bxIs('done', 'registered')).length;
+  const body = `<div class="confirm-warning" style="background:var(--red-light);border-color:var(--red-border)"><span class="confirm-warning-icon">⚠️</span>
+    <div><div class="confirm-warning-title">هتستبدل الملف «${esc(BX.fileName)}»</div>
+    <div class="confirm-warning-text">الجدول والفلاتر والترتيب الحاليين هيتمسحوا، والملف الجديد هيتفحص من الأول.${regd ? ` الصفوف اللي اتسجّلت (${regd}) فضلت على شوبيفاي ومش هتتأثر.` : ''}</div></div></div>`;
+  openConfirm('🔁 استبدال الملف', body, 'استبدال الملف', 'red-btn', go);
+}
 function bxAskRun() {
   const reg = BX.rows.filter(bxIs('ready', 'ready_zero'));
   if (!reg.length || BX.busy) return;
@@ -6249,7 +6295,7 @@ function bxAskRun() {
     ${row('Cash-out', esc(BX.ctx.cashOutId))}${row('تاريخ الدفع', bxDate(BX.ctx.paidAt))}
     ${pay.length ? row(`تحصيل على شوبيفاي (${pay.length})`, bxM(bxSum(pay, r => r.grossP)) + ' ج', 'green') : ''}
     ${ref.length ? row(`استرداد على شوبيفاي (${ref.length})`, bxM(bxSum(ref, r => r.grossP)) + ' ج', 'red') : ''}
-    ${zero.length ? row(`بدون تحصيل — رسوم بوسطة فقط (${zero.length})`, 'مفيش حركة على شوبيفاي') : ''}
+    ${zero.length ? row(`بدون تحصيل — رسوم بوسطة فقط (${zero.length})`, 'لا يوجد حركة على شوبيفاي') : ''}
     <div style="background:var(--green-light);border:2px solid var(--green-border);border-radius:var(--radius-sm);padding:8px 14px;margin:6px 0;display:flex;justify-content:space-between;align-items:center">
       <span style="font-size:13px;font-weight:700">Net Value (اللي هتتوقعه الخزنة)</span>
       <span style="font-family:var(--font-mono);font-size:18px;font-weight:800;direction:ltr">${bxM(bxSum(reg, r => r.netP || 0))}</span></div>
@@ -6315,11 +6361,13 @@ async function bxRun() {
   inp.addEventListener('change', () => { const f = inp.files && inp.files[0]; inp.value = ''; if (f) bxLoad(f); });
   ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
   ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-  drop.addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) bxLoad(f); });
-  drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inp.click(); } });
-  drop.addEventListener('click', e => { if (BX.busy || BX.phase === 'checking') e.preventDefault(); });
+  drop.addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f && !BX.busy && BX.phase !== 'checking') bxAskReplace(() => bxLoad(f)); });
+  drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); drop.click(); } });
+  drop.addEventListener('click', e => {
+    if (BX.busy || BX.phase === 'checking') { e.preventDefault(); return; }
+    if (BX.rows.length) { e.preventDefault(); bxAskReplace(() => inp.click()); }   // فيه ملف محمّل → تأكيد الأول
+  });
   $('bxRun').addEventListener('click', bxAskRun);
-  $('bxNew').addEventListener('click', () => { if (!BX.busy) bxResetAll(); });
   $('bxRecheck').addEventListener('click', () => {
     if (BX.busy || BX.phase === 'checking' || !BX.rows.length) return;
     $('bxResult').className = 'result-box';

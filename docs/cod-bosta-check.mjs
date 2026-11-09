@@ -88,7 +88,7 @@ await page.click('#tabBosta');
 is(await page.$eval('#panelBosta', e => e.classList.contains('active')) && !(await page.$eval('#panelScan', e => e.classList.contains('active'))), 'فتح التاب بيقفل تاب المناديب');
 is(await page.$eval('#panelLog', e => !e.classList.contains('active')), 'ومايفتحش السجل');
 await upload(page, 'bosta-wrong-sheet.xlsx'); await sleep(500);
-is(/مفيش شيت اسمه «Cash Cycles»/.test(await txt(page, '#bxFileErr')), 'شيت باسم غلط ← مرفوض');
+is(/لا يوجد شيت اسمه «Cash Cycles»/.test(await txt(page, '#bxFileErr')), 'شيت باسم غلط ← مرفوض');
 is(await page.$eval('#bxTableWrap', e => !e.classList.contains('show')), 'ومفيش جدول');
 is(!calls.some(c => c.action === 'bostaValidate'), 'ولا نداء للـ Worker');
 await upload(page, 'bosta-two-sheets.xlsx'); await sleep(500);
@@ -115,9 +115,10 @@ is(row1.trackingNumber === '7000000001' && row1.orderRef === '#70101' && row1.or
 is(vc[0].body.rows.find(r => r.orderRef === '#70105').orderType === 'EXCHANGE', 'Order Type بيوصل للـ Worker بقيمته (EXCHANGE)');
 const st = rows.map(r => r.cls.replace('bx-', ''));
 is(JSON.stringify(st) === JSON.stringify(['ready', 'ready', 'ready_zero', 'ready', 'ready', 'error', 'error', 'error', 'error', 'error']), 'حالات الصفوف', JSON.stringify(st));
-is(/متكرر في الملف \(الصف 2\)/.test(rows[7].cells[8]), 'رقم تتبع متكرر ← خطأ محلي بيذكر الصف', rows[7].cells[8]);
-is(/Business ID/.test(rows[6].cells[8]) && /≠ مستحق شوبيفاي/.test(rows[5].cells[8]) && /Net Value/.test(rows[8].cells[8]) && /مش موجود على شوبيفاي/.test(rows[9].cells[8]), 'سبب كل خطأ ظاهر في الجدول');
-is(rows[4].cells[1].includes('📋'), 'الأوردر المسجّل مسبقًا متعلّم 📋');
+is(/متكرر في الملف \(الصف 2\)/.test(rows[7].cells[9]), 'رقم تتبع متكرر ← خطأ محلي بيذكر الصف', rows[7].cells[9]);
+is(/Business ID/.test(rows[6].cells[9]) && /≠ مستحق شوبيفاي/.test(rows[5].cells[9]) && /Net Value/.test(rows[8].cells[9]) && /مش موجود على شوبيفاي/.test(rows[9].cells[9]), 'سبب كل خطأ ظاهر في الجدول');
+is(rows[4].cells[7].includes('📋') && rows[4].cells[7].includes('مسجل مسبقاً') && !rows[4].cells[1].includes('📋'), 'عمود «التسجيل المسبق»: الأوردر المسجّل مسبقًا بباج 📋 مسجل مسبقاً (وبلا أيقونة جنب رقم الأوردر)', rows[4].cells[7]);
+is(rows[0].cells[7] === 'غير مسجّل' && rows.filter(r => r.cells[7].includes('مسجل مسبقاً')).length === 1, 'باقي الصفوف المفحوصة «غير مسجّل» وصف واحد بس مسجّل مسبقًا', rows.map(r => r.cells[7]).join(' / '));
 is(rows[0].cells[3].startsWith('S1') && rows[3].cells[3].startsWith('S2') && rows[4].cells[3].startsWith('S2'), 'SEND = S1 وأي نوع تاني = S2');
 is(rows[0].cells[4] === '2,675' && rows[3].cells[4] === '−1,650' && rows[1].cells[4] === '1,850', 'الإجمالي COD+Online (الأونلاين محسوب، والاسترداد بالسالب)', rows.map(r => r.cells[4]).join());
 is(rows[0].cells[6] === '2,538.2' || rows[0].cells[6] === '2,538.20', 'Net Value معروض', rows[0].cells[6]);
@@ -127,7 +128,7 @@ const runTxt = await txt(page, '#bxRun');
 is(/سجّل 5 أوردر/.test(runTxt), 'زرار التسجيل بعدد الجاهز', runTxt);
 is(await page.$eval('#bxRun', e => !e.disabled), 'زرار التسجيل مفعّل');
 is(/ناقصة في الخزنة/.test(await txt(page, '#bxHint')), 'تلميح: الجلسة هتفضل ناقصة في الخزنة', await txt(page, '#bxHint'));
-is(await page.$$eval('#bxTable th .bt-flt', e => e.length) === 9, 'قمع الفلتر على كل الأعمدة التسعة (القسم الموحّد v8.7.0)');
+is(await page.$$eval('#bxTable th .bt-flt', e => e.length) === 10, 'قمع الفلتر على كل الأعمدة العشرة (القسم الموحّد v8.7.0)');
 is(await page.evaluate(() => !document.querySelector('.eco-tbl-on,.eco-tbl-bar')), 'مفيش محرّك §TABLE القديم على الجدول (محرّكه الخاص بس)');
 is(await page.evaluate(() => !!document.querySelector('#bxBody a.order-link[href*="/admin/orders/101"]')), 'رقم الأوردر لينك لشوبيفاي');
 
@@ -172,7 +173,7 @@ await page.click('#tabBosta'); await upload(page, 'bosta-cash-cycles-sample.xlsx
 await page.click('#bxRun'); await page.click('#confirmOkBtn');
 await page.waitForFunction(() => !window.__bxBusy && document.getElementById('bxResult').className.includes('show'), null, { timeout: 15000 });
 rows = await rowsOf(page);
-is(rows[1].cls === 'bx-failed' && /اتعدّل بعد الفحص/.test(rows[1].cells[8]), 'صف رفضه الـ Worker لحظة التسجيل ← «فشل» وبسببه');
+is(rows[1].cls === 'bx-failed' && /اتعدّل بعد الفحص/.test(rows[1].cells[9]), 'صف رفضه الـ Worker لحظة التسجيل ← «فشل» وبسببه');
 is(calls.filter(c => c.action === 'bostaPay').length === 5, 'باقي الصفوف كملت بعد الفشل');
 is(rows[0].cls === 'bx-registered' && rows[4].cls === 'bx-registered', 'اللي قبله وبعده اتسجّل');
 is(/فشل 1/.test(await txt(page, '#bxResultTitle')), 'العنوان بيعدّ الفشل', await txt(page, '#bxResultTitle'));
@@ -184,7 +185,7 @@ await page.click('#tabBosta'); await upload(page, 'bosta-cash-cycles-sample.xlsx
 await page.click('#bxRun'); await page.click('#confirmOkBtn');
 await page.waitForFunction(() => !window.__bxBusy && document.getElementById('bxResult').className.includes('show'), null, { timeout: 15000 });
 rows = await rowsOf(page);
-is(rows[2].cls === 'bx-unknown' && /ما اتأكدناش/.test(rows[2].cells[8]), 'انقطاع الاتصال ← «تعذّر» مش «فشل» (الكتابة ممكن تكون تمّت)');
+is(rows[2].cls === 'bx-unknown' && /ما اتأكدناش/.test(rows[2].cells[9]), 'انقطاع الاتصال ← «تعذّر» مش «فشل» (الكتابة ممكن تكون تمّت)');
 is(calls.filter(c => c.action === 'bostaPay').length === 3, 'الدفعة وقفت عند الصف المشكوك فيه (مفيش صفوف بعده)', String(calls.filter(c => c.action === 'bostaPay').length));
 is(rows[3].cls === 'bx-ready' && rows[4].cls === 'bx-ready', 'اللي بعده لسه «جاهز» ماتلمسش');
 is(await page.$eval('#bxResult', e => e.className.includes('show-error')) && /التسجيل وقف/.test(await txt(page, '#bxResultTitle')), 'النتيجة حمرا: التسجيل وقف');
@@ -270,6 +271,7 @@ console.log('\n══ ⑧ القسم الموحّد: جدول الصفوف (html
   const chipsTxt = await txt(pg, '#btChips');
   is(/^الحالة:/.test(chipsTxt) && (chipsTxt.match(/الحالة:/g) || []).length === 1, 'chips: سطر للفلتر واسمه مرة واحدة', chipsTxt);
   await pg.hover('[data-btflt="status"]');
+  { const bb = await pg.evaluate(() => { const r = document.querySelector('[data-btflt="status"]').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }); await pg.mouse.move(bb[0] - 20, bb[1]); await pg.mouse.move(bb[0], bb[1], { steps: 5 }); await sleep(100); }   // hover() بيعمل scroll وممكن يتشال التلميح — فحركة ماوس حقيقية بعدها
   is(await pg.evaluate(() => !!document.querySelector('.bt-tip') && document.querySelector('.bt-tip').textContent.includes('،')), 'tooltip بقيم الفلتر المفعّل');
   await pg.hover('[data-btflt="type"]');
   is(await pg.evaluate(() => !document.querySelector('.bt-tip')), 'مفيش tooltip على عمود مفيهوش فلتر');
@@ -333,7 +335,7 @@ console.log('\n══ ⑧ القسم الموحّد: جدول الصفوف (html
   is(w1 > w0, 'سحب المقبض لليسار (RTL) بيوسّع العمود', `${w0} → ${w1}`);
   const sumOk = await pg.evaluate(() => { const t = document.getElementById('bxTable'), sc = document.getElementById('btScroll'); return Math.abs(t.getBoundingClientRect().width - sc.clientWidth) <= 2 && sc.scrollWidth <= sc.clientWidth + 1; });
   is(sumOk, 'الجدول مالي عرض الكارت من غير فراغ ولا سكرول أفقي');
-  is(await pg.evaluate(() => !!JSON.parse(localStorage.getItem('dco_col_widths_v1_COD-Payment-Center.html_bosta') || 'null')), 'العرض اتحفظ في localStorage');
+  is(await pg.evaluate(() => !!JSON.parse(localStorage.getItem('dco_col_widths_v2_COD-Payment-Center.html_bosta') || 'null')), 'العرض اتحفظ في localStorage');
   await pg.dblclick('[data-btrz="status"]'); await sleep(100);
   is(await pg.evaluate(() => Object.values(document.querySelectorAll('#btCg col')).every(c => parseFloat(c.style.width) >= 64)), 'دبل كليك = ضبط تلقائي في الحدود');
   // — مربع الرفع بعد التحميل
@@ -341,8 +343,17 @@ console.log('\n══ ⑧ القسم الموحّد: جدول الصفوف (html
   is(await txt(pg, '#bxDropTitle') === 'bx-big.xlsx' && /60 صف/.test(await txt(pg, '#bxDropSub')), 'الشريط بيعرض اسم الملف وعدد الصفوف');
   is(await pg.evaluate(() => ![...document.querySelectorAll('#panelBosta input,#panelBosta textarea')].some(i => i.hasAttribute('placeholder')) && !document.querySelector('.bt-pop [placeholder]')), 'مفيش placeholder في التاب');
   is(await pg.evaluate(() => !document.querySelector('#bxSum [style*="#"]') && !/#[0-9a-fA-F]{3,6}\b/.test(document.querySelector('style:last-of-type')?.textContent.split('§BOSTA-CSS')[1] || '')), 'صفر hex حرفي في CSS التاب');
-  await pg.click('#bxNew'); await sleep(100);
-  is(await pg.evaluate(() => !document.getElementById('bxDrop').classList.contains('compact')) && await txt(pg, '#bxDropTitle') === 'ارفع ملف «Cash Cycles» من بوسطة', 'ملف تاني: المربع يرجع لشكله الكامل');
+  is(await pg.evaluate(() => !document.getElementById('bxNew')), 'زرار «ملف تاني» اتشال');
+  is(/استبدال الملف/.test(await txt(pg, '#bxDropCta')) && await pg.evaluate(() => { const c = document.getElementById('bxDropCta'); const st = getComputedStyle(c); return !!c.querySelector('svg') && st.borderTopColor === getComputedStyle(document.documentElement).getPropertyValue('--red') || st.borderTopColor.startsWith('rgb(2') || st.borderTopColor.startsWith('rgb(1'); }), 'زرار «استبدال الملف» بأيقونة وإطار أحمر');
+  await pg.click('#bxDrop'); await sleep(100);
+  is(await pg.$eval('#confirmOverlay', e => e.classList.contains('open')) && /استبدال الملف/.test(await txt(pg, '#confirmHeader')), 'ضغطة «استبدال الملف» بتفتح نافذة تأكيد');
+  await pg.click('#confirmCancelBtn'); await sleep(100);
+  is(await pg.evaluate(() => document.getElementById('bxDrop').classList.contains('compact')) && await txt(pg, '#bxDropTitle') === 'bx-big.xlsx', 'إلغاء التأكيد: الملف والجدول زي ما هم');
+  // عدّاد «مسجل مسبقاً» = فلتر عمود التسجيل المسبق
+  const preN = +(await pg.$eval('[data-btpre] b', e => e.textContent));
+  await pg.click('[data-btpre]');
+  is(await txt(pg, '#btCount') === String(preN) && await pg.$eval('[data-btpre]', e => e.classList.contains('on')), `عدّاد «مسجل مسبقاً» بيفلتر الجدول (${preN})`);
+  await pg.click('[data-btpre]');
   is(e8.length === 0, 'صفر خطأ في الكونسول', e8.join(' | '));
   // — موبايل: صفر سكرول أفقي للصفحة
   await pg.setViewportSize({ width: 390, height: 844 });
