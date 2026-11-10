@@ -958,6 +958,27 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 .bx-badge.prereg { background:var(--purple-light); color:var(--purple); border:1px solid var(--purple-border); }
 .bx-prenone { font-size:11px; font-weight:600; color:var(--text-secondary); white-space:nowrap; }
 .bx-why { font-size:12px; line-height:1.6; }
+/* §BX-S1 — «فحص S1 من بوسطة» (v1.84.0): زرار على صف S2 الممنوع + نافذة اختيار الشحنة */
+.bx-s1btn { margin-top:6px; display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border:2px solid var(--accent-border); background:var(--accent-light); color:var(--accent-dark); border-radius:var(--radius-sm); font-family:inherit; font-size:12px; font-weight:800; cursor:pointer; }
+.bx-s1btn:hover { background:var(--accent-hover); }
+.s1m-top { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-bottom:10px; }
+.s1m-top > div, .s1m-grid > div { background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 10px; }
+.s1m-top small, .s1m-grid small { display:block; font-size:11px; font-weight:700; color:var(--text-secondary); }
+.s1m-top b, .s1m-grid b { font-size:13px; font-weight:800; font-family:var(--font-mono); direction:ltr; display:inline-block; }
+.s1m-note { font-size:12.5px; font-weight:700; line-height:1.7; padding:8px 12px; margin-bottom:10px; border-radius:var(--radius-sm); border:1px solid var(--amber-border); background:var(--amber-light); color:var(--amber-dark); }
+.s1m-note.ok { border-color:var(--green-border); background:var(--green-light); color:var(--green-dark); }
+.s1m-note.bad { border-color:var(--red-border); background:var(--red-light); color:var(--red-dark); }
+.s1m-cand { border:2px solid var(--border); border-radius:var(--radius); padding:10px 12px; margin-bottom:10px; background:var(--surface); }
+.s1m-cand.ok { cursor:pointer; border-color:var(--green-border); }
+.s1m-cand.ok:hover { background:var(--green-light); }
+.s1m-cand.sel { background:var(--green-light); box-shadow:0 0 0 3px var(--green-border); }
+.s1m-cand.bad { opacity:.92; border-color:var(--red-border); }
+.s1m-h { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:8px; font-size:13px; font-weight:700; }
+.s1m-h .tn { font-family:var(--font-mono); font-size:15px; font-weight:800; direction:ltr; }
+.s1m-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:6px; }
+.s1m-why { margin:8px 0 0; padding:0 18px 0 0; font-size:12px; font-weight:700; line-height:1.7; color:var(--red-dark); }
+.s1m-net { color:var(--green-dark); }
+
 .bx-neg { color:var(--red); }
 .log-tag.bx-co { background:var(--purple-light); color:var(--purple); }
 </style>
@@ -1398,7 +1419,20 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.83.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.84.0</span>
+          <span class="cl-ver-date">10-11-2026 · تاب «تحصيل بوسطة» — فحص S1 من بوسطة مباشرة (Worker 3.13.0)</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>«🔎 فحص S1 من بوسطة»</strong> على صف S2 الممنوع («S1 لسه ما اتسجّلش»): الأداة بتقرا <b>كل شحنات الأوردر</b> من بوسطة وبتعرض لكل واحدة النوع والحالة والإجمالي والـ Net والـ Cash-out وأسباب المنع — <b>إنت اللي بتختار</b> الشحنة (S1 مرتجعة RTO · شحنتين SEND …).</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>تسجيل S1 من بوسطة:</strong> بعد تأكيدك بيتسجّل صف S1 في السجل <b>فقط</b> (Net للخزنة · جلسة مستقلة <code>bosta-s1-…</code>) من غير أي حركة على شوبيفاي — بشرط وجود معاملة SALE ناجحة تغطي الإجمالي. الدفع الأونلاين بيتحسب (<code>total + online − fees</code>). بعدها S2 بيعدّي من البوابة بالمسار العادي.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>لو ملف الـ Cash-out القديم اتسجّل بعدين، الصفوف المسجّلة من بوسطة بتتطرح من عدّادات الجلسة عشان ما تفضلش «ناقصة» في الخزنة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span>يتطلب Worker <code>3.13.0</code> + Secret <code>BOSTA_API_KEY</code> (مفتاح خام) — <strong>انشر الـ Worker قبل الصفحة</strong>. ما اتجرّبش على بوسطة/شوبيفاي/D1 حقيقيين: ابدأ بأوردر واحد (#49395).</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block old">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.83.0</span>
           <span class="cl-ver-date">10-11-2026 · تاب «تحصيل بوسطة» — S1 المسجّل مسبقًا + بوابة S2 (Worker 3.12.0)</span>
         </div>
         <ul class="cl-items">
@@ -1870,6 +1904,18 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
       <button class="bxr-ftr-btn details" id="bxResDetailsBtn" onclick="bxToggleResDetails()">▾ عرض التفاصيل</button>
       <button class="bxr-ftr-btn export" onclick="bxExportResult()">⬇ تصدير النتيجة (Excel)</button>
       <button class="btn-modal-save" id="bxResOkBtn" onclick="bxCloseResult()">تمام</button>
+    </div>
+  </div>
+</div>
+
+<!-- §BX-S1 — فحص S1 من بوسطة: كل شحنات الأوردر بأدلتها، والموظف هو اللي بيختار -->
+<div class="eco-overlay" id="bxS1Overlay" onclick="if(event.target===this)bxS1Close()">
+  <div class="eco-modal" style="max-width:880px;">
+    <div class="eco-modal-hdr"><span id="bxS1Title">🔎 فحص S1 من بوسطة</span><button class="modal-close-x" onclick="bxS1Close()">✕</button></div>
+    <div class="eco-modal-body" id="bxS1Body"></div>
+    <div class="eco-modal-ftr">
+      <button class="btn-modal-cancel" onclick="bxS1Close()">إغلاق</button>
+      <button class="btn-modal-save" id="bxS1Go" disabled>✅ سجّل S1 المختار</button>
     </div>
   </div>
 </div>
@@ -5738,7 +5784,18 @@ async function bxValidate(list) {
   };
   await Promise.all(Array.from({ length: Math.min(BX_PAR, chunks.length) }, worker));
   if (seq !== BX.seq) return;
+  bxAdjustCtx();
   BX.phase = 'ready'; bxProgress(null); bxRender(); btRemeasure();
+}
+// 🔴 v1.84.0 — صف S1 اتسجّل قبل كده من بوسطة مباشرة (جلسة مستقلة `bosta-s1-…`) مابيتعدّش في جلسة الملف: بنطرحه من عدّادات `ctx`
+//    عشان `batchExpected` بتاع جلسة الملف (orders · collect · net) يطابق الصفوف اللي هتتكتب فعلًا ومتفضلش «ناقصة» في الخزنة.
+function bxAdjustCtx() {
+  if (!BX.rows.length) return;
+  const keep = BX.rows.filter(r => !(r.res && r.res.catchUp));
+  if (!keep.length || keep.length === BX.rows.length) { if (keep.length === BX.rows.length) BX.ctx = bxMakeCtx(BX.rows); return; }
+  const c = bxMakeCtx(keep);
+  c.s1Orders = bxMakeCtx(BX.rows).s1Orders;
+  BX.ctx = c;
 }
 function bxApply(r, res) {
   r.res = res; r.status = res.status; r.reasons = res.reasons || [];
@@ -5779,7 +5836,7 @@ function bxRowHtml(r, i) {
     <td class="col-ltr">${net}</td>
     <td class="col-center">${bxPreLabel(r) === null ? '—' : r.pre ? `<span class="bx-badge prereg" title="فلوسه اتسجّلت على شوبيفاي في أداة التسجيل المسبق — لا يوجد تحصيل جديد عليه (PRE_REG_KV ما اتلمسش)">${BX_PRE_YES}</span>` : `<span class="bx-prenone">${BX_PRE_NO}</span>`}</td>
     <td class="col-center"><span class="bx-badge ${cls}">${lbl}</span></td>
-    <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}</td>
+    <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}${(r.status === 'error' && r.res && r.res.code === 'S1_MISSING') ? `<br><button type="button" class="bx-s1btn" data-s1="${i}">🔎 فحص S1 من بوسطة</button>` : ''}</td>
   </tr>`;
 }
 function bxRender() {
@@ -6542,8 +6599,117 @@ async function bxExportResult() {
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
+// ══ §BX-S1-JS — فحص S1 من بوسطة مباشرة (v1.84.0 · Worker ≥ 3.13.0) ══════════════════════════
+// الفكرة: صف S2 ممنوع لأن S1 بتاعه ما اتسجّلش في الخزنة (مثال #49395: S1 اتحوّل في cash-out قديم عمره ما اتعمله رفع). بدل رفع الملف القديم
+// بنقرا شحنات الأوردر من بوسطة (`bostaS1Check` — قراءة بس)، والموظف بيختار الشحنة وبيأكّد (`bostaPayS1`) — تسجيل في D1 بس، صفر حركة على شوبيفاي.
+const BX_S1 = { i: -1, data: null, sel: null, busy: false, token: 0, err: '' };
+const BX_S1_COLL = { cashed_out: 'اتحوّل في Cash-out', awaiting_cashout: 'اتحصّل ومستني التحويل', no_cycle: 'مفيش Cash Cycle', unknown: 'غير معروف' };
+const bxS1Money = v => v === null || v === undefined ? '—' : bxM(bxP(v));
+async function bxS1Open(i) {
+  const r = BX.rows[i]; if (!r || BX.busy || BX_S1.busy) return;
+  Object.assign(BX_S1, { i, data: null, sel: null, err: '' });
+  $('bxS1Overlay').classList.add('open');
+  await bxS1Load();
+}
+function bxS1Close() { if (BX_S1.busy) return; $('bxS1Overlay').classList.remove('open'); }
+async function bxS1Load() {
+  const r = BX.rows[BX_S1.i], tok = ++BX_S1.token;
+  const ref = String(r.raw.orderRef || '');
+  $('bxS1Title').textContent = `🔎 فحص S1 من بوسطة — ${ref.startsWith('#') ? ref : '#' + ref}`;
+  $('bxS1Body').innerHTML = '<div class="s1m-note">⏳ جاري قراءة شحنات الأوردر من بوسطة وفحصها على شوبيفاي…</div>';
+  $('bxS1Go').disabled = true;
+  try {
+    const d = await apiPostLegacy('bostaS1Check', { orderRef: ref });
+    if (tok !== BX_S1.token) return;
+    if (!d || !d.success) { BX_S1.err = (d && d.error) || 'رد غير متوقع'; BX_S1.data = null; }
+    else { BX_S1.data = d; BX_S1.err = ''; const ok = d.candidates.filter(c => c.eligible); BX_S1.sel = null; }
+  } catch (e) { if (tok !== BX_S1.token) return; BX_S1.data = null; BX_S1.err = e.message || 'خطأ في الاتصال'; }
+  bxS1Render();
+}
+function bxS1Render() {
+  const d = BX_S1.data, body = $('bxS1Body');
+  if (!d) { body.innerHTML = `<div class="s1m-note bad">⛔ ${esc(BX_S1.err || 'تعذّر الفحص')}</div><div class="s1m-note">الفحص قراءة بس ومفيش حاجة اتغيّرت. لو الرسالة عن <b>BOSTA_API_KEY</b> أو <b>3.13.0</b> فالـ Worker محتاج Secret/نشر.</div>`; $('bxS1Go').disabled = true; return; }
+  const note = [];
+  if (d.hasS1) note.push(`<div class="s1m-note ok">✅ S1 بتاع الأوردر ده متسجّل بالفعل في السجل — اقفل النافذة واضغط «إعادة فحص الملف».</div>`);
+  else if (!d.candidates.some(c => c.eligible)) note.push(`<div class="s1m-note bad">⛔ مفيش شحنة قابلة للتسجيل كـ S1 — راجع الأسباب تحت كل شحنة. ولو S1 فعلًا في ملف Cash-out تاني، ارفع الملف ده بدل التسجيل من بوسطة.</div>`);
+  else note.push(`<div class="s1m-note">اختار الشحنة اللي هي S1 الصح للأوردر ده. التسجيل <b>في السجل بس</b> (الـ Net للخزنة) — <b>صفر حركة على شوبيفاي</b>.</div>`);
+  const top = `<div class="s1m-top">
+    <div><small>الأوردر</small><b>${orderLink(d.orderName, d.orderId)}</b></div>
+    <div><small>مستحق شوبيفاي دلوقتي</small><b>${bxS1Money(d.shopifyOutstanding)}</b></div>
+    <div><small>معاملات SALE ناجحة على شوبيفاي</small><b>${bxS1Money(d.shopifySaleCaptured)}</b></div>
+    <div><small>تسجيل مسبق (KV)</small><b>${d.preRegistered ? '📋 موجود' : 'لا'}</b></div></div>`;
+  const cards = d.candidates.map(c => {
+    const sel = BX_S1.sel === c.trackingNumber;
+    const cls = `s1m-cand ${c.eligible && !d.hasS1 ? 'ok' : 'bad'}${sel ? ' sel' : ''}`;
+    return `<div class="${cls}" data-s1tn="${esc(c.trackingNumber)}" ${c.eligible && !d.hasS1 ? 'role="button" tabindex="0"' : ''}>
+      <div class="s1m-h"><span class="tn">${esc(c.trackingNumber)}</span><span class="bx-slot">${esc(c.typeLabel)}</span>${c.oldType ? `<small>كانت ${esc(c.oldType)}</small>` : ''}
+        <span>${esc(c.stateLabel)} (${c.stateCode ?? '—'})</span>
+        <span class="bx-badge ${c.eligible ? 'ready' : 'error'}">${c.eligible ? (sel ? '✔ مختارة' : '✅ قابلة للتسجيل') : '⛔ مش قابلة'}</span></div>
+      <div class="s1m-grid">
+        <div><small>الإجمالي (COD+Online)</small><b>${bxS1Money(c.gross)}</b></div>
+        <div><small>الصافي — اللي الخزنة بتتوقعه</small><b class="s1m-net">${bxS1Money(c.net)}</b></div>
+        <div><small>رسوم بوسطة</small><b>${bxS1Money(c.fees)}</b></div>
+        <div><small>Cash-out</small><b>${esc(c.cashOutId || '—')}</b>${c.cashOutDate ? ` <small>${esc(c.cashOutDate)}</small>` : ''}</div>
+        <div><small>حالة التحصيل</small><b style="font-family:inherit">${esc(BX_S1_COLL[c.collection] || c.collection)}</b></div>
+        ${c.onlineAmount ? `<div><small>دفع أونلاين</small><b>${bxS1Money(c.onlineAmount)}</b> <small>${esc(c.onlineStatus || '')}${c.onlineProvider ? ' · ' + esc(c.onlineProvider) : ''}</small></div>` : ''}
+      </div>
+      ${c.blockers.length ? `<ul class="s1m-why">${c.blockers.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}</div>`;
+  }).join('') || '<div class="s1m-note bad">بوسطة ما رجّعتش أي شحنة بالمرجع ده.</div>';
+  body.innerHTML = note.join('') + top + cards + (BX_S1.err ? `<div class="s1m-note bad">⛔ ${esc(BX_S1.err)}</div>` : '');
+  const c = d.candidates.find(x => x.trackingNumber === BX_S1.sel);
+  $('bxS1Go').disabled = !(c && c.eligible) || d.hasS1 || BX_S1.busy;
+}
+function bxS1Pick(tn) {
+  const d = BX_S1.data; if (!d || d.hasS1 || BX_S1.busy) return;
+  const c = d.candidates.find(x => x.trackingNumber === tn); if (!c || !c.eligible) return;
+  BX_S1.sel = BX_S1.sel === tn ? null : tn; bxS1Render();
+}
+function bxS1Ask() {
+  const d = BX_S1.data, c = d && d.candidates.find(x => x.trackingNumber === BX_S1.sel);
+  if (!c || !c.eligible || BX_S1.busy) return;
+  const row = (k, v, cls = '') => `<div class="confirm-detail-row"><span class="confirm-detail-label">${k}</span><span class="confirm-detail-val ${cls}">${v}</span></div>`;
+  const body = `${row('الأوردر', esc(d.orderName))}${row('الشحنة (S1)', `${esc(c.trackingNumber)} · ${esc(c.typeLabel)}${c.oldType ? ' (كانت ' + esc(c.oldType) + ')' : ''}`)}
+    ${row('Cash-out', `${esc(c.cashOutId)} · ${esc(c.cashOutDate || '')}`)}${row('الإجمالي', bxS1Money(c.gross) + ' ج')}
+    <div style="background:var(--green-light);border:2px solid var(--green-border);border-radius:var(--radius-sm);padding:8px 14px;margin:6px 0;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:13px;font-weight:700">Net Value (اللي هتتوقعه الخزنة)</span><span style="font-family:var(--font-mono);font-size:18px;font-weight:800;direction:ltr">${bxS1Money(c.net)}</span></div>
+    <div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span><div><div class="confirm-warning-title">تسجيل في السجل فقط — لا يمكن التراجع</div>
+      <div class="confirm-warning-text">مفيش أي حركة على شوبيفاي (فلوس S1 متسجّلة عليه قبل كده${d.preRegistered ? '، ومفتاح التسجيل المسبق هيتمسح لو مطابق' : ''}). الـ Net هيظهر في الخزنة كجلسة مستقلة. راجع إن ده فعلًا S1 الصح.</div></div></div>`;
+  openConfirm('✅ تأكيد تسجيل S1 من بوسطة', body, 'تأكيد التسجيل', 'green-btn', bxS1Pay);
+}
+async function bxS1Pay() {
+  const d = BX_S1.data, c = d && d.candidates.find(x => x.trackingNumber === BX_S1.sel), r = BX.rows[BX_S1.i];
+  if (!c || !r || BX_S1.busy) return;
+  BX_S1.busy = true; window.__bxBusy = true; $('bxS1Go').disabled = true; BX_S1.err = '';
+  const i = BX_S1.i, emp = currentEmployee ? currentEmployee.username : null;
+  let res;
+  try { res = await apiPostLegacy('bostaPayS1', { orderRef: r.raw.orderRef, trackingNumber: c.trackingNumber, employee: emp, s2Tracking: r.raw.trackingNumber, expected: { gross: c.gross, net: c.net, cashOutId: c.cashOutId } }); }
+  catch (e) {
+    // 🔴 انقطاع/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — الكتابة ممكن تكون تمّت. الفحص التاني بيحسم (بيقول «اتسجّلت قبل كده»).
+    BX_S1.busy = false; window.__bxBusy = false;
+    BX_S1.err = 'ما اتأكدناش إن التسجيل تم (انقطع الاتصال) — الفحص هيتعاد: لو اتسجّل هتلاقي الشحنة «اتسجّلت قبل كده»، ومتسجّلش تاني قبل ما تتأكد.';
+    await bxS1Load(); BX_S1.err = ''; return;
+  }
+  BX_S1.busy = false; window.__bxBusy = false;
+  if (res && res.success) {
+    playBeep(res.warning ? 'error' : 'success');
+    showToast(res.warning ? `⚠ S1 اتسجّل (Net ${bxS1Money(res.net)}) — ${res.warning}` : `✅ S1 اتسجّل (Net ${bxS1Money(res.net)}) من بوسطة — الخزنة هتشوفه`, res.warning ? 'error' : 'success', res.warning ? 9000 : 4000);
+    $('bxS1Overlay').classList.remove('open');
+    logLoaded = false;
+    if (BX.rows[i] && !BX.busy) { BX.seq++; await bxValidate([BX.rows[i]]); }   // S2 بتاعه بيعدّي من البوابة بالمسار العادي
+    return;
+  }
+  playBeep('error');
+  const msg = (res && res.error) || 'فشل التسجيل';
+  if (res && res.stale) { await bxS1Load(); BX_S1.err = msg; bxS1Render(); return; }
+  BX_S1.err = msg; bxS1Render();
+}
+
 // ── ربط الأحداث ──────────────────────────────────────────────
 (function bxInit() {
+  $('bxBody').addEventListener('click', e => { const b = e.target.closest('[data-s1]'); if (b) bxS1Open(+b.dataset.s1); });
+  $('bxS1Body').addEventListener('click', e => { const c = e.target.closest('[data-s1tn]'); if (c) bxS1Pick(c.dataset.s1tn); });
+  $('bxS1Body').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-s1tn]')) { e.preventDefault(); bxS1Pick(e.target.dataset.s1tn); } });
+  $('bxS1Go').addEventListener('click', bxS1Ask);
   const drop = $('bxDrop'), inp = $('bxFile');
   inp.addEventListener('change', () => { const f = inp.files && inp.files[0]; inp.value = ''; if (f) bxLoad(f); });
   ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));

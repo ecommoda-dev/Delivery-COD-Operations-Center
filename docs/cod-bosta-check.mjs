@@ -41,7 +41,18 @@ const VERDICT = {
   '149622': { status: 'error', reasons: ['الأوردر #149622 مش موجود على شوبيفاي'] },
 };
 const registered = new Set();
-async function open({ payFail = {}, payNetwork = null, already = new Set(), payWarn = {} } = {}) {
+const S1STATE = { done: false };   // v1.84.0 — S1 اتسجّل من بوسطة مباشرة (بيفتح بوابة S2 في الـ Worker الوهمي)
+const CATCHUP = new Set();          // أرقام تتبع اتسجّلت من بوسطة مباشرة (Worker بيرجّعها done + catchUp)
+const S1_CANDS = [
+  { trackingNumber: '6579132699', typeCode: 10, typeLabel: 'Send', oldType: null, stateCode: 45, stateLabel: 'Delivered', collection: 'cashed_out', cashOutId: 'WEDCOD05AUG26', cashOutDate: '2026-08-05',
+    totalAmount: '4975.00', flexShipAmount: '0.00', fees: '183.26', onlineAmount: null, onlineStatus: null, onlineProvider: null, gross: '4975.00', net: '4791.74', blockers: [], eligible: true, registered: null },
+  { trackingNumber: '6579132611', typeCode: 10, typeLabel: 'Send', oldType: null, stateCode: 49, stateLabel: 'Canceled', collection: 'no_cycle', cashOutId: null, cashOutDate: null,
+    totalAmount: null, flexShipAmount: '0.00', fees: null, onlineAmount: null, onlineStatus: null, onlineProvider: null, gross: null, net: null, blockers: ['مفيش Cash Cycle على الشحنة دي في بوسطة', 'رقم التتبع (6579132611) ≠ S1 على شوبيفاي (6579132699)'], eligible: false, registered: null },
+  { trackingNumber: '8145633099', typeCode: 30, typeLabel: 'Exchange', oldType: null, stateCode: 46, stateLabel: 'Returned to business', collection: 'cashed_out', cashOutId: 'WEDCOD12AUG26', cashOutDate: '2026-08-12',
+    totalAmount: '1225.00', flexShipAmount: '0.00', fees: '172.14', onlineAmount: null, onlineStatus: null, onlineProvider: null, gross: '1225.00', net: '1052.86', blockers: ['مش شحنة S1 (نوعها «Exchange»)'], eligible: false, registered: null },
+];
+async function open({ payFail = {}, payNetwork = null, already = new Set(), payWarn = {}, s1Stale = false, s1Net = false } = {}) {
+  let staleLeft = s1Stale ? 1 : 0;
   const ctx = await browser.newContext(); const page = await ctx.newPage(); const calls = [], errs = [];
   page.on('pageerror', e => errs.push(e.message));
   await page.addInitScript(([s]) => { sessionStorage.setItem('dco_session', JSON.stringify(s)); localStorage.setItem('delivery_cod_ops_worker_secret', 'S'); }, [SESSION]);
@@ -61,9 +72,24 @@ async function open({ payFail = {}, payNetwork = null, already = new Set(), payW
           if (bn % 7 === 3) return { rowNo: r.rowNo, status: 'error', orderId: String(bn), orderName: r.orderRef, shopify: String(g + 100), reasons: [`الإجمالي في الملف (${g.toFixed(2)}) ≠ مستحق شوبيفاي (${(g + 100).toFixed(2)})`] };
           return { rowNo: r.rowNo, status: 'ready', orderId: String(bn), orderName: r.orderRef, shopify: g.toFixed(2), preRegistered: false, reasons: [] };
         }
+        if (CATCHUP.has(r.trackingNumber)) return { rowNo: r.rowNo, status: 'done', reasons: ['اتسجّل قبل كده (2026-11-10 12:00 UTC)'], orderId: '301', orderName: r.orderRef, catchUp: true };
+        if (r.orderRef === '#49500' && r.orderType === 'EXCHANGE') {
+          return S1STATE.done ? { rowNo: r.rowNo, status: 'ready', orderId: '301', orderName: '#49500', shopify: '1225.00', preRegistered: false, reasons: [], code: null }
+            : { rowNo: r.rowNo, status: 'error', orderId: '301', orderName: '#49500', shopify: '1225.00', code: 'S1_MISSING', reasons: ['S1 بتاع الأوردر ده لسه ما اتسجّلش — سجّل ملف/صف S1 من بوسطة الأول، أو اضغط «🔎 فحص S1 من بوسطة»'] };
+        }
         const v = VERDICT[r.orderRef + '|' + r.orderType] || VERDICT[r.orderRef] || { status: 'error', reasons: ['؟'] };
         return { rowNo: r.rowNo, tracking: r.trackingNumber, reasons: [], ...v };
       }) };
+    }
+    if (action === 'bostaS1Check') {
+      if (s1Net) out = { success: false, error: 'BOSTA_API_KEY ناقص على الـ Worker — ضيفه كـ Secret (مفتاح خام) ثم Promote' };
+      else out = { success: true, found: true, orderId: '301', orderName: '#49500', courier: 'Bosta', financialStatus: 'PENDING', shopifyOutstanding: '1225.00', shopifySaleCaptured: '4975.00', t1: '6579132699', t2: '8145633099',
+        hasS1: S1STATE.done, preRegistered: true, preReg: { amount: '4975.00', transactionId: '8545299431746' }, candidates: S1_CANDS };
+    }
+    if (action === 'bostaPayS1') {
+      if (staleLeft > 0) { staleLeft--; out = { success: false, status: 'error', stale: true, error: 'الأرقام اتغيّرت من وقت الفحص — أعد الفحص وراجعها', actions: [] }; }
+      else { S1STATE.done = true; CATCHUP.add(body.trackingNumber); out = { success: true, status: 'success', actions: ['تم'], logged: true, preRegCleared: true, kind: 's1_api', net: '4791.74', amount: '4975.00' }; }
+      await sleep(30);
     }
     if (action === 'bostaPay') {
       const ref = body.row.orderRef;
@@ -410,6 +436,97 @@ console.log('\n══ ⑨ v1.83.0 — S1 المسجّل مسبقًا + بواب�
   is(/PRE_REG_KV فشل/.test(after9[1].cells[9]), 'تحذير مسح KV ظاهر على صف S1 (الصف اتسجّل لكن لازم تنبيه)', after9[1].cells[9]);
   is(e9.length === 0, 'صفر خطأ في الكونسول', e9.join(' | '));
   await pg.context().close();
+}
+
+
+console.log('\n══ ⑩ v1.84.0 — فحص S1 من بوسطة مباشرة (#49395) ══');
+{
+  const ExcelNode = req(path.resolve(path.dirname(EXCEL), '..'));
+  const mkFile = async (name, rowsArr) => {
+    const wb = new ExcelNode.Workbook(), ws = wb.addWorksheet('Cash Cycles');
+    ws.addRow(['Business ID', 'Order Id', 'Order Type', 'Order Status', 'Order Reference', 'COD', 'Online Payment Amount', 'Total Fees', 'Flex Ship Amount', 'Net Value', 'Payment Status', 'Paid At', 'Cash-out ID']);
+    rowsArr.forEach(r => ws.addRow(r)); const f = path.join(os_tmp(), name); await wb.xlsx.writeFile(f); return f;
+  };
+  const S2ROW = ['MrQkqmcexcHuuMo7n', '8145633099', 'EXCHANGE', 'Delivered', '#49500', 1225, 0, 172.14, 0, 1052.86, 'Paid', '2026-08-12', 'WEDCOD12AUG26'];
+  const F10 = await mkFile('bx-s2only.xlsx', [S2ROW]);
+
+  S1STATE.done = false; CATCHUP.clear();
+  const { page: pg, calls: c10, errs: e10 } = await open();
+  await pg.click('#tabBosta'); await pg.setInputFiles('#bxFile', F10); await waitReady(pg);
+  let r10 = await rowsOf(pg);
+  is(r10.length === 1 && r10[0].cls === 'bx-error' && /S1 بتاع الأوردر ده لسه ما اتسجّلش/.test(r10[0].cells[9]), 'صف S2 الممنوع ظاهر خطأ بسبب S1', JSON.stringify(r10));
+  is(await pg.$$eval('.bx-s1btn', b => b.length) === 1, 'زرار «🔎 فحص S1 من بوسطة» ظاهر على الصف الممنوع بس');
+  is(!calls.some(c => c.action === 'bostaS1Check') && !c10.some(c => c.action === 'bostaS1Check'), 'ولا نداء لبوسطة قبل ما الموظف يضغط');
+  await pg.click('.bx-s1btn');
+  await pg.waitForFunction(() => document.querySelectorAll('.s1m-cand').length > 0, null, { timeout: 5000 });
+  const chk10 = c10.find(c => c.action === 'bostaS1Check');
+  is(chk10 && chk10.body.orderRef === '#49500', 'الفحص نادى bostaS1Check بالأوردر', JSON.stringify(chk10 && chk10.body));
+  is(await pg.$$eval('.s1m-cand', c => c.length) === 3, 'كل الشحنات معروضة (3) — مش بس القابلة', '');
+  const ok10 = await pg.$$eval('.s1m-cand', c => c.map(x => x.classList.contains('ok')));
+  is(JSON.stringify(ok10) === '[true,false,false]', 'الأولى بس قابلة للاختيار', JSON.stringify(ok10));
+  const modalTxt = await txt(pg, '#bxS1Body');
+  is(/4,791\.74/.test(modalTxt) && /WEDCOD05AUG26/.test(modalTxt) && /Delivered \(45\)/.test(modalTxt), 'الأرقام والـ Cash-out والحالة ظاهرين', modalTxt.slice(0, 200));
+  is(/مش شحنة S1 \(نوعها «Exchange»\)/.test(modalTxt) && /≠ S1 على شوبيفاي/.test(modalTxt), 'أسباب المنع ظاهرة بالنص', '');
+  is(/معاملات SALE ناجحة على شوبيفاي/.test(modalTxt) && /📋 موجود/.test(modalTxt), 'دليل شوبيفاي والتسجيل المسبق ظاهرين', '');
+  is(await pg.$eval('#bxS1Go', b => b.disabled), 'زرار التسجيل مقفول قبل اختيار شحنة');
+  await pg.click('[data-s1tn="6579132611"]');   // مش قابلة
+  is(await pg.$eval('#bxS1Go', b => b.disabled), 'اختيار شحنة غير قابلة مابيفتحش الزرار');
+  await pg.click('[data-s1tn="6579132699"]');
+  is(!(await pg.$eval('#bxS1Go', b => b.disabled)), 'اختيار الشحنة القابلة بيفتح الزرار');
+  is(!c10.some(c => c.action === 'bostaPayS1'), 'مفيش تسجيل قبل التأكيد');
+  await pg.click('#bxS1Go');
+  const cf10 = await txt(pg, '#confirmBody');
+  is(/في السجل فقط/.test(cf10) && /4,791\.74/.test(cf10) && /مفيش أي حركة على شوبيفاي/.test(cf10) && /مفتاح التسجيل المسبق هيتمسح/.test(cf10), 'نافذة التأكيد بتسمّي الأرقام وإنه سجل بس بلا شوبيفاي', cf10.slice(0, 260));
+  await pg.click('#confirmOkBtn');
+  await pg.waitForFunction(() => !document.getElementById('bxS1Overlay').classList.contains('open'), null, { timeout: 8000 });
+  await pg.waitForFunction(() => BX.phase === 'ready' && BX.rows[0].status === 'ready', null, { timeout: 8000 });
+  const ps10 = c10.filter(c => c.action === 'bostaPayS1');
+  is(ps10.length === 1 && ps10[0].body.trackingNumber === '6579132699' && ps10[0].body.s2Tracking === '8145633099'
+     && ps10[0].body.expected.net === '4791.74' && ps10[0].body.expected.gross === '4975.00' && ps10[0].body.expected.cashOutId === 'WEDCOD05AUG26' && ps10[0].body.employee === 'Ahmed_Ibraheem',
+     'bostaPayS1 اتنادى بالشحنة والأرقام اللي الموظف شافها', JSON.stringify(ps10.map(c => c.body)));
+  is(!c10.some(c => c.action === 'bostaPay' || c.action === 'pay' || c.action === 'refund'), 'ولا تسجيل/تحصيل على شوبيفاي من الصفحة (S1 في السجل بس)');
+  const rev = c10.filter(c => c.action === 'bostaValidate'); const lastV = rev[rev.length - 1];
+  is(rev.length === 2 && lastV.body.rows.length === 1 && lastV.body.rows[0].orderRef === '#49500', 'الصف اتفحص تاني بعد تسجيل S1 (صف واحد)', String(rev.length));
+  r10 = await rowsOf(pg);
+  is(r10[0].cls === 'bx-ready' && !(await pg.$$eval('.bx-s1btn', b => b.length)), 'S2 بقى «جاهز» ومفيش زرار فحص', r10[0].cls);
+  is(e10.length === 0, 'صفر خطأ في الكونسول', e10.join(' | '));
+  await pg.context().close();
+
+  // ── أرقام اتغيّرت: الـ Worker يرفض (stale) والنافذة بتعيد الفحص وتقول السبب ──
+  S1STATE.done = false; CATCHUP.clear();
+  const { page: pg2, calls: c2 } = await open({ s1Stale: true });
+  await pg2.click('#tabBosta'); await pg2.setInputFiles('#bxFile', F10); await waitReady(pg2);
+  await pg2.click('.bx-s1btn'); await pg2.waitForSelector('.s1m-cand');
+  await pg2.click('[data-s1tn="6579132699"]'); await pg2.click('#bxS1Go'); await pg2.click('#confirmOkBtn');
+  await pg2.waitForFunction(() => /اتغيّرت/.test(document.getElementById('bxS1Body').innerText), null, { timeout: 8000 });
+  is(await pg2.$eval('#bxS1Overlay', e => e.classList.contains('open')) && c2.filter(c => c.action === 'bostaS1Check').length === 2, 'stale: النافذة فضلت مفتوحة + الفحص اتعاد', String(c2.filter(c => c.action === 'bostaS1Check').length));
+  is((await rowsOf(pg2))[0].cls === 'bx-error', 'stale: صف S2 لسه ممنوع (S1 ما اتسجّلش)');
+  await pg2.context().close();
+
+  // ── BOSTA_API_KEY ناقص: الرسالة بتسمّيه والقراءة بس ──
+  S1STATE.done = false; CATCHUP.clear();
+  const { page: pg3 } = await open({ s1Net: true });
+  await pg3.click('#tabBosta'); await pg3.setInputFiles('#bxFile', F10); await waitReady(pg3);
+  await pg3.click('.bx-s1btn'); await pg3.waitForFunction(() => /BOSTA_API_KEY/.test(document.getElementById('bxS1Body').innerText), null, { timeout: 5000 });
+  is(await pg3.$eval('#bxS1Go', b => b.disabled), 'خطأ الإعداد: رسالة بتسمّي BOSTA_API_KEY والزرار مقفول');
+  await pg3.context().close();
+
+  // ── ملف cash-out قديم اتسجّل بعدين: الصف المسجّل من بوسطة (catchUp) بيتطرح من عدّادات الجلسة ──
+  S1STATE.done = true; CATCHUP.clear(); CATCHUP.add('6579132699');
+  const F10b = await mkFile('bx-catchup.xlsx', [
+    ['MrQkqmcexcHuuMo7n', '6579132699', 'SEND', 'Delivered', '#49500', 4975, 0, 183.26, 0, 4791.74, 'Paid', '2026-08-12', 'WEDCOD12AUG26'], S2ROW]);
+  const { page: pg4, calls: c4 } = await open();
+  await pg4.click('#tabBosta'); await pg4.setInputFiles('#bxFile', F10b); await waitReady(pg4);
+  const r4 = await rowsOf(pg4);
+  is(r4[0].cls === 'bx-done' && r4[1].cls === 'bx-ready', 'S1 المسجّل من بوسطة «مسجّل سابقًا» وS2 جاهز', r4.map(r => r.cls).join());
+  const ctx4 = await pg4.evaluate(() => BX.ctx);
+  is(ctx4.rowsTotal === 1 && ctx4.netTotal === '1052.86' && ctx4.payOrders === 1, 'ctx بعد الطرح: صف واحد وNet 1052.86 (من غير صف الـ API)', JSON.stringify(ctx4));
+  await pg4.click('#bxRun'); await pg4.click('#confirmOkBtn');
+  await pg4.waitForFunction(() => !window.__bxBusy && document.getElementById('bxResult').className.includes('show'), null, { timeout: 15000 });
+  const pay4 = c4.filter(c => c.action === 'bostaPay');
+  is(pay4.length === 1 && pay4[0].body.ctx.rowsTotal === 1 && pay4[0].body.ctx.netTotal === '1052.86', 'bostaPay بعت ctx المعدّل (batchExpected هيطابق الصفوف الفعلية)', JSON.stringify(pay4.map(c => c.body.ctx)));
+  await pg4.context().close();
+  S1STATE.done = false; CATCHUP.clear();
 }
 
 await browser.close(); server.close();
