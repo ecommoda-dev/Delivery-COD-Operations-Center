@@ -157,6 +157,18 @@ is(JSON.stringify(rows.map(r => r.cls.replace('bx-', ''))) === JSON.stringify(['
 const rb = await page.$eval('#bxResult', e => e.className);
 is(rb.includes('show-warn') && /تم جزئيًا/.test(await txt(page, '#bxResultTitle')), 'النتيجة: «تم جزئيًا» (أصفر) لإن فيه أخطاء', rb);
 is(/ناقصة في الخزنة/.test(await txt(page, '#bxResultDetail')), 'النتيجة بتقول الجلسة ناقصة في الخزنة');
+is(await page.$eval('#bxResOverlay', e => e.classList.contains('open')), 'نافذة النتيجة اتفتحت تلقائيًا بعد التنفيذ');
+is(await page.$eval('#bxProgOverlay', e => !e.classList.contains('open')), 'نافذة التقدّم اتقفلت');
+const stT = await page.$$eval('#bxResStats .bxr-stat', els => els.map(e => e.textContent.replace(/\s+/g, '')));
+is(stT.length === 5 && stT[0] === '5اتسجّل' && stT[3] === '0فشل', 'مربعات النتيجة: اتسجّل 5 · فشل 0', JSON.stringify(stT));
+is(/ناقصة في الخزنة/.test(await txt(page, '#bxResVerdict')) && await page.$eval('#bxResVerdict', e => e.classList.contains('warn')), 'الحكم أصفر: الجلسة ناقصة في الخزنة');
+is(await page.$$eval('#bxResBody tr', t => t.length) === 5, 'جدول التفاصيل فيه الخمس صفوف اللي اتنفّذت بس');
+is(await page.$eval('#bxResDetails', e => !e.classList.contains('collapsed')), 'التفاصيل اتفتحت لوحدها (مش نجاح كامل)');
+is(/3,?234|Net/.test(await txt(page, '#bxResNet')), 'سطر Net الدفعة ظاهر', await txt(page, '#bxResNet'));
+await page.click('#bxResDetailsBtn');
+is(await page.$eval('#bxResDetails', e => e.classList.contains('collapsed')), '«اخفي التفاصيل» بيطوي الجدول');
+await page.click('#bxResOkBtn');
+is(await page.$eval('#bxResOverlay', e => !e.classList.contains('open')), '«تمام» بيقفل نافذة النتيجة');
 is(await page.$eval('#bxRun', e => e.disabled), 'زرار التسجيل اتقفل (مفيش جاهز)');
 
 console.log('\n══ ④ إعادة رفع نفس الملف (تكرار) ══');
@@ -193,7 +205,9 @@ is(rows[2].cls === 'bx-unknown' && /ما اتأكدناش/.test(rows[2].cells[9]
 is(calls.filter(c => c.action === 'bostaPay').length === 3, 'الدفعة وقفت عند الصف المشكوك فيه (مفيش صفوف بعده)', String(calls.filter(c => c.action === 'bostaPay').length));
 is(rows[3].cls === 'bx-ready' && rows[4].cls === 'bx-ready', 'اللي بعده لسه «جاهز» ماتلمسش');
 is(await page.$eval('#bxResult', e => e.className.includes('show-error')) && /التسجيل وقف/.test(await txt(page, '#bxResultTitle')), 'النتيجة حمرا: التسجيل وقف');
-is(await page.$eval('#confirmOverlay', e => e.classList.contains('open')) && /أعد رفع نفس الملف/.test(await txt(page, '#confirmBody')), 'نافذة إقرار بتقول: أعد رفع الملف (مش هيتكرر)');
+is(await page.$eval('#bxResOverlay', e => e.classList.contains('open')) && /أعد رفع نفس الملف/.test(await txt(page, '#bxResVerdict')), 'نافذة النتيجة (حمرا) بتقول: أعد رفع الملف (مش هيتكرر)');
+is(await page.$eval('#bxResVerdict', e => e.classList.contains('bad')) && !await page.$eval('#bxResDetails', e => e.classList.contains('collapsed')), 'التوقف: الحكم أحمر والتفاصيل مفتوحة لوحدها');
+is(await page.$eval('#bxProgOverlay', e => !e.classList.contains('open')), 'نافذة التقدّم اتقفلت بعد الدفعة');
 is(await page.evaluate(() => window.__bxBusy) === false, 'علم الدفعة اتفك');
 
 console.log('\n══ ⑥ الحارس والقفل ══');

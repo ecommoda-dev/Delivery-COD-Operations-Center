@@ -146,6 +146,46 @@
 .result-box.show-error   { display:block; background:var(--red-light);   border:1px solid var(--red-border);   color:var(--red); }
 /* الحالة التالتة — الفعل الأساسي تم بس فيه حاجة ما اتأكدتش (Step 3C) */
 .result-box.show-warn    { display:block; background:var(--amber-light); border:1px solid var(--amber-border); color:var(--amber-dark); }
+
+/* ══ §BX-MODALS — نافذة تقدّم التسجيل + نافذة النتيجة (تاب «تحصيل بوسطة» · نفس تصميم «رفع بوسطة») ══
+   🔴 التقدّم: بلا زرار قفل ولا Esc ولا ضغط برّه — التسجيل بيكتب على شوبيفاي ودفتر الخزنة، وقفل النافذة
+      كان هيدّي انطباع إن العملية وقفت فالموظف يعيد الرفع. الاسم `bxp-*` عشان ما يتصادمش مع `.progress-*` القديمة. */
+.bxp-num{font-family:var(--font-mono);font-size:34px;font-weight:800;text-align:center;color:var(--accent-dark);line-height:1.1;direction:ltr;}
+.bxp-bar{height:16px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border-strong);overflow:hidden;margin:6px 0 10px;}
+.bxp-fill{height:100%;width:0;border-radius:99px;transition:width .4s ease;
+  background:repeating-linear-gradient(45deg,var(--accent) 0 12px,var(--accent-dark) 12px 24px);background-size:34px 34px;animation:bxp-stripes 1s linear infinite;}
+@keyframes bxp-stripes{to{background-position:34px 0;}}
+.bxp-sub{text-align:center;font-size:13px;font-weight:700;color:var(--text-secondary);min-height:20px;}
+.bxp-warn{margin-top:12px;text-align:center;font-size:12.5px;font-weight:700;color:var(--amber-dark);}
+.bxr-modal{transition:max-width .2s ease;}
+.bxr-verdict{font-size:13px;font-weight:800;line-height:1.8;padding:9px 12px;margin-bottom:10px;border-radius:var(--radius-sm);border:1px solid;}
+.bxr-verdict.ok{border-color:var(--green-border);background:var(--green-light);color:var(--green-dark);}
+.bxr-verdict.warn{border-color:var(--amber-border);background:var(--amber-light);color:var(--amber-dark);}
+.bxr-verdict.bad{border-color:var(--red-border);background:var(--red-light);color:var(--red-dark);}
+.bxr-verdict-note{margin-top:7px;padding-top:7px;border-top:1px solid currentColor;font-size:12.5px;font-weight:700;opacity:.9;}
+.bxr-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px;}
+.bxr-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 8px;border:2px solid var(--border);border-radius:var(--radius);background:var(--surface-2);text-align:center;}
+.bxr-stat b{font-family:var(--font-mono);font-size:30px;font-weight:800;line-height:1;color:var(--text-secondary);}
+.bxr-stat span{font-size:13px;font-weight:800;color:var(--text-secondary);line-height:1.35;}
+.bxr-stat.on.ok{border-color:var(--green-border);background:var(--green-light);}.bxr-stat.on.ok b,.bxr-stat.on.ok span{color:var(--green-dark);}
+.bxr-stat.on.pur{border-color:var(--purple-border);background:var(--purple-light);}.bxr-stat.on.pur b,.bxr-stat.on.pur span{color:var(--purple);}
+.bxr-stat.on.warn{border-color:var(--amber-border);background:var(--amber-light);}.bxr-stat.on.warn b,.bxr-stat.on.warn span{color:var(--amber-dark);}
+.bxr-stat.on.err{border-color:var(--red-border);background:var(--red-light);}.bxr-stat.on.err b,.bxr-stat.on.err span{color:var(--red-dark);}
+.bxr-net{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 14px;margin-bottom:12px;border:2px solid var(--green-border);background:var(--green-light);border-radius:var(--radius-sm);font-size:13px;font-weight:700;}
+.bxr-net b{font-family:var(--font-mono);font-size:18px;font-weight:800;direction:ltr;}
+.bxr-details{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;}
+.bxr-details.collapsed{display:none;}
+.bxr-scroll{overflow:auto;max-height:52vh;}
+.bxr-details table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.bxr-details th{position:sticky;top:0;background:var(--surface-2);padding:8px 10px;text-align:right;font-size:12px;font-weight:700;border-bottom:2px solid var(--border-strong);white-space:nowrap;}
+.bxr-details td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;font-weight:600;}
+.bxr-details td.bxr-why{min-width:220px;max-width:340px;overflow-wrap:anywhere;line-height:1.6;}
+.bxr-ftr-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:var(--radius-sm);border:2px solid;background:var(--surface);font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.bxr-ftr-btn.details{border-color:var(--accent-border);background:var(--accent-light);color:var(--accent-dark);}
+.bxr-ftr-btn.details:hover{background:var(--accent-hover);}
+.bxr-ftr-btn.export{border-color:var(--green-border);background:var(--green-light);color:var(--green-dark);}
+.bxr-ftr-btn.export:hover{border-color:var(--green);background:var(--green-hover);}
+@media (max-width:520px){.bxr-stats{grid-template-columns:repeat(2,1fr);}}
 .result-title  { font-weight:700; margin-bottom:3px; }
 .result-detail { font-size:11px; opacity:.8; font-family:var(--font-mono); }
 
@@ -1791,6 +1831,45 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
         </div>
       </details>
 
+    </div>
+  </div>
+</div>
+
+<!-- §BX-MODALS — تقدّم تسجيل تحصيل بوسطة (بلا قفل) — نفس نافذة «رفع بوسطة» -->
+<div class="eco-overlay" id="bxProgOverlay">
+  <div class="eco-modal" style="max-width:520px;">
+    <div class="eco-modal-hdr"><span>⏳ جاري تسجيل التحصيل...</span></div>
+    <div class="eco-modal-body">
+      <div class="bxp-num" id="bxProgNum">0/0</div>
+      <div class="bxp-bar"><div class="bxp-fill" id="bxProgFill"></div></div>
+      <div class="bxp-sub" id="bxProgSub"></div>
+      <div class="bxp-warn">⚠️ متقفلش الصفحة ومتعيدش التسجيل لحد ما النتيجة تظهر</div>
+    </div>
+  </div>
+</div>
+
+<!-- §BX-MODALS — نتيجة تسجيل تحصيل بوسطة: حكم + مربعات أعداد + تفاصيل قابلة للطي + تصدير -->
+<div class="eco-overlay" id="bxResOverlay" onclick="if(event.target===this)bxCloseResult()">
+  <div class="eco-modal bxr-modal" id="bxResModal" style="max-width:760px;">
+    <div class="eco-modal-hdr">
+      <span id="bxResTitle">نتيجة التسجيل</span>
+      <button class="modal-close-x" onclick="bxCloseResult()">✕</button>
+    </div>
+    <div class="eco-modal-body">
+      <div class="bxr-verdict" id="bxResVerdict"></div>
+      <div class="bxr-stats" id="bxResStats"></div>
+      <div class="bxr-net" id="bxResNet"></div>
+      <div class="bxr-details collapsed" id="bxResDetails">
+        <div class="bxr-scroll"><table>
+          <thead><tr><th>صف</th><th>رقم الأوردر</th><th>رقم التتبع</th><th>النوع</th><th>النتيجة</th><th>الإجمالي</th><th>Net Value</th><th>ما تم فعليًا / السبب</th></tr></thead>
+          <tbody id="bxResBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="eco-modal-ftr">
+      <button class="bxr-ftr-btn details" id="bxResDetailsBtn" onclick="bxToggleResDetails()">▾ عرض التفاصيل</button>
+      <button class="bxr-ftr-btn export" onclick="bxExportResult()">⬇ تصدير النتيجة (Excel)</button>
+      <button class="btn-modal-save" id="bxResOkBtn" onclick="bxCloseResult()">تمام</button>
     </div>
   </div>
 </div>
@@ -5527,7 +5606,7 @@ const BX_SHEET = 'Cash Cycles';
 const BX_COLS = ['Business ID', 'Order Id', 'Order Type', 'Order Status', 'Order Reference', 'COD', 'Online Payment Amount',
   'Total Fees', 'Flex Ship Amount', 'Net Value', 'Payment Status', 'Paid At', 'Cash-out ID'];
 const BX_CHUNK = 15, BX_PAR = 2;
-const BX = { phase: 'idle', fileName: '', fileSize: 0, ctx: null, rows: [], busy: false, seq: 0, fileErrors: [] };
+const BX = { runLog: [], phase: 'idle', fileName: '', fileSize: 0, ctx: null, rows: [], busy: false, seq: 0, fileErrors: [] };
 const BX_DROP_TITLE = 'ارفع ملف «Cash Cycles» من بوسطة';
 const BX_ICO_SWAP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 20v-4h-4"/></svg>';
 const BX_DROP_SUB = 'اسحب الملف وأفلته هنا، أو <u>اختاره من جهازك</u>';
@@ -6333,28 +6412,31 @@ async function bxRun() {
     .sort((a, b) => (BX.rows[a].slot === 'S1' ? 0 : 1) - (BX.rows[b].slot === 'S1' ? 0 : 1) || a - b);
   if (!idx.length || BX.busy) return;
   BX.busy = true; window.__bxBusy = true; $('bxResult').className = 'result-box';
-  bxRender();
+  BX.runLog = [];
+  bxRender(); bxProg(0, idx.length, '');
   const emp = currentEmployee ? currentEmployee.username : null;
   let ok = 0, already = 0, fail = 0, unlogged = 0, stopped = null, n = 0;
   for (const i of idx) {
     if (seq !== BX.seq) break;
     const r = BX.rows[i]; r.status = 'running'; r.reasons = []; bxRowUpdate(i);
+    bxProg(n, idx.length, r.orderName || r.raw.orderRef || '');
     let d;
     try { d = await apiPostLegacy('bostaPay', { row: r.raw, ctx: BX.ctx, employee: emp }); }
     catch (e) {
       // 🔴 انقطاع/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — الكتابة ممكن تكون تمّت. نقف.
       r.status = 'unknown'; r.reasons = ['ما اتأكدناش إن التسجيل تم (انقطع الاتصال) — أعد رفع الملف: الصف اللي اتسجّل هيظهر «مسجّل سابقًا»'];
-      stopped = `${r.orderName || r.raw.orderRef}: ${e.message || 'انقطع الاتصال'}`; bxRowUpdate(i); break;
+      stopped = `${r.orderName || r.raw.orderRef}: ${e.message || 'انقطع الاتصال'}`; bxRowUpdate(i); BX.runLog.push({ i, kind: 'unknown' }); break;
     }
     if (d && d.success) {
       if (d.status === 'already') { r.status = 'done'; r.reasons = ['اتسجّل قبل كده']; already++; }
       else { r.status = 'registered'; r.reasons = d.actions || []; ok++; }
       if (d.warning) r.warn = d.warning;   // مثلًا مسح مفتاح التسجيل المسبق فشل — الصف اتسجّل لكن لازم تنبيه
       if (d.logged === false) { unlogged++; r.warn = `اتنفّذ على شوبيفاي لكن ما اتسجّلش في السجل${d.logError ? ' (' + d.logError + ')' : ''}`; }
-    } else { r.status = 'failed'; r.reasons = [(d && d.error) || 'فشل']; fail++; }
-    n++; bxProgress(n / idx.length * 100); bxRowUpdate(i);
+      BX.runLog.push({ i, kind: d.status === 'already' ? 'already' : 'ok' });
+    } else { r.status = 'failed'; r.reasons = [(d && d.error) || 'فشل']; fail++; BX.runLog.push({ i, kind: 'fail' }); }
+    n++; bxProg(n, idx.length, r.orderName || r.raw.orderRef || ''); bxRowUpdate(i);
   }
-  BX.busy = false; window.__bxBusy = false; bxProgress(null);
+  BX.busy = false; window.__bxBusy = false; bxProgClose();
   if (seq !== BX.seq) return;
   bxRender();
   const left = BX.rows.filter(bxIs('error', 'failed', 'unknown', 'ready', 'ready_zero')).length;
@@ -6364,7 +6446,6 @@ async function bxRun() {
     playBeep('error');
     box.className = 'result-box show-error'; $('bxResultTitle').textContent = '⛔ التسجيل وقف — مش متأكدين من آخر صف';
     $('bxResultDetail').textContent = `${stopped}. ${parts.join(' — ')}. أعد رفع نفس الملف: اللي اتسجّل هيظهر «مسجّل سابقًا» ومش هيتكرر.`;
-    openAlert('⛔ التسجيل وقف', `<div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span><div><div class="confirm-warning-title">انقطع الاتصال أثناء التسجيل</div><div class="confirm-warning-text">آخر صف مش متأكد إنه اتسجّل. <b>أعد رفع نفس الملف</b> — الأداة مش هتكرر أي صف اتسجّل.</div></div></div>`, 'تمام', 'green-btn');
   } else if (fail || unlogged || left) {
     playBeep('error');
     box.className = 'result-box show-warn'; $('bxResultTitle').textContent = `⚠ تم جزئيًا — ${parts.join(' — ')}`;
@@ -6374,7 +6455,91 @@ async function bxRun() {
     box.className = 'result-box show-success'; $('bxResultTitle').textContent = `✅ الـ Cash-out اتسجّل كامل — ${parts.join(' — ')}`;
     $('bxResultDetail').textContent = `الجلسة كاملة في الخزنة (${BX.ctx.rowsTotal} صف · Net ${bxM(bxP(BX.ctx.netTotal))} ج) وجاهزة للتأكيد.`;
   }
+  bxOpenResult(stopped, left);
   logLoaded = false;
+}
+
+// ══ §BX-MODALS-JS — نافذة التقدّم ونافذة النتيجة ══════════════════════════════
+function bxProg(done, total, label) {
+  const pct = total ? Math.round(done / total * 100) : 0;
+  $('bxProgNum').textContent = `${done}/${total}`;
+  $('bxProgFill').style.width = Math.max(pct, 4) + '%';
+  $('bxProgSub').textContent = (label ? `${label} — ` : '') + `${pct}٪`;
+  $('bxProgOverlay').classList.add('open');
+}
+function bxProgClose() { $('bxProgOverlay').classList.remove('open'); }
+
+// 🔴 العدّادات من BX.runLog (اللي اتنفّذ في الدفعة دي بس) — مش من حالة الجدول كله:
+//    الصفوف المسجّلة قبل كده في ملف قديم مش جزء من «نتيجة» الدفعة.
+function bxRunSummary() {
+  const log = BX.runLog || [], s = { ok: 0, already: 0, fail: 0, unknown: 0, warn: 0, net: 0 };
+  log.forEach(e => {
+    s[e.kind]++;
+    const r = BX.rows[e.i];
+    if ((e.kind === 'ok' || e.kind === 'already') && r.warn) s.warn++;
+    if (e.kind === 'ok') s.net += r.netP || 0;
+  });
+  return s;
+}
+const BX_RES_LBL = { ok: ['ready', '✔ تم التسجيل'], already: ['done', '🟣 سبق تسجيله'], fail: ['error', '⛔ فشل'], unknown: ['warn', '⚠ تعذّر'] };
+function bxOpenResult(stopped, left) {
+  const s = bxRunSummary(), log = BX.runLog || [];
+  if (!log.length) return;
+  const stat = (cls, label, n) => `<div class="bxr-stat ${cls}${n ? ' on' : ''}"><b>${n}</b><span>${label}</span></div>`;
+  $('bxResStats').innerHTML = stat('ok', 'اتسجّل', s.ok) + stat('pur', 'سبق تسجيله', s.already) + stat('warn', 'تحذير', s.warn) + stat('err', 'فشل', s.fail) + stat('warn', 'تعذّر', s.unknown);
+  $('bxResNet').innerHTML = `<span>Net الدفعة دي (اللي دخل الخزنة)</span><b>${bxM(s.net)}</b>`;
+  let cls, msg, title;
+  if (stopped) {
+    cls = 'bad'; title = '⛔ التسجيل وقف';
+    msg = `⛔ <b>التسجيل وقف — مش متأكدين من آخر صف</b> (${esc(stopped)}). <b>أعد رفع نفس الملف</b> — الأداة مش هتكرر أي صف اتسجّل، واللي اتسجّل هيظهر «مسجّل سابقًا».`;
+  } else if (s.fail || s.warn || left) {
+    cls = 'warn'; title = '⚠️ نتيجة التسجيل — تم جزئيًا';
+    msg = `⚠ اتسجّل <b>${s.ok}</b>` + (s.fail ? ` وفشل <b>${s.fail}</b>` : '') + ` — الجلسة <b>ناقصة في الخزنة</b>` + (left ? ` (باقي ${left} صف مش متسجّل)` : '') + `، وموظف الخزنة ما يأكّدش قبل الاكتمال.`;
+    if (s.warn) msg += `<div class="bxr-verdict-note">⚠ ${s.warn} صف عليه تحذير (اتنفّذ لكن في حاجة محتاجة مراجعة) — التفاصيل في عمود «ما تم فعليًا / السبب».</div>`;
+  } else {
+    cls = 'ok'; title = '✅ نتيجة التسجيل';
+    msg = `✅ الـ Cash-out اتسجّل كامل — <b>${s.ok + s.already}</b> صف · الجلسة كاملة في الخزنة (${BX.ctx.rowsTotal} صف · Net ${bxM(bxP(BX.ctx.netTotal))} ج) وجاهزة للتأكيد.`;
+  }
+  $('bxResVerdict').className = `bxr-verdict ${cls}`; $('bxResVerdict').innerHTML = msg;
+  $('bxResTitle').textContent = title;
+  $('bxResBody').innerHTML = log.map(e => {
+    const r = BX.rows[e.i], [c, l] = BX_RES_LBL[e.kind];
+    const name = r.orderName || r.raw.orderRef || '—';
+    const why = [...r.reasons.map(esc), ...(r.warn ? [`<span class="bx-neg">⚠ ${esc(r.warn)}</span>`] : [])].join('<br>') || '—';
+    return `<tr><td class="col-ltr">${r.rowNo}</td><td>${r.orderId ? orderLink(name, r.orderId) : esc(name)}</td><td class="col-ltr">${esc(r.raw.trackingNumber || '—')}</td>` +
+      `<td><span class="bx-slot">${r.slot}</span></td><td><span class="bx-badge ${c}">${l}</span></td>` +
+      `<td class="col-ltr">${r.grossP === null ? '—' : bxM(r.grossP)}</td><td class="col-ltr">${r.netP === null ? '—' : bxM(r.netP)}</td><td class="bxr-why">${why}</td></tr>`;
+  }).join('');
+  // التفاصيل بتتفتح لوحدها في أي حالة مش «نجاح كامل» — نفس قاعدة نافذة رفع بوسطة
+  bxSetResDetails(cls !== 'ok');
+  $('bxResOverlay').classList.add('open');
+  $('bxResOkBtn').focus();
+}
+function bxCloseResult() { $('bxResOverlay').classList.remove('open'); }
+function bxSetResDetails(open) {
+  $('bxResDetails').classList.toggle('collapsed', !open);
+  $('bxResModal').style.maxWidth = open ? '1100px' : '760px';
+  $('bxResDetailsBtn').textContent = open ? '▲ اخفي التفاصيل' : '▾ عرض التفاصيل';
+}
+function bxToggleResDetails() { bxSetResDetails($('bxResDetails').classList.contains('collapsed')); }
+async function bxExportResult() {
+  // 🔴 محروس بـ`typeof ExcelJS` — نفس حارس تصدير السجل (CDN محجوب = رسالة واضحة مش رفض صامت)
+  if (typeof ExcelJS === 'undefined') { showToast('مكتبة التصدير ما اتحمّلتش — راجع الاتصال وحدّث الصفحة', 'error', 6000); return; }
+  const log = BX.runLog || [];
+  if (!log.length) return;
+  const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('نتيجة التسجيل', { views: [{ rightToLeft: true }] });
+  ws.columns = [['صف', 8], ['رقم الأوردر', 14], ['رقم التتبع', 18], ['النوع', 8], ['النتيجة', 16], ['الإجمالي', 14], ['Net Value', 14], ['ما تم فعليًا / السبب', 60]].map(([header, width]) => ({ header, width }));
+  ws.getRow(1).font = { bold: true };
+  log.forEach(e => {
+    const r = BX.rows[e.i];
+    ws.addRow([r.rowNo, r.orderName || r.raw.orderRef || '', String(r.raw.trackingNumber || ''), r.slot, BX_RES_LBL[e.kind][1].replace(/^\S+\s/, ''),
+      r.grossP === null ? '' : r.grossP / 100, r.netP === null ? '' : r.netP / 100, [...r.reasons, r.warn ? '⚠ ' + r.warn : ''].filter(Boolean).join(' | ')]);
+  });
+  const buf = await wb.xlsx.writeBuffer();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  a.download = `COD-Bosta-${(BX.ctx && BX.ctx.cashOutId) || 'result'}-result.xlsx`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
 // ── ربط الأحداث ──────────────────────────────────────────────
