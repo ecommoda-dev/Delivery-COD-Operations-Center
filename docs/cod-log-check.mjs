@@ -34,6 +34,7 @@ await page.route('**/*.workers.dev/**', async route => {
   const req = route.request(); const u = new URL(req.url()); const a = u.searchParams.get('action') || '';
   calls.push({ a, q: Object.fromEntries(u.searchParams) });
   let out = { ok: true, success: true, version: '99.0.0', checks: [], employees: [], values: [], entries: [], total: 0 };
+  if (req.method() === 'POST' && (req.postData() || '').includes('getCourierValues')) out.values = ['Ali', 'Sami', 'Bosta', 'Show_Room', 'Kareem'];
   if (a === 'get_logs') out.entries = u.searchParams.get('orders') === '999' ? [] : ROWS;
   if (a === 'get_log_suggest') { out.suggestions = [{ name: '#5501', count: 3 }, { name: '#5502', count: 1 }]; out.total = 14; }
   if (a === 'get_log_num_values') out.values = u.searchParams.get('field') === 'collect' ? Array.from({ length: 12 }, (_, i) => ({ v: 100 * (i + 1), n: 12 - i })) : [{ v: 1, n: 5 }, { v: 2, n: 3 }];
@@ -328,6 +329,27 @@ is(await page.locator('#hfPop .f86-toks .ms-chip', { hasText: '5502' }).count() 
 await page.keyboard.press('Escape');
 await page.click('#logClearAllBtn'); await page.waitForTimeout(500);
 is(await page.inputValue('#logOrdQuick') === '', 'مسح كل الفلاتر بيفضّي المربع');
+
+console.log('\n══ أزرار «مناديب · بوسطة · شو روم» (v1.85.0) ══');
+await page.reload(); await page.waitForSelector('#entryInput'); await page.click('#tabLog'); await page.waitForSelector('.log-otbl'); await page.waitForTimeout(300);
+const grpTxt = async () => (await page.locator('#logGrpBar .zchip').allInnerTexts()).map(t => t.trim());
+is(JSON.stringify(await grpTxt()) === JSON.stringify(['مناديب', 'بوسطة', 'شو روم']), 'التلات أزرار بترتيبها: مناديب · بوسطة · شو روم', JSON.stringify(await grpTxt()));
+is(await page.locator('#logGrpBar .zchip.on').count() === 0, 'مفيش زرار مولّع قبل أي اختيار');
+const logCalls = () => calls.filter(c => c.a === 'get_logs');
+await page.click('#logGrpBar [data-cg="bosta"]'); await page.waitForTimeout(300);
+is(logCalls().at(-1).q.courier === 'Bosta', 'بوسطة ← courier=Bosta على get_logs', logCalls().at(-1).q.courier);
+is(await page.locator('#logGrpBar [data-cg="bosta"].on').count() === 1, 'الزرار بيولّع (✕)');
+is(await page.locator('#chipsRow-logCourier .ms-chip', { hasText: 'Bosta' }).count() === 1, 'الـ chip تحت بيتحدّث (نفس الحالة)');
+await page.click('#logGrpBar [data-cg="showroom"]'); await page.waitForTimeout(300);
+is(logCalls().at(-1).q.courier === 'Bosta,Show_Room', 'شو روم (Show_Room) بتتضاف — متعدد', logCalls().at(-1).q.courier);
+await page.click('#logGrpBar [data-cg="other"]'); await page.waitForTimeout(300);
+is(new Set(logCalls().at(-1).q.courier.split(',')).size === 5, 'مناديب بتضيف Ali,Sami,Kareem', logCalls().at(-1).q.courier);
+await page.click('#logGrpBar [data-cg="other"]'); await page.waitForTimeout(300);
+is(logCalls().at(-1).q.courier === 'Bosta,Show_Room' && await page.locator('#logGrpBar .zchip.on').count() === 2, 'ضغطة تانية بتلغي المجموعة بس');
+await page.click('#logClearAllBtn'); await page.waitForTimeout(400);
+is(await page.locator('#logGrpBar .zchip.on').count() === 0 && !logCalls().at(-1).q.courier, 'مسح كل الفلاتر بيطفي الأزرار');
+await page.locator('.hfn[data-hf="courier"]').click(); await page.click('#msList-logCourier .ms-item >> text=Kareem'); await page.waitForTimeout(250);
+is(await page.locator('#logGrpBar .zchip.on').count() === 0, 'اختيار مندوب واحد من القايمة مابيولّعش «مناديب» (كلها مش مختارة)');
 
 console.log('\n══ مصدر الفلاتر ══');
 const exp = calls.filter(c => c.a === 'get_logs' || c.a === 'get_logs_count');
