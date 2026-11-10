@@ -527,6 +527,18 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 .hfpop .ms-menu{display:flex;position:static;width:auto;max-width:none;box-shadow:none;border:0;border-radius:0;overflow:visible;}
 .hfpop .ms-list{max-height:260px;}
 .hfpop .log-fg{display:flex;flex-direction:column;gap:4px;}
+/* ══ §LOG-CSS::courier-groups — أزرار «مناديب · بوسطة · شو روم» فوق جدول السجل (v1.85.0) ══
+   نسخة من `.zchip` في Ready-Orders.html (نفس المقاس والألوان وعلامة ✕ على المختار). */
+.log-grp-bar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface);}
+.log-grp-bar .zchip{display:inline-flex;align-items:center;gap:9px;padding:9px 15px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface-2);color:var(--text-secondary);font-family:var(--font-body);font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;transition:filter .12s,transform .1s,box-shadow .15s;}
+.log-grp-bar .zchip:hover:not(:disabled){filter:brightness(.97);}
+.log-grp-bar .zchip:active:not(:disabled){transform:translateY(1px);}
+.log-grp-bar .zchip:disabled{opacity:.45;cursor:not-allowed;}
+.log-grp-bar .zchip.qc-bosta{background:var(--red-light);color:var(--red-dark);border-color:var(--red-border);}
+.log-grp-bar .zchip.qc-showroom{background:var(--teal-light);color:var(--teal-dark);border-color:var(--teal-border);}
+.log-grp-bar .zchip.qc-courier{background:var(--accent-light);color:var(--accent-dark);border-color:var(--accent-border);}
+.log-grp-bar .zchip.on{box-shadow:0 0 0 2px currentColor inset;}
+.log-grp-bar .zchip.on::after{content:'✕';font-size:12px;font-weight:800;opacity:.75;}
 /* ══ §LOG-CSS::filters-v86 — فلاتر السجل الجديدة (html-builder v8.6.0) ══ */
 .f86-head{display:flex;justify-content:flex-start;padding:0 2px;}
 .f86-clear{font-family:inherit;font-size:12px;font-weight:700;color:var(--accent);background:transparent;border:0;padding:2px 4px;border-radius:6px;cursor:pointer;}
@@ -1362,6 +1374,8 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
         </div>
       </div>
 
+      <div class="log-grp-bar" id="logGrpBar" role="group" aria-label="فلتر المندوب بالمجموعة"></div>
+
       <div class="log-stats-bar">
         <label class="log-ordq" title="بحث برقم الأوردر — اكتب الرقم وهيفلتر لايف، وEnter بيثبّته كتوكن (تقدر تضيف أكتر من رقم). نفس فلتر القمع على عمود «عدد»">🔍 رقم الأوردر
           <input type="text" class="log-finput" id="logOrdQuick" autocomplete="off" spellcheck="false" inputmode="numeric" aria-label="بحث برقم الأوردر">
@@ -1419,7 +1433,17 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.84.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.85.0</span>
+          <span class="cl-ver-date">10-11-2026 · سجل العمليات — أزرار فلتر المندوب بالمجموعة</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>أزرار «مناديب · بوسطة · شو روم»</strong> فوق جدول سجل العمليات (نفس شكل Ready-Orders). بتكتب في نفس فلتر «المندوب» (القمع والـ chips بيتحدّثوا معاها) والفلترة server-side. ضغطة تانية بتلغي. ملحوظة: مفيش عدّاد على الأزرار، والمندوب اللي مش في القايمة الحالية أو الصف بلا مندوب مابيدخلش في «مناديب».</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.84.0</span>
           <span class="cl-ver-date">10-11-2026 · تاب «تحصيل بوسطة» — فحص S1 من بوسطة مباشرة (Worker 3.13.0)</span>
         </div>
         <ul class="cl-items">
@@ -3894,7 +3918,40 @@ document.addEventListener('click', (e) => {
 });
 
 const CHIP_LABEL = { logType: 'نوع العملية', logCourier: 'المندوب', logEmp: 'الموظف' };
+// ── §LOG-JS::courier-groups — «مناديب · بوسطة · شو روم» (v1.85.0) ──
+// 🔴 الأزرار **مش حالة تانية** — بتقرا وبتكتب في `msState.logCourier.selected` نفسها (زي قمع «المندوب» والـ chips)،
+//    فالتلاتة مستحيل يفترقوا. والتجميع من `ecoCourierGroup` (core.js) — نفس دالة الرئيسية والطوابير.
+// ⚠️ الفلترة server-side بأسماء المندوبين (`courier=a,b`) من قايمة `getCourierValues`: الاسم اللي مش في القايمة
+//    الحالية (مندوب اتحذف من التعريف) أو الصف بلا مندوب **مش بيدخل** في «مناديب». ⛔ مفيش عدّاد على الأزرار —
+//    العدّ محتاج استعلام لكل مجموعة من الـ Worker.
+function courierGroupNames(gkey) {
+  return msState.logCourier.items.filter(it => ecoCourierGroup(it.value) === gkey).map(it => it.value);
+}
+function courierGroupOn(gkey) {
+  const names = courierGroupNames(gkey);
+  return names.length > 0 && names.every(n => msState.logCourier.selected.has(n));
+}
+function courierGroupToggle(gkey) {
+  const names = courierGroupNames(gkey);
+  if (!names.length) return;
+  const st = msState.logCourier.selected, on = courierGroupOn(gkey);
+  names.forEach(n => on ? st.delete(n) : st.add(n));
+  msRenderList('logCourier'); renderChips(); onMsFilterChanged();
+}
+function renderCourierGroups() {
+  const box = $('logGrpBar'); if (!box) return;
+  box.innerHTML = ECO_COURIER_GROUPS.map(g => {
+    const none = courierGroupNames(g.key).length === 0, on = !none && courierGroupOn(g.key);
+    return `<button type="button" class="zchip ${esc(g.cls)}${on ? ' on' : ''}" data-cg="${esc(g.key)}" aria-pressed="${on}"${none ? ' disabled title="مفيش مندوبين في المجموعة دي في القايمة الحالية"' : ''}><span>${esc(g.label)}</span></button>`;
+  }).join('');
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('#logGrpBar [data-cg]');
+  if (b && !b.disabled) courierGroupToggle(b.dataset.cg);
+});
+
 function renderChips() {
+  renderCourierGroups();
   Object.keys(msState).forEach(key => {
     const row = $(`chipsRow-${key}`);
     if (!row) return;
@@ -4503,7 +4560,7 @@ async function loadLogCourierFilter() {
     const data = await apiPostLegacy('getCourierValues', {});
     const list = data.success ? (data.values || []) : [];
     msState.logCourier.items = list.map(c => ({ value: c, label: c }));
-    msRenderList('logCourier');
+    msRenderList('logCourier'); renderCourierGroups();
   } catch { /* يفضل فاضي لو فشل */ }
 }
 async function loadLogEmployeeFilter() {
