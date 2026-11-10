@@ -35,10 +35,13 @@ const VERDICT = {
   '#70106': { status: 'error', orderId: '106', orderName: '#70106', shopify: '-7500.00', reasons: ['الإجمالي في الملف (-2000.00) ≠ مستحق شوبيفاي (-7500.00)'] },
   '#70107': { status: 'error', reasons: ['Business ID («WRONGBIZ») مش بتاع الشركة'] },
   '#70109': { status: 'error', reasons: ['Net Value (1000.00) ≠ COD + Online − Total Fees + Flex Ship (1100.00)'] },
+  // v1.83.0 — #49395: S1 اتحصّل بالتسجيل المسبق (Worker 3.12.0 بيحكم kind='prereg_s1') وS2 فرق الاستبدال
+  '#49395|SEND': { status: 'ready', kind: 'prereg_s1', orderId: '201', orderName: '#49395', shopify: '1225.00', preRegistered: true },
+  '#49395|EXCHANGE': { status: 'ready', orderId: '201', orderName: '#49395', shopify: '1225.00', preRegistered: false },
   '149622': { status: 'error', reasons: ['الأوردر #149622 مش موجود على شوبيفاي'] },
 };
 const registered = new Set();
-async function open({ payFail = {}, payNetwork = null, already = new Set() } = {}) {
+async function open({ payFail = {}, payNetwork = null, already = new Set(), payWarn = {} } = {}) {
   const ctx = await browser.newContext(); const page = await ctx.newPage(); const calls = [], errs = [];
   page.on('pageerror', e => errs.push(e.message));
   await page.addInitScript(([s]) => { sessionStorage.setItem('dco_session', JSON.stringify(s)); localStorage.setItem('delivery_cod_ops_worker_secret', 'S'); }, [SESSION]);
@@ -58,7 +61,7 @@ async function open({ payFail = {}, payNetwork = null, already = new Set() } = {
           if (bn % 7 === 3) return { rowNo: r.rowNo, status: 'error', orderId: String(bn), orderName: r.orderRef, shopify: String(g + 100), reasons: [`الإجمالي في الملف (${g.toFixed(2)}) ≠ مستحق شوبيفاي (${(g + 100).toFixed(2)})`] };
           return { rowNo: r.rowNo, status: 'ready', orderId: String(bn), orderName: r.orderRef, shopify: g.toFixed(2), preRegistered: false, reasons: [] };
         }
-        const v = VERDICT[r.orderRef] || { status: 'error', reasons: ['؟'] };
+        const v = VERDICT[r.orderRef + '|' + r.orderType] || VERDICT[r.orderRef] || { status: 'error', reasons: ['؟'] };
         return { rowNo: r.rowNo, tracking: r.trackingNumber, reasons: [], ...v };
       }) };
     }
@@ -67,6 +70,7 @@ async function open({ payFail = {}, payNetwork = null, already = new Set() } = {
       if (payNetwork === ref) { await route.abort('failed'); return; }
       if (payFail[ref]) out = { success: false, status: 'error', error: payFail[ref], actions: [] };
       else if (already.has(ref)) out = { success: true, status: 'already', alreadyRegistered: true, actions: [], logged: true };
+      else if (payWarn[ref] && body.row.orderType === 'SEND') { registered.add(body.row.trackingNumber); out = { success: true, status: 'warning', warning: payWarn[ref], actions: ['تم'], logged: true, kind: 'prereg_s1' }; }
       else { registered.add(body.row.trackingNumber); out = { success: true, status: 'success', actions: ['تم'], logged: true, kind: 'payment' }; }
       await sleep(30);
     }
@@ -361,6 +365,38 @@ console.log('\n══ ⑧ القسم الموحّد: جدول الصفوف (html
   is(await pg.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'موبايل 390px: مفيش سكرول أفقي للصفحة', await pg.evaluate(() => document.documentElement.scrollWidth + '>' + innerWidth));
 }
 function os_tmp() { return process.env.TMPDIR || '/tmp'; }
+
+
+console.log('\n══ ⑨ v1.83.0 — S1 المسجّل مسبقًا + بوابة S2 (#49395) ══');
+{
+  const ExcelNode = req(path.resolve(path.dirname(EXCEL), '..'));
+  const wb = new ExcelNode.Workbook(), ws = wb.addWorksheet('Cash Cycles');
+  ws.addRow(['Business ID', 'Order Id', 'Order Type', 'Order Status', 'Order Reference', 'COD', 'Online Payment Amount', 'Total Fees', 'Flex Ship Amount', 'Net Value', 'Payment Status', 'Paid At', 'Cash-out ID']);
+  // S2 الأول في الملف عن قصد — لازم الواجهة تسجّل S1 قبله
+  ws.addRow(['MrQkqmcexcHuuMo7n', '8145633046', 'EXCHANGE', 'Delivered', '#49395', 1225, 0, 172.14, 0, 1052.86, 'Paid', '2026-08-12', 'WEDCOD12AUG26']);
+  ws.addRow(['MrQkqmcexcHuuMo7n', '6579132603', 'SEND', 'Delivered', '#49395', 4975, 0, 175, 0, 4800, 'Paid', '2026-08-12', 'WEDCOD12AUG26']);
+  const F9 = path.join(os_tmp(), 'bx-s1s2.xlsx'); await wb.xlsx.writeFile(F9);
+  const { page: pg, calls: c9, errs: e9 } = await open({ payWarn: { '#49395': 'مسح التسجيل المسبق من PRE_REG_KV فشل — امسح المفتاح يدويًا.' } });
+  await pg.click('#tabBosta'); await pg.setInputFiles('#bxFile', F9); await waitReady(pg);
+  const ctx9 = c9.find(c => c.action === 'bostaValidate').body.ctx;
+  is(JSON.stringify(ctx9.s1Orders) === JSON.stringify(['49395']), 'ctx.s1Orders = أوردرات صفوف S1 في الملف (بدون #)', JSON.stringify(ctx9.s1Orders));
+  const r9 = await rowsOf(pg);
+  is(/التسجيل المسبق/.test(r9[1].cells[9]) && /في السجل بس/.test(r9[1].cells[9]), 'صف S1 المسجّل مسبقًا: الشرح بيقول «في السجل بس» ومفتاح التسجيل المسبق هيتمسح', r9[1].cells[9]);
+  is(/بعد S1/.test(r9[0].cells[9]), 'صف S2: الشرح بيقول إنه بيتسجّل بعد S1', r9[0].cells[9]);
+  await pg.click('#bxRun');
+  const cf9 = await txt(pg, '#confirmBody');
+  is(/S1 مسجّل مسبقًا — تسجيل في السجل فقط \(1\)/.test(cf9) && /بلا حركة على شوبيفاي/.test(cf9), 'التأكيد: سطر مستقل للـ S1 المسجّل مسبقًا بلا حركة على شوبيفاي', cf9);
+  is(/تحصيل على شوبيفاي \(1\)/.test(cf9), 'التأكيد: التحصيل على شوبيفاي = S2 بس (1)', cf9);
+  await pg.click('#confirmOkBtn');
+  await pg.waitForFunction(() => !window.__bxBusy && document.getElementById('bxResult').className.includes('show'), null, { timeout: 15000 });
+  const pays9 = c9.filter(c => c.action === 'bostaPay').map(c => c.body.row.orderType);
+  is(JSON.stringify(pays9) === JSON.stringify(['SEND', 'EXCHANGE']), 'S1 اتسجّل قبل S2 رغم إن S2 أول في الملف', JSON.stringify(pays9));
+  const after9 = await rowsOf(pg);
+  is(after9.every(r => r.cls === 'bx-registered'), 'الصفين «تم التسجيل»', after9.map(r => r.cls).join());
+  is(/PRE_REG_KV فشل/.test(after9[1].cells[9]), 'تحذير مسح KV ظاهر على صف S1 (الصف اتسجّل لكن لازم تنبيه)', after9[1].cells[9]);
+  is(e9.length === 0, 'صفر خطأ في الكونسول', e9.join(' | '));
+  await pg.context().close();
+}
 
 await browser.close(); server.close();
 console.log(`\n${fail ? '❌' : '✅'} ${pass} عدّى · ${fail} فشل`);

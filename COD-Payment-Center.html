@@ -1358,7 +1358,19 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.82.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.83.0</span>
+          <span class="cl-ver-date">10-11-2026 · تاب «تحصيل بوسطة» — S1 المسجّل مسبقًا + بوابة S2 (Worker 3.12.0)</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>S1 اللي اتحصّل بالتسجيل المسبق:</strong> لو مبلغ الصف == مبلغ التسجيل المسبق ومعاملته موجودة على شوبيفاي، الصف بيتسجّل <b>في السجل بس</b> بـ Net Value (للخزنة) من غير أي حركة على شوبيفاي، ومفتاح التسجيل المسبق بيتمسح بعد نجاح التسجيل. قبل كده الصف ده كان بيترفض («الإجمالي ≠ مستحق شوبيفاي»).</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>بوابة S2:</strong> صف S2 ما بيتسجّلش إلا بعد ما S1 بتاعه يتسجّل (من بوسطة أو من أداة المناديب). لو S1 في نفس الملف بيتسجّل الأول لوحده. غير كده الصف بيظهر بسبب واضح.</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span>يتطلب Worker <code>3.12.0</code> — <strong>انشره قبل الصفحة</strong>. ما اتجرّبش على شوبيفاي/D1 حقيقيين: ابدأ بأوردر واحد (مثال #49395).</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block old">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.82.0</span>
           <span class="cl-ver-date">09-11-2026 · تاب «تحصيل بوسطة» — تصميم مضغوط + عمود التسجيل المسبق</span>
         </div>
         <ul class="cl-items">
@@ -1369,9 +1381,9 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
         </ul>
       </div>
 
-      <div class="cl-version-block">
+      <div class="cl-version-block old">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.82.0</span>
+          <span class="cl-ver-badge">v1.81.0</span>
           <span class="cl-ver-date">09-11-2026 · تاب «تحصيل بوسطة» (html-builder v8.7.0)</span>
         </div>
         <ul class="cl-items">
@@ -5611,9 +5623,12 @@ function bxMakeCtx(rows) {
     netTotal: (rows.reduce((s, r) => s + (r.netP || 0), 0) / 100).toFixed(2),
     payOrders: rows.filter(r => r.grossP !== null && r.grossP >= 0).length,
     refundOrders: rows.filter(r => r.grossP !== null && r.grossP < 0).length,
+    // 🔴 v1.83.0 — أوردرات صفوف S1 في الملف: بوابة S2 في الـ Worker بتعدّي S2 اللي S1 بتاعه في نفس الملف (واحنا بنسجّل S1 الأول)
+    s1Orders: [...new Set(rows.filter(r => r.slot === 'S1').map(r => String(r.raw.orderRef).replace(/^#/, '')))],
   };
 }
 const bxIs = (...st) => r => st.includes(r.status);
+const bxIsPreS1 = r => !!(r.res && r.res.kind === 'prereg_s1');   // S1 اتحصّل بالتسجيل المسبق — تسجيل في D1 بس
 const bxSum = (rows, f) => rows.reduce((s, r) => s + f(r), 0);
 
 // ── الفحص عبر الـ Worker ─────────────────────────────────────
@@ -5672,7 +5687,9 @@ function bxRowHtml(r, i) {
   const name = r.orderName || (r.raw.orderRef ? (String(r.raw.orderRef).startsWith('#') ? r.raw.orderRef : '#' + r.raw.orderRef) : '—');
   const gross = r.grossP === null ? '—' : `<span class="${r.grossP < 0 ? 'bx-neg' : ''}">${bxM(r.grossP)}</span>`;
   const net = r.netP === null ? '—' : `<span class="${r.netP < 0 ? 'bx-neg' : ''}">${bxM(r.netP)}</span>`;
-  const why = r.reasons.length ? r.reasons.map(esc).join('<br>') : (r.status === 'ready_zero' ? 'لا يوجد تحصيل على شوبيفاي — هيتسجّل لرسوم بوسطة (Net Value)' : '');
+  const why = r.reasons.length ? r.reasons.map(esc).join('<br>') : (r.status === 'ready_zero' ? 'لا يوجد تحصيل على شوبيفاي — هيتسجّل لرسوم بوسطة (Net Value)'
+    : (r.status === 'ready' && bxIsPreS1(r)) ? 'S1 اتحصّل بالتسجيل المسبق — هيتسجّل في السجل بس (الـ Net للخزنة) من غير أي حركة على شوبيفاي، ومفتاح التسجيل المسبق هيتمسح'
+    : (r.status === 'ready' && r.slot === 'S2') ? 'S2 — بيتسجّل بعد S1 بتاعه' : '');
   return `<tr class="bx-${r.status}" data-i="${i}">
     <td class="col-ltr">${r.rowNo}</td>
     <td>${r.orderId ? orderLink(name, r.orderId) : esc(name)}</td>
@@ -6288,12 +6305,14 @@ function bxAskReplace(go) {
 function bxAskRun() {
   const reg = BX.rows.filter(bxIs('ready', 'ready_zero'));
   if (!reg.length || BX.busy) return;
-  const pay = reg.filter(r => r.status === 'ready' && r.grossP > 0), ref = reg.filter(r => r.status === 'ready' && r.grossP < 0), zero = reg.filter(r => r.status === 'ready_zero');
+  const preS1 = reg.filter(r => r.status === 'ready' && bxIsPreS1(r));
+  const pay = reg.filter(r => r.status === 'ready' && r.grossP > 0 && !bxIsPreS1(r)), ref = reg.filter(r => r.status === 'ready' && r.grossP < 0), zero = reg.filter(r => r.status === 'ready_zero');
   const err = BX.rows.filter(bxIs('error', 'failed', 'unknown'));
   const row = (k, v, cls = '') => `<div class="confirm-detail-row"><span class="confirm-detail-label">${k}</span><span class="confirm-detail-val ${cls}">${v}</span></div>`;
   const body = `
     ${row('Cash-out', esc(BX.ctx.cashOutId))}${row('تاريخ الدفع', bxDate(BX.ctx.paidAt))}
     ${pay.length ? row(`تحصيل على شوبيفاي (${pay.length})`, bxM(bxSum(pay, r => r.grossP)) + ' ج', 'green') : ''}
+    ${preS1.length ? row(`S1 مسجّل مسبقًا — تسجيل في السجل فقط (${preS1.length})`, bxM(bxSum(preS1, r => r.grossP)) + ' ج · بلا حركة على شوبيفاي · هيتمسح مفتاح التسجيل المسبق', 'green') : ''}
     ${ref.length ? row(`استرداد على شوبيفاي (${ref.length})`, bxM(bxSum(ref, r => r.grossP)) + ' ج', 'red') : ''}
     ${zero.length ? row(`بدون تحصيل — رسوم بوسطة فقط (${zero.length})`, 'لا يوجد حركة على شوبيفاي') : ''}
     <div style="background:var(--green-light);border:2px solid var(--green-border);border-radius:var(--radius-sm);padding:8px 14px;margin:6px 0;display:flex;justify-content:space-between;align-items:center">
@@ -6309,7 +6328,9 @@ function bxAskRun() {
 }
 async function bxRun() {
   const seq = BX.seq;
-  const idx = BX.rows.map((r, i) => i).filter(i => bxIs('ready', 'ready_zero')(BX.rows[i]));
+  // 🔴 S1 الأول — بوابة S2 في الـ Worker مش هتسجّل S2 قبل ما S1 بتاعه يتسجّل (الـ Net بتاع S1 لازم يدخل الخزنة الأول)
+  const idx = BX.rows.map((r, i) => i).filter(i => bxIs('ready', 'ready_zero')(BX.rows[i]))
+    .sort((a, b) => (BX.rows[a].slot === 'S1' ? 0 : 1) - (BX.rows[b].slot === 'S1' ? 0 : 1) || a - b);
   if (!idx.length || BX.busy) return;
   BX.busy = true; window.__bxBusy = true; $('bxResult').className = 'result-box';
   bxRender();
@@ -6328,6 +6349,7 @@ async function bxRun() {
     if (d && d.success) {
       if (d.status === 'already') { r.status = 'done'; r.reasons = ['اتسجّل قبل كده']; already++; }
       else { r.status = 'registered'; r.reasons = d.actions || []; ok++; }
+      if (d.warning) r.warn = d.warning;   // مثلًا مسح مفتاح التسجيل المسبق فشل — الصف اتسجّل لكن لازم تنبيه
       if (d.logged === false) { unlogged++; r.warn = `اتنفّذ على شوبيفاي لكن ما اتسجّلش في السجل${d.logError ? ' (' + d.logError + ')' : ''}`; }
     } else { r.status = 'failed'; r.reasons = [(d && d.error) || 'فشل']; fail++; }
     n++; bxProgress(n / idx.length * 100); bxRowUpdate(i);
