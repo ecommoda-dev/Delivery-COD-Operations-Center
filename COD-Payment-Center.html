@@ -984,6 +984,10 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 .s1m-cand.ok { cursor:pointer; border-color:var(--green-border); }
 .s1m-cand.ok:hover { background:var(--green-light); }
 .s1m-cand.sel { background:var(--green-light); box-shadow:0 0 0 3px var(--green-border); }
+#bxS1Go { transition:background .15s, opacity .15s; }
+#bxS1Go:disabled { background:var(--border); color:var(--text-muted); cursor:not-allowed; opacity:.75; }
+#bxS1Go:not(:disabled) { background:var(--green); color:var(--on-accent); }
+#bxS1Go:not(:disabled):hover { filter:brightness(.92); }
 .s1m-cand.bad { opacity:.92; border-color:var(--red-border); }
 .s1m-h { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:8px; font-size:13px; font-weight:700; }
 .s1m-h .tn { font-family:var(--font-mono); font-size:15px; font-weight:800; direction:ltr; }
@@ -6701,7 +6705,7 @@ function bxS1Render() {
     return `<div class="${cls}" data-s1tn="${esc(c.trackingNumber)}" ${c.eligible && !d.hasS1 ? 'role="button" tabindex="0"' : ''}>
       <div class="s1m-h"><span class="tn">${esc(c.trackingNumber)}</span><span class="bx-slot">${esc(c.typeLabel)}</span>${c.oldType ? `<small>كانت ${esc(c.oldType)}</small>` : ''}
         <span>${esc(c.stateLabel)} (${c.stateCode ?? '—'})</span>
-        <span class="bx-badge ${c.eligible ? 'ready' : 'error'}">${c.eligible ? (sel ? '✔ مختارة' : '✅ قابلة للتسجيل') : '⛔ مش قابلة'}</span></div>
+        <span class="bx-badge ${c.eligible ? 'ready' : 'error'}">${c.eligible ? (sel ? '✔ مختارة' : '✅ معاملة قابلة للتسجيل') : '⛔ معاملة غير قابلة للتسجيل'}</span></div>
       <div class="s1m-grid">
         <div><small>الإجمالي (COD+Online)</small><b>${bxS1Money(c.gross)}</b></div>
         <div><small>الصافي — اللي الخزنة بتتوقعه</small><b class="s1m-net">${bxS1Money(c.net)}</b></div>
