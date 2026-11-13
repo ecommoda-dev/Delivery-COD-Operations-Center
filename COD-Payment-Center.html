@@ -5796,7 +5796,7 @@ async function bxParse(file) {
     if (m.size > 1) errs.push(`${label} مش موحّد في الملف: ${[...m].map(([v, c]) => `«${v || 'فاضي'}» (${c} صف)`).join(' · ')}`);
     else if (rows.length && ![...m.keys()][0]) errs.push(`${label} فاضي`);
   };
-  if (rows.length) { uniq('cashOutId', 'Cash-out ID'); uniq('paidAt', 'Paid At'); }
+  if (rows.length) uniq('cashOutId', 'Cash-out ID');   // Paid At مش شرط على مستوى الملف (قرار أحمد 13-11-2026) — ممكن يختلف بين الصفوف
   return { errs, rows };
 }
 
@@ -5819,7 +5819,8 @@ function bxMakeRows(parsed) {
 function bxMakeCtx(rows) {
   const first = rows[0].raw;
   return {
-    cashOutId: first.cashOutId, paidAt: first.paidAt, rowsTotal: rows.length,
+    // Paid At ممكن يختلف بين الصفوف — الأقدم تاريخ للعرض وحد أدنى لفحص «اتسجّل قبل كده»
+    cashOutId: first.cashOutId, paidAt: rows.map(r => r.raw.paidAt).filter(Boolean).sort()[0] || first.paidAt, rowsTotal: rows.length,
     netTotal: (rows.reduce((s, r) => s + (r.netP || 0), 0) / 100).toFixed(2),
     payOrders: rows.filter(r => r.grossP !== null && r.grossP >= 0).length,
     refundOrders: rows.filter(r => r.grossP !== null && r.grossP < 0).length,
