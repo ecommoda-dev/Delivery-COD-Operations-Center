@@ -246,6 +246,52 @@ is(xs.empty.total === 0 && xs.empty.err === null, 'من غير شحن إضافي
 is(errs.length === 0, 'مفيش pageerror', errs.join(' | '));
 await page.context().close();
 
+console.log('\n══ ⑮ جلسة صافيها صفر حقيقي (#39105: استبدال 75 وشحن 75) — زرار التسجيل بيفتح من غير مبلغ ══');
+({ page, calls, errs } = await open());
+const zeroOrder = (over = {}) => Object.assign({ id: '39105', orderName: '#39105', status: 'ready', amount: 75, subtotal: 0, shippingAmount: 75, courier: '3laa', financialStatus: 'PARTIALLY_PAID',
+  canMarkAsPaid: true, lineItems: [], returnedItems: [], hasReturn: false, returnShipping: '0.00', saleTransactions: [], orderKind: 'exchange', multiCycle: false, s1: 'Delivered', s2: 'Returned' }, over);
+const setSession = async (list, extra = []) => page.evaluate(([l, x]) => { orders = l; extraEntries = x; payReset(); renderTable(); renderExtraEntries(); updateStats(); updatePayMethodsCard(); updatePayBtn(); }, [list, extra]);
+await setSession([zeroOrder()]);
+let z = await page.evaluate(() => ({ net: getCourierCollectNet(), zero: isZeroNetSession(), valid: isPayValid(), dis: document.getElementById('payBtn').disabled, hint: document.getElementById('payHint').textContent, ok: document.getElementById('payMeter').classList.contains('ok') }));
+is(z.net === 0 && z.zero && z.valid && !z.dis, 'صافي صفر حقيقي ← isZeroNetSession صح والزرار مفتوح من غير إدخال مبلغ', JSON.stringify(z));
+is(/صافي المندوب صفر/.test(z.hint), 'التلميح بيقول «صافي المندوب صفر — مفيش مبلغ يتدخّل»', z.hint);
+is(z.ok, 'عدّاد طرق الدفع أخضر');
+// مبلغ مكتوب على جلسة صفرية = زيادة ومقفول (مفيش باب لإدخال غلط)
+await page.click('[data-ptog="cash"]'); await page.fill('[data-pin="cash"]', '10');
+z = await page.evaluate(() => ({ valid: isPayValid(), dis: document.getElementById('payBtn').disabled, hint: document.getElementById('payHint').textContent }));
+is(!z.valid && z.dis && /زيادة/.test(z.hint), 'مبلغ مكتوب على جلسة صفرية ← مقفول بـ«زيادة»', JSON.stringify(z));
+await page.click('[data-ptog="cash"]');
+is(await page.evaluate(() => isPayValid() && !document.getElementById('payBtn').disabled), 'مسح المبلغ ← يرجع يفتح');
+// صافي مجهول (بيانات ناقصة) مش صفر حقيقي
+await setSession([zeroOrder({ amount: NaN })]);
+z = await page.evaluate(() => ({ zero: isZeroNetSession(), valid: isPayValid(), dis: document.getElementById('payBtn').disabled }));
+is(!z.zero && !z.valid && z.dis, 'مبلغ NaN ← مش صفر حقيقي والزرار مقفول', JSON.stringify(z));
+await setSession([zeroOrder({ shippingAmount: null })]);
+z = await page.evaluate(() => ({ cc: calcCourierCollect(orders[0]), zero: isZeroNetSession(), dis: document.getElementById('payBtn').disabled }));
+is(z.cc === null && !z.zero && z.dis, 'صافي الأوردر null (شحن مجهول) ← مقفول', JSON.stringify(z));
+await setSession([zeroOrder(), zeroOrder({ id: '2', orderName: '#2', shippingAmount: null })]);
+is(await page.evaluate(() => !isZeroNetSession() && document.getElementById('payBtn').disabled), 'أوردر سليم + أوردر صافيه مجهول ← مقفول');
+// شحن إضافي مش متحقق منه
+await setSession([zeroOrder()], [{ id: '9', orderName: null, amount: '75', status: 'error', error: 'خطأ' }]);
+is(await page.evaluate(() => !isZeroNetSession() && document.getElementById('payBtn').disabled), 'شحن إضافي مش متحقق منه ← مقفول');
+// صافي غير صفر: الشرط القديم لسه ساري (لازم مبلغ)
+await setSession([zeroOrder({ shippingAmount: 50 })]);
+is(await page.evaluate(() => getCourierCollectNet() === 25 && !isZeroNetSession() && !isPayValid() && document.getElementById('payBtn').disabled && /أدخل مبالغ/.test(document.getElementById('payHint').textContent)), 'صافي غير صفر + خانات فاضية ← مقفول بنفس الرسالة القديمة');
+// تحصيل + استرداد بصافي صفر
+await setSession([zeroOrder({ id: '1', orderName: '#1', amount: 300, shippingAmount: 50 }),
+  { id: '2', orderName: '#2', status: 'refund', amount: -250, refundAmount: 250, returnShipping: '0.00', hasReturn: true, courier: '3laa', lineItems: [], returnedItems: [], saleTransactions: [{ id: 't', amount: 250 }], orderKind: 'full_return', multiCycle: false }]);
+is(await page.evaluate(() => getCourierCollectNet() === 0 && isZeroNetSession() && !document.getElementById('payBtn').disabled), 'تحصيل 250 + استرداد 250 (صافي صفر) ← مفتوح');
+// الإرسال للـ Worker
+await setSession([zeroOrder()]); calls.length = 0;
+await page.click('#payBtn'); await page.waitForSelector('#confirmOverlay.open'); await page.click('#confirmOkBtn');
+await page.waitForFunction(() => orders.length === 0, null, { timeout: 8000 });
+const zp = calls.filter(c => c.action === 'pay').map(c => c.body);
+is(zp.length === 1 && zp[0].amount === '75.00', 'pay اتبعت بمبلغ شوبيفاي 75.00 (مش الصافي)', JSON.stringify(zp.map(b => b.amount)));
+is(zp[0].orderMeta.courierCollect === 0 && ['cash', 'instapay', 'wallet'].every(k => zp[0].orderMeta.paymentSplit[k] === '0.00'), 'courierCollect = 0 وحصص طرق الدفع كلها 0.00', JSON.stringify(zp[0].orderMeta));
+is(zp[0].sessionMeta.batchExpected.collect === '0.00' && zp[0].sessionMeta.batchExpected.net === '0.00' && zp[0].sessionMeta.batchExpected.orders === 1, 'batchExpected: collect و net = 0.00 وorders = 1', JSON.stringify(zp[0].sessionMeta.batchExpected));
+is(errs.length === 0, 'مفيش pageerror', errs.join(' | '));
+await page.context().close();
+
 await browser.close(); server.close();
 console.log(`\n${fail ? '❌' : '✅'} النتيجة: ${pass} عدّى · ${fail} فشل`);
 process.exit(fail ? 1 : 0);

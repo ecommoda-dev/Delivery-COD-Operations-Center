@@ -3082,7 +3082,7 @@ function updatePayValidation() {
   // العدّاد: «المتبقي» و«الإجمالي» (المكتوب) بس — الإشارة سالبة لو صافي الجلسة سالب
   const abs = Math.abs(target), neg = target < 0;
   const rem = Math.round((abs - entered) * 100) / 100;
-  const ok = !isPayEmpty() && Math.abs(rem) < 0.01, over = rem < -0.009;
+  const ok = (!isPayEmpty() || isZeroNetSession()) && Math.abs(rem) < 0.01, over = rem < -0.009;
   const money = v => (neg && v > 0 ? '−' : '') + fmt(v) + ' ج';
   const meter = $('payMeter');
   meter.className = 'pay-meter' + (ok ? ' ok' : over ? ' over' : '');
@@ -3094,8 +3094,21 @@ function updatePayValidation() {
   updatePayBtn();
 }
 
+// 🆕 جلسة صافيها **صفر حقيقي** (مثال #39105: استبدال 75 على شوبيفاي وشحن 75 ← المندوب مش هيسلّم حاجة).
+//    مفيش مبلغ يتدخّل، فشرط «الموظف لازم يدخّل مبلغ» (`isPayEmpty`) كان بيقفل الزرار على جلسة سليمة.
+//    🔴 «صفر حقيقي» مش «صفر بالغلط»: `getCourierCollectNet` بتحوّل أي صافي مجهول (null/NaN) لصفر (`cc||0`)،
+//    فلازم **كل** أوردر تحصيل/استرداد يكون صافيه رقم فعلي، ومفيش شحن إضافي محتاج مراجعة، والصافي الكلي < قرش.
+//    ⛔ ما بتفتحش الباب لإدخال غلط: مبلغ مكتوب على جلسة صفرية بيقع في الفحص العادي («زيادة X ج»).
+function isZeroNetSession() {
+  const live = orders.filter(o => o.status === 'ready' || o.status === 'refund');
+  if (!orders.some(o => o.status === 'ready')) return false;
+  if (!live.every(o => Number.isFinite(calcCourierCollect(o)))) return false;
+  if (getExtraNotOk().length > 0) return false;
+  const net = getCourierCollectNet();
+  return Number.isFinite(net) && Math.abs(net) < 0.01;
+}
 function isPayValid() {
-  if (isPayEmpty()) return false;
+  if (isPayEmpty()) return isZeroNetSession();
   const target = getCourierCollectNet(), entered = getPaySum();
   return Math.abs(Math.abs(entered) - Math.abs(target)) < 0.01;
 }
@@ -3154,6 +3167,7 @@ function updatePayBtn() {
     const rem = Math.round((Math.abs(getCourierCollectNet()) - getPaySum()) * 100) / 100;
     hint = isPayEmpty() ? 'أدخل مبالغ طرق الدفع لتفعيل التسجيل' : (rem > 0 ? `المتبقي ${fmt(rem)} ج` : `زيادة ${fmt(-rem)} ج عن المطلوب`);
   }
+  else if (hasReady && isPayEmpty() && isZeroNetSession()) hint = 'صافي المندوب صفر — مفيش مبلغ يتدخّل، اضغط تسجيل';
   hintEl.textContent = hint; hintEl.classList.toggle('err', err);
 }
 
