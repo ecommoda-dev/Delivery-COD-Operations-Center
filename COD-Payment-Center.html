@@ -818,11 +818,18 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 /* ── ② ملخّص الملف: هوية الملف ← عدّادات الحالة (بتفلتر الجدول) ← الفلوس ── */
 .bx-sum { display:none; flex-direction:column; gap:6px; margin-bottom:8px; }
 .bx-sum.show { display:flex; }
-.bx-meta { display:flex; flex-wrap:wrap; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
-.bx-meta > div { flex:1 1 130px; min-width:0; padding:5px 14px; display:flex; flex-direction:column; gap:0; border-inline-start:1px solid var(--border); }
-.bx-meta > div:first-child { flex:2 1 200px; border-inline-start:none; }
-.bx-meta small { font-size:11px; font-weight:700; color:var(--text-mid); }
-.bx-meta b { font-family:var(--font-mono); font-size:14px; font-weight:800; direction:ltr; text-align:right; overflow-wrap:anywhere; }
+/* 🔴 v1.86.0: Cash-out ID وعدد الصفوف جوّه شريط الملف الأخضر (كارت «هوية الملف» اتشال، وتاريخ الدفع مابقاش بيتعرض) */
+.bx-drop-info { display:none; flex-wrap:wrap; gap:2px 18px; align-items:baseline; }
+.bx-drop.compact .bx-drop-info { display:flex; }
+.bx-drop-info > span { display:inline-flex; align-items:baseline; gap:6px; }
+.bx-drop-info > span + span { padding-inline-start:18px; border-inline-start:1px solid var(--green-border); }
+.bx-drop-info small { font-size:11.5px; font-weight:700; color:var(--text-mid); }
+.bx-drop-info b { font-family:var(--font-mono); font-size:13.5px; font-weight:800; direction:ltr; overflow-wrap:anywhere; }
+.bx-drop.compact .bx-drop-sub { display:none; }
+.bx-drop.compact.parsing .bx-drop-sub { display:block; }
+.bx-drop.compact.parsing .bx-drop-info { display:none; }
+.card.bx-flat { background:none; border:0; box-shadow:none; margin-bottom:8px; }
+.card.bx-flat .bx-card-body { padding:0; }
 /* شريط واحد: عدّادات الحالة (بتفلتر الجدول) + الفلوس في كارت واحد */
 .bx-one { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; padding:8px 14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
 .bx-stats { display:flex; flex-wrap:wrap; gap:6px; }
@@ -1195,7 +1202,7 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
     <div class="not-configured-banner" id="bxNotConfig">⚠ الأداة غير مضبوطة — افتح الإعدادات وأدخل بيانات الاتصال</div>
 
     <!-- ① مربع الرفع — نفس الصندوق بيتحوّل لشريط مضغوط بعد تحميل الملف (استبدال بالسحب أو الضغط) -->
-    <div class="card">
+    <div class="card" id="bxUpCard">
       <div class="card-body bx-card-body">
         <label class="bx-drop" id="bxDrop" for="bxFile" tabindex="0">
           <span class="bx-drop-ico" aria-hidden="true">
@@ -1205,6 +1212,7 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
           <span class="bx-drop-body">
             <span class="bx-drop-title" id="bxDropTitle">ارفع ملف «Cash Cycles» من بوسطة</span>
             <span class="bx-drop-sub" id="bxDropSub">اسحب الملف وأفلته هنا، أو <u>اختاره من جهازك</u></span>
+            <span class="bx-drop-info" id="bxDropInfo"></span>
             <span class="bx-drop-rules">
               <span class="bx-rule"><code>.xlsx</code></span>
               <span class="bx-rule">شيت واحد اسمه <code>Cash Cycles</code></span>
@@ -5929,7 +5937,6 @@ function bxRender() {
     const preN = rows.filter(r => r.pre).length;   // 📋 بيفلتر عمود «التسجيل المسبق» (data-btpre)
     const preStat = `<button type="button" class="bx-stat pre${preN ? '' : ' zero'}" data-btpre="1" aria-pressed="false" title="الصفوف المسجّلة مسبقًا في أداة التسجيل المسبق"><span><small>${BX_PRE_YES}</small><b>${preN}</b></span></button>`;
     $('bxSum').innerHTML =
-      `<div class="bx-meta"><div><small>Cash-out ID</small><b title="${esc(c.cashOutId)}">${esc(c.cashOutId)}</b></div><div><small>تاريخ الدفع</small><b>${bxDate(c.paidAt)}</b></div><div><small>صفوف الملف</small><b>${rows.length}</b></div></div>` +
       `<div class="bx-one"><div class="bx-stats">${stat('ok', 'ok', 'جاهز للتسجيل', reg.length)}${stat('pur', 'pur', 'مسجّل', done.length)}${stat('err', 'err', 'أخطاء', err.length)}${unk.length ? stat('warn', 'warn', 'لسه/تعذّر', unk.length) : ''}${preStat}</div>` +
       `<div class="bx-money"><div class="bx-m"><small>إجمالي COD+Online</small><b>${bxM(bxSum(rows, r => r.grossP || 0))}</b></div>` +
       `<div class="bx-m"><small>Net Value للملف</small><b>${bxM(netAll)}</b></div>` +
@@ -5940,10 +5947,13 @@ function bxRender() {
   // مربع الرفع: بعد تحميل الملف بيتحوّل لشريط مضغوط باسم الملف وحجمه وحالته
   const loaded = has || BX.phase === 'parsing';
   $('bxDrop').classList.toggle('compact', loaded);
+  $('bxDrop').classList.toggle('parsing', BX.phase === 'parsing');
+  $('bxUpCard').classList.toggle('bx-flat', loaded);
   $('bxDropTitle').textContent = loaded ? BX.fileName : BX_DROP_TITLE;
   $('bxDropSub').innerHTML = !loaded ? BX_DROP_SUB
     : BX.phase === 'parsing' ? 'بيقرا الملف…'
-    : `${esc(bxSize(BX.fileSize))} · ${rows.length.toLocaleString('en-US')} صف · اسحب ملف تاني هنا للاستبدال`;
+    : '';
+  $('bxDropInfo').innerHTML = has && BX.ctx ? `<span><small>Cash-out ID</small><b title="${esc(BX.ctx.cashOutId)}">${esc(BX.ctx.cashOutId)}</b></span><span><small>صفوف الملف</small><b>${rows.length}</b></span>` : '';
   $('bxDropCta').innerHTML = loaded ? BX_ICO_SWAP + 'استبدال الملف' : 'اختيار ملف';
   const checking = BX.phase === 'checking' || BX.phase === 'parsing';
   const run = $('bxRun');

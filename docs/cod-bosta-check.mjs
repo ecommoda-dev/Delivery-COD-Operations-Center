@@ -384,7 +384,8 @@ console.log('\n══ ⑧ القسم الموحّد: جدول الصفوف (html
   is(await pg.evaluate(() => Object.values(document.querySelectorAll('#btCg col')).every(c => parseFloat(c.style.width) >= 64)), 'دبل كليك = ضبط تلقائي في الحدود');
   // — مربع الرفع بعد التحميل
   is(await pg.evaluate(() => document.getElementById('bxDrop').classList.contains('compact')), 'مربع الرفع اتحوّل لشريط مضغوط بعد التحميل');
-  is(await txt(pg, '#bxDropTitle') === 'bx-big.xlsx' && /60 صف/.test(await txt(pg, '#bxDropSub')), 'الشريط بيعرض اسم الملف وعدد الصفوف');
+  is(await txt(pg, '#bxDropTitle') === 'bx-big.xlsx' && /60/.test(await txt(pg, '#bxDropInfo')) && /Cash-out ID/.test(await txt(pg, '#bxDropInfo')), 'الشريط بيعرض اسم الملف وCash-out ID وعدد الصفوف');
+  is(await pg.evaluate(() => !document.querySelector('#bxSum .bx-meta') && document.getElementById('bxUpCard').classList.contains('bx-flat') && !/تاريخ الدفع/.test(document.getElementById('bxDrop').textContent)), 'مفيش كارت هوية ولا تاريخ دفع، والكارت الأبيض اتشال بعد التحميل');
   is(await pg.evaluate(() => ![...document.querySelectorAll('#panelBosta input,#panelBosta textarea')].some(i => i.hasAttribute('placeholder')) && !document.querySelector('.bt-pop [placeholder]')), 'مفيش placeholder في التاب');
   is(await pg.evaluate(() => !document.querySelector('#bxSum [style*="#"]') && !/#[0-9a-fA-F]{3,6}\b/.test(document.querySelector('style:last-of-type')?.textContent.split('§BOSTA-CSS')[1] || '')), 'صفر hex حرفي في CSS التاب');
   is(await pg.evaluate(() => !document.getElementById('bxNew')), 'زرار «ملف تاني» اتشال');
