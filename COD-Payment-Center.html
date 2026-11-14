@@ -997,7 +997,7 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 .bx-badge.prereg { background:var(--purple-light); color:var(--purple); border:1px solid var(--purple-border); }
 .bx-prenone { font-size:11px; font-weight:600; color:var(--text-secondary); white-space:nowrap; }
 .bx-why { font-size:12px; line-height:1.6; }
-/* §BX-S1 — «فحص S1 من بوسطة» (v1.84.0): زرار على صف S2 الممنوع + نافذة اختيار الشحنة */
+/* §BX-S1 — «فحص شحنات من بوسطة» (v1.84.0 · v1.90.0: أي شحنة + اختيار متعدد): زرار على الصف الممنوع + نافذة اختيار الشحنات */
 .bx-s1btn { margin-top:6px; display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border:2px solid var(--accent-border); background:var(--accent-light); color:var(--accent-dark); border-radius:var(--radius-sm); font-family:inherit; font-size:12px; font-weight:800; cursor:pointer; }
 .bx-s1btn:hover { background:var(--accent-hover); }
 .s1m-top { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-bottom:10px; }
@@ -1011,6 +1011,8 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 .s1m-cand.ok { cursor:pointer; border-color:var(--green-border); }
 .s1m-cand.ok:hover { background:var(--green-light); }
 .s1m-cand.sel { background:var(--green-light); box-shadow:0 0 0 3px var(--green-border); }
+.s1m-inf { margin:8px 0 0; padding:0 18px 0 0; font-size:12px; font-weight:600; line-height:1.7; color:var(--text-secondary); }
+.s1m-net.bx-neg { color:var(--red-dark); }
 #bxS1Go { transition:background .15s, opacity .15s; }
 #bxS1Go:disabled { background:var(--border); color:var(--text-muted); cursor:not-allowed; opacity:.75; }
 #bxS1Go:not(:disabled) { background:var(--green); color:var(--on-accent); }
@@ -1461,7 +1463,20 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.89.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.90.0</span>
+          <span class="cl-ver-date">14-11-2026 · «فحص شحنات من بوسطة»: تسجيل أي شحنة (Exchange · Customer Return Pickup) مع S1 (Worker 3.16.0)</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>أوردر له أكتر من شحنة في بوسطة (#46008):</strong> الأوردر كان له ٣ شحنات (Send + Exchange + Customer Return Pickup كل واحدة في Cash-out) ومفيش ولا واحدة دخلت الخزنة، والنافذة كانت بتمنع أي شحنة مش S1 والملف بيمنع الصف لأن إجماليه ≠ مستحق شوبيفاي.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>اختيار متعدد:</strong> النافذة بقت بتعرض كل الشحنات (S1 / S2) وتقدر تختار أكتر من شحنة (أو «تحديد كل القابل للتسجيل») وتأكّد مرة واحدة — بتتسجّل بالترتيب: <b>S1 الأول</b> ثم الباقي، ومجموع الـ Net ظاهر قبل التأكيد.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>استرداد بلا مقابل على شوبيفاي (قرار أحمد):</strong> لو شوبيفاي مفيهاش استرداد مقابل الشحنة (زي −300 في #46008) بتظهر علامة ⚠️ وبتطلب تأكيدك الصريح، وبيتسجّل في السجل بس (الـ Net للخزنة) <b>من غير أي createRefund</b>.</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span>التسجيل كله في D1 بس — صفر حركة على شوبيفاي. ملفات الـ Cash-out بتاعتهم لو اترفعت بعد كده بتبان «مسجّل سابقًا» وبتتطرح من عدّادات الملف. <code>codPayment.min</code> بقى <code>3.16.0</code> — انشر الـ Worker قبل الصفحة. ما اتجرّبش على بوسطة/شوبيفاي/D1 حقيقيين.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.89.0</span>
           <span class="cl-ver-date">14-11-2026 · الواجهة بقت في المركز بس — ريبو الأداة Worker وبس</span>
         </div>
         <ul class="cl-items">
@@ -2011,11 +2026,11 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 <!-- §BX-S1 — فحص S1 من بوسطة: كل شحنات الأوردر بأدلتها، والموظف هو اللي بيختار -->
 <div class="eco-overlay" id="bxS1Overlay" onclick="if(event.target===this)bxS1Close()">
   <div class="eco-modal" style="max-width:880px;">
-    <div class="eco-modal-hdr"><span id="bxS1Title">🔎 فحص S1 من بوسطة</span><button class="modal-close-x" onclick="bxS1Close()">✕</button></div>
+    <div class="eco-modal-hdr"><span id="bxS1Title">🔎 فحص شحنات الأوردر من بوسطة</span><button class="modal-close-x" onclick="bxS1Close()">✕</button></div>
     <div class="eco-modal-body" id="bxS1Body"></div>
     <div class="eco-modal-ftr">
       <button class="btn-modal-cancel" onclick="bxS1Close()">إغلاق</button>
-      <button class="btn-modal-save" id="bxS1Go" disabled>✅ سجّل S1 المختار</button>
+      <button class="btn-modal-save" id="bxS1Go" disabled>✅ سجّل المختار</button>
     </div>
   </div>
 </div>
@@ -6107,7 +6122,7 @@ function bxRowHtml(r, i) {
     <td class="col-ltr">${net}</td>
     <td class="col-center">${bxPreLabel(r) === null ? '—' : r.pre ? `<span class="bx-badge prereg" title="فلوسه اتسجّلت على شوبيفاي في أداة التسجيل المسبق — لا يوجد تحصيل جديد عليه (PRE_REG_KV ما اتلمسش)">${BX_PRE_YES}</span>` : `<span class="bx-prenone">${BX_PRE_NO}</span>`}</td>
     <td class="col-center"><span class="bx-badge ${cls}">${lbl}</span></td>
-    <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}${(r.status === 'error' && r.raw.orderRef) ? `<br><button type="button" class="bx-s1btn" data-s1="${i}">🔎 فحص S1 من بوسطة</button>` : ''}</td>
+    <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}${(r.status === 'error' && r.raw.orderRef) ? `<br><button type="button" class="bx-s1btn" data-s1="${i}">🔎 فحص شحنات من بوسطة</button>` : ''}</td>
   </tr>`;
 }
 function bxRender() {
@@ -6872,15 +6887,17 @@ async function bxExportResult() {
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
-// ══ §BX-S1-JS — فحص S1 من بوسطة مباشرة (v1.84.0 · Worker ≥ 3.13.0) ══════════════════════════
-// الفكرة: صف S2 ممنوع لأن S1 بتاعه ما اتسجّلش في الخزنة (مثال #49395: S1 اتحوّل في cash-out قديم عمره ما اتعمله رفع). بدل رفع الملف القديم
-// بنقرا شحنات الأوردر من بوسطة (`bostaS1Check` — قراءة بس)، والموظف بيختار الشحنة وبيأكّد (`bostaPayS1`) — تسجيل في D1 بس، صفر حركة على شوبيفاي.
-const BX_S1 = { i: -1, data: null, sel: null, busy: false, token: 0, err: '' };
+// ══ §BX-S1-JS — فحص شحنات الأوردر من بوسطة مباشرة (v1.84.0 · v1.90.0: أي شحنة · Worker ≥ 3.16.0) ══════════════════════════
+// الفكرة: صف ممنوع لأن شحنات الأوردر ما اتسجّلتش في الخزنة (مثال #49395: S1 اتحوّل في cash-out قديم عمره ما اتعمله رفع · #46008: ٣ شحنات
+// Send + Exchange + Customer Return Pickup كل واحدة في cash-out). بدل رفع الملفات القديمة بنقرا شحنات الأوردر من بوسطة (`bostaS1Check` — قراءة بس)،
+// والموظف بيختار شحنة أو أكتر وبيأكّد (`bostaPayS1`) — تسجيل في D1 بس، صفر حركة على شوبيفاي. التسجيل بالترتيب: S1 الأول ثم الباقي واحدة واحدة.
+const BX_S1 = { i: -1, data: null, sel: new Set(), busy: false, token: 0, err: '' };
 const BX_S1_COLL = { cashed_out: 'اتحوّل في Cash-out', awaiting_cashout: 'اتحصّل ومستني التحويل', no_cycle: 'مفيش Cash Cycle', unknown: 'غير معروف' };
 const bxS1Money = v => v === null || v === undefined ? '—' : bxM(bxP(v));
+const bxRefKey = v => String(v || '').replace(/^#/, '');
 async function bxS1Open(i) {
   const r = BX.rows[i]; if (!r || BX.busy || BX_S1.busy) return;
-  Object.assign(BX_S1, { i, data: null, sel: null, err: '' });
+  Object.assign(BX_S1, { i, data: null, sel: new Set(), err: '' });
   $('bxS1Overlay').classList.add('open');
   await bxS1Load();
 }
@@ -6888,99 +6905,148 @@ function bxS1Close() { if (BX_S1.busy) return; $('bxS1Overlay').classList.remove
 async function bxS1Load() {
   const r = BX.rows[BX_S1.i], tok = ++BX_S1.token;
   const ref = String(r.raw.orderRef || '');
-  $('bxS1Title').textContent = `🔎 فحص S1 من بوسطة — ${ref.startsWith('#') ? ref : '#' + ref}`;
+  $('bxS1Title').textContent = `🔎 فحص شحنات الأوردر من بوسطة — ${ref.startsWith('#') ? ref : '#' + ref}`;
   $('bxS1Body').innerHTML = '<div class="s1m-note">⏳ جاري قراءة شحنات الأوردر من بوسطة وفحصها على شوبيفاي…</div>';
   $('bxS1Go').disabled = true;
+  BX_S1.sel = new Set();
   try {
     const d = await apiPostLegacy('bostaS1Check', { orderRef: ref });
     if (tok !== BX_S1.token) return;
     if (!d || !d.success) { BX_S1.err = (d && d.error) || 'رد غير متوقع'; BX_S1.data = null; }
-    else { BX_S1.data = d; BX_S1.err = ''; const ok = d.candidates.filter(c => c.eligible); BX_S1.sel = null; }
+    else { BX_S1.data = d; BX_S1.err = ''; }
   } catch (e) { if (tok !== BX_S1.token) return; BX_S1.data = null; BX_S1.err = e.message || 'خطأ في الاتصال'; }
   bxS1Render();
 }
+// المختار بالترتيب اللي هيتسجّل بيه: S1 الأول ثم الباقي بتاريخ الـ Cash-out
+function bxS1Selected() {
+  const d = BX_S1.data; if (!d) return [];
+  return d.candidates.filter(c => c.eligible && BX_S1.sel.has(c.trackingNumber))
+    .sort((a, b) => (a.leg === 'S1' ? 0 : 1) - (b.leg === 'S1' ? 0 : 1) || String(a.cashOutDate || '').localeCompare(String(b.cashOutDate || '')));
+}
+// بوابة S1: شحنة S2 ما تتسجّلش إلا بعد S1 (متسجّل بالفعل أو مختار معاها)
+function bxS1Problem(list) {
+  const d = BX_S1.data;
+  if (d && !d.hasS1 && list.some(c => c.leg === 'S2') && !list.some(c => c.leg === 'S1')) return 'S1 بتاع الأوردر لسه ما اتسجّلش — اختار شحنة S1 معاها (S1 بتتسجّل الأول)';
+  return '';
+}
 function bxS1Render() {
   const d = BX_S1.data, body = $('bxS1Body');
-  if (!d) { body.innerHTML = `<div class="s1m-note bad">⛔ ${esc(BX_S1.err || 'تعذّر الفحص')}</div><div class="s1m-note">الفحص قراءة بس ومفيش حاجة اتغيّرت. لو الرسالة عن <b>BOSTA_API_KEY</b> أو <b>3.13.0</b> فالـ Worker محتاج Secret/نشر.</div>`; $('bxS1Go').disabled = true; return; }
+  if (!d) { body.innerHTML = `<div class="s1m-note bad">⛔ ${esc(BX_S1.err || 'تعذّر الفحص')}</div><div class="s1m-note">الفحص قراءة بس ومفيش حاجة اتغيّرت. لو الرسالة عن <b>BOSTA_API_KEY</b> أو <b>3.16.0</b> فالـ Worker محتاج Secret/نشر.</div>`; $('bxS1Go').disabled = true; return; }
+  const elig = d.candidates.filter(c => c.eligible);
+  const sel = bxS1Selected(), problem = bxS1Problem(sel);
   const note = [];
-  if (d.hasS1) note.push(`<div class="s1m-note ok">✅ S1 بتاع الأوردر ده متسجّل بالفعل في السجل — اقفل النافذة واضغط «إعادة فحص الملف».</div>`);
-  else if (!d.candidates.some(c => c.eligible)) note.push(`<div class="s1m-note bad">⛔ مفيش شحنة قابلة للتسجيل كـ S1 — راجع الأسباب تحت كل شحنة. ولو S1 فعلًا في ملف Cash-out تاني، ارفع الملف ده بدل التسجيل من بوسطة.</div>`);
-  else note.push(`<div class="s1m-note">اختار الشحنة اللي هي S1 الصح للأوردر ده. التسجيل <b>في السجل بس</b> (الـ Net للخزنة) — <b>صفر حركة على شوبيفاي</b>.</div>`);
+  if (d.hasS1) note.push(`<div class="s1m-note ok">✅ S1 بتاع الأوردر ده متسجّل بالفعل في السجل.</div>`);
+  if (!elig.length) note.push(`<div class="s1m-note ${d.candidates.some(c => c.registered) ? 'ok' : 'bad'}">${d.candidates.some(c => c.registered)
+    ? '✅ مفيش شحنة تانية قابلة للتسجيل — اقفل النافذة واضغط «إعادة فحص الملف».'
+    : '⛔ مفيش شحنة قابلة للتسجيل — راجع الأسباب تحت كل شحنة. ولو الشحنة فعلًا في ملف Cash-out تاني، ارفع الملف ده بدل التسجيل من بوسطة.'}</div>`);
+  else note.push(`<div class="s1m-note">اختار الشحنات اللي عايز تسجّلها (S1 وباقي الشحنات: Exchange · Customer Return Pickup). التسجيل <b>في السجل بس</b> (الـ Net للخزنة) — <b>صفر حركة على شوبيفاي</b> — وبالترتيب: <b>S1 الأول</b>.
+    ${elig.length > 1 ? `<button type="button" class="bx-s1btn" data-s1all style="margin-inline-start:8px">${sel.length === elig.length ? 'إلغاء تحديد الكل' : `☑ تحديد كل القابل للتسجيل (${elig.length})`}</button>` : ''}</div>`);
+  if (sel.length) {
+    const sumP = sel.reduce((t, c) => t + bxP(c.net), 0);
+    note.push(`<div class="s1m-note ${problem ? 'bad' : 'ok'}">المختار: <b>${sel.length}</b> شحنة · مجموع الـ Net <b class="${sumP < 0 ? 'bx-neg' : ''}" style="font-family:var(--font-mono);direction:ltr;display:inline-block">${bxM(sumP)}</b>${problem ? ' — ⛔ ' + esc(problem) : ''}</div>`);
+  }
   const top = `<div class="s1m-top">
     <div><small>الأوردر</small><b>${orderLink(d.orderName, d.orderId)}</b></div>
     <div><small>مستحق شوبيفاي دلوقتي</small><b>${bxS1Money(d.shopifyOutstanding)}</b></div>
     <div><small>معاملات SALE ناجحة على شوبيفاي</small><b>${bxS1Money(d.shopifySaleCaptured)}</b></div>
+    <div><small>استرداد على شوبيفاي</small><b>${bxS1Money(d.shopifyRefunded)}</b></div>
     <div><small>تسجيل مسبق (KV)</small><b>${d.preRegistered ? '📋 موجود' : 'لا'}</b></div></div>`;
   const cards = d.candidates.map(c => {
-    const sel = BX_S1.sel === c.trackingNumber;
-    const cls = `s1m-cand ${c.eligible && !d.hasS1 ? 'ok' : 'bad'}${sel ? ' sel' : ''}`;
-    return `<div class="${cls}" data-s1tn="${esc(c.trackingNumber)}" ${c.eligible && !d.hasS1 ? 'role="button" tabindex="0"' : ''}>
-      <div class="s1m-h"><span class="tn">${esc(c.trackingNumber)}</span><span class="bx-slot">${esc(c.typeLabel)}</span>${c.oldType ? `<small>كانت ${esc(c.oldType)}</small>` : ''}
+    const on = BX_S1.sel.has(c.trackingNumber);
+    const neg = c.net !== null && bxP(c.net) < 0;
+    const cls = `s1m-cand ${c.eligible ? 'ok' : 'bad'}${on && c.eligible ? ' sel' : ''}`;
+    const badge = c.eligible ? (on ? '✔ مختارة' : '✅ معاملة قابلة للتسجيل') : c.registered ? '🟣 اتسجّلت قبل كده' : '⛔ معاملة غير قابلة للتسجيل';
+    return `<div class="${cls}" data-s1tn="${esc(c.trackingNumber)}" ${c.eligible ? 'role="button" tabindex="0"' : ''}>
+      <div class="s1m-h"><span class="tn">${esc(c.trackingNumber)}</span><span class="bx-slot">${esc(c.leg || 'S1')}</span><span class="bx-slot">${esc(c.typeLabel)}</span>${c.oldType ? `<small>كانت ${esc(c.oldType)}</small>` : ''}
         <span>${esc(c.stateLabel)} (${c.stateCode ?? '—'})</span>
-        <span class="bx-badge ${c.eligible ? 'ready' : 'error'}">${c.eligible ? (sel ? '✔ مختارة' : '✅ معاملة قابلة للتسجيل') : '⛔ معاملة غير قابلة للتسجيل'}</span></div>
+        <span class="bx-badge ${c.eligible ? 'ready' : c.registered ? 'done' : 'error'}">${badge}</span></div>
       <div class="s1m-grid">
-        <div><small>الإجمالي (COD+Online)</small><b>${bxS1Money(c.gross)}</b></div>
-        <div><small>الصافي — اللي الخزنة بتتوقعه</small><b class="s1m-net">${bxS1Money(c.net)}</b></div>
+        <div><small>الإجمالي (COD+Online)</small><b class="${c.gross !== null && bxP(c.gross) < 0 ? 'bx-neg' : ''}">${bxS1Money(c.gross)}</b></div>
+        <div><small>الصافي — اللي الخزنة بتتوقعه</small><b class="s1m-net${neg ? ' bx-neg' : ''}">${bxS1Money(c.net)}</b></div>
         <div><small>رسوم بوسطة</small><b>${bxS1Money(c.fees)}</b></div>
         <div><small>Cash-out</small><b>${esc(c.cashOutId || '—')}</b>${c.cashOutDate ? ` <small>${esc(c.cashOutDate)}</small>` : ''}</div>
         <div><small>حالة التحصيل</small><b style="font-family:inherit">${esc(BX_S1_COLL[c.collection] || c.collection)}</b></div>
         ${c.onlineAmount ? `<div><small>دفع أونلاين</small><b>${bxS1Money(c.onlineAmount)}</b> <small>${esc(c.onlineStatus || '')}${c.onlineProvider ? ' · ' + esc(c.onlineProvider) : ''}</small></div>` : ''}
       </div>
+      ${c.eligible && c.afterS1 ? `<ul class="s1m-inf"><li>⏳ بتتسجّل بعد S1 (لازم S1 يتسجّل الأول — اختارهم مع بعض)</li></ul>` : ''}
+      ${c.eligible && c.refundMissing ? `<div class="s1m-note" style="margin:8px 0 0">⚠️ شوبيفاي <b>مفيهاش استرداد مقابل</b> الشحنة دي — هتتسجّل في السجل بس (الخزنة تاخد الـ Net) <b>من غير أي استرداد على شوبيفاي</b>، وهتطلب تأكيدك الصريح.</div>` : ''}
+      ${(c.notes && c.notes.length) ? `<ul class="s1m-inf">${c.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
       ${c.blockers.length ? `<ul class="s1m-why">${c.blockers.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}</div>`;
   }).join('') || '<div class="s1m-note bad">بوسطة ما رجّعتش أي شحنة بالمرجع ده.</div>';
   body.innerHTML = note.join('') + top + cards + (BX_S1.err ? `<div class="s1m-note bad">⛔ ${esc(BX_S1.err)}</div>` : '');
-  const c = d.candidates.find(x => x.trackingNumber === BX_S1.sel);
-  $('bxS1Go').disabled = !(c && c.eligible) || d.hasS1 || BX_S1.busy;
+  const go = $('bxS1Go');
+  go.textContent = sel.length ? `✅ سجّل المختار (${sel.length})` : '✅ سجّل المختار';
+  go.disabled = !sel.length || !!problem || BX_S1.busy;
 }
 function bxS1Pick(tn) {
-  const d = BX_S1.data; if (!d || d.hasS1 || BX_S1.busy) return;
+  const d = BX_S1.data; if (!d || BX_S1.busy) return;
   const c = d.candidates.find(x => x.trackingNumber === tn); if (!c || !c.eligible) return;
-  BX_S1.sel = BX_S1.sel === tn ? null : tn; bxS1Render();
+  if (BX_S1.sel.has(tn)) BX_S1.sel.delete(tn); else BX_S1.sel.add(tn);
+  bxS1Render();
+}
+function bxS1PickAll() {
+  const d = BX_S1.data; if (!d || BX_S1.busy) return;
+  const elig = d.candidates.filter(c => c.eligible);
+  if (elig.every(c => BX_S1.sel.has(c.trackingNumber))) BX_S1.sel = new Set(); else BX_S1.sel = new Set(elig.map(c => c.trackingNumber));
+  bxS1Render();
 }
 function bxS1Ask() {
-  const d = BX_S1.data, c = d && d.candidates.find(x => x.trackingNumber === BX_S1.sel);
-  if (!c || !c.eligible || BX_S1.busy) return;
+  const d = BX_S1.data, list = bxS1Selected();
+  if (!d || !list.length || BX_S1.busy || bxS1Problem(list)) return;
   const row = (k, v, cls = '') => `<div class="confirm-detail-row"><span class="confirm-detail-label">${k}</span><span class="confirm-detail-val ${cls}">${v}</span></div>`;
-  const body = `${row('الأوردر', esc(d.orderName))}${row('الشحنة (S1)', `${esc(c.trackingNumber)} · ${esc(c.typeLabel)}${c.oldType ? ' (كانت ' + esc(c.oldType) + ')' : ''}`)}
-    ${row('Cash-out', `${esc(c.cashOutId)} · ${esc(c.cashOutDate || '')}`)}${row('الإجمالي', bxS1Money(c.gross) + ' ج')}
+  const sumP = list.reduce((t, c) => t + bxP(c.net), 0), missing = list.filter(c => c.refundMissing);
+  const legs = list.map((c, k) => row(`${k + 1}) ${esc(c.leg)} · ${esc(c.typeLabel)}`, `${esc(c.trackingNumber)} · ${esc(c.cashOutId)} (${esc(c.cashOutDate || '')}) · إجمالي ${bxS1Money(c.gross)} · <b class="${bxP(c.net) < 0 ? 'bx-neg' : ''}">Net ${bxS1Money(c.net)}</b>`)).join('');
+  const body = `${row('الأوردر', esc(d.orderName))}${legs}
     <div style="background:var(--green-light);border:2px solid var(--green-border);border-radius:var(--radius-sm);padding:8px 14px;margin:6px 0;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:13px;font-weight:700">Net Value (اللي هتتوقعه الخزنة)</span><span style="font-family:var(--font-mono);font-size:18px;font-weight:800;direction:ltr">${bxS1Money(c.net)}</span></div>
+      <span style="font-size:13px;font-weight:700">مجموع Net Value (اللي هتتوقعه الخزنة)</span><span style="font-family:var(--font-mono);font-size:18px;font-weight:800;direction:ltr">${bxM(sumP)}</span></div>
+    ${missing.length ? `<div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span><div><div class="confirm-warning-title">استرداد بلا مقابل على شوبيفاي</div>
+      <div class="confirm-warning-text">${missing.map(c => esc(c.typeLabel) + ' ' + esc(c.trackingNumber) + ' (Net ' + bxS1Money(c.net) + ')').join(' · ')} — شوبيفاي مفيهاش استرداد مقابل. هيتسجّل في السجل بس والـ Net هيدخل الخزنة، <b>ومفيش createRefund على شوبيفاي</b> (قرار أحمد). الأوردر لسه محتاج مراجعة خدمة العملاء.</div></div></div>` : ''}
     <div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span><div><div class="confirm-warning-title">تسجيل في السجل فقط — لا يمكن التراجع</div>
-      <div class="confirm-warning-text">مفيش أي حركة على شوبيفاي (فلوس S1 متسجّلة عليه قبل كده${d.preRegistered ? '، ومفتاح التسجيل المسبق هيتمسح لو مطابق' : ''}). الـ Net هيظهر في الخزنة كجلسة مستقلة. راجع إن ده فعلًا S1 الصح.</div></div></div>`;
-  openConfirm('✅ تأكيد تسجيل S1 من بوسطة', body, 'تأكيد التسجيل', 'green-btn', bxS1Pay);
+      <div class="confirm-warning-text">مفيش أي حركة على شوبيفاي (فلوس الشحنات المحصّلة متسجّلة عليه قبل كده${d.preRegistered ? '، ومفتاح التسجيل المسبق هيتمسح لو مطابق لـ S1' : ''}). كل شحنة هتظهر في الخزنة كجلسة مستقلة، وبالترتيب: S1 الأول. راجع إن دي فعلًا شحنات الأوردر الصح.</div></div></div>`;
+  openConfirm(`✅ تأكيد تسجيل ${list.length > 1 ? list.length + ' شحنات' : 'شحنة'} من بوسطة`, body, 'تأكيد التسجيل', 'green-btn', bxS1Pay);
 }
 async function bxS1Pay() {
-  const d = BX_S1.data, c = d && d.candidates.find(x => x.trackingNumber === BX_S1.sel), r = BX.rows[BX_S1.i];
-  if (!c || !r || BX_S1.busy) return;
+  const d = BX_S1.data, r = BX.rows[BX_S1.i], list = bxS1Selected();
+  if (!d || !r || !list.length || BX_S1.busy || bxS1Problem(list)) return;
   BX_S1.busy = true; window.__bxBusy = true; $('bxS1Go').disabled = true; BX_S1.err = '';
-  const i = BX_S1.i, emp = currentEmployee ? currentEmployee.username : null;
-  let res;
-  try { res = await apiPostLegacy('bostaPayS1', { orderRef: r.raw.orderRef, trackingNumber: c.trackingNumber, employee: emp, s2Tracking: r.slot === 'S2' ? r.raw.trackingNumber : undefined, expected: { gross: c.gross, net: c.net, cashOutId: c.cashOutId } }); }
-  catch (e) {
-    // 🔴 انقطاع/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — الكتابة ممكن تكون تمّت. الفحص التاني بيحسم (بيقول «اتسجّلت قبل كده»).
-    BX_S1.busy = false; window.__bxBusy = false;
-    BX_S1.err = 'ما اتأكدناش إن التسجيل تم (انقطع الاتصال) — الفحص هيتعاد: لو اتسجّل هتلاقي الشحنة «اتسجّلت قبل كده»، ومتسجّلش تاني قبل ما تتأكد.';
-    await bxS1Load(); BX_S1.err = ''; return;
+  const emp = currentEmployee ? currentEmployee.username : null;
+  const done = []; let fail = null, uncertain = false;
+  for (let k = 0; k < list.length; k++) {
+    const c = list[k];
+    $('bxS1Go').textContent = `⏳ جاري التسجيل ${k + 1} من ${list.length}…`;
+    let res;
+    try {
+      res = await apiPostLegacy('bostaPayS1', { orderRef: r.raw.orderRef, trackingNumber: c.trackingNumber, employee: emp,
+        s2Tracking: (c.leg === 'S1' && r.slot === 'S2') ? r.raw.trackingNumber : undefined,
+        ackRefundMissing: c.refundMissing ? true : undefined, expected: { gross: c.gross, net: c.net, cashOutId: c.cashOutId } });
+    } catch (e) {
+      // 🔴 انقطاع/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — الكتابة ممكن تكون تمّت. الدفعة بتقف والفحص التاني بيحسم (بيقول «اتسجّلت قبل كده»).
+      uncertain = true; fail = { error: `ما اتأكدناش إن تسجيل ${c.typeLabel} ${c.trackingNumber} تم (انقطع الاتصال) — الفحص هيتعاد: لو اتسجّلت هتلاقيها «اتسجّلت قبل كده»، ومتسجّلش تاني قبل ما تتأكد.` }; break;
+    }
+    if (res && res.success) { done.push({ c, res }); continue; }
+    fail = res || { error: 'فشل التسجيل' }; break;
   }
   BX_S1.busy = false; window.__bxBusy = false;
-  if (res && res.success) {
-    playBeep(res.warning ? 'error' : 'success');
-    showToast(res.warning ? `⚠ S1 اتسجّل (Net ${bxS1Money(res.net)}) — ${res.warning}` : `✅ S1 اتسجّل (Net ${bxS1Money(res.net)}) من بوسطة — الخزنة هتشوفه`, res.warning ? 'error' : 'success', res.warning ? 9000 : 4000);
+  if (done.length) logLoaded = false;
+  const netP = done.reduce((t, x) => t + bxP(x.c.net), 0), warn = done.map(x => x.res.warning).filter(Boolean)[0];
+  const same = () => BX.rows.filter(x => bxRefKey(x.raw.orderRef) === bxRefKey(r.raw.orderRef));
+  if (!fail) {
+    playBeep(warn ? 'error' : 'success');
+    showToast(`${warn ? '⚠' : '✅'} اتسجّل ${done.length === 1 ? 'شحنة' : done.length + ' شحنات'} (مجموع Net ${bxM(netP)}) من بوسطة — الخزنة هتشوفها${warn ? ' — ' + warn : ''}`, warn ? 'error' : 'success', warn ? 10000 : 4500);
     $('bxS1Overlay').classList.remove('open');
-    logLoaded = false;
-    if (BX.rows[i] && !BX.busy) { BX.seq++; await bxValidate([BX.rows[i]]); }   // S2 بتاعه بيعدّي من البوابة بالمسار العادي
+    if (!BX.busy && same().length) { BX.seq++; await bxValidate(same()); }   // صفوف الأوردر في الملف بتتفحص تاني: اللي اتسجّل بيبان «مسجّل سابقًا»، والـ S2 بتعدّي من البوابة
     return;
   }
   playBeep('error');
-  const msg = (res && res.error) || 'فشل التسجيل';
-  if (res && res.stale) { await bxS1Load(); BX_S1.err = msg; bxS1Render(); return; }
-  BX_S1.err = msg; bxS1Render();
+  const msg = (fail.error || 'فشل التسجيل') + (done.length ? ` — اتسجّل قبل ما تقف: ${done.map(x => x.c.typeLabel + ' ' + x.c.trackingNumber).join(' · ')}` : '');
+  await bxS1Load(); BX_S1.err = msg; bxS1Render();   // الفحص بيتعاد عشان الشاشة تعرض اللي اتسجّل فعلًا
+  if (done.length && !BX.busy && same().length) { BX.seq++; await bxValidate(same()); }
 }
 
 // ── ربط الأحداث ──────────────────────────────────────────────
 (function bxInit() {
   $('bxBody').addEventListener('click', e => { const b = e.target.closest('[data-s1]'); if (b) bxS1Open(+b.dataset.s1); });
-  $('bxS1Body').addEventListener('click', e => { const c = e.target.closest('[data-s1tn]'); if (c) bxS1Pick(c.dataset.s1tn); });
+  $('bxS1Body').addEventListener('click', e => { if (e.target.closest('[data-s1all]')) { bxS1PickAll(); return; } const c = e.target.closest('[data-s1tn]'); if (c) bxS1Pick(c.dataset.s1tn); });
   $('bxS1Body').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-s1tn]')) { e.preventDefault(); bxS1Pick(e.target.dataset.s1tn); } });
   $('bxS1Go').addEventListener('click', bxS1Ask);
   const drop = $('bxDrop'), inp = $('bxFile');
