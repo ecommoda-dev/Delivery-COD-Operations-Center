@@ -1465,7 +1465,18 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.87.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.88.0</span>
+          <span class="cl-ver-date">14-11-2026 · جلسة الاسترداد بقت لازم طرق دفع تساوي الصافي</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>الاسترداد من غير طرق دفع:</strong> التحقق من طرق الدفع كان بيتفعّل لو في أوردر تحصيل بس، فجلسة استرداد بحتة كانت بتتسجّل بطرق دفع فاضية أو بمبلغ غلط (مثال #65609: صافي −275 وطرق الدفع صفر ← «فرق طرق الدفع عن الصافي» = 275 في شيت «الإجمالي»).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>زرار «تنفيذ الاسترداد» بقى مقفول لحد ما مجموع النقدي + انستاباي + محفظة يساوي صافي الجلسة (بعد أجر المرتجع والشحن الإضافي)، والتحقق بيتكرر في نافذة التأكيد وقبل أول نداء. الجلسات المختلطة والتحصيل البحت <b>ما اتغيّروش</b>. صفحة الهب بس — الواجهة المستقلة ما اتلمستش، ولا الـ Worker.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.87.0</span>
           <span class="cl-ver-date">14-11-2026 · الشحن المجاني على الاسترجاع/الاستبدال — أجر المندوب 75 بعد تأكيد الموظف (Worker 3.15.0)</span>
         </div>
         <ul class="cl-items">
@@ -3300,7 +3311,9 @@ function updatePayBtn() {
   const courierErr = getReadyCourierError();
   const hasStatusErr = orders.some(o => o.statusError && (o.status==='ready'||o.status==='refund')) || extraEntries.some(e => e.statusError && e.status==='ok') || getExtraNotOk().length > 0;
   const btn = $('payBtn');
-  const needsPayValid = hasReady;
+  // 🔴 v1.88.0 — الاسترداد البحت كمان لازم طرق دفع تساوي الصافي (كان `hasReady` بس: #65609 اتسجّل بلا طرق دفع و#53764 بفرق 75)
+  //    صافي جلسة الاسترداد البحتة دايمًا < 0 (`refundAmount > 0`)، فمفيش جلسة استرداد صفرية تتقفل بالغلط.
+  const needsPayValid = hasReady || hasRefund;
   const fsErr = getFreeShipError();   // شحن مجاني لسه ما اتأكدش (أو بلا مندوب) — Worker ≥ 3.14.0
   btn.disabled = (!hasReady && !hasRefund) || !!courierErr || !!fsErr || (needsPayValid && !isPayValid()) || isProcessing || hasStatusErr || (typeof entryFails !== 'undefined' && entryFails.length > 0);
   // §PAY-BAR — الزرار ثلاث خانات (المندوب · صافي التحصيل · الإجراء)؛ النص بيتكتب في خانة الإجراء بس
@@ -3319,7 +3332,7 @@ function updatePayBtn() {
   let hint = '', err = false;
   if (courierErr) { hint = courierErr; err = true; }
   else if (fsErr) { hint = fsErr; err = true; }
-  else if (hasReady && !isPayValid()) {
+  else if (needsPayValid && !isPayValid()) {
     const rem = Math.round((Math.abs(getCourierCollectNet()) - getPaySum()) * 100) / 100;
     hint = isPayEmpty() ? 'أدخل مبالغ طرق الدفع لتفعيل التسجيل' : (rem > 0 ? `المتبقي ${fmt(rem)} ج` : `زيادة ${fmt(-rem)} ج عن المطلوب`);
   }
@@ -3375,7 +3388,7 @@ async function confirmBulkPay() {
   if (extraErr) { showResult(false, '⚠ لا يمكن تسجيل الدفع', extraErr); return; }
   const fsErrBulk = getFreeShipError();
   if (fsErrBulk) { showResult(false, '⚠ لا يمكن تسجيل الدفع', fsErrBulk); return; }
-  if (readyOrders.length && !isPayValid()) { showResult(false, '⚠ طريقة الدفع غير مكتملة', ''); return; }
+  if ((readyOrders.length || refundOrders.length) && !isPayValid()) { showResult(false, '⚠ طريقة الدفع غير مكتملة', ''); return; }
 
   const courierName = getReadyCourier();
   const cash = payVal('pmCash'), instapay = payVal('pmInstapay'), wallet = payVal('pmWallet');
@@ -3511,7 +3524,7 @@ async function doBulkPayAndRefund() {
     isProcessing = false; syncEntryLock(); updatePayBtn(); updatePayMethodsCard();
     return;
   }
-  if (readyOrders.length && !isPayValid()) {
+  if ((readyOrders.length || refundOrders.length) && !isPayValid()) {
     playBeep('error');
     showResult(false, '⛔ الجدول اتغيّر بعد التأكيد — لا يوجد أي عملية اتنفّذت',
       `المطلوب دلوقتي ${fmtSigned(getCourierCollectNet())} والمُدخل ${fmt(getPaySum())} — راجع الأرقام واضغط تسجيل الدفع من تاني.`);
