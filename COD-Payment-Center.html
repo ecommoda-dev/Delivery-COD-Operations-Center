@@ -5920,7 +5920,7 @@ function bxRowHtml(r, i) {
     <td class="col-ltr">${net}</td>
     <td class="col-center">${bxPreLabel(r) === null ? '—' : r.pre ? `<span class="bx-badge prereg" title="فلوسه اتسجّلت على شوبيفاي في أداة التسجيل المسبق — لا يوجد تحصيل جديد عليه (PRE_REG_KV ما اتلمسش)">${BX_PRE_YES}</span>` : `<span class="bx-prenone">${BX_PRE_NO}</span>`}</td>
     <td class="col-center"><span class="bx-badge ${cls}">${lbl}</span></td>
-    <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}${(r.status === 'error' && r.res && r.res.code === 'S1_MISSING') ? `<br><button type="button" class="bx-s1btn" data-s1="${i}">🔎 فحص S1 من بوسطة</button>` : ''}</td>
+    <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}${(r.status === 'error' && r.raw.orderRef) ? `<br><button type="button" class="bx-s1btn" data-s1="${i}">🔎 فحص S1 من بوسطة</button>` : ''}</td>
   </tr>`;
 }
 function bxRender() {
@@ -6768,7 +6768,7 @@ async function bxS1Pay() {
   BX_S1.busy = true; window.__bxBusy = true; $('bxS1Go').disabled = true; BX_S1.err = '';
   const i = BX_S1.i, emp = currentEmployee ? currentEmployee.username : null;
   let res;
-  try { res = await apiPostLegacy('bostaPayS1', { orderRef: r.raw.orderRef, trackingNumber: c.trackingNumber, employee: emp, s2Tracking: r.raw.trackingNumber, expected: { gross: c.gross, net: c.net, cashOutId: c.cashOutId } }); }
+  try { res = await apiPostLegacy('bostaPayS1', { orderRef: r.raw.orderRef, trackingNumber: c.trackingNumber, employee: emp, s2Tracking: r.slot === 'S2' ? r.raw.trackingNumber : undefined, expected: { gross: c.gross, net: c.net, cashOutId: c.cashOutId } }); }
   catch (e) {
     // 🔴 انقطاع/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — الكتابة ممكن تكون تمّت. الفحص التاني بيحسم (بيقول «اتسجّلت قبل كده»).
     BX_S1.busy = false; window.__bxBusy = false;

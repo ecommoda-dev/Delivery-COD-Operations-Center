@@ -512,6 +512,16 @@ console.log('\n══ ⑩ v1.84.0 — فحص S1 من بوسطة مباشرة (#4
   is(await pg3.$eval('#bxS1Go', b => b.disabled), 'خطأ الإعداد: رسالة بتسمّي BOSTA_API_KEY والزرار مقفول');
   await pg3.context().close();
 
+  // ── أي صف «خطأ» (مش S1_MISSING بس — مثلًا إجمالي الملف ≠ مستحق شوبيفاي) فيه زرار الفحص ──
+  S1STATE.done = false; CATCHUP.clear();
+  const F10c = await mkFile('bx-anyerr.xlsx', [S2ROW, ['MrQkqmcexcHuuMo7n', '8145633555', 'EXCHANGE', 'Delivered', '#49600', 500, 0, 0, 0, 500, 'Paid', '2026-08-12', 'WEDCOD12AUG26']]);
+  const { page: pg5 } = await open();
+  await pg5.click('#tabBosta'); await pg5.setInputFiles('#bxFile', F10c); await waitReady(pg5);
+  const r5 = await rowsOf(pg5);
+  is(r5.length === 2 && r5.every(r => r.cls === 'bx-error'), 'صفان خطأ (واحد S1_MISSING وواحد بسبب تاني)', r5.map(r => r.cls).join());
+  is(await pg5.$$eval('tr.bx-error .bx-s1btn', b => b.length) === 2, 'زرار «🔎 فحص S1 من بوسطة» على كل صف خطأ');
+  await pg5.context().close();
+
   // ── ملف cash-out قديم اتسجّل بعدين: الصف المسجّل من بوسطة (catchUp) بيتطرح من عدّادات الجلسة ──
   S1STATE.done = true; CATCHUP.clear(); CATCHUP.add('6579132699');
   const F10b = await mkFile('bx-catchup.xlsx', [
