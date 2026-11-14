@@ -18,7 +18,7 @@
 | `Shipped-Orders.html` | **أوردرات تحت التوصيل** — حالته `Shipped` ولسه بلا `Delivered`/`Returned` | `shipped-orders-worker` |
 | `In-Return-Orders.html` 🟤 | **في طريق الرجوع (In-Return)** — حالته `In-Return` (S1 أو S2) ولسه بلا `Returned` (v1.65.0) · **عرض بحت** · متولّدة من `docs/build-pages.py` | `in-return-orders-worker` (في ريبو `In-Return-Orders` — Worker وبس) |
 | `Order-Status-Updater.html` 🔗 | **تحديث حالة الأوردرات** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `order-status-updater-worker` (في ريبوه) |
-| `COD-Payment-Center.html` 🔗 | **تحصيل الأوردرات COD** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `cod-payment-center-worker` (في ريبوه) |
+| `COD-Payment-Center.html` 🔗 | **تحصيل الأوردرات COD** — أداة مدموجة (v1.5.0 · **النسخة الوحيدة من v1.89.0**) | `cod-payment-center-worker` (في ريبو `COD-Payment-Center` — Worker وبس) |
 | `Partial-Delivery.html` 🔗 | **التسليم الجزئي** — أداة مدموجة (v1.10.0 · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` (في ريبوه) |
 | `Courier-Names.html` 🛵 | **أسماء المناديب** — قسم «أدوات أخرى» (v1.30.0): إضافة / حذف / ترتيب قايمة `custom.courier` | `courier-names-worker` (في ريبو `Courier-Names` — Worker وبس) |
 | `Re-Assign-Package-Zone-BOSTA.html` 🚚 | **تحويل الشحنة إلى بوسطة** — قسم «أدوات أخرى» (v1.54.0 · v1.57.0): **سكان أكتر من أوردر** + جدول بحكم كل أوردر وسببه + تحويل المؤهل (`Ready` + زون Show_Room/Cairo+Giza ← `Confirmed`/`Other_Regions`/`Bosta`) + **تاب سجل عمليات** · **بيكتب على شوبيفاي** | `re-assign-package-zone-bosta-worker` (في ريبو `Re-Assign-Package-Zone-BOSTA` — Worker وبس) |
@@ -50,7 +50,7 @@ docs/css-check.js     فحص CSS بـ parser حقيقي
 docs/rules-check.mjs  فحص منطق §QUEUE-RULES و§AUDIT-RULES — ٩٠ بند (بلا تنصيب)
 docs/queues-check.mjs فحص متصفح فعلي — ٤٤٨ بند (فلاتر رأس العمود وعرض الأعمدة في §⑩ · وطي الأقسام في §⑫)
 Order-Status-Updater.html 🔗 محدّث حالة الأوردر — 🔴 **متولّدة**، عدّل في ريبوها
-COD-Payment-Center.html   🔗 مركز التحصيل — 🔴 **متولّدة**، عدّل في ريبوها
+COD-Payment-Center.html   🔗 مركز التحصيل — ✅ النسخة الوحيدة (v1.89.0)، عدّل هنا مباشرة
 Partial-Delivery.html     🔗 التسليم الجزئي — عدّل هنا مباشرة (بلا مولّد)
 docs/port-standalone.py  مولّد صفحتَي الأداتين من ريبوهاتهم
 docs/tools-check.mjs  فحص عقد الدمج — ١٦٠ بند
@@ -77,8 +77,8 @@ node docs/reassign-check.mjs        # تحويل الشحنة إلى بوسطة 
 node docs/idle-check.mjs        # الخروج التلقائي لعدم النشاط (v1.32.0 · ٢١ بند)
 ```
 
-🔴 **ولو عدّلت في `Order-Status-Updater` أو `COD-Payment-Center`** — شغّل
-المولّد قبل الفحص (لازم الريبوهات تكون جنب بعض):
+🔴 **ولو عدّلت في `Order-Status-Updater`** (مش التحصيل — صفحته بتتعدّل هنا مباشرة من v1.89.0) — شغّل
+المولّد قبل الفحص (لازم الريبوهين يكونوا جنب بعض):
 
 ```bash
 python3 docs/port-standalone.py

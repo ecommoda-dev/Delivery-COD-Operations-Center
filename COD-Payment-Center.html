@@ -1027,21 +1027,17 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 </style>
 <body>
 <!-- ══════════════════════════════════════════════════════════════
-     🔴 **الملف ده متولّد من `docs/port-standalone.py`.**
-     المصدر: ريبو `COD-Payment-Center` → `index.html`.
-     ⛔ **متعدّلش الملف ده بالإيد** — عدّل في الريبو الأصلي وشغّل المولّد:
-
-         python3 docs/port-standalone.py && node docs/tools-check.mjs
-
-     ⚠️ أي تعديل يدوي هنا **بيضيع في صمت** مع أول تشغيل.
-
-     🔴 **وفيه نسختين من الواجهة دي على الهوا** (قرار أحمد 16-09-2026:
-        الروابط القديمة تفضل شغّالة). النسخة دي بتاخد **الشِل من الهب**:
-        دخول واحد (`dco_session`) · سر واحد (مجموعة `delivery_cod_ops`) ·
-        هيدر الهب بزرار رجوع للرئيسية. والنسخة الأصلية في ريبوها لسه
-        بشاشة دخولها وسرّها.
-     ⚠️ **والـ Worker واحد للاتنين** (`cod-payment-center-worker` في ريبو
-        `COD-Payment-Center`) — ما اتلمسش ولا سطر في التمريرة دي.
+     🔴 **الصفحة دي هي النسخة الوحيدة لواجهة «تحصيل الأوردرات COD»** (v1.89.0 ·
+        قرار أحمد 14-11-2026). ريبو `COD-Payment-Center` بقى **Worker وبس** —
+        `index.html` اتحذف منه والرابط القديم بقى 404 بلا تحويل.
+     ✅ **التعديل بيتم هنا مباشرة.** مفيش مصدر تاني ولا مولّد:
+        `docs/port-standalone.py` **مابقاش بيولّد الصفحة دي** (بيولّد
+        `Order-Status-Updater.html` بس) — فتعديلك هنا مابيضيعش.
+     ⚠️ **الـ Worker** (`cod-payment-center-worker` في ريبو `COD-Payment-Center`)
+        ما اتلمسش ولا سطر. أي تعديل في منطقه بيتعمل في ريبوه، وأي تعديل في
+        عقده مع الصفحة (`action` · أشكال الرد · `extra`) لازم ينزل على الاتنين
+        في نفس التمريرة، و`ECO_WORKERS.codPayment.min` بيترفع لو الصفحة
+        اتعتمدت على سلوك جديد.
      ══════════════════════════════════════════════════════════════ -->
 
 <div class="container">
@@ -1465,7 +1461,18 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.88.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.89.0</span>
+          <span class="cl-ver-date">14-11-2026 · الواجهة بقت في المركز بس — ريبو الأداة Worker وبس</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الصفحة دي بقت النسخة الوحيدة لواجهة التحصيل.</strong> الواجهة المستقلة (<code>index.html</code> في ريبو <code>COD-Payment-Center</code>) اتحذفت، والرابط القديم بقى 404 بلا تحويل (قرار أحمد). الدخول والسر من المركز بس (مجموعة <code>delivery_cod_ops</code>).</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span>صفر تعديل في سلوك الصفحة ولا في الـ Worker ولا <code>min</code>. التعديل على الصفحة بقى مباشرة هنا (مفيش مولّد) — وعدّل في ريبو الـ Worker لو التغيير في منطق التحصيل نفسه.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.88.0</span>
           <span class="cl-ver-date">14-11-2026 · جلسة الاسترداد بقت لازم طرق دفع تساوي الصافي</span>
         </div>
         <ul class="cl-items">
