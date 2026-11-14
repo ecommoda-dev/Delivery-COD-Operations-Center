@@ -1,4 +1,4 @@
-// docs/cod-freeship-check.mjs — «تحصيل الأوردرات COD»: الشحن المجاني (Worker ≥ 3.14.0 · الهب v1.86.0 · 14-11-2026)
+// docs/cod-freeship-check.mjs — «تحصيل الأوردرات COD»: الشحن المجاني (Worker ≥ 3.15.0 · الهب v1.87.0 · 14-11-2026) — S1 + الاسترجاع/الاستبدال
 //   تنبيه + تأكيد موظف التحصيل + خصم رسوم المندوب (75 ثابتة · Showroom بلا خصم) + قفل زرار التسجيل — متصفح فعلي + Worker وهمي.
 //   npm i playwright --no-save && node docs/cod-freeship-check.mjs      (PW_CHROMIUM لو كروميوم مثبّت مسبقًا)
 //   SHOT_DIR=/tmp/shots node docs/cod-freeship-check.mjs                 ← بيحفظ لقطات الشاشة كمان (2x)
@@ -32,6 +32,15 @@ const PREV = {
   '65612': base('65612', 'Abo Selim', '300.00', '75.00', {}),
   '65613': base('65613', 'Mohamed Torky', '4150.00', '0.00', { freeShipping: true, courierFee: 75, courierKind: 'courier' }),
 };
+// 🆕 Worker 3.15.0 — الاسترجاع/الاستبدال (S2): `feeLeg:'return'` لما رسوم المرتجع على شوبيفاي = 0 والشحن الأصلي = 0
+const ret = (id, courier, amount, extra, fs) => ({ ...base(id, courier, amount, '0.00', fs), s2: 'Returned', hasReturn: true, returnShipping: '0.00', orderKind: 'full_return', ...extra });
+const refundX = { canMarkAsPaid: false, skipReason: 'مستحق استرداد', saleTransactions: [{ id: 't1', amount: 200 }] };
+const LEG = { freeShipping: true, courierFee: 75, courierKind: 'courier', feeLeg: 'return' };
+PREV['65620'] = ret('65620', 'Abo Selim', '-200.00', refundX, LEG);                                                       // #65609 الحقيقي: استرجاع كلي بلا رسوم مرتجع
+PREV['65621'] = ret('65621', 'Abo Selim', '-125.00', { ...refundX, returnShipping: '75.00' }, {});                         // رسوم مرتجع 75 على شوبيفاي ← الحساب القديم
+PREV['65622'] = ret('65622', 'Saif', '100.00', { orderKind: 'exchange' }, LEG);                                            // استبدال بفرق 100 يتحصّل
+PREV['65623'] = ret('65623', 'Showroom', '-200.00', refundX, { freeShipping: true, courierFee: 0, courierKind: 'showroom', feeLeg: 'return' });
+PREV['65624'] = ret('65624', null, '-200.00', refundX, { freeShipping: true, courierMissing: true, feeLeg: 'return' });
 const launchOpts = { args: ['--no-sandbox'] }; if (process.env.PW_CHROMIUM) launchOpts.executablePath = process.env.PW_CHROMIUM;
 const browser = await chromium.launch(launchOpts);
 const SESSION = { v: 1, username: 'Ahmed_Ibraheem', displayName: 'Ahmed Ibraheem', loginAt: '2026-11-14T08:00:00.000Z' };
@@ -49,6 +58,7 @@ async function open(viewport = { width: 1600, height: 1000 }, scale = 1) {
     if (action === 'getCourierOrdersToday') out = { success: true, orders: TODAY[body.courier] || [] };
     if (action === 'getCourierOrders') out = { success: true, orders: [] };
     if (action === 'preview') out = PREV[String(body.orderId)] || { success: false, notFound: true };
+    if (action === 'refund') out = { success: true, status: 'success', actions: ['استرداد'], logged: true, orderId: body.orderId };
     if (action === 'pay') out = { success: true, status: 'success', actions: ['تحصيل'], logged: true, orderId: body.orderId };
     await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(out) });
   });
@@ -182,6 +192,81 @@ const six = await page.evaluate(() => ({ rows: document.querySelectorAll('tr.fre
 is(six.rows === 2 && /#65613/.test(six.err) && /#65609/.test(six.err) && !/#65612/.test(six.err), 'تنبيهين بس، والرسالة بتسمّي الأوردرين المجانيين', JSON.stringify(six));
 await page.evaluate(() => confirmFreeShip(orders.findIndex(o => o.id === '65613')));
 is(await page.evaluate(() => /#65609/.test(getFreeShipError()) && !/#65613/.test(getFreeShipError())), 'تأكيد أوردر واحد بيسيب التاني ممنوع');
+is(errs.length === 0, 'صفر خطأ كونسول', errs.slice(0, 3).join(' || '));
+await page.context().close();
+
+console.log('\n══ ⑦ الاسترجاع/الاستبدال (S2) بلا رسوم مرتجع: نفس التنبيه والتأكيد (Worker ≥ 3.15.0) ══');
+({ page, calls, errs } = await open());
+await page.evaluate(() => addOrder('65620'));
+await page.waitForFunction(() => orders.length === 1 && orders[0].status === 'refund');
+const r1 = await page.evaluate(() => ({
+  collect: calcCourierCollect(orders[0]), net: getCourierCollectNet(), rows: document.querySelectorAll('tr.freeship-row').length,
+  note: (document.querySelector('tr.freeship-row')?.innerText || '').replace(/\s+/g, ' '), chip: (document.querySelector('.fs-cell')?.innerText || '').replace(/\s+/g, ' '),
+  btn: document.getElementById('payBtn').disabled, pending: document.querySelector('tr.order-row').classList.contains('freeship-pending-row'),
+}));
+is(r1.rows === 1 && /شحن المرتجع\/الاستبدال مجاني/.test(r1.note) && /−200 − 75 = −275/.test(r1.note), 'استرداد: سطر التنبيه بيقول الأرقام (−200 − 75 = −275)', r1.note);
+is(/مجاني/.test(r1.chip) && /أجر مرتجع 75/.test(r1.chip), 'خلية «شحن» بتعرض «🆓 مجاني · أجر مرتجع 75»', r1.chip);
+is(r1.collect === -275 && r1.net === -275, 'تحصيل المندوب = −275 من أول لحظة (قبل التأكيد)', JSON.stringify([r1.collect, r1.net]));
+is(r1.btn && r1.pending, 'زرار التنفيذ مقفول والصف متعلّم «لسه ما اتأكدش»');
+await page.click('[data-ptog="cash"]'); await page.click('[data-prest="cash"]');
+const r2 = await page.evaluate(() => ({ valid: isPayValid(), cash: document.getElementById('pmCash').value, btn: document.getElementById('payBtn').disabled, hint: document.getElementById('payHint').textContent }));
+is(r2.valid && Math.abs(parseFloat(r2.cash)) === 275, 'طرق الدفع على 275 (المطلوب بعد الأجر)', JSON.stringify(r2));
+is(r2.btn && /أكّد الشحن المجاني: #65620/.test(r2.hint.replace(/[⁦⁩]/g, '')), 'القفل بسبب التأكيد + الرسالة بتسمّي الأوردر', JSON.stringify(r2));
+await page.evaluate(() => confirmBulkPay());
+is(!(await page.evaluate(() => document.getElementById('confirmOverlay').classList.contains('open'))), 'نداء confirmBulkPay مباشر على الاسترداد برضه بيتمنع');
+await page.click('.fs-btn:not(.fs-undo)');
+const r3 = await page.evaluate(() => ({ ok: !!document.querySelector('.fs-note.fs-ok'), btn: document.getElementById('payBtn').disabled, ack: JSON.stringify(freeShipAck(orders[0])) }));
+is(r3.ok && !r3.btn, 'بعد «أؤكد»: التنبيه أخضر والزرار اتفتح', JSON.stringify(r3));
+await payClick(page);
+const dlg7 = await txt(page, '#confirmBody');
+is(/شحن مجاني \(1\)/.test(dlg7) && /أجر مرتجع 75/.test(dlg7) && !/خصم 75/.test(dlg7), 'نافذة التأكيد: «🆓 شحن مجاني (1) · أجر مرتجع 75»', dlg7.slice(0, 300));
+is(/275/.test(dlg7), 'نافذة التأكيد: الإجمالي المستحق 275', dlg7.slice(0, 300));
+calls.length = 0;
+await page.click('#confirmOkBtn');
+await page.waitForFunction(() => !orders.length || orders.every(o => o.status !== 'loading'));
+await page.waitForTimeout(300);
+const rf = calls.find(c => c.action === 'refund');
+is(!!rf, 'اتبعت refund');
+is(rf && rf.body.refundAmount === '200.00', 'مبلغ الاسترداد على شوبيفاي = 200 (مش 275)', rf && rf.body.refundAmount);
+is(rf && JSON.stringify(rf.body.orderMeta.freeShipping) === JSON.stringify({ confirmed: true, courierKind: 'courier', courierFee: 75, leg: 'return' }), 'orderMeta.freeShipping فيه leg=return', JSON.stringify(rf && rf.body.orderMeta.freeShipping));
+is(rf && rf.body.orderMeta.courierCollect === -275, 'orderMeta.courierCollect = −275', JSON.stringify(rf && rf.body.orderMeta.courierCollect));
+is(rf && rf.body.sessionMeta.batchExpected.collect === '-275.00' && rf.body.sessionMeta.batchExpected.net === '-275.00', 'batchExpected.collect/net = −275.00', JSON.stringify(rf && rf.body.sessionMeta.batchExpected));
+is(errs.length === 0, 'صفر خطأ كونسول', errs.slice(0, 3).join(' || '));
+await page.context().close();
+
+console.log('\n══ ⑦-ب مرتجع برسوم 75 على شوبيفاي: الحساب القديم بلا تنبيه ══');
+({ page, calls, errs } = await open());
+await page.evaluate(() => addOrder('65621'));
+await page.waitForFunction(() => orders.length === 1 && orders[0].status === 'refund');
+const rb = await page.evaluate(() => ({ collect: calcCourierCollect(orders[0]), rows: document.querySelectorAll('tr.freeship-row').length, err: getFreeShipError(), ack: freeShipAck(orders[0]) }));
+is(rb.rows === 0 && rb.err === null && rb.ack === null && rb.collect === -200, 'بلا تنبيه ولا قفل والتحصيل = −(125 + 75) = −200', JSON.stringify(rb));
+await page.context().close();
+
+console.log('\n══ ⑦-ج استبدال بفرق 100 يتحصّل ══');
+({ page, calls, errs } = await open());
+await page.evaluate(() => addOrder('65622'));
+await waitReady(page, 1);
+const ex = await page.evaluate(() => ({ collect: calcCourierCollect(orders[0]), note: (document.querySelector('tr.freeship-row')?.innerText || '').replace(/\s+/g, ' '), btn: document.getElementById('payBtn').disabled }));
+is(ex.collect === 25 && /100 − 75 = 25/.test(ex.note) && ex.btn, 'فرق الاستبدال 100 − 75 = 25 والزرار مقفول لحد التأكيد', JSON.stringify(ex));
+await page.click('.fs-btn:not(.fs-undo)');
+await page.click('[data-ptog="cash"]'); await page.click('[data-prest="cash"]');
+calls.length = 0; await payClick(page); await page.click('#confirmOkBtn'); await page.waitForTimeout(400);
+const px = calls.find(c => c.action === 'pay');
+is(px && px.body.amount === '100.00' && px.body.orderMeta.courierCollect === 25 && px.body.orderMeta.freeShipping && px.body.orderMeta.freeShipping.leg === 'return', 'pay: المبلغ 100 · courierCollect 25 · leg=return', JSON.stringify(px && px.body.orderMeta));
+await page.context().close();
+
+console.log('\n══ ⑦-د Showroom مرتجع: تأكيد بلا أجر · وبلا مندوب: ممنوع ══');
+({ page, calls, errs } = await open());
+await page.evaluate(() => addOrder('65623'));
+await page.waitForFunction(() => orders.length === 1 && orders[0].status === 'refund');
+const shw = await page.evaluate(() => ({ collect: calcCourierCollect(orders[0]), note: (document.querySelector('tr.freeship-row')?.innerText || '').replace(/\s+/g, ' '), chip: (document.querySelector('.fs-cell')?.innerText || '').replace(/\s+/g, ' '), btn: (document.querySelector('.fs-btn')?.innerText || '') }));
+is(shw.collect === -200 && /مفيش أجر/.test(shw.note) && /بلا أجر/.test(shw.chip) && /بدون أجر/.test(shw.btn), 'Showroom: −200 كما هو + «مفيش أجر» + زرار «بدون أجر»', JSON.stringify(shw));
+await page.context().close();
+({ page, calls, errs } = await open());
+await page.evaluate(() => addOrder('65624'));
+await page.waitForFunction(() => orders.length === 1 && orders[0].status === 'refund');
+const nm7 = await page.evaluate(() => ({ rows: document.querySelectorAll('tr.freeship-row').length, btns: document.querySelectorAll('.fs-btn').length, err: getFreeShipError(), btn: document.getElementById('payBtn').disabled }));
+is(nm7.rows === 1 && nm7.btns === 0 && /حدد المندوب/.test(nm7.err) && nm7.btn, 'مرتجع بلا مندوب: تنبيه أحمر بلا زرار + التنفيذ مقفول', JSON.stringify(nm7));
 is(errs.length === 0, 'صفر خطأ كونسول', errs.slice(0, 3).join(' || '));
 await page.context().close();
 
