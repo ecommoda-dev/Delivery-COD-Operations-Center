@@ -1471,7 +1471,7 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
         <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>الاسترجاع/الاستبدال (S2) بشحن مجاني:</strong> أوردر شحنه 0 واتعمله مرتجع من غير ما حد يسجّل رسوم مرتجع على شوبيفاي كان بيدفع للمندوب مبلغ الاسترداد بس، من غير أجر الاستلام (مثال #65609: −200 بدل −275).</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>نفس التنبيه والتأكيد زي S1:</strong> بشارة «🆓 مجاني · أجر مرتجع 75» وسطر بالأرقام (−200 − 75 = −275) وزرار «أؤكد» — وزرار التنفيذ <b>مقفول</b> لحد ما كل أوردر مجاني يتأكد. الأجر <b>75 ج ثابتة</b>. Showroom: تأكيد <b>بدون أجر</b>. بلا مندوب: ممنوع («حدد المندوب»). بيشتغل على الاسترداد وعلى تحصيل فرق الاستبدال.</span></li>
-          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span>لو رسوم المرتجع مسجّلة على شوبيفاي (75/150) أو شحن الأوردر الأصلي أكبر من صفر: <b>الحساب القديم بالظبط</b>. الصفوف القديمة ما اتغيّرتش. الاسترداد دلوقتي بيتحقق من الـ Worker قبل أي كتابة. <strong>انشر الـ Worker (3.15.0) قبل الصفحة</strong>، ولازم الخزنة تقرا <code>extra.freeShipping.courierFee</code> لصفوف الاسترداد كمان. ما اتجرّبش على شوبيفاي حقيقية.</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span>لو رسوم المرتجع مسجّلة على شوبيفاي (75/150) أو شحن الأوردر الأصلي أكبر من صفر: <b>الحساب القديم بالظبط</b>. الصفوف القديمة ما اتغيّرتش. الاسترداد دلوقتي بيتحقق من الـ Worker قبل أي كتابة. <strong>انشر الـ Worker (3.15.0) قبل الصفحة</strong>. الخزنة (v1.6.0) بتقرا <code>extra.freeShipping.courierFee</code> لصفوف الاسترداد كمان فمفيش تعديل مطلوب هناك. ما اتجرّبش على شوبيفاي حقيقية.</span></li>
         </ul>
       </div>
 
@@ -1485,7 +1485,7 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>تنبيه + تأكيد من موظف التحصيل:</strong> الأوردر بشحن 0 بيظهر بشارة «🆓 مجاني» وسطر تحت الأوردر بيقول بالأرقام اللي هيحصل، وزرار التسجيل <b>مقفول</b> لحد ما الموظف يضغط «أؤكد». المندوب العادي: <b>خصم 75 ج</b> ثابتة من تحصيل الأوردر. مندوب Showroom: تأكيد <b>بدون خصم</b>.</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>أوردر شحنه مجاني <b>ومفيهوش مندوب</b> على شوبيفاي: التسجيل ممنوع برسالة «حدد المندوب» (مفيش تخمين). بوسطة والأوردرات اللي شحنها أكبر من صفر (حتى لو Showroom) <b>مفيش فيها أي تغيير</b>.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>الـ Worker هو اللي بيحدد القاعدة وبيفرضها وقت التسجيل (بيوقف قبل أي كتابة لو مفيش تأكيد) وبيحسب <code>courierCollect</code> بنفسه للأوردرات دي. الصف في السجل فيه <code>extra.freeShipping</code> (مين أكّد وإمتى والأجر).</span></li>
-          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span><strong>انشر الـ Worker (3.14.0) قبل الصفحة</strong>، ولازم الخزنة تقرا <code>extra.freeShipping.courierFee</code> في المقارنة مع شوبيفاي. أوردرات الاسترجاع/الاستبدال بشحن مجاني <b>مسألة عالقة</b> (بتتحسب زي الأول). ما اتجرّبش على شوبيفاي حقيقية.</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span><strong>انشر الـ Worker (3.14.0) قبل الصفحة</strong>. الخزنة (v1.6.0) بتقرا <code>extra.freeShipping.courierFee</code> في المقارنة مع شوبيفاي. أوردرات الاسترجاع/الاستبدال بشحن مجاني <b>مسألة عالقة</b> (بتتحسب زي الأول). ما اتجرّبش على شوبيفاي حقيقية.</span></li>
         </ul>
       </div>
 
