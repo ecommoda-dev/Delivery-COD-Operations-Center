@@ -40,14 +40,14 @@ const SHELL_JS = ['hub-config.js', 'core.js', 'dco-rules.js'].map(f => read('sha
 const HUB_VERSION = (SHELL_JS.match(/const TOOL_VERSION\s*=\s*'([^']+)'/) || [])[1];
 if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION من shared/hub-config.js'); process.exit(1); }
 
-// 🔴 **الأداتين والعقد المتوقّع لكل واحدة.** القايمة دي هي اللي البنود
+// 🔴 **الأدوات والعقد المتوقّع لكل واحدة.** القايمة دي هي اللي البنود
 //    بتمشي عليها — إضافة أداة تالتة للمركز معناها سطر هنا، مش نسخ كتلة.
-// ⚠️ **`source` اختياري من v1.10.0.** الأداتين الأولانيين ليهم نسخة
-//    مستقلة شغّالة في ريبو تاني (`source`)، والصفحة هنا **متولّدة** منه —
+// ⚠️ **`source` اختياري من v1.10.0.** `Order-Status-Updater` **بس** (من v1.89.0)
+//    ليه نسخة مستقلة شغّالة في ريبو تاني (`source`)، والصفحة هنا **متولّدة** منه —
 //    فيه بند تحت (⓪) بيشغّل `port-standalone.py` ويقارن البايتات، وده
-//    محتاج المصدر يكون موجود جنب الهب. `Partial-Delivery.html` **مش
-//    متولّدة** (الريبو المستقل بتاعها بقى Worker وبس، مفيش HTML يتولّد
-//    منه)، فبند البايتات ده بيتخطّاها — راجع الفلترة على `t.source` تحت.
+//    محتاج المصدر يكون موجود جنب الهب. `Partial-Delivery.html` و
+//    `COD-Payment-Center.html` **مش متولّدتين** (الريبو المستقل بتاعهم بقى
+//    Worker وبس، مفيش HTML يتولّد منه)، فبند البايتات ده بيتخطّاها — راجع الفلترة على `t.source` تحت.
 const TOOLS = [
   {
     page:      'Order-Status-Updater.html',
@@ -65,7 +65,7 @@ const TOOLS = [
     host:      'cod-payment-center-worker.ecommoda-dev.workers.dev',
     oldSecret: 'cod_payment_center_worker_secret',
     tabs:      3,                       // تحصيل المناديب · تحصيل بوسطة (v1.77.0) · سجل العمليات
-    source:    'COD-Payment-Center',
+    // ⛔ صفر `source` من v1.89.0 — ريبو `COD-Payment-Center` بقى Worker وبس والصفحة هنا هي النسخة الوحيدة.
   },
   {
     page:      'Partial-Delivery.html',
@@ -241,7 +241,7 @@ for (const t of TOOLS) {
 
 // الصفحة متولّدة — تشغيل المولّد تاني لازم يدّي **نفس البايتات**
 // ⚠️ بيتخطّى لو الريبوهات الأصلية مش جنب بعض (مش كل بيئة فيها التلاتة).
-// 🔴 **وبيمشي على الأداتين اللي ليهم `source` بس** — `Partial-Delivery.html`
+// 🔴 **وبيمشي على الأدوات اللي ليها `source` بس** — `Partial-Delivery.html`
 //    مالهاش (مفيش HTML في ريبوها تتولّد منه)، فتضمينها هنا كان هيخلّي
 //    `sourcesPresent` ترجع `false` **دايمًا** ويتخطّى بند البايتات حتى
 //    للأداتين اللي فعلاً متولّدتين.
@@ -254,7 +254,7 @@ if (!sourcesPresent) {
   try {
     execFileSync('python3', [path.join(ROOT, 'docs', 'port-standalone.py')], { stdio: 'pipe' });
     const same = GENERATED_TOOLS.every((t, i) => read(t.page) === before[i]);
-    is(same, '🔴 الصفحتان **متولّدتان فعلاً** — تشغيل `docs/port-standalone.py` بيدّي نفس البايتات',
+    is(same, '🔴 الصفحة المتولّدة **متولّدة فعلاً** — تشغيل `docs/port-standalone.py` بيدّي نفس البايتات',
        'فيه تعديل يدوي في الملف المتولّد — هيضيع مع أول تشغيل');
   } catch (e) {
     bad('المولّد `docs/port-standalone.py` بيشتغل من غير خطأ', String(e.stderr || e).slice(0, 300));
