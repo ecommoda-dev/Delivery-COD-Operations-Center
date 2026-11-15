@@ -152,7 +152,9 @@ const ECO_WORKERS = {
   //    على Worker أقدم الاسترداد بيتسجّل من غير أجر المندوب ومن غير تنبيه (#65609).
   // 🔴 `codPayment.min = '3.16.0'` (14-11-2026) — نافذة «فحص شحنات من بوسطة» بتسجّل أي شحنة (Exchange · Customer Return Pickup كمان) وبتقرا `leg`/`afterS1`/`refundMissing`
   //    وبتبعت `ackRefundMissing`. على Worker أقدم الشحنات الغير S1 بتفضل ممنوعة بسبب «مش شحنة S1» (#46008).
-  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.16.0', label: 'تحصيل الأوردرات COD' },
+  // 🔴 `codPayment.min = '3.17.0'` (15-11-2026) — نافذة «فحص شحنات من بوسطة» بتسجّل شحنة RTO (كانت Exchange/CRP) «رسوم فقط» وبتقرا `legKind` وبتعتمد على إن الشحنة المسجّلة سببها واحد بس.
+  //    على Worker أقدم الـ RTO بتفضل «نوع مش مدعوم» (#47530).
+  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.17.0', label: 'تحصيل الأوردرات COD' },
 
   // 🔴 **التسليم الجزئي (v1.10.0) — تالت أداة مدموجة، وأول واحدة من غير
   //    رابط قديم شغّال.** الأداتين اللي فوق (`orderStatus`/`codPayment`)
@@ -247,7 +249,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.92.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.93.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
