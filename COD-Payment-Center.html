@@ -2302,7 +2302,7 @@ let entryBusy = false, entryMeTimer = null, entryFails = [], entryFseq = 0;
 const ENTRY_AR = '٠١٢٣٤٥٦٧٨٩', ENTRY_FA = '۰۱۲۳۴۵۶۷۸۹';
 const entryToWestern = s => String(s ?? '').replace(/[٠-٩]/g, d => ENTRY_AR.indexOf(d)).replace(/[۰-۹]/g, d => ENTRY_FA.indexOf(d));
 function entryNormalize(raw) {
-  let s = String(raw ?? '').replace(/[‎‏‪-‮⁦-⁩ ]/g, ' ');
+  let s = String(raw ?? '').replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069\u00A0]/g, ' ');
   s = entryToWestern(s).trim();
   const noHash = s.replace(/#/g, '').trim();
   if (/^\d[\d\s,،;]*$/.test(noHash)) return { clean: noHash, numeric: true };
