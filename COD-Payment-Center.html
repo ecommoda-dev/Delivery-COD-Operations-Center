@@ -1051,6 +1051,25 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 .s1m-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:6px; }
 .s1m-why { margin:8px 0 0; padding:0 18px 0 0; font-size:12px; font-weight:700; line-height:1.7; color:var(--red-dark); }
 .s1m-net { color:var(--green-dark); }
+/* 🆕 v1.94.0 — اختيار مبلغ الاسترداد على شوبيفاي (CRP) داخل كارت الشحنة */
+.s1m-rf { margin-top:10px; border:2px solid var(--red); border-inline-start-width:6px; border-radius:var(--radius-sm); background:var(--red-lighter); padding:10px 12px; cursor:default; }
+.s1m-rf-t { font-size:13px; font-weight:800; color:var(--red-darker); }
+.s1m-rf-facts { margin-top:4px; font-size:12px; font-weight:700; color:var(--text-secondary); line-height:1.7; }
+.s1m-rf-facts b, .s1m-rf-after b { font-family:var(--font-mono); direction:ltr; display:inline-block; color:var(--text-primary); }
+.s1m-rf-pick { margin-top:8px; display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:12.5px; font-weight:700; }
+.s1m-rf-opt { font-family:inherit; font-size:12.5px; font-weight:700; padding:6px 12px; border:2px solid var(--red-border); border-radius:999px; background:var(--surface); color:var(--red-dark); cursor:pointer; }
+.s1m-rf-opt:hover { background:var(--red-light); }
+.s1m-rf-opt.on { background:var(--red); border-color:var(--red); color:var(--surface); }
+.s1m-rf-opt.on b { color:var(--surface); }
+.s1m-rf-opt b { font-family:var(--font-mono); direction:ltr; display:inline-block; }
+.s1m-rf-or { color:var(--text-secondary); font-weight:600; }
+.s1m-rf-in { width:120px; padding:6px 10px; border:2px solid var(--border); border-radius:var(--radius-sm); font-family:var(--font-mono); font-size:14px; font-weight:800; background:var(--surface); color:var(--text-primary); }
+.s1m-rf-in.wide { width:100%; font-family:inherit; font-size:13px; font-weight:600; }
+.s1m-rf-in:focus { outline:none; border-color:var(--red); }
+.s1m-rf-after { margin-top:6px; font-size:12.5px; font-weight:700; min-height:1.2em; }
+.s1m-rf-reason { margin-top:6px; display:none; }
+.s1m-rf-reason label { display:block; font-size:12px; font-weight:700; color:var(--red-dark); margin-bottom:4px; }
+
 
 .bx-neg { color:var(--red); }
 .log-tag.bx-co { background:var(--purple-light); color:var(--purple); }
@@ -1491,7 +1510,22 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.93.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.94.0</span>
+          <span class="cl-ver-date">15-11-2026 · «فحص شحنات من بوسطة»: استرداد الـ CRP بيتكتب على شوبيفاي بمبلغ يختاره الموظف (#48116) + إصلاح «الأوردر متكرر في الملف»</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الاسترداد على شوبيفاي بيتعمل من الأداة:</strong> شحنة Customer Return Pickup اللي شوبيفاي عليها «مستحق استرداد» مش بتتسجّل في السجل بس — الـ Worker بيعمل <code>createRefund</code> فعليًا (ملاحظة الاسترداد: <code>Bosta &lt;النوع&gt; &lt;رقم التتبع&gt;</code>). ده بيلغي قرار 14-11 «السجل بس».</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>الموظف بيختار المبلغ (مفيش مبلغ تلقائي):</strong> زرارين جاهزين (اللي بوسطة دفعته · المستحق على شوبيفاي) أو رقم حر. الرقم الحر لازم <b>سبب</b> (3 حروف على الأقل). الحد الأقصى = الأقل بين المتاح للاسترداد على شوبيفاي والأكبر بين المستحق والمدفوع. تحت الخانة سطر لحظي: «بعد الاسترداد هيفضل مستحق X».</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>نافذة التأكيد بإقرار أحمر:</strong> بتكرر المبلغ والباقي والسبب، وزرار «تأكيد التسجيل والاسترداد على شوبيفاي» مقفول لحد ما تضغط «راجعت المبلغ». الاسترداد هيتكتب على شوبيفاي ومفيش منه رجوع من الأداة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الكشف بالمستحق مش بإجمالي المسترد بس:</strong> شوبيفاي مفيهاش مستحق ولا استرداد (ممكن اتحسب جوّه استبدال) = «سجل بس بتأكيد» بدل تحذير كاذب، واسترداد موجود = سجل بس بلا كتابة. الخزنة ما اتأثرتش: <code>courierCollect</code> لسه Net بوسطة.</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>«نفس الأوردر (S2) متكرر في الملف» كان بيطلع غلط (#48116):</strong> شحنة RTO صفرية جنب CRP −1150 اتعلّمت تكرار. دلوقتي التكرار = صفّين <b>عليهم فلوس بنفس الاتجاه</b> بس (نفس قاعدة الـ Worker). والصف اللي اتسجّل من نافذة الفحص بيروح للـ Worker ويرجع «مسجّلة سابقًا» بدل ما يفضل خطأ ويسيب الجلسة «ناقصة».</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span><code>codPayment.min</code> بقى <code>3.18.0</code> — <b>انشر الـ Worker قبل الصفحة</b> (على Worker أقدم الـ CRP بتتسجّل في D1 بس وشوبيفاي بتفضل «مستحق»).</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.93.0</span>
           <span class="cl-ver-date">15-11-2026 · «فحص شحنات من بوسطة»: شحنة RTO «رسوم فقط» (#47530) + رأس كارت الشحنة + لينكات التتبع + ترتيب بتاريخ الإنشاء (Worker 3.17.0)</span>
         </div>
         <ul class="cl-items">
@@ -6011,7 +6045,7 @@ const BX_SHEET = 'Cash Cycles';
 const BX_COLS = ['Business ID', 'Order Id', 'Order Type', 'Order Status', 'Order Reference', 'COD', 'Online Payment Amount',
   'Total Fees', 'Flex Ship Amount', 'Net Value', 'Payment Status', 'Paid At', 'Cash-out ID'];
 const BX_CHUNK = 15, BX_PAR = 2;
-const BX = { runLog: [], phase: 'idle', fileName: '', fileSize: 0, ctx: null, rows: [], busy: false, seq: 0, fileErrors: [] };
+const BX = { runLog: [], phase: 'idle', fileName: '', fileSize: 0, ctx: null, rows: [], busy: false, seq: 0, fileErrors: [], regTn: new Set() };
 const BX_DROP_TITLE = 'ارفع ملف «Cash Cycles» من بوسطة';
 const BX_ICO_SWAP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 20v-4h-4"/></svg>';
 const BX_DROP_SUB = 'اسحب الملف وأفلته هنا، أو <u>اختاره من جهازك</u>';
@@ -6092,11 +6126,14 @@ function bxMakeRows(parsed) {
     const cod = bxP(raw.cod), onl = bxP(raw.online);
     const r = { raw, rowNo: raw.rowNo, slot, grossP: (cod !== null && onl !== null) ? cod + onl : null, netP: bxP(raw.netValue),
       status: 'pending', reasons: [], res: null, orderId: null, orderName: null, shopify: null, pre: null };
-    const rk = String(raw.orderRef).replace(/^#/, '') + '|' + slot;
+    // 🔴 v1.94.0 — تكرار الأوردر/الـ slot = صفّين **عليهم فلوس بنفس الإشارة** بس (نفس قاعدة الـ Worker v3.11.1: شحنة RTO صفرية جنب CRP −1150 مش تكرار —
+    //    #48116). الصف الصفري مابيتحسبش، والموجب مع السالب (Exchange +500 مع CRP −300) مش مضاعفة تحصيل.
+    const nz = r.grossP !== null && r.grossP !== 0;
+    const rk = String(raw.orderRef).replace(/^#/, '') + '|' + slot + '|' + (r.grossP > 0 ? 'p' : 'n');
     if (raw.trackingNumber && seenT.has(raw.trackingNumber)) { r.status = 'error'; r.reasons.push(`رقم التتبع متكرر في الملف (الصف ${seenT.get(raw.trackingNumber)})`); }
-    else if (raw.orderRef && seenR.has(rk)) { r.status = 'error'; r.reasons.push(`نفس الأوردر (${slot}) متكرر في الملف (الصف ${seenR.get(rk)})`); }
+    else if (raw.orderRef && nz && seenR.has(rk)) { r.status = 'error'; r.reasons.push(`نفس الأوردر (${slot}) متكرر في الملف (الصف ${seenR.get(rk)}) وعليه فلوس في الصفّين بنفس الاتجاه`); }
     if (raw.trackingNumber && !seenT.has(raw.trackingNumber)) seenT.set(raw.trackingNumber, raw.rowNo);
-    if (raw.orderRef && !seenR.has(rk)) seenR.set(rk, raw.rowNo);
+    if (raw.orderRef && nz && !seenR.has(rk)) seenR.set(rk, raw.rowNo);
     return r;
   });
 }
@@ -6120,7 +6157,8 @@ const bxSum = (rows, f) => rows.reduce((s, r) => s + f(r), 0);
 async function bxValidate(list) {
   const seq = BX.seq;
   BX.phase = 'checking';
-  list.forEach(r => { if (!(r.status === 'error' && r.res === null)) { r.status = 'checking'; r.reasons = []; r.warn = null; } });   // أخطاء الملف المحلية (تكرار) بتفضل
+  // أخطاء الملف المحلية (تكرار) بتفضل — إلا لو الشحنة اتسجّلت من نافذة «فحص شحنات بوسطة» (v1.94.0): وقتها بتروح للـ Worker وبترجع «مسجّلة سابقًا» + catchUp
+  list.forEach(r => { if (!(r.status === 'error' && r.res === null && !BX.regTn.has(r.raw.trackingNumber))) { r.status = 'checking'; r.reasons = []; r.warn = null; } });
   bxRender();
   const todo = list.filter(r => r.status === 'checking');
   const chunks = []; for (let i = 0; i < todo.length; i += BX_CHUNK) chunks.push(todo.slice(i, i + BX_CHUNK));
@@ -6788,7 +6826,7 @@ async function bxLoad(file) {
   const p = await bxParse(file);
   if (seq !== BX.seq) return;
   if (p.errs && p.errs.length) { BX.phase = 'idle'; bxShowFileErr(p.errs); playBeep('error'); bxRender(); return; }
-  BX.rows = bxMakeRows(p.rows); BX.ctx = bxMakeCtx(BX.rows);
+  BX.regTn = new Set(); BX.rows = bxMakeRows(p.rows); BX.ctx = bxMakeCtx(BX.rows);
   await bxValidate(BX.rows);
 }
 
@@ -6982,7 +7020,7 @@ async function bxExportResult() {
 // الفكرة: صف ممنوع لأن شحنات الأوردر ما اتسجّلتش في الخزنة (مثال #49395: S1 اتحوّل في cash-out قديم عمره ما اتعمله رفع · #46008: ٣ شحنات
 // Send + Exchange + Customer Return Pickup كل واحدة في cash-out). بدل رفع الملفات القديمة بنقرا شحنات الأوردر من بوسطة (`bostaS1Check` — قراءة بس)،
 // والموظف بيختار شحنة أو أكتر وبيأكّد (`bostaPayS1`) — تسجيل في D1 بس، صفر حركة على شوبيفاي. التسجيل بالترتيب: S1 الأول ثم الباقي واحدة واحدة.
-const BX_S1 = { i: -1, data: null, sel: new Set(), busy: false, token: 0, err: '' };
+const BX_S1 = { i: -1, data: null, sel: new Set(), busy: false, token: 0, err: '', rf: {} };
 const BX_S1_COLL = { cashed_out: 'اتحوّل في Cash-out', awaiting_cashout: 'اتحصّل ومستني التحويل', no_cycle: 'مفيش Cash Cycle', unknown: 'غير معروف' };
 const bxS1Money = v => v === null || v === undefined ? '—' : bxM(bxP(v));
 // 🔗 v1.93.0 — أي رقم تتبع بوسطة = لينك لداشبورد بوسطة (زي طابور المشحون): أرقام بس قبل ما يدخل الـ href، وغير كده نص عادي
@@ -7003,7 +7041,7 @@ const bxS1StCls = code => code === 45 ? 'ok' : code === 46 ? 'ret' : (code === 4
 const bxRefKey = v => String(v || '').replace(/^#/, '');
 async function bxS1Open(i) {
   const r = BX.rows[i]; if (!r || BX.busy || BX_S1.busy) return;
-  Object.assign(BX_S1, { i, data: null, sel: new Set(), err: '' });
+  Object.assign(BX_S1, { i, data: null, sel: new Set(), err: '', rf: {} });
   $('bxS1Overlay').classList.add('open');
   await bxS1Load();
 }
@@ -7029,15 +7067,73 @@ function bxS1Selected() {
   return d.candidates.filter(c => c.eligible && BX_S1.sel.has(c.trackingNumber))
     .sort((a, b) => (a.leg === 'S1' ? 0 : 1) - (b.leg === 'S1' ? 0 : 1) || String(a.cashOutDate || '').localeCompare(String(b.cashOutDate || '')));
 }
-// بوابة S1: شحنة S2 ما تتسجّلش إلا بعد S1 (متسجّل بالفعل أو مختار معاها)
+// 🆕 v1.94.0 — استرداد بوسطة (CRP) على شوبيفاي: الـ Worker 3.18.0 بيرجّع `refund` على الشحنة السالبة: create (هيتعمل استرداد · الموظف بيختار المبلغ) ·
+//    nothing_owed (شوبيفاي مفيهاش مستحق — سجل بس بتأكيد) · exists (استرداد موجود — سجل بس). المبلغ مبيتحطّش تلقائي: الموظف بيختار أو بيكتب.
+const bxS1IsCreate = c => !!(c && c.refund && c.refund.state === 'create');
+const bxS1Digits = v => String(v ?? '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[٫,]/g, '.').replace(/[^\d.]/g, '');
+function bxS1Rf(c) {
+  const st = BX_S1.rf[c.trackingNumber] || (BX_S1.rf[c.trackingNumber] = { amount: '', reason: '' });
+  const rp = c.refund, amtP = st.amount === '' ? null : bxP(st.amount), maxP = bxP(rp.max), needP = bxP(rp.need), owedP = bxP(rp.owed);
+  const reasonNeeded = amtP !== null && amtP > 0 && amtP !== needP && amtP !== owedP;
+  let err = '';
+  if (amtP === null || amtP <= 0) err = 'اختار مبلغ الاسترداد أو اكتبه';
+  else if (amtP > maxP) err = `المبلغ أكبر من الحد المسموح (${bxS1Money(rp.max)})`;
+  else if (reasonNeeded && st.reason.trim().length < 3) err = 'اكتب سبب اختيار المبلغ ده';
+  return { st, amtP, needP, owedP, reasonNeeded, err, after: amtP !== null && amtP > 0 && amtP <= maxP ? Math.max(0, owedP - amtP) : null };
+}
+// بوابة S1: شحنة S2 ما تتسجّلش إلا بعد S1 (متسجّل بالفعل أو مختار معاها) — ومبلغ الاسترداد لازم يتحدد لكل شحنة create مختارة
 function bxS1Problem(list) {
   const d = BX_S1.data;
   if (d && !d.hasS1 && list.some(c => c.leg === 'S2') && !list.some(c => c.leg === 'S1')) return 'S1 بتاع الأوردر لسه ما اتسجّلش — اختار شحنة S1 معاها (S1 بتتسجّل الأول)';
+  for (const c of list) { if (bxS1IsCreate(c)) { const r = bxS1Rf(c); if (r.err) return `${c.typeLabel} ${c.trackingNumber}: ${r.err}`; } }
   return '';
+}
+// ملخّص «المختار» — بيتحدّث لحظيًا وقت كتابة مبلغ الاسترداد من غير إعادة رسم الكروت (عشان الخانة متفقدش التركيز)
+function bxS1SumHtml(sel, problem) {
+  if (!sel.length) return '';
+  const sumP = sel.reduce((t, c) => t + bxP(c.net), 0);
+  return `<div class="s1m-note ${problem ? 'bad' : 'ok'}">المختار: <b>${sel.length}</b> شحنة · مجموع الـ Net <b class="${sumP < 0 ? 'bx-neg' : ''}" style="font-family:var(--font-mono);direction:ltr;display:inline-block">${bxM(sumP)}</b>${problem ? ' — ⛔ ' + esc(problem) : ''}</div>`;
+}
+function bxS1RfHtml(c) {
+  const r = bxS1Rf(c), rp = c.refund, tn = esc(c.trackingNumber);
+  const optBtn = (v, lbl) => { const on = r.amtP !== null && r.amtP === bxP(v); return `<button type="button" class="s1m-rf-opt${on ? ' on' : ''}" data-s1rfopt="${tn}" data-v="${esc(v)}" aria-pressed="${on}">${esc(lbl)} <b>${bxS1Money(v)}</b></button>`; };
+  const opts = (rp.options || []).map(v => optBtn(v, bxP(v) === r.needP && bxP(v) === r.owedP ? 'بوسطة دفعت = المستحق' : bxP(v) === r.needP ? 'اللي بوسطة دفعته' : 'المستحق على شوبيفاي')).join('');
+  return `<div class="s1m-rf" data-s1rfbox="${tn}">
+    <div class="s1m-rf-t">🔴 الاسترداد هيتكتب على شوبيفاي فعلًا — ومفيش منه رجوع من الأداة</div>
+    <div class="s1m-rf-facts">مستحق على شوبيفاي <b>${bxS1Money(rp.owed)}</b> · بوسطة دفعت للعميل <b>${bxS1Money(rp.need)}</b>${bxP(rp.owed) !== bxP(rp.need) ? ` · فرق <b>${bxS1Money(((Math.abs(bxP(rp.owed) - bxP(rp.need))) / 100).toFixed(2))}</b>` : ''} · الحد الأقصى <b>${bxS1Money(rp.max)}</b></div>
+    <div class="s1m-rf-pick"><span>مبلغ الاسترداد:</span>${opts}<span class="s1m-rf-or">أو اكتبه</span>
+      <input type="text" inputmode="decimal" dir="ltr" class="s1m-rf-in" data-s1rfin="${tn}" value="${esc(r.st.amount)}" aria-label="مبلغ الاسترداد على شوبيفاي"><span>ج</span></div>
+    <div class="s1m-rf-after" id="s1rfAfter-${tn}"></div>
+    <div class="s1m-rf-reason" id="s1rfReason-${tn}"><label>سبب اختيار المبلغ <b>(إجباري)</b> — المبلغ مش واحد من الاتنين</label>
+      <input type="text" maxlength="300" class="s1m-rf-in wide" data-s1rfreason="${tn}" value="${esc(r.st.reason)}" aria-label="سبب مبلغ الاسترداد"></div>
+  </div>`;
+}
+// تحديث الأجزاء الديناميكية (الباقي بعد الاسترداد · خانة السبب · أزرار الاختيار · الملخّص · زرار التسجيل) من غير إعادة رسم
+function bxS1RfSync(tn) {
+  const d = BX_S1.data; if (!d) return;
+  const c = d.candidates.find(x => x.trackingNumber === tn); if (!c || !bxS1IsCreate(c)) return;
+  const r = bxS1Rf(c), after = $('s1rfAfter-' + tn), reason = $('s1rfReason-' + tn);
+  if (after) {
+    if (r.amtP === null || r.amtP <= 0) after.innerHTML = '';
+    else if (r.err && r.amtP > bxP(c.refund.max)) after.innerHTML = `<span class="bx-neg">⛔ ${esc(r.err)}</span>`;
+    else after.innerHTML = `بعد الاسترداد هيفضل مستحق على شوبيفاي: <b class="${r.after > 0 ? 'bx-neg' : ''}">${bxM(r.after)}</b>${r.after > 0 ? ' — خدمة العملاء تراجعه' : ' — المستحق هيتقفل'}${r.amtP !== r.needP ? ` · <span class="bx-neg">⚠ غير اللي بوسطة دفعته (${bxS1Money(c.refund.need)})</span>` : ''}`;
+  }
+  if (reason) reason.style.display = r.reasonNeeded ? 'block' : 'none';
+  document.querySelectorAll(`[data-s1rfopt="${tn}"]`).forEach(b => { const on = r.amtP !== null && r.amtP === bxP(b.dataset.v); b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+  const sel = bxS1Selected(), problem = bxS1Problem(sel);
+  const sum = $('bxS1Sum'); if (sum) sum.innerHTML = bxS1SumHtml(sel, problem);
+  $('bxS1Go').disabled = !sel.length || !!problem || BX_S1.busy;
+}
+function bxS1RfPick(tn, v) {
+  const d = BX_S1.data; if (!d || BX_S1.busy) return;
+  const c = d.candidates.find(x => x.trackingNumber === tn); if (!c || !bxS1IsCreate(c)) return;
+  bxS1Rf(c).st.amount = String(bxP(v) / 100);
+  const inp = document.querySelector(`[data-s1rfin="${tn}"]`); if (inp) inp.value = BX_S1.rf[tn].amount;
+  bxS1RfSync(tn);
 }
 function bxS1Render() {
   const d = BX_S1.data, body = $('bxS1Body');
-  if (!d) { body.innerHTML = `<div class="s1m-note bad">⛔ ${esc(BX_S1.err || 'تعذّر الفحص')}</div><div class="s1m-note">الفحص قراءة بس ومفيش حاجة اتغيّرت. لو الرسالة عن <b>BOSTA_API_KEY</b> أو <b>3.17.0</b> فالـ Worker محتاج Secret/نشر.</div>`; $('bxS1Go').disabled = true; return; }
+  if (!d) { body.innerHTML = `<div class="s1m-note bad">⛔ ${esc(BX_S1.err || 'تعذّر الفحص')}</div><div class="s1m-note">الفحص قراءة بس ومفيش حاجة اتغيّرت. لو الرسالة عن <b>BOSTA_API_KEY</b> أو <b>3.18.0</b> فالـ Worker محتاج Secret/نشر.</div>`; $('bxS1Go').disabled = true; return; }
   const elig = d.candidates.filter(c => c.eligible);
   const sel = bxS1Selected(), problem = bxS1Problem(sel);
   const note = [];
@@ -7045,12 +7141,9 @@ function bxS1Render() {
   if (!elig.length) note.push(`<div class="s1m-note ${d.candidates.some(c => c.registered) ? 'ok' : 'bad'}">${d.candidates.some(c => c.registered)
     ? '✅ مفيش شحنة تانية قابلة للتسجيل — اقفل النافذة واضغط «إعادة فحص الملف».'
     : '⛔ مفيش شحنة قابلة للتسجيل — راجع الأسباب تحت كل شحنة. ولو الشحنة فعلًا في ملف Cash-out تاني، ارفع الملف ده بدل التسجيل من بوسطة.'}</div>`);
-  else note.push(`<div class="s1m-note">اختار الشحنات اللي عايز تسجّلها (S1 وباقي الشحنات: Exchange · Customer Return Pickup · RTO فاشلة «رسوم فقط»). التسجيل <b>في السجل بس</b> (الـ Net للخزنة) — <b>صفر حركة على شوبيفاي</b> — وبالترتيب: <b>S1 الأول</b>.
+  else note.push(`<div class="s1m-note">اختار الشحنات اللي عايز تسجّلها (S1 وباقي الشحنات: Exchange · Customer Return Pickup · RTO فاشلة «رسوم فقط»). التسجيل <b>في السجل</b> (الـ Net للخزنة) <b>بلا حركة على شوبيفاي</b> — إلا شحنة الاسترداد (Customer Return Pickup) اللي شوبيفاي عليها مستحق استرداد: <b>بتتكتب استرداد على شوبيفاي</b> بعد ما تختار المبلغ وتأكّد — وبالترتيب: <b>S1 الأول</b>.
     ${elig.length > 1 ? `<button type="button" class="bx-s1btn" data-s1all style="margin-inline-start:8px">${sel.length === elig.length ? 'إلغاء تحديد الكل' : `☑ تحديد كل القابل للتسجيل (${elig.length})`}</button>` : ''}</div>`);
-  if (sel.length) {
-    const sumP = sel.reduce((t, c) => t + bxP(c.net), 0);
-    note.push(`<div class="s1m-note ${problem ? 'bad' : 'ok'}">المختار: <b>${sel.length}</b> شحنة · مجموع الـ Net <b class="${sumP < 0 ? 'bx-neg' : ''}" style="font-family:var(--font-mono);direction:ltr;display:inline-block">${bxM(sumP)}</b>${problem ? ' — ⛔ ' + esc(problem) : ''}</div>`);
-  }
+  note.push(`<div id="bxS1Sum">${bxS1SumHtml(sel, problem)}</div>`);
   const top = `<div class="s1m-top">
     <div><small>الأوردر</small><b>${orderLink(d.orderName, d.orderId)}</b></div>
     <div><small>مستحق شوبيفاي دلوقتي</small><b>${bxS1Money(d.shopifyOutstanding)}</b></div>
@@ -7081,7 +7174,9 @@ function bxS1Render() {
       </div>
       ${c.eligible && c.afterS1 ? `<ul class="s1m-inf"><li>⏳ بتتسجّل بعد S1 (لازم S1 يتسجّل الأول — اختارهم مع بعض)</li></ul>` : ''}
       ${c.eligible && rto ? `<div class="s1m-note" style="margin:8px 0 0">🧾 <b>شحنة فاشلة (محاولات توصيل بلا فايدة)</b> — بوسطة قفلتها Return to Origin وحاسبتنا عليها. الصافي = رسوم ${bxS1Money(c.fees)}${flexP ? ` − FlexShip ${bxS1Money(c.flexShipAmount)} (اتحصّل من العميل)` : ''} = <b>${bxS1Money(c.net)}</b> — ده اللي بوسطة خصمته فعلًا من الـ Cash-out. هتتسجّل في السجل بس (للخزنة) <b>بلا أي حركة على شوبيفاي</b>.</div>` : ''}
-      ${c.eligible && c.refundMissing ? `<div class="s1m-note" style="margin:8px 0 0">⚠️ شوبيفاي <b>مفيهاش استرداد مقابل</b> الشحنة دي — هتتسجّل في السجل بس (الخزنة تاخد الـ Net) <b>من غير أي استرداد على شوبيفاي</b>، وهتطلب تأكيدك الصريح.</div>` : ''}
+      ${c.eligible && c.refund && c.refund.state === 'create' ? (on ? bxS1RfHtml(c) : `<div class="s1m-note" style="margin:8px 0 0">⚠️ شوبيفاي عليها <b>مستحق استرداد ${bxS1Money(c.refund.owed)}</b> وبوسطة دفعت للعميل <b>${bxS1Money(c.refund.need)}</b> — اختار الشحنة دي وهتحدد <b>مبلغ الاسترداد اللي هيتكتب على شوبيفاي</b> (مفيش مبلغ تلقائي).</div>`) : ''}
+      ${c.eligible && c.refund && c.refund.state === 'nothing_owed' ? `<div class="s1m-note" style="margin:8px 0 0">⚠️ شوبيفاي <b>مفيهاش مستحق استرداد ولا استرداد مسجّل</b> (ممكن الاسترداد اتحسب جوّه استبدال) — الشحنة دي هتتسجّل في السجل بس <b>من غير أي استرداد على شوبيفاي</b>، وهتطلب تأكيدك الصريح.</div>` : ''}
+      ${c.eligible && c.refund && c.refund.state === 'exists' ? `<div class="s1m-note ok" style="margin:8px 0 0">✅ استرداد مقابل الشحنة دي <b>موجود على شوبيفاي</b> (${bxS1Money(c.refund.amount)}) — هتتسجّل في السجل بس.</div>` : ''}
       ${(c.notes && c.notes.length) ? `<ul class="s1m-inf">${c.notes.map(n => `<li>${bxLinkTn(n)}</li>`).join('')}</ul>` : ''}
       ${(c.blockers.length && !c.registered) ? `<ul class="s1m-why">${c.blockers.map(b => `<li>${bxLinkTn(b)}</li>`).join('')}</ul>` : ''}</div>`;
   }).join('') || '<div class="s1m-note bad">بوسطة ما رجّعتش أي شحنة بالمرجع ده.</div>';
@@ -7089,6 +7184,7 @@ function bxS1Render() {
   const go = $('bxS1Go');
   go.textContent = sel.length ? `✅ سجّل المختار (${sel.length})` : '✅ سجّل المختار';
   go.disabled = !sel.length || !!problem || BX_S1.busy;
+  sel.filter(bxS1IsCreate).forEach(c => bxS1RfSync(c.trackingNumber));
 }
 function bxS1Pick(tn) {
   const d = BX_S1.data; if (!d || BX_S1.busy) return;
@@ -7106,16 +7202,30 @@ function bxS1Ask() {
   const d = BX_S1.data, list = bxS1Selected();
   if (!d || !list.length || BX_S1.busy || bxS1Problem(list)) return;
   const row = (k, v, cls = '') => `<div class="confirm-detail-row"><span class="confirm-detail-label">${k}</span><span class="confirm-detail-val ${cls}">${v}</span></div>`;
-  const sumP = list.reduce((t, c) => t + bxP(c.net), 0), missing = list.filter(c => c.refundMissing);
+  const sumP = list.reduce((t, c) => t + bxP(c.net), 0), creates = list.filter(bxS1IsCreate), noOwed = list.filter(c => c.refund && c.refund.state === 'nothing_owed');
   const legs = list.map((c, k) => row(`${k + 1}) ${esc(c.leg)} · ${esc(c.typeLabel)}${c.legKind === 'rto_fee' ? ' (رسوم فقط)' : ''}`, `${bxTrk(c.trackingNumber)} · ${esc(c.cashOutId)} (${esc(c.cashOutDate || '')}) · إجمالي ${bxS1Money(c.gross)}${c.legKind === 'rto_fee' ? ` · رسوم ${bxS1Money(c.fees)}${c.flexShipAmount && bxP(c.flexShipAmount) ? ' − FlexShip ' + bxS1Money(c.flexShipAmount) : ''}` : ''} · <b class="${bxP(c.net) < 0 ? 'bx-neg' : ''}">Net ${bxS1Money(c.net)}</b>`)).join('');
   const body = `${row('الأوردر', esc(d.orderName))}${legs}
     <div style="background:var(--green-light);border:2px solid var(--green-border);border-radius:var(--radius-sm);padding:8px 14px;margin:6px 0;display:flex;justify-content:space-between;align-items:center">
       <span style="font-size:13px;font-weight:700">مجموع Net Value (اللي هتتوقعه الخزنة)</span><span style="font-family:var(--font-mono);font-size:18px;font-weight:800;direction:ltr">${bxM(sumP)}</span></div>
-    ${missing.length ? `<div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span><div><div class="confirm-warning-title">استرداد بلا مقابل على شوبيفاي</div>
-      <div class="confirm-warning-text">${missing.map(c => esc(c.typeLabel) + ' ' + bxTrk(c.trackingNumber) + ' (Net ' + bxS1Money(c.net) + ')').join(' · ')} — شوبيفاي مفيهاش استرداد مقابل. هيتسجّل في السجل بس والـ Net هيدخل الخزنة، <b>ومفيش createRefund على شوبيفاي</b> (قرار أحمد). الأوردر لسه محتاج مراجعة خدمة العملاء.</div></div></div>` : ''}
-    <div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span><div><div class="confirm-warning-title">تسجيل في السجل فقط — لا يمكن التراجع</div>
-      <div class="confirm-warning-text">مفيش أي حركة على شوبيفاي (فلوس الشحنات المحصّلة متسجّلة عليه قبل كده${d.preRegistered ? '، ومفتاح التسجيل المسبق هيتمسح لو مطابق لـ S1' : ''}). كل شحنة هتظهر في الخزنة كجلسة مستقلة، وبالترتيب: S1 الأول. راجع إن دي فعلًا شحنات الأوردر الصح.</div></div></div>`;
-  openConfirm(`✅ تأكيد تسجيل ${list.length > 1 ? list.length + ' شحنات' : 'شحنة'} من بوسطة`, body, 'تأكيد التسجيل', 'green-btn', bxS1Pay);
+    ${creates.length ? `<div class="bx-inc" id="bxRfBox"><div class="bx-inc-top"><span class="bx-inc-ico">!</span><div class="bx-inc-t">هيتكتب ${creates.length === 1 ? 'استرداد' : creates.length + ' استردادات'} على شوبيفاي — ومفيش منه رجوع من الأداة</div></div>
+      ${creates.map(c => { const r = bxS1Rf(c); return `<div class="bx-inc-q">${esc(c.typeLabel)} ${bxTrk(c.trackingNumber)} — استرداد <b style="font-family:var(--font-mono);direction:ltr;display:inline-block">${bxM(r.amtP)}</b> ج على ${esc(d.orderName)}
+        <small style="display:block;font-weight:600">المستحق على شوبيفاي ${bxS1Money(c.refund.owed)} · بوسطة دفعت للعميل ${bxS1Money(c.refund.need)} · هيفضل مستحق <b>${bxM(r.after)}</b> ج${r.amtP !== r.needP ? ' · ⚠ المبلغ غير اللي بوسطة دفعته' : ''}${r.reasonNeeded ? `<br>السبب: ${esc(r.st.reason.trim())}` : ''}</small></div>`; }).join('')}
+      <button type="button" class="bx-inc-ack" id="bxRfAck" aria-pressed="false">☐ راجعت المبلغ — اكتب الاسترداد على شوبيفاي</button></div>` : ''}
+    ${noOwed.length ? `<div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span><div><div class="confirm-warning-title">شوبيفاي مفيهاش مستحق استرداد</div>
+      <div class="confirm-warning-text">${noOwed.map(c => esc(c.typeLabel) + ' ' + bxTrk(c.trackingNumber) + ' (Net ' + bxS1Money(c.net) + ')').join(' · ')} — هيتسجّل في السجل بس والـ Net هيدخل الخزنة، <b>ومفيش أي استرداد على شوبيفاي</b> (ممكن الاسترداد اتحسب جوّه استبدال). راجع الأوردر لو العميل لسه ليه فلوس.</div></div></div>` : ''}
+    <div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span><div><div class="confirm-warning-title">${creates.length ? 'تسجيل في السجل + استرداد على شوبيفاي — لا يمكن التراجع' : 'تسجيل في السجل فقط — لا يمكن التراجع'}</div>
+      <div class="confirm-warning-text">${creates.length ? 'الاسترداد (المكتوب بالأحمر فوق) هيتكتب على شوبيفاي، وباقي الشحنات في السجل بس بلا حركة على شوبيفاي' : 'مفيش أي حركة على شوبيفاي'} (فلوس الشحنات المحصّلة متسجّلة عليه قبل كده${d.preRegistered ? '، ومفتاح التسجيل المسبق هيتمسح لو مطابق لـ S1' : ''}). كل شحنة هتظهر في الخزنة كجلسة مستقلة، وبالترتيب: S1 الأول. راجع إن دي فعلًا شحنات الأوردر الصح.</div></div></div>`;
+  openConfirm(`✅ تأكيد تسجيل ${list.length > 1 ? list.length + ' شحنات' : 'شحنة'} من بوسطة`, body, creates.length ? 'تأكيد التسجيل والاسترداد على شوبيفاي' : 'تأكيد التسجيل', creates.length ? 'red-btn' : 'green-btn', bxS1Pay);
+  // 🔴 فيه استرداد هيتكتب على شوبيفاي ← «تأكيد» مقفول لحد ما الموظف يضغط زرار الإقرار (نفس نمط إقرار الجلسة الناقصة)
+  if (creates.length) {
+    const ok = $('confirmOkBtn'), ack = $('bxRfAck'); ok.disabled = true;
+    ack.addEventListener('click', () => {
+      const on = ack.getAttribute('aria-pressed') !== 'true';
+      ack.setAttribute('aria-pressed', on ? 'true' : 'false');
+      ack.textContent = on ? '☑ تمت المراجعة — الاسترداد هيتكتب على شوبيفاي' : '☐ راجعت المبلغ — اكتب الاسترداد على شوبيفاي';
+      ok.disabled = !on;
+    });
+  }
 }
 async function bxS1Pay() {
   const d = BX_S1.data, r = BX.rows[BX_S1.i], list = bxS1Selected();
@@ -7128,9 +7238,13 @@ async function bxS1Pay() {
     $('bxS1Go').textContent = `⏳ جاري التسجيل ${k + 1} من ${list.length}…`;
     let res;
     try {
+      // 🆕 v1.94.0 (Worker 3.18.0): استرداد CRP على شوبيفاي — المبلغ اللي الموظف اختاره/كتبه + السبب + التأكيد الصريح (create) · أو تأكيد بس (nothing_owed)
+      const isCreate = bxS1IsCreate(c), rfv = isCreate ? bxS1Rf(c) : null;
+      const refund = isCreate ? { amount: (rfv.amtP / 100).toFixed(2), reason: rfv.reasonNeeded ? rfv.st.reason.trim() : undefined, ack: true }
+        : (c.refund && c.refund.state === 'nothing_owed') ? { ack: true } : undefined;
       res = await apiPostLegacy('bostaPayS1', { orderRef: r.raw.orderRef, trackingNumber: c.trackingNumber, employee: emp,
-        s2Tracking: (c.leg === 'S1' && r.slot === 'S2') ? r.raw.trackingNumber : undefined,
-        ackRefundMissing: c.refundMissing ? true : undefined, expected: { gross: c.gross, net: c.net, cashOutId: c.cashOutId } });
+        s2Tracking: (c.leg === 'S1' && r.slot === 'S2') ? r.raw.trackingNumber : undefined, refund,
+        expected: { gross: c.gross, net: c.net, cashOutId: c.cashOutId, ...(c.refund ? { refundState: c.refund.state } : {}), ...(isCreate ? { owed: c.refund.owed } : {}) } });
     } catch (e) {
       // 🔴 انقطاع/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — الكتابة ممكن تكون تمّت. الدفعة بتقف والفحص التاني بيحسم (بيقول «اتسجّلت قبل كده»).
       uncertain = true; fail = { error: `ما اتأكدناش إن تسجيل ${c.typeLabel} ${c.trackingNumber} تم (انقطع الاتصال) — الفحص هيتعاد: لو اتسجّلت هتلاقيها «اتسجّلت قبل كده»، ومتسجّلش تاني قبل ما تتأكد.` }; break;
@@ -7140,11 +7254,13 @@ async function bxS1Pay() {
   }
   BX_S1.busy = false; window.__bxBusy = false;
   if (done.length) logLoaded = false;
+  done.forEach(x => BX.regTn.add(String(x.c.trackingNumber)));   // v1.94.0 — صف الملف المتكرّر محليًا بيروح للـ Worker وبيرجع «مسجّلة سابقًا» (مش بيفضل خطأ)
   const netP = done.reduce((t, x) => t + bxP(x.c.net), 0), warn = done.map(x => x.res.warning).filter(Boolean)[0];
+  const rfDone = done.filter(x => x.res.refund && x.res.refund.created);
   const same = () => BX.rows.filter(x => bxRefKey(x.raw.orderRef) === bxRefKey(r.raw.orderRef));
   if (!fail) {
     playBeep(warn ? 'error' : 'success');
-    showToast(`${warn ? '⚠' : '✅'} اتسجّل ${done.length === 1 ? 'شحنة' : done.length + ' شحنات'} (مجموع Net ${bxM(netP)}) من بوسطة — الخزنة هتشوفها${warn ? ' — ' + warn : ''}`, warn ? 'error' : 'success', warn ? 10000 : 4500);
+    showToast(`${warn ? '⚠' : '✅'} اتسجّل ${done.length === 1 ? 'شحنة' : done.length + ' شحنات'} (مجموع Net ${bxM(netP)}) من بوسطة — الخزنة هتشوفها${rfDone.length ? ' — واتكتب ' + (rfDone.length === 1 ? 'استرداد ' + rfDone[0].res.refund.amount + ' ج' : rfDone.length + ' استردادات') + ' على شوبيفاي' : ''}${warn ? ' — ' + warn : ''}`, warn ? 'error' : 'success', warn ? 12000 : 4500);
     $('bxS1Overlay').classList.remove('open');
     if (!BX.busy && same().length) { BX.seq++; await bxValidate(same()); }   // صفوف الأوردر في الملف بتتفحص تاني: اللي اتسجّل بيبان «مسجّل سابقًا»، والـ S2 بتعدّي من البوابة
     return;
@@ -7158,8 +7274,13 @@ async function bxS1Pay() {
 // ── ربط الأحداث ──────────────────────────────────────────────
 (function bxInit() {
   $('bxBody').addEventListener('click', e => { const b = e.target.closest('[data-s1]'); if (b) bxS1Open(+b.dataset.s1); });
-  $('bxS1Body').addEventListener('click', e => { if (e.target.closest('a')) return; if (e.target.closest('[data-s1all]')) { bxS1PickAll(); return; } const c = e.target.closest('[data-s1tn]'); if (c) bxS1Pick(c.dataset.s1tn); });
+  $('bxS1Body').addEventListener('click', e => { const ro = e.target.closest('[data-s1rfopt]'); if (ro) { bxS1RfPick(ro.dataset.s1rfopt, ro.dataset.v); return; } if (e.target.closest('.s1m-rf')) return; if (e.target.closest('a')) return; if (e.target.closest('[data-s1all]')) { bxS1PickAll(); return; } const c = e.target.closest('[data-s1tn]'); if (c) bxS1Pick(c.dataset.s1tn); });
   $('bxS1Body').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-s1tn]')) { e.preventDefault(); bxS1Pick(e.target.dataset.s1tn); } });
+  $('bxS1Body').addEventListener('input', e => {
+    const a = e.target.closest('[data-s1rfin]'), r = e.target.closest('[data-s1rfreason]');
+    if (a) { const clean = bxS1Digits(a.value); if (clean !== a.value) a.value = clean; (BX_S1.rf[a.dataset.s1rfin] = BX_S1.rf[a.dataset.s1rfin] || { amount: '', reason: '' }).amount = clean; bxS1RfSync(a.dataset.s1rfin); }
+    else if (r) { (BX_S1.rf[r.dataset.s1rfreason] = BX_S1.rf[r.dataset.s1rfreason] || { amount: '', reason: '' }).reason = r.value; bxS1RfSync(r.dataset.s1rfreason); }
+  });
   $('bxS1Go').addEventListener('click', bxS1Ask);
   const drop = $('bxDrop'), inp = $('bxFile');
   inp.addEventListener('change', () => { const f = inp.files && inp.files[0]; inp.value = ''; if (f) bxLoad(f); });

@@ -1,4 +1,4 @@
-// docs/cod-bosta-check.mjs — فحص تاب «تحصيل بوسطة» (آخر تمريرة v1.93.0) (متصفح فعلي + Worker وهمي + ملفات إكسيل حقيقية)
+// docs/cod-bosta-check.mjs — فحص تاب «تحصيل بوسطة» (آخر تمريرة v1.94.0) (متصفح فعلي + Worker وهمي + ملفات إكسيل حقيقية)
 //   npm i playwright exceljs@4.3.0 --no-save && node docs/cod-bosta-check.mjs
 //   EXCELJS_PATH=مسار/exceljs.min.js (الـ CDN مش متاح في بيئة الفحص فبنقدّمه محليًا) · PW_CHROMIUM لو كروميوم مثبّت مسبقًا
 //   الملفات في docs/fixtures (بيانات تجريبية بنفس شكل ملف Cash Cycles الحقيقي — بلا أسماء عملاء حقيقية).
@@ -42,15 +42,18 @@ const VERDICT = {
 };
 const registered = new Set();
 const S1STATE = { done: false };   // v1.84.0 — S1 اتسجّل من بوسطة مباشرة (بيفتح بوابة S2 في الـ Worker الوهمي)
-const LEG = { s1: false, reg: new Set() };   // v1.90.0 — #46008: شحنات اتسجّلت من بوسطة مباشرة
+const LEG = { s1: false, reg: new Set(), crp: 'create' };   // crp: حالة خطة الاسترداد اللي الـ Worker الوهمي بيرجّعها للـ CRP (create · nothing_owed · exists)   // v1.90.0 — #46008: شحنات اتسجّلت من بوسطة مباشرة
 const L46 = [
   { leg: 'S1', typeCode: 10, typeLabel: 'Send', trackingNumber: '9619903860', stateCode: 45, stateLabel: 'Delivered', cashOutId: 'WEDCOD01JUL26', cashOutDate: '2026-07-01', gross: '4200.00', net: '4036.98', fees: '163.02', refundMissing: false },
   { leg: 'S2', typeCode: 30, typeLabel: 'Exchange', trackingNumber: '4132677759', stateCode: 46, stateLabel: 'Returned to business', cashOutId: 'MONCOD03AUG26', cashOutDate: '2026-08-03', gross: '500.00', net: '352.94', fees: '147.06', refundMissing: false },
-  { leg: 'S2', typeCode: 25, typeLabel: 'Customer Return Pickup', trackingNumber: '5671180009', stateCode: 46, stateLabel: 'Returned to business', cashOutId: 'MONCOD10AUG26', cashOutDate: '2026-08-10', gross: '-300.00', net: '-433.38', fees: '133.38', refundMissing: true },
+  { leg: 'S2', typeCode: 25, typeLabel: 'Customer Return Pickup', trackingNumber: '5671180009', stateCode: 46, stateLabel: 'Returned to business', cashOutId: 'MONCOD10AUG26', cashOutDate: '2026-08-10', gross: '-300.00', net: '-433.38', fees: '133.38', refundMissing: true,
+    refund: { state: 'create', owed: '2300.00', need: '300.00', max: '2300.00', options: ['300.00', '2300.00'] } },
 ];
 const legCands = () => L46.map(c => LEG.reg.has(c.trackingNumber)
   ? { ...c, oldType: null, collection: 'cashed_out', onlineAmount: null, notes: [], afterS1: false, refundMissing: false, eligible: false, registered: { cashOutId: c.cashOutId, at: '2026-11-14 10:00', viaApi: true }, blockers: ['اتسجّلت قبل كده (Cash-out ' + c.cashOutId + ')'] }
-  : { ...c, oldType: null, collection: 'cashed_out', onlineAmount: null, notes: [], afterS1: c.leg === 'S2' && !LEG.s1, eligible: true, registered: null, blockers: [] });
+  : { ...c, oldType: null, collection: 'cashed_out', onlineAmount: null, notes: [], afterS1: c.leg === 'S2' && !LEG.s1, eligible: true, registered: null, blockers: [],
+      ...(c.refund && LEG.crp === 'nothing_owed' ? { refund: { state: 'nothing_owed' }, refundMissing: true } : {}),
+      ...(c.refund && LEG.crp === 'exists' ? { refund: { state: 'exists', refundId: null, amount: '300.00', by: 'total' }, refundMissing: false } : {}) });
 // v1.93.0 — #47530 (حقيقي): الـ Worker 3.17.0 بيرجّع الشحنات بأي ترتيب — الواجهة بترتّبها بتاريخ إنشاء الشحنة على بوسطة (الأقدم أولًا)
 const P47 = { done: new Set() };
 const L47 = [
@@ -125,9 +128,12 @@ async function open({ payFail = {}, payNetwork = null, already = new Set(), payW
       const c = L46.find(x => x.trackingNumber === body.trackingNumber);
       if (legFail === body.trackingNumber) out = { success: false, status: 'error', error: 'السجل فشل (D1) — مفيش حاجة اتغيّرت', actions: [] };
       else if (c.leg === 'S2' && !LEG.s1) out = { success: false, status: 'error', needsS1: true, error: 'S1 بتاع الأوردر لسه ما اتسجّلش', actions: [] };
-      else if (c.refundMissing && body.ackRefundMissing !== true) out = { success: false, status: 'error', needsAck: true, error: 'محتاج تأكيد صريح', actions: [] };
+      else if (c.refund && LEG.crp === 'create' && !(body.refund && body.refund.amount)) out = { success: false, status: 'error', needsRefundChoice: true, error: 'اختار مبلغ الاسترداد', actions: [] };
+      else if (c.refund && LEG.crp === 'create' && body.refund.ack !== true) out = { success: false, status: 'error', needsAck: true, error: 'محتاج تأكيد صريح', actions: [] };
+      else if (c.refund && LEG.crp === 'nothing_owed' && !(body.refund && body.refund.ack === true)) out = { success: false, status: 'error', needsAck: true, error: 'محتاج تأكيد صريح', actions: [] };
       else { if (c.leg === 'S1') LEG.s1 = true; LEG.reg.add(c.trackingNumber);
-        out = { success: true, status: c.refundMissing ? 'warning' : 'success', warning: c.refundMissing ? 'مفيش استرداد مقابل على شوبيفاي' : null, actions: ['تم'], logged: true, leg: c.leg, kind: 'x', net: c.net, amount: c.gross.replace('-', '') }; }
+        const rf = c.refund && LEG.crp === 'create' ? { created: true, id: 'gid://shopify/Refund/1', amount: body.refund.amount, owedAfter: ((2300 - Number(body.refund.amount)).toFixed(2)) } : null;
+        out = { success: true, status: rf ? 'warning' : 'success', warning: rf ? `لسه مستحق ${rf.owedAfter} ج للعميل على شوبيفاي` : null, actions: ['تم'], logged: true, leg: c.leg, kind: 'x', net: c.net, amount: c.gross.replace('-', ''), refund: rf }; }
       await sleep(20);
     } else if (action === 'bostaPayS1') {
       if (staleLeft > 0) { staleLeft--; out = { success: false, status: 'error', stale: true, error: 'الأرقام اتغيّرت من وقت الفحص — أعد الفحص وراجعها', actions: [] }; }
@@ -149,7 +155,7 @@ async function open({ payFail = {}, payNetwork = null, already = new Set(), payW
   return { page, calls, errs };
 }
 // v1.92.0 — لو فيه صفوف خطأ نافذة التأكيد بتقفل «تأكيد وتسجيل» لحد زرار الإقرار الأحمر
-const confirmGo = async pg => { if (await pg.$('#bxIncAck')) await pg.click('#bxIncAck'); await pg.click('#confirmOkBtn'); };
+const confirmGo = async pg => { if (await pg.$('#bxIncAck')) await pg.click('#bxIncAck'); if (await pg.$('#bxRfAck')) await pg.click('#bxRfAck'); await pg.click('#confirmOkBtn'); };
 const txt = (page, sel) => page.evaluate(s => (document.querySelector(s)?.innerText || '').replace(/\s+/g, ' ').trim(), sel);
 const upload = async (page, file) => { await page.setInputFiles('#bxFile', FIX(file)); };
 const rowsOf = page => page.$$eval('#bxBody tr', trs => trs.map(t => ({ cls: t.className, cells: [...t.children].map(c => c.innerText.replace(/\s+/g, ' ').trim()) })));
@@ -600,7 +606,7 @@ console.log('\n══ ⑪ v1.90.0 — أوردر بـ3 شحنات (#46008): اخ
   ws.addRow(['Business ID', 'Order Id', 'Order Type', 'Order Status', 'Order Reference', 'COD', 'Online Payment Amount', 'Total Fees', 'Flex Ship Amount', 'Net Value', 'Payment Status', 'Paid At', 'Cash-out ID']);
   ws.addRow(['MrQkqmcexcHuuMo7n', '4132677759', 'EXCHANGE', 'Delivered', '#46008', 500, 0, 147.06, 0, 352.94, 'Paid', '2026-08-03', 'MONCOD03AUG26']);
   const F11 = path.join(os_tmp(), 'bx-46008.xlsx'); await wb.xlsx.writeFile(F11);
-  const reset = () => { LEG.s1 = false; LEG.reg.clear(); };
+  const reset = () => { LEG.s1 = false; LEG.reg.clear(); LEG.crp = 'create'; };
 
   reset();
   const { page: pg, calls: c, errs: e11 } = await open();
@@ -611,26 +617,50 @@ console.log('\n══ ⑪ v1.90.0 — أوردر بـ3 شحنات (#46008): اخ
   is(JSON.stringify(await pg.$$eval('.s1m-cand .tn', x => x.map(n => n.textContent))) === JSON.stringify(['9619903860', '4132677759', '5671180009']), 'الشحنات معروضة بالترتيب: S1 ثم Exchange ثم CRP');
   let t = await txt(pg, '#bxS1Body');
   is(/4,036\.98/.test(t) && /352\.94/.test(t) && /433\.38/.test(t) && /Customer Return Pickup/.test(t) && /Exchange/.test(t), 'الأرقام (الـ Net) والأنواع ظاهرة', t.slice(0, 160));
-  is(/مفيهاش استرداد مقابل/.test(t), 'تحذير «مفيش استرداد مقابل على شوبيفاي» على الـ CRP');
+  is(/مستحق استرداد 2,300/.test(t) && /مفيش مبلغ تلقائي/.test(t), 'تنبيه على الـ CRP: شوبيفاي عليها مستحق استرداد والمبلغ هيتحدد بعد الاختيار (مفيش مبلغ تلقائي)');
   is(await pg.$eval('#bxS1Go', b => b.disabled), 'الزرار مقفول قبل الاختيار');
   await pg.click('[data-s1tn="4132677759"]');
   t = await txt(pg, '#bxS1Body');
   is(await pg.$eval('#bxS1Go', b => b.disabled) && /S1 بتاع الأوردر لسه ما اتسجّلش/.test(t), 'Exchange لوحدها قبل S1 → الزرار مقفول وسبب «اختار S1 معاها»');
   await pg.click('[data-s1all]');
-  is(!(await pg.$eval('#bxS1Go', b => b.disabled)) && /\(3\)/.test(await txt(pg, '#bxS1Go')), 'تحديد الكل: الزرار مفتوح «سجّل المختار (3)»');
   t = await txt(pg, '#bxS1Body');
+  is(await pg.$eval('#bxS1Go', b => b.disabled) && /اختار مبلغ الاسترداد أو اكتبه/.test(t), '🆕 تحديد الكل: الزرار مقفول لحد ما مبلغ استرداد الـ CRP يتحدد (مفيش مبلغ تلقائي)', t.slice(0, 200));
+  is(await pg.$eval('[data-s1rfin="5671180009"]', i => i.value === '') && await pg.$$eval('.s1m-rf-opt.on', x => x.length === 0), '🆕 الخانة فاضية ولا زرار جاهز مختار');
+  is(JSON.stringify(await pg.$$eval('.s1m-rf-opt', x => x.map(b => b.dataset.v))) === '["300.00","2300.00"]', '🆕 زرارين جاهزين: اللي بوسطة دفعته (300) والمستحق (2,300)');
+  // رقم حر → سبب إجباري
+  await pg.fill('[data-s1rfin="5671180009"]', '٢٥٠');
+  is(await pg.$eval('[data-s1rfin="5671180009"]', i => i.value) === '250', '🆕 الأرقام العربي بتتحوّل لإنجليزي');
+  is(await pg.$eval('#s1rfReason-5671180009', e => getComputedStyle(e).display !== 'none') && await pg.$eval('#bxS1Go', b => b.disabled) && /اكتب سبب/.test(await txt(pg, '#bxS1Sum')), '🆕 رقم مش واحد من الاتنين: خانة السبب ظهرت والزرار مقفول');
+  await pg.fill('[data-s1rfreason="5671180009"]', 'غلطة رفع');
+  is(!(await pg.$eval('#bxS1Go', b => b.disabled)) && /هيفضل مستحق على شوبيفاي: .*2,050/.test(await txt(pg, '#s1rfAfter-5671180009')), '🆕 بسبب: الزرار اتفتح · «بعد الاسترداد هيفضل مستحق 2,050»', await txt(pg, '#s1rfAfter-5671180009'));
+  await pg.fill('[data-s1rfin="5671180009"]', '2400');
+  is(await pg.$eval('#bxS1Go', b => b.disabled) && /أكبر من الحد المسموح/.test(await txt(pg, '#s1rfAfter-5671180009')), '🆕 رقم أكبر من الحد (2,300): مرفوض والزرار مقفول');
+  // التركيز بيفضل في الخانة وقت الكتابة (من غير إعادة رسم الكروت)
+  await pg.fill('[data-s1rfin="5671180009"]', ''); await pg.focus('[data-s1rfin="5671180009"]'); await pg.keyboard.type('30');
+  is(await pg.evaluate(() => document.activeElement && document.activeElement.dataset.s1rfin === '5671180009') && await pg.$eval('[data-s1rfin="5671180009"]', i => i.value === '30'), '🆕 الكتابة الحرفية: الخانة محتفظة بالتركيز والقيمة');
+  if (process.env.BX_SHOT) await (await pg.$('[data-s1tn="5671180009"]')).screenshot({ path: process.env.BX_SHOT.replace('.png', '-rf-empty.png') });   // لقطة اختيارية: اختيار مبلغ الاسترداد (فاضي)
+  await pg.click('[data-s1rfopt="5671180009"][data-v="300.00"]');
+  is(!(await pg.$eval('#bxS1Go', b => b.disabled)) && await pg.$eval('[data-s1rfopt="5671180009"][data-v="300.00"]', b => b.classList.contains('on') && b.getAttribute('aria-pressed') === 'true') && await pg.$eval('[data-s1rfin="5671180009"]', i => i.value === '300'), '🆕 زرار «اللي بوسطة دفعته 300»: بيملا الخانة ويتعلّم والزرار الرئيسي اتفتح');
+  is(!(await pg.$eval('#s1rfReason-5671180009', e => getComputedStyle(e).display !== 'none')), '🆕 المبلغ واحد من الاتنين: السبب مش مطلوب');
+  t = await txt(pg, '#bxS1Body');
+  if (process.env.BX_SHOT) { await (await pg.$('[data-s1tn="5671180009"]')).screenshot({ path: process.env.BX_SHOT.replace('.png', '-rf-picked.png') }); await pg.fill('[data-s1rfin="5671180009"]', '250'); await (await pg.$('[data-s1tn="5671180009"]')).screenshot({ path: process.env.BX_SHOT.replace('.png', '-rf-custom.png') }); await pg.click('[data-s1rfopt="5671180009"][data-v="300.00"]'); }
+  is(/\(3\)/.test(await txt(pg, '#bxS1Go')), 'الزرار «سجّل المختار (3)»');
   is(/3,956\.54/.test(t), 'مجموع الـ Net للمختار = 3,956.54', t.slice(0, 200));
   is(!c.some(x => x.action === 'bostaPayS1'), 'مفيش تسجيل قبل التأكيد');
   await pg.click('#bxS1Go');
   const cf = await txt(pg, '#confirmBody');
-  is(/9619903860/.test(cf) && /4132677759/.test(cf) && /5671180009/.test(cf) && /3,956\.54/.test(cf) && /createRefund/.test(cf) && /استرداد بلا مقابل على شوبيفاي/.test(cf) && /S1 الأول/.test(cf), 'نافذة التأكيد: التلات شحنات + المجموع + تحذير الاسترداد (بلا createRefund)', cf.slice(0, 220));
+  is(await pg.$eval('#confirmOkBtn', b => b.disabled) && /هيتكتب استرداد على شوبيفاي/.test(cf) && /راجعت المبلغ/.test(cf), '🆕 نافذة التأكيد: «تأكيد» مقفول لحد إقرار «راجعت المبلغ»');
+  is(/9619903860/.test(cf) && /4132677759/.test(cf) && /5671180009/.test(cf) && /3,956\.54/.test(cf) && /استرداد.*300.*ج على #46008/.test(cf) && /المستحق على شوبيفاي 2,300/.test(cf) && /هيفضل مستحق.*2,000/.test(cf) && /استرداد على شوبيفاي — لا يمكن التراجع/.test(cf) && /S1 الأول/.test(cf) && !/createRefund/.test(cf), 'نافذة التأكيد: التلات شحنات + المجموع + تحذير الاسترداد (بلا createRefund)', cf.slice(0, 220));
+  if (process.env.BX_SHOT) await (await pg.$('.eco-modal-ov.open .eco-modal, #confirmOverlay .eco-modal, #confirmOverlay > div')).screenshot({ path: process.env.BX_SHOT.replace('.png', '-confirm.png') }).catch(() => {});
   await confirmGo(pg);
   await pg.waitForFunction(() => !document.getElementById('bxS1Overlay').classList.contains('open'), null, { timeout: 8000 });
   await pg.waitForFunction(() => BX.phase === 'ready' && BX.rows[0].status === 'done', null, { timeout: 8000 });
   const ps = c.filter(x => x.action === 'bostaPayS1');
   is(ps.length === 3 && JSON.stringify(ps.map(x => x.body.trackingNumber)) === JSON.stringify(['9619903860', '4132677759', '5671180009']), 'التسجيل بالترتيب: S1 ثم Exchange ثم CRP', JSON.stringify(ps.map(x => x.body.trackingNumber)));
-  is(ps[2].body.ackRefundMissing === true && ps[0].body.ackRefundMissing === undefined && ps[1].body.ackRefundMissing === undefined, 'التأكيد الصريح اتبعت للـ CRP بس');
+  is(JSON.stringify(ps[2].body.refund) === JSON.stringify({ amount: '300.00', ack: true }) && ps[0].body.refund === undefined && ps[1].body.refund === undefined && ps[2].body.ackRefundMissing === undefined, '🆕 المبلغ المختار + التأكيد الصريح اتبعتوا للـ CRP بس (refund.amount · ack) — ومفيش ackRefundMissing', JSON.stringify(ps[2].body.refund));
+  is(ps[2].body.expected.owed === '2300.00' && ps[2].body.expected.refundState === 'create' && ps[0].body.expected.owed === undefined, '🆕 expected فيها المستحق وحالة الاسترداد اللي الموظف شافها (للـ stale)');
   is(ps.every(x => x.body.employee === 'Ahmed_Ibraheem' && x.body.orderRef === '#46008') && ps[0].body.expected.net === '4036.98' && ps[1].body.expected.cashOutId === 'MONCOD03AUG26' && ps[2].body.expected.net === '-433.38', 'كل نداء بأرقام الشحنة اللي الموظف شافها');
+  is(/واتكتب استرداد 300\.00 ج على شوبيفاي/.test(await pg.evaluate(() => document.body.innerText)), '🆕 توست النجاح بيقول إن الاسترداد اتكتب على شوبيفاي');
   is(!c.some(x => ['bostaPay', 'pay', 'refund'].includes(x.action)), 'ولا تسجيل/تحصيل/استرداد على شوبيفاي من الصفحة');
   is((await rowsOf(pg))[0].cls === 'bx-done', 'صف الـ Exchange في الملف بقى «مسجّل سابقًا» بعد التسجيل');
   is(e11.length === 0, 'صفر خطأ في الكونسول', e11.join(' | '));
@@ -641,7 +671,7 @@ console.log('\n══ ⑪ v1.90.0 — أوردر بـ3 شحنات (#46008): اخ
   const { page: pg2, calls: c2 } = await open({ legFail: '4132677759' });
   await pg2.click('#tabBosta'); await pg2.setInputFiles('#bxFile', F11); await waitReady(pg2);
   await pg2.click('.bx-s1btn'); await pg2.waitForFunction(() => document.querySelectorAll('.s1m-cand').length === 3, null, { timeout: 5000 });
-  await pg2.click('[data-s1all]'); await pg2.click('#bxS1Go'); await confirmGo(pg2);
+  await pg2.click('[data-s1all]'); await pg2.click('[data-s1rfopt="5671180009"][data-v="300.00"]'); await pg2.click('#bxS1Go'); await confirmGo(pg2);
   await pg2.waitForFunction(() => /اتسجّل قبل ما تقف/.test(document.getElementById('bxS1Body').innerText), null, { timeout: 8000 });
   const ps2 = c2.filter(x => x.action === 'bostaPayS1'), t2 = await txt(pg2, '#bxS1Body');
   is(ps2.length === 2 && ps2[1].body.trackingNumber === '4132677759', 'الدفعة وقفت عند أول فشل (S1 + Exchange فقط، الـ CRP ما اتنادتش)', JSON.stringify(ps2.map(x => x.body.trackingNumber)));
@@ -650,6 +680,75 @@ console.log('\n══ ⑪ v1.90.0 — أوردر بـ3 شحنات (#46008): اخ
   is(await pg2.$$eval('.s1m-cand .bx-badge.done', x => x.length) === 1, 'شحنة واحدة بس معلّمة «اتسجّلت قبل كده»');
   await pg2.context().close();
   reset();
+
+  // 🆕 v1.94.0 — حالة nothing_owed: مفيش اختيار مبلغ · تأكيد عادي · refund:{ack:true} بس
+  reset(); LEG.crp = 'nothing_owed';
+  {
+    const { page: pg3, calls: c3, errs: e3 } = await open();
+    await pg3.click('#tabBosta'); await pg3.setInputFiles('#bxFile', F11); await waitReady(pg3);
+    await pg3.click('.bx-s1btn'); await pg3.waitForFunction(() => document.querySelectorAll('.s1m-cand').length === 3, null, { timeout: 5000 });
+    await pg3.click('[data-s1all]');
+    const t3 = await txt(pg3, '#bxS1Body');
+    is(/مفيهاش مستحق استرداد ولا استرداد مسجّل/.test(t3) && !(await pg3.$('.s1m-rf')) && !(await pg3.$eval('#bxS1Go', b => b.disabled)), '🆕 nothing_owed: تنبيه «مفيهاش مستحق» · مفيش اختيار مبلغ · الزرار مفتوح');
+    await pg3.click('#bxS1Go');
+    const cf3 = await txt(pg3, '#confirmBody');
+    is(/شوبيفاي مفيهاش مستحق استرداد/.test(cf3) && !(await pg3.$('#bxRfAck')) && !(await pg3.$eval('#confirmOkBtn', b => b.disabled)) && /تأكيد التسجيل$/.test(await txt(pg3, '#confirmOkBtn')) && /تسجيل في السجل فقط/.test(cf3), '🆕 nothing_owed: نافذة التأكيد بتحذير أصفر · بلا إقرار الاسترداد · «تسجيل في السجل فقط»');
+    await confirmGo(pg3);
+    await pg3.waitForFunction(() => !document.getElementById('bxS1Overlay').classList.contains('open'), null, { timeout: 8000 });
+    const p3 = c3.filter(x => x.action === 'bostaPayS1');
+    is(p3.length === 3 && JSON.stringify(p3[2].body.refund) === JSON.stringify({ ack: true }) && p3[2].body.expected.refundState === 'nothing_owed' && p3[2].body.expected.owed === undefined && p3[0].body.refund === undefined, '🆕 nothing_owed: refund:{ack:true} للـ CRP بس · بلا مبلغ ولا owed', JSON.stringify(p3.map(x => x.body.refund)));
+    is(e3.length === 0, 'صفر خطأ في الكونسول (nothing_owed)', e3.join(' | '));
+    await pg3.context().close();
+  }
+  // 🆕 exists: ملاحظة خضرا · بلا refund في الطلب
+  reset(); LEG.crp = 'exists';
+  {
+    const { page: pg4, calls: c4 } = await open();
+    await pg4.click('#tabBosta'); await pg4.setInputFiles('#bxFile', F11); await waitReady(pg4);
+    await pg4.click('.bx-s1btn'); await pg4.waitForFunction(() => document.querySelectorAll('.s1m-cand').length === 3, null, { timeout: 5000 });
+    await pg4.click('[data-s1all]');
+    is(/استرداد مقابل الشحنة دي موجود على شوبيفاي/.test(await txt(pg4, '#bxS1Body')) && !(await pg4.$('.s1m-rf')), '🆕 exists: «استرداد موجود على شوبيفاي» بلا اختيار مبلغ');
+    await pg4.click('#bxS1Go'); await confirmGo(pg4);
+    await pg4.waitForFunction(() => !document.getElementById('bxS1Overlay').classList.contains('open'), null, { timeout: 8000 });
+    const p4 = c4.filter(x => x.action === 'bostaPayS1');
+    is(p4.length === 3 && p4[2].body.refund === undefined && p4[2].body.expected.refundState === 'exists', '🆕 exists: الطلب بلا refund وexpected.refundState=exists');
+    await pg4.context().close();
+  }
+  reset();
+
+  // 🆕 إصلاح «الأوردر (S2) متكرر في الملف» (#48116) — قاعدة التكرار = صفّين عليهم فلوس بنفس الاتجاه بس
+  {
+    const { page: pg5, calls: c5 } = await open();
+    await pg5.click('#tabBosta');
+    const dup = await pg5.evaluate(() => {
+      const R = (n, tn, type, cod, ref = '#48116') => ({ rowNo: n, trackingNumber: tn, orderRef: ref, orderType: type, cod: String(cod), online: '0', netValue: String(cod) });
+      const a = bxMakeRows([R(71, '5632517136', 'RETURN_TO_ORIGIN', 0), R(156, '6598619692', 'CUSTOMER_RETURN_PICKUP', -1150)]);
+      const b = bxMakeRows([R(1, '1000000001', 'EXCHANGE', 500, '#1'), R(2, '1000000002', 'EXCHANGE', 600, '#1')]);
+      const c = bxMakeRows([R(1, '1000000003', 'EXCHANGE', 500, '#2'), R(2, '1000000004', 'CUSTOMER_RETURN_PICKUP', -300, '#2')]);
+      const d = bxMakeRows([R(1, '1000000005', 'EXCHANGE', 0, '#3'), R(2, '1000000006', 'EXCHANGE', 0, '#3')]);
+      const e = bxMakeRows([R(1, '1000000007', 'CUSTOMER_RETURN_PICKUP', -300, '#4'), R(2, '1000000008', 'CUSTOMER_RETURN_PICKUP', -400, '#4')]);
+      const f = bxMakeRows([R(1, '1000000009', 'SEND', 300, '#5'), R(2, '1000000010', 'EXCHANGE', 300, '#5')]);
+      return { a: a.map(r => r.status), b: b.map(r => r.status), bWhy: b[1].reasons[0], c: c.map(r => r.status), d: d.map(r => r.status), e: e.map(r => r.status), f: f.map(r => r.status) };
+    });
+    is(JSON.stringify(dup.a) === '["pending","pending"]', '🆕 #48116: RTO صفرية (الصف 71) + CRP −1150 (الصف 156) = مش تكرار');
+    is(JSON.stringify(dup.b) === '["pending","error"]' && /الصف 1/.test(dup.bWhy) && /بنفس الاتجاه/.test(dup.bWhy), '🆕 Exchange +500 و+600 لنفس الأوردر = تكرار (فلوس بنفس الاتجاه) بسبب بيسمّي الصف');
+    is(JSON.stringify(dup.c) === '["pending","pending"]', '🆕 Exchange +500 مع CRP −300 (إشارتين مختلفتين) = مش تكرار (#46008)');
+    is(JSON.stringify(dup.d) === '["pending","pending"]', '🆕 صفّين صفريين لنفس الأوردر/الـ slot = مش تكرار (رسوم شحنات ملغية — زي الـ Worker)');
+    is(JSON.stringify(dup.e) === '["pending","error"]', '🆕 CRP −300 و−400 لنفس الأوردر = تكرار (اتجاه واحد)');
+    is(JSON.stringify(dup.f) === '["pending","pending"]', '🆕 S1 و S2 بنفس المبلغ = slots مختلفة، مش تكرار');
+    // الصف المتكرّر محليًا والشحنة اتسجّلت من النافذة → بيروح للـ Worker في إعادة الفحص (ما بيفضلش خطأ)
+    const sent = await pg5.evaluate(async () => {
+      BX.regTn = new Set(); BX.seq++;
+      const R = (n, tn, cod) => ({ rowNo: n, trackingNumber: tn, orderRef: '#9', orderType: 'EXCHANGE', orderStatus: 'D', businessId: 'MrQkqmcexcHuuMo7n', paymentStatus: 'Paid', cashOutId: 'X1', paidAt: '2026-08-05', cod: String(cod), online: '0', netValue: String(cod), totalFees: '0', flexShipAmount: '0' });
+      BX.rows = bxMakeRows([R(1, '2000000001', 500), R(2, '2000000002', 600)]); BX.ctx = bxMakeCtx(BX.rows);
+      const before = BX.rows[1].status;
+      BX.regTn.add('2000000002');
+      await bxValidate([BX.rows[1]]);
+      return { before, after: BX.rows[1].status, resSet: BX.rows[1].res !== null };
+    });
+    is(sent.before === 'error' && sent.resSet, '🆕 بعد تسجيل الشحنة من النافذة: الصف المتكرّر محليًا اتبعت للـ Worker (res اتحدد) بدل ما يفضل خطأ محلي', JSON.stringify(sent));
+    await pg5.context().close();
+  }
 }
 
 console.log('\n══ ⑫ v1.93.0 — #47530: RTO «رسوم فقط» + رأس الكارت + لينكات التتبع + الترتيب بتاريخ الإنشاء + المسجّلة بلا أسباب ══');
