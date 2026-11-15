@@ -1000,6 +1000,16 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 /* §BX-S1 — «فحص شحنات من بوسطة» (v1.84.0 · v1.90.0: أي شحنة + اختيار متعدد): زرار على الصف الممنوع + نافذة اختيار الشحنات */
 .bx-s1btn { margin-top:6px; display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border:2px solid var(--accent-border); background:var(--accent-light); color:var(--accent-dark); border-radius:var(--radius-sm); font-family:inherit; font-size:12px; font-weight:800; cursor:pointer; }
 .bx-s1btn:hover { background:var(--accent-hover); }
+/* 🔴 §BX-INCOMPLETE (v1.92.0) — تنبيه «الجلسة هتتسجّل ناقصة» في نافذة التأكيد: ثيم أحمر مستقل عن تحذير «لا يمكن التراجع» + زرار إقرار مخصوص */
+.bx-inc { margin-top:12px; border:2px solid var(--red); border-inline-start-width:7px; border-radius:var(--radius-sm); background:linear-gradient(180deg,var(--red-lighter),var(--red-light)); padding:12px 14px; box-shadow:0 2px 10px rgba(220,38,38,.16); }
+.bx-inc-top { display:flex; align-items:center; gap:10px; }
+.bx-inc-ico { flex:none; width:34px; height:34px; border-radius:50%; background:var(--red); color:var(--surface); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; }
+.bx-inc-t { font-size:14px; font-weight:800; color:var(--red-darker); line-height:1.5; }
+.bx-inc-q { margin-top:6px; font-size:13px; font-weight:700; color:var(--red-darkest); line-height:1.5; }
+.bx-inc-ack { margin-top:10px; width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:9px 12px; border:2px solid var(--red); border-radius:var(--radius-sm); background:var(--surface); color:var(--red-dark); font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; }
+.bx-inc-ack:hover { background:var(--red-light); }
+.bx-inc-ack[aria-pressed="true"] { background:var(--red); color:var(--surface); }
+.btn-confirm-ok:disabled { opacity:.45; cursor:not-allowed; }
 .s1m-top { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-bottom:10px; }
 .s1m-top > div, .s1m-grid > div { background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 10px; }
 .s1m-top small, .s1m-grid small { display:block; font-size:11px; font-weight:700; color:var(--text-secondary); }
@@ -1463,7 +1473,19 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.91.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.92.0</span>
+          <span class="cl-ver-date">15-11-2026 · «تحصيل بوسطة»: نصوص التنبيهات + تنبيه «الجلسة ناقصة» بثيم أحمر وزرار إقرار</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>سبب صف S2 الممنوع:</strong> «لم يتم تسجيل التحصيل الخاص بالشحنة الأولى (S1) لهذا الأوردر.» — النص بيتحدد في الصفحة من كود الرد (<code>S1_MISSING</code>) فمحتاجش نشر Worker. والزرار بقى «🔎 فحص شحنات بوسطة».</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>تنبيه «الجلسة ناقصة» في نافذة التأكيد:</strong> بثيم أحمر ومختلف عن تحذير «لا يمكن التراجع» — «يوجد N شحنة بها أخطاء ولن يمكن تسجيل التحصيل لها. هل أنت متأكد أنك تريد تسجيل هذه الجلسة ناقصة؟» — و<b>زرار «تأكيد وتسجيل» بيفضل مقفول</b> لحد ما الموظف يضغط زرار الإقرار الأحمد جوّه التنبيه.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>اتحذف سطر «N صف فيهم خطأ لن يتم تسجيلهم…» من تحت زرار التسجيل (التنبيه في نافذة التأكيد بقى هو المكان الوحيد). وبادج الفحص بقى «⏳ جاري الفحص...» (في الصف وفي عدّاد الملخّص) بدل «جاري فحص» و«لسه/تعذّر» أثناء الفحص.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.91.0</span>
           <span class="cl-ver-date">15-11-2026 · سجل العمليات — أزرار فلتر المندوب بقت اتنين</span>
         </div>
         <ul class="cl-items">
@@ -2280,7 +2302,7 @@ let entryBusy = false, entryMeTimer = null, entryFails = [], entryFseq = 0;
 const ENTRY_AR = '٠١٢٣٤٥٦٧٨٩', ENTRY_FA = '۰۱۲۳۴۵۶۷۸۹';
 const entryToWestern = s => String(s ?? '').replace(/[٠-٩]/g, d => ENTRY_AR.indexOf(d)).replace(/[۰-۹]/g, d => ENTRY_FA.indexOf(d));
 function entryNormalize(raw) {
-  let s = String(raw ?? '').replace(/[‎‏‪-‮⁦-⁩ ]/g, ' ');
+  let s = String(raw ?? '').replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069\u00A0]/g, ' ');
   s = entryToWestern(s).trim();
   const noHash = s.replace(/#/g, '').trim();
   if (/^\d[\d\s,،;]*$/.test(noHash)) return { clean: noHash, numeric: true };
@@ -3381,6 +3403,7 @@ function openConfirm(headerHTML, bodyHTML, okLabel, okClass, onConfirm) {
   const newOk = okBtn.cloneNode(true), newCancel = cancelBtn.cloneNode(true);
   okBtn.parentNode.replaceChild(newOk, okBtn); cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
   newCancel.style.display = '';   // openAlert بتخفيه، والـ clone بيورّث الإخفاء
+  newOk.disabled = false;         // الـ clone بيورّث `disabled` (نافذة بوسطة بتقفل الزرار لحد الإقرار)
   newOk.textContent = okLabel; newOk.className = 'btn-confirm-ok ' + okClass;
   newOk.addEventListener('click', () => { $('confirmOverlay').classList.remove('open'); onConfirm(); });
   newCancel.addEventListener('click', () => $('confirmOverlay').classList.remove('open'));
@@ -6101,8 +6124,11 @@ function bxAdjustCtx() {
   c.s1Orders = bxMakeCtx(BX.rows).s1Orders;
   BX.ctx = c;
 }
+// 🔴 v1.92.0 — نص «S1 لسه ما اتسجّلش» بيتحدد هنا من `res.code` (مش من نص الـ Worker) فتعديله مايحتاجش نشر Worker
+const BX_S1_MISSING_MSG = 'لم يتم تسجيل التحصيل الخاص بالشحنة الأولى (S1) لهذا الأوردر.';
 function bxApply(r, res) {
   r.res = res; r.status = res.status; r.reasons = res.reasons || [];
+  if (res.code === 'S1_MISSING') r.reasons = [BX_S1_MISSING_MSG];
   r.orderId = res.orderId; r.orderName = res.orderName; r.shopify = res.shopify; r.pre = res.preRegistered;
   if (res.status === 'done') r.reasons = r.reasons.length ? r.reasons : ['اتسجّل قبل كده'];
 }
@@ -6114,7 +6140,7 @@ function bxProgress(pct) {
 
 // ── الرسم ────────────────────────────────────────────────────
 const BX_ST = {
-  pending: ['wait', '⏳ في الانتظار'], checking: ['wait', '⏳ جاري فحص'], ready: ['ready', '✅ جاهز'], ready_zero: ['zero', '✅ جاهز — بدون تحصيل'],
+  pending: ['wait', '⏳ في الانتظار'], checking: ['wait', '⏳ جاري الفحص...'], ready: ['ready', '✅ جاهز'], ready_zero: ['zero', '✅ جاهز — بدون تحصيل'],
   done: ['done', '🟣 مسجّل سابقًا'], error: ['error', '⛔ خطأ'], unknown: ['warn', '⚠ تعذّر'], running: ['wait', '⏳ بيتسجّل'],
   registered: ['ready', '✔ تم التسجيل'], failed: ['error', '⛔ فشل التسجيل'],
 };
@@ -6140,7 +6166,7 @@ function bxRowHtml(r, i) {
     <td class="col-ltr">${net}</td>
     <td class="col-center">${bxPreLabel(r) === null ? '—' : r.pre ? `<span class="bx-badge prereg" title="فلوسه اتسجّلت على شوبيفاي في أداة التسجيل المسبق — لا يوجد تحصيل جديد عليه (PRE_REG_KV ما اتلمسش)">${BX_PRE_YES}</span>` : `<span class="bx-prenone">${BX_PRE_NO}</span>`}</td>
     <td class="col-center"><span class="bx-badge ${cls}">${lbl}</span></td>
-    <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}${(r.status === 'error' && r.raw.orderRef) ? `<br><button type="button" class="bx-s1btn" data-s1="${i}">🔎 فحص شحنات من بوسطة</button>` : ''}</td>
+    <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}${(r.status === 'error' && r.raw.orderRef) ? `<br><button type="button" class="bx-s1btn" data-s1="${i}">🔎 فحص شحنات بوسطة</button>` : ''}</td>
   </tr>`;
 }
 function bxRender() {
@@ -6157,7 +6183,7 @@ function bxRender() {
     const preN = rows.filter(r => r.pre).length;   // 📋 بيفلتر عمود «التسجيل المسبق» (data-btpre)
     const preStat = `<button type="button" class="bx-stat pre${preN ? '' : ' zero'}" data-btpre="1" aria-pressed="false" title="الصفوف المسجّلة مسبقًا في أداة التسجيل المسبق"><span><small>${BX_PRE_YES}</small><b>${preN}</b></span></button>`;
     $('bxSum').innerHTML =
-      `<div class="bx-one"><div class="bx-stats">${stat('ok', 'ok', 'جاهز للتسجيل', reg.length)}${stat('pur', 'pur', 'مسجّل', done.length)}${stat('err', 'err', 'أخطاء', err.length)}${unk.length ? stat('warn', 'warn', 'لسه/تعذّر', unk.length) : ''}${preStat}</div>` +
+      `<div class="bx-one"><div class="bx-stats">${stat('ok', 'ok', 'جاهز للتسجيل', reg.length)}${stat('pur', 'pur', 'مسجّل', done.length)}${stat('err', 'err', 'أخطاء', err.length)}${unk.length ? stat('warn', 'warn', (BX.phase === 'checking' || BX.phase === 'parsing') ? '⏳ جاري الفحص...' : 'لسه/تعذّر', unk.length) : ''}${preStat}</div>` +
       `<div class="bx-money"><div class="bx-m"><small>إجمالي COD+Online</small><b>${bxM(bxSum(rows, r => r.grossP || 0))}</b></div>` +
       `<div class="bx-m"><small>Net Value للملف</small><b>${bxM(netAll)}</b></div>` +
       `<div class="bx-m pur"><small>Net المسجّل</small><b>${bxM(netDone)}</b></div>` +
@@ -6186,7 +6212,6 @@ function bxRender() {
   if (!isConfigured()) { t = 'الأداة غير مضبوطة — افتح الإعدادات'; e = true; }
   else if (checking) t = 'جاري فحص الملف على شوبيفاي…';
   else if (has && !reg.length && !err.length && !unk.length) t = 'كل صفوف الملف اتسجّلت ✔';
-  else if (err.length) t = `${err.length} صف فيهم خطأ لن يتم تسجيلهم — الجلسة هتفضل ناقصة في الخزنة لحد ما يتصلّحوا`;
   hint.textContent = t; hint.classList.toggle('err', e);
   $('bxNotConfig').classList.toggle('show', !isConfigured());
 }
@@ -6760,13 +6785,28 @@ function bxAskRun() {
     <div style="background:var(--green-light);border:2px solid var(--green-border);border-radius:var(--radius-sm);padding:8px 14px;margin:6px 0;display:flex;justify-content:space-between;align-items:center">
       <span style="font-size:13px;font-weight:700">Net Value (اللي هتتوقعه الخزنة)</span>
       <span style="font-family:var(--font-mono);font-size:18px;font-weight:800;direction:ltr">${bxM(bxSum(reg, r => r.netP || 0))}</span></div>
-    ${err.length ? `<div class="confirm-warning" style="background:var(--amber-light);border-color:var(--amber-border)"><span class="confirm-warning-icon">⚠️</span>
-      <div><div class="confirm-warning-title">${err.length} صف مش هيتسجّل</div>
-      <div class="confirm-warning-text">الجلسة هتفضل <b>ناقصة</b> في الخزنة — موظف الخزنة ما يأكّدش قبل ما كل صفوف الـ Cash-out تتسجّل.</div></div></div>` : ''}
+    ${err.length ? `<div class="bx-inc" id="bxIncBox"><div class="bx-inc-top"><span class="bx-inc-ico">!</span><div class="bx-inc-t">${bxErrShipmentsText(err.length)}</div></div>
+      <div class="bx-inc-q">هل أنت متأكد أنك تريد تسجيل هذه الجلسة ناقصة؟</div>
+      <button type="button" class="bx-inc-ack" id="bxIncAck" aria-pressed="false">☐ نعم، أنا متأكد — سجّل الجلسة ناقصة</button></div>` : ''}
     <div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span>
       <div><div class="confirm-warning-title">تحذير — لا يمكن التراجع</div>
       <div class="confirm-warning-text">التحصيل والاسترداد بيتسجّلوا فعليًا على شوبيفاي. راجع الأرقام قبل التأكيد.</div></div></div>`;
   openConfirm('✅ تأكيد تسجيل تحصيل بوسطة', body, `تأكيد وتسجيل ${reg.length} أوردر`, 'green-btn', bxRun);
+  // 🔴 فيه صفوف خطأ ← زرار «تأكيد وتسجيل» مقفول لحد ما الموظف يضغط زرار الإقرار الأحمد (الجلسة هتفضل ناقصة في الخزنة)
+  if (err.length) {
+    const ok = $('confirmOkBtn'), ack = $('bxIncAck'); ok.disabled = true;
+    ack.addEventListener('click', () => {
+      const on = ack.getAttribute('aria-pressed') !== 'true';
+      ack.setAttribute('aria-pressed', on ? 'true' : 'false');
+      ack.textContent = on ? '☑ تم الإقرار — الجلسة هتتسجّل ناقصة' : '☐ نعم، أنا متأكد — سجّل الجلسة ناقصة';
+      ok.disabled = !on;
+    });
+  }
+}
+// «يوجد 14 شحنة بها أخطاء…» — مطابقة العدد بالعربي (١ · ٢ · ٣-١٠ · ١١+)
+function bxErrShipmentsText(n) {
+  const who = n === 1 ? 'يوجد شحنة واحدة بها أخطاء' : n === 2 ? 'يوجد شحنتان بهما أخطاء' : n <= 10 ? `يوجد ${n} شحنات بها أخطاء` : `يوجد ${n} شحنة بها أخطاء`;
+  return `${who} ولن يمكن تسجيل التحصيل ${n === 2 ? 'لهما' : 'لها'}.`;
 }
 async function bxRun() {
   const seq = BX.seq;

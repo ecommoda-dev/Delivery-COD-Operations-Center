@@ -128,6 +128,8 @@ async function open({ payFail = {}, payNetwork = null, already = new Set(), payW
   await page.goto(`${BASE}/COD-Payment-Center.html`); await page.waitForSelector('#entryInput');
   return { page, calls, errs };
 }
+// v1.92.0 — لو فيه صفوف خطأ نافذة التأكيد بتقفل «تأكيد وتسجيل» لحد زرار الإقرار الأحمر
+const confirmGo = async pg => { if (await pg.$('#bxIncAck')) await pg.click('#bxIncAck'); await pg.click('#confirmOkBtn'); };
 const txt = (page, sel) => page.evaluate(s => (document.querySelector(s)?.innerText || '').replace(/\s+/g, ' ').trim(), sel);
 const upload = async (page, file) => { await page.setInputFiles('#bxFile', FIX(file)); };
 const rowsOf = page => page.$$eval('#bxBody tr', trs => trs.map(t => ({ cls: t.className, cells: [...t.children].map(c => c.innerText.replace(/\s+/g, ' ').trim()) })));
@@ -180,7 +182,7 @@ is(/جاهز للتسجيل 5/.test(sum) && /أخطاء 5/.test(sum), 'المل�
 const runTxt = await txt(page, '#bxRun');
 is(/سجّل 5 أوردر/.test(runTxt), 'زرار التسجيل بعدد الجاهز', runTxt);
 is(await page.$eval('#bxRun', e => !e.disabled), 'زرار التسجيل مفعّل');
-is(/ناقصة في الخزنة/.test(await txt(page, '#bxHint')), 'تلميح: الجلسة هتفضل ناقصة في الخزنة', await txt(page, '#bxHint'));
+is(!/لن يتم تسجيلهم|ناقصة في الخزنة/.test(await txt(page, '#bxHint')), 'سطر «صف فيهم خطأ لن يتم تسجيلهم…» اتحذف من التلميح (v1.92.0)', await txt(page, '#bxHint'));
 is(await page.$$eval('#bxTable th .bt-flt', e => e.length) === 10, 'قمع الفلتر على كل الأعمدة العشرة (القسم الموحّد v8.7.0)');
 is(await page.evaluate(() => !document.querySelector('.eco-tbl-on,.eco-tbl-bar')), 'مفيش محرّك §TABLE القديم على الجدول (محرّكه الخاص بس)');
 is(await page.evaluate(() => !!document.querySelector('#bxBody a.order-link[href*="/admin/orders/101"]')), 'رقم الأوردر لينك لشوبيفاي');
@@ -191,10 +193,18 @@ const conf = await txt(page, '#confirmBody');
 is(await page.$eval('#confirmOverlay', e => e.classList.contains('open')), 'نافذة التأكيد اتفتحت');
 is(/Cash-out TESTCOD02NOV26/.test(conf) || /TESTCOD02NOV26/.test(conf), 'التأكيد بيذكر الـ Cash-out', conf);
 is(/تحصيل على شوبيفاي \(3\)/.test(conf) && /استرداد على شوبيفاي \(1\)/.test(conf) && /بدون تحصيل.*\(1\)/.test(conf), 'التأكيد بيفصّل: 3 تحصيل · 1 استرداد · 1 بدون تحصيل', conf);
-is(/5 صف مش هيتسجّل/.test(conf) && /ناقصة/.test(conf), 'تحذير: 5 صفوف مش هتتسجّل والجلسة ناقصة', conf);
+is(/يوجد 5 شحنات بها أخطاء ولن يمكن تسجيل التحصيل لها/.test(conf) && /هل أنت متأكد أنك تريد تسجيل هذه الجلسة ناقصة/.test(conf), 'تنبيه أحمر: 5 شحنات بها أخطاء + سؤال التأكيد', conf);
+is(await page.$eval('#bxIncBox', e => getComputedStyle(e).borderTopColor) !== await page.$eval('.confirm-warning', e => getComputedStyle(e).borderTopColor), 'التنبيه الأحمر بتصميم مختلف عن تحذير «لا يمكن التراجع»');
+is(await page.$eval('#confirmOkBtn', e => e.disabled), 'زرار «تأكيد وتسجيل» مقفول قبل الإقرار');
+await page.click('#confirmOkBtn', { force: true, timeout: 500 }).catch(() => {});
+is(!calls.some(c => c.action === 'bostaPay'), 'الضغط على المقفول ما سجّلش حاجة');
+await page.click('#bxIncAck');
+is(await page.$eval('#confirmOkBtn', e => !e.disabled), 'بعد الإقرار الزرار اتفتح');
+await page.click('#bxIncAck');
+is(await page.$eval('#confirmOkBtn', e => e.disabled), 'إلغاء الإقرار بيقفل الزرار تاني');
 is(/لا يمكن التراجع/.test(conf), 'تحذير «لا يمكن التراجع»');
 is(!calls.some(c => c.action === 'bostaPay'), 'مفيش تسجيل قبل التأكيد');
-await page.click('#confirmOkBtn');
+await confirmGo(page);
 await page.waitForFunction(() => !window.__bxBusy && document.getElementById('bxResult').className.includes('show'), null, { timeout: 15000 });
 const pays = calls.filter(c => c.action === 'bostaPay');
 is(pays.length === 5, 'خمس نداءات bostaPay (الجاهز بس)', String(pays.length));
@@ -235,7 +245,7 @@ console.log('\n══ ⑤ فشل صف وانقطاع اتصال ══');
 registered.clear();
 ({ page, calls, errs } = await open({ payFail: { '#70102': 'الأوردر اتعدّل بعد الفحص — الإجمالي ≠ مستحق شوبيفاي' } }));
 await page.click('#tabBosta'); await upload(page, 'bosta-cash-cycles-sample.xlsx'); await waitReady(page);
-await page.click('#bxRun'); await page.click('#confirmOkBtn');
+await page.click('#bxRun'); await confirmGo(page);
 await page.waitForFunction(() => !window.__bxBusy && document.getElementById('bxResult').className.includes('show'), null, { timeout: 15000 });
 rows = await rowsOf(page);
 is(rows[1].cls === 'bx-failed' && /اتعدّل بعد الفحص/.test(rows[1].cells[9]), 'صف رفضه الـ Worker لحظة التسجيل ← «فشل» وبسببه');
@@ -247,7 +257,7 @@ await page.context().close();
 registered.clear();
 ({ page, calls, errs } = await open({ payNetwork: '#70103' }));
 await page.click('#tabBosta'); await upload(page, 'bosta-cash-cycles-sample.xlsx'); await waitReady(page);
-await page.click('#bxRun'); await page.click('#confirmOkBtn');
+await page.click('#bxRun'); await confirmGo(page);
 await page.waitForFunction(() => !window.__bxBusy && document.getElementById('bxResult').className.includes('show'), null, { timeout: 15000 });
 rows = await rowsOf(page);
 is(rows[2].cls === 'bx-unknown' && /ما اتأكدناش/.test(rows[2].cells[9]), 'انقطاع الاتصال ← «تعذّر» مش «فشل» (الكتابة ممكن تكون تمّت)');
@@ -451,7 +461,7 @@ console.log('\n══ ⑨ v1.83.0 — S1 المسجّل مسبقًا + بواب�
   const cf9 = await txt(pg, '#confirmBody');
   is(/S1 مسجّل مسبقًا — تسجيل في السجل فقط \(1\)/.test(cf9) && /بلا حركة على شوبيفاي/.test(cf9), 'التأكيد: سطر مستقل للـ S1 المسجّل مسبقًا بلا حركة على شوبيفاي', cf9);
   is(/تحصيل على شوبيفاي \(1\)/.test(cf9), 'التأكيد: التحصيل على شوبيفاي = S2 بس (1)', cf9);
-  await pg.click('#confirmOkBtn');
+  await confirmGo(pg);
   await pg.waitForFunction(() => !window.__bxBusy && document.getElementById('bxResult').className.includes('show'), null, { timeout: 15000 });
   const pays9 = c9.filter(c => c.action === 'bostaPay').map(c => c.body.row.orderType);
   is(JSON.stringify(pays9) === JSON.stringify(['SEND', 'EXCHANGE']), 'S1 اتسجّل قبل S2 رغم إن S2 أول في الملف', JSON.stringify(pays9));
@@ -478,8 +488,8 @@ console.log('\n══ ⑩ v1.84.0 — فحص S1 من بوسطة مباشرة (#4
   const { page: pg, calls: c10, errs: e10 } = await open();
   await pg.click('#tabBosta'); await pg.setInputFiles('#bxFile', F10); await waitReady(pg);
   let r10 = await rowsOf(pg);
-  is(r10.length === 1 && r10[0].cls === 'bx-error' && /S1 بتاع الأوردر ده لسه ما اتسجّلش/.test(r10[0].cells[9]), 'صف S2 الممنوع ظاهر خطأ بسبب S1', JSON.stringify(r10));
-  is(await pg.$$eval('.bx-s1btn', b => b.length) === 1, 'زرار «🔎 فحص شحنات من بوسطة» ظاهر على الصف الممنوع بس');
+  is(r10.length === 1 && r10[0].cls === 'bx-error' && /لم يتم تسجيل التحصيل الخاص بالشحنة الأولى \(S1\) لهذا الأوردر\./.test(r10[0].cells[9]) && !/لسه ما اتسجّلش/.test(r10[0].cells[9]), 'صف S2 الممنوع ظاهر خطأ بسبب S1', JSON.stringify(r10));
+  is(await pg.$$eval('.bx-s1btn', b => b.length) === 1, 'زرار «🔎 فحص شحنات بوسطة» ظاهر على الصف الممنوع بس');
   is(!calls.some(c => c.action === 'bostaS1Check') && !c10.some(c => c.action === 'bostaS1Check'), 'ولا نداء لبوسطة قبل ما الموظف يضغط');
   await pg.click('.bx-s1btn');
   await pg.waitForFunction(() => document.querySelectorAll('.s1m-cand').length > 0, null, { timeout: 5000 });
@@ -501,7 +511,7 @@ console.log('\n══ ⑩ v1.84.0 — فحص S1 من بوسطة مباشرة (#4
   await pg.click('#bxS1Go');
   const cf10 = await txt(pg, '#confirmBody');
   is(/في السجل فقط/.test(cf10) && /4,791\.74/.test(cf10) && /مفيش أي حركة على شوبيفاي/.test(cf10) && /مفتاح التسجيل المسبق هيتمسح/.test(cf10), 'نافذة التأكيد بتسمّي الأرقام وإنه سجل بس بلا شوبيفاي', cf10.slice(0, 260));
-  await pg.click('#confirmOkBtn');
+  await confirmGo(pg);
   await pg.waitForFunction(() => !document.getElementById('bxS1Overlay').classList.contains('open'), null, { timeout: 8000 });
   await pg.waitForFunction(() => BX.phase === 'ready' && BX.rows[0].status === 'ready', null, { timeout: 8000 });
   const ps10 = c10.filter(c => c.action === 'bostaPayS1');
@@ -521,7 +531,7 @@ console.log('\n══ ⑩ v1.84.0 — فحص S1 من بوسطة مباشرة (#4
   const { page: pg2, calls: c2 } = await open({ s1Stale: true });
   await pg2.click('#tabBosta'); await pg2.setInputFiles('#bxFile', F10); await waitReady(pg2);
   await pg2.click('.bx-s1btn'); await pg2.waitForSelector('.s1m-cand');
-  await pg2.click('[data-s1tn="6579132699"]'); await pg2.click('#bxS1Go'); await pg2.click('#confirmOkBtn');
+  await pg2.click('[data-s1tn="6579132699"]'); await pg2.click('#bxS1Go'); await confirmGo(pg2);
   await pg2.waitForFunction(() => /اتغيّرت/.test(document.getElementById('bxS1Body').innerText), null, { timeout: 8000 });
   is(await pg2.$eval('#bxS1Overlay', e => e.classList.contains('open')) && c2.filter(c => c.action === 'bostaS1Check').length === 2, 'stale: النافذة فضلت مفتوحة + الفحص اتعاد', String(c2.filter(c => c.action === 'bostaS1Check').length));
   is((await rowsOf(pg2))[0].cls === 'bx-error', 'stale: صف S2 لسه ممنوع (S1 ما اتسجّلش)');
@@ -542,7 +552,7 @@ console.log('\n══ ⑩ v1.84.0 — فحص S1 من بوسطة مباشرة (#4
   await pg5.click('#tabBosta'); await pg5.setInputFiles('#bxFile', F10c); await waitReady(pg5);
   const r5 = await rowsOf(pg5);
   is(r5.length === 2 && r5.every(r => r.cls === 'bx-error'), 'صفان خطأ (واحد S1_MISSING وواحد بسبب تاني)', r5.map(r => r.cls).join());
-  is(await pg5.$$eval('tr.bx-error .bx-s1btn', b => b.length) === 2, 'زرار «🔎 فحص شحنات من بوسطة» على كل صف خطأ');
+  is(await pg5.$$eval('tr.bx-error .bx-s1btn', b => b.length) === 2, 'زرار «🔎 فحص شحنات بوسطة» على كل صف خطأ');
   await pg5.context().close();
 
   // ── ملف cash-out قديم اتسجّل بعدين: الصف المسجّل من بوسطة (catchUp) بيتطرح من عدّادات الجلسة ──
@@ -555,7 +565,7 @@ console.log('\n══ ⑩ v1.84.0 — فحص S1 من بوسطة مباشرة (#4
   is(r4[0].cls === 'bx-done' && r4[1].cls === 'bx-ready', 'S1 المسجّل من بوسطة «مسجّل سابقًا» وS2 جاهز', r4.map(r => r.cls).join());
   const ctx4 = await pg4.evaluate(() => BX.ctx);
   is(ctx4.rowsTotal === 1 && ctx4.netTotal === '1052.86' && ctx4.payOrders === 1, 'ctx بعد الطرح: صف واحد وNet 1052.86 (من غير صف الـ API)', JSON.stringify(ctx4));
-  await pg4.click('#bxRun'); await pg4.click('#confirmOkBtn');
+  await pg4.click('#bxRun'); await confirmGo(pg4);
   await pg4.waitForFunction(() => !window.__bxBusy && document.getElementById('bxResult').className.includes('show'), null, { timeout: 15000 });
   const pay4 = c4.filter(c => c.action === 'bostaPay');
   is(pay4.length === 1 && pay4[0].body.ctx.rowsTotal === 1 && pay4[0].body.ctx.netTotal === '1052.86', 'bostaPay بعت ctx المعدّل (batchExpected هيطابق الصفوف الفعلية)', JSON.stringify(pay4.map(c => c.body.ctx)));
@@ -594,7 +604,7 @@ console.log('\n══ ⑪ v1.90.0 — أوردر بـ3 شحنات (#46008): اخ
   await pg.click('#bxS1Go');
   const cf = await txt(pg, '#confirmBody');
   is(/9619903860/.test(cf) && /4132677759/.test(cf) && /5671180009/.test(cf) && /3,956\.54/.test(cf) && /createRefund/.test(cf) && /استرداد بلا مقابل على شوبيفاي/.test(cf) && /S1 الأول/.test(cf), 'نافذة التأكيد: التلات شحنات + المجموع + تحذير الاسترداد (بلا createRefund)', cf.slice(0, 220));
-  await pg.click('#confirmOkBtn');
+  await confirmGo(pg);
   await pg.waitForFunction(() => !document.getElementById('bxS1Overlay').classList.contains('open'), null, { timeout: 8000 });
   await pg.waitForFunction(() => BX.phase === 'ready' && BX.rows[0].status === 'done', null, { timeout: 8000 });
   const ps = c.filter(x => x.action === 'bostaPayS1');
@@ -611,7 +621,7 @@ console.log('\n══ ⑪ v1.90.0 — أوردر بـ3 شحنات (#46008): اخ
   const { page: pg2, calls: c2 } = await open({ legFail: '4132677759' });
   await pg2.click('#tabBosta'); await pg2.setInputFiles('#bxFile', F11); await waitReady(pg2);
   await pg2.click('.bx-s1btn'); await pg2.waitForFunction(() => document.querySelectorAll('.s1m-cand').length === 3, null, { timeout: 5000 });
-  await pg2.click('[data-s1all]'); await pg2.click('#bxS1Go'); await pg2.click('#confirmOkBtn');
+  await pg2.click('[data-s1all]'); await pg2.click('#bxS1Go'); await confirmGo(pg2);
   await pg2.waitForFunction(() => /اتسجّل قبل ما تقف/.test(document.getElementById('bxS1Body').innerText), null, { timeout: 8000 });
   const ps2 = c2.filter(x => x.action === 'bostaPayS1'), t2 = await txt(pg2, '#bxS1Body');
   is(ps2.length === 2 && ps2[1].body.trackingNumber === '4132677759', 'الدفعة وقفت عند أول فشل (S1 + Exchange فقط، الـ CRP ما اتنادتش)', JSON.stringify(ps2.map(x => x.body.trackingNumber)));
