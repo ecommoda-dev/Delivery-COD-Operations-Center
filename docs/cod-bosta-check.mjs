@@ -1,4 +1,4 @@
-// docs/cod-bosta-check.mjs — فحص تاب «تحصيل بوسطة» v1.77.0 (متصفح فعلي + Worker وهمي + ملفات إكسيل حقيقية)
+// docs/cod-bosta-check.mjs — فحص تاب «تحصيل بوسطة» (آخر تمريرة v1.93.0) (متصفح فعلي + Worker وهمي + ملفات إكسيل حقيقية)
 //   npm i playwright exceljs@4.3.0 --no-save && node docs/cod-bosta-check.mjs
 //   EXCELJS_PATH=مسار/exceljs.min.js (الـ CDN مش متاح في بيئة الفحص فبنقدّمه محليًا) · PW_CHROMIUM لو كروميوم مثبّت مسبقًا
 //   الملفات في docs/fixtures (بيانات تجريبية بنفس شكل ملف Cash Cycles الحقيقي — بلا أسماء عملاء حقيقية).
@@ -51,6 +51,18 @@ const L46 = [
 const legCands = () => L46.map(c => LEG.reg.has(c.trackingNumber)
   ? { ...c, oldType: null, collection: 'cashed_out', onlineAmount: null, notes: [], afterS1: false, refundMissing: false, eligible: false, registered: { cashOutId: c.cashOutId, at: '2026-11-14 10:00', viaApi: true }, blockers: ['اتسجّلت قبل كده (Cash-out ' + c.cashOutId + ')'] }
   : { ...c, oldType: null, collection: 'cashed_out', onlineAmount: null, notes: [], afterS1: c.leg === 'S2' && !LEG.s1, eligible: true, registered: null, blockers: [] });
+// v1.93.0 — #47530 (حقيقي): الـ Worker 3.17.0 بيرجّع الشحنات بأي ترتيب — الواجهة بترتّبها بتاريخ إنشاء الشحنة على بوسطة (الأقدم أولًا)
+const P47 = { done: new Set() };
+const L47 = [
+  { leg: 'S2', legKind: 'rto_fee', typeCode: 20, typeLabel: 'Return to Origin', oldType: 'EXCHANGE', trackingNumber: '3505408529', stateCode: 46, stateLabel: 'Returned to business', createdAt: '2026-08-02T09:00:00Z', collection: 'cashed_out',
+    cashOutId: 'WEDCOD05AUG26', cashOutDate: '2026-08-05', totalAmount: '100.00', flexShipAmount: '100.00', fees: '181.26', onlineAmount: null, gross: '0.00', net: '-81.26', notes: [], afterS1: false, refundMissing: false, blockers: [], eligible: true, registered: null },
+  { leg: 'S2', typeCode: 30, typeLabel: 'Exchange', oldType: null, trackingNumber: '7217235847', stateCode: 46, stateLabel: 'Returned to business', createdAt: '2026-08-06T09:00:00Z', collection: 'cashed_out',
+    cashOutId: 'MONCOD10AUG26', cashOutDate: '2026-08-10', totalAmount: '100.00', flexShipAmount: '0.00', fees: '149.34', onlineAmount: null, gross: '100.00', net: '-49.34', afterS1: false, refundMissing: false,
+    notes: ['رقم S2 على شوبيفاي (3505408529) غير رقم الشحنة دي'], blockers: ['مفيش معاملة SALE ناجحة على شوبيفاي تغطي إجمالي Exchange (100.00) + شحنات بوسطة المسجّلة قبل كده (5275.00) — الموجود 5275.00 — راجع 3356047136'], eligible: false, registered: null },
+  { leg: 'S1', typeCode: 10, typeLabel: 'Send', oldType: null, trackingNumber: '3356047136', stateCode: 45, stateLabel: 'Delivered', createdAt: '2026-07-15T09:00:00Z', collection: 'cashed_out',
+    cashOutId: 'MONCOD20JUL26', cashOutDate: '2026-07-20', totalAmount: '5275.00', flexShipAmount: '0.00', fees: '166.16', onlineAmount: null, gross: '5275.00', net: '5108.84', notes: [], afterS1: false, refundMissing: false,
+    blockers: ['اتسجّلت قبل كده (Cash-out MONCOD20JUL26)'], eligible: false, registered: { cashOutId: 'MONCOD20JUL26', at: '2026-11-14 10:00', viaApi: true } },
+];
 const CATCHUP = new Set();          // أرقام تتبع اتسجّلت من بوسطة مباشرة (Worker بيرجّعها done + catchUp)
 const S1_CANDS = [
   { leg: 'S1', afterS1: false, refundMissing: false, notes: [], trackingNumber: '6579132699', typeCode: 10, typeLabel: 'Send', oldType: null, stateCode: 45, stateLabel: 'Delivered', collection: 'cashed_out', cashOutId: 'WEDCOD05AUG26', cashOutDate: '2026-08-05',
@@ -93,7 +105,15 @@ async function open({ payFail = {}, payNetwork = null, already = new Set(), payW
         return { rowNo: r.rowNo, tracking: r.trackingNumber, reasons: [], ...v };
       }) };
     }
-    if (action === 'bostaS1Check' && body.orderRef === '#46008') {
+    if (action === 'bostaValidate' && body.rows.some(r => r.orderRef === '#47530')) {
+      out = { success: true, results: body.rows.map(r => ({ rowNo: r.rowNo, status: 'error', orderId: '501', orderName: '#47530', shopify: '75.00', code: 'S1_MISSING', reasons: ['x'] })) };
+    }
+    if (action === 'bostaS1Check' && body.orderRef === '#47530') {
+      out = { success: true, found: true, orderId: '501', orderName: '#47530', courier: 'Bosta', financialStatus: 'PARTIALLY_PAID', shopifyOutstanding: '75.00', shopifySaleCaptured: '5275.00', shopifyRefunded: '0.00',
+        t1: null, t2: null, hasS1: true, preRegistered: false, preReg: null, candidates: L47 };
+    } else if (action === 'bostaPayS1' && body.orderRef === '#47530') {
+      P47.done.add(body.trackingNumber); out = { success: true, status: 'success', actions: ['تم'], logged: true, leg: 'S2', kind: 'none', net: '-81.26', amount: '0.00' };
+    } else if (action === 'bostaS1Check' && body.orderRef === '#46008') {
       out = { success: true, found: true, orderId: '401', orderName: '#46008', courier: 'Bosta', financialStatus: 'PAID', shopifyOutstanding: '-2300.00', shopifySaleCaptured: '4700.00', shopifyRefunded: '0.00',
         t1: null, t2: null, hasS1: LEG.s1, preRegistered: false, preReg: null, candidates: legCands() };
     } else if (action === 'bostaS1Check') {
@@ -499,7 +519,7 @@ console.log('\n══ ⑩ v1.84.0 — فحص S1 من بوسطة مباشرة (#4
   const ok10 = await pg.$$eval('.s1m-cand', c => c.map(x => x.classList.contains('ok')));
   is(JSON.stringify(ok10) === '[true,false,false]', 'الأولى بس قابلة للاختيار', JSON.stringify(ok10));
   const modalTxt = await txt(pg, '#bxS1Body');
-  is(/4,791\.74/.test(modalTxt) && /WEDCOD05AUG26/.test(modalTxt) && /Delivered \(45\)/.test(modalTxt), 'الأرقام والـ Cash-out والحالة ظاهرين', modalTxt.slice(0, 200));
+  is(/4,791\.74/.test(modalTxt) && /WEDCOD05AUG26/.test(modalTxt) && /Delivered · 45/.test(modalTxt), 'الأرقام والـ Cash-out والحالة ظاهرين', modalTxt.slice(0, 200));
   is(/مش شحنة S1 \(نوعها «Exchange»\)/.test(modalTxt) && /≠ S1 على شوبيفاي/.test(modalTxt), 'أسباب المنع ظاهرة بالنص', '');
   is(/معاملات SALE ناجحة على شوبيفاي/.test(modalTxt) && /📋 موجود/.test(modalTxt), 'دليل شوبيفاي والتسجيل المسبق ظاهرين', '');
   is(await pg.$eval('#bxS1Go', b => b.disabled), 'زرار التسجيل مقفول قبل اختيار شحنة');
@@ -630,6 +650,59 @@ console.log('\n══ ⑪ v1.90.0 — أوردر بـ3 شحنات (#46008): اخ
   is(await pg2.$$eval('.s1m-cand .bx-badge.done', x => x.length) === 1, 'شحنة واحدة بس معلّمة «اتسجّلت قبل كده»');
   await pg2.context().close();
   reset();
+}
+
+console.log('\n══ ⑫ v1.93.0 — #47530: RTO «رسوم فقط» + رأس الكارت + لينكات التتبع + الترتيب بتاريخ الإنشاء + المسجّلة بلا أسباب ══');
+{
+  const ExcelNode = req(path.resolve(path.dirname(EXCEL), '..'));
+  const wb = new ExcelNode.Workbook(), ws = wb.addWorksheet('Cash Cycles');
+  ws.addRow(['Business ID', 'Order Id', 'Order Type', 'Order Status', 'Order Reference', 'COD', 'Online Payment Amount', 'Total Fees', 'Flex Ship Amount', 'Net Value', 'Payment Status', 'Paid At', 'Cash-out ID']);
+  ws.addRow(['MrQkqmcexcHuuMo7n', '7217235847', 'EXCHANGE', 'Delivered', '#47530', 100, 0, 149.34, 0, -49.34, 'Paid', '2026-08-10', 'MONCOD10AUG26']);
+  const F12 = path.join(os_tmp(), 'bx-47530.xlsx'); await wb.xlsx.writeFile(F12);
+  P47.done.clear();
+  const { page: pg, calls: c, errs: e12 } = await open();
+  await pg.click('#tabBosta'); await pg.setInputFiles('#bxFile', F12); await waitReady(pg);
+  await pg.click('.bx-s1btn'); await pg.waitForFunction(() => document.querySelectorAll('.s1m-cand').length === 3, null, { timeout: 5000 });
+  is(JSON.stringify(await pg.$$eval('.s1m-cand .tn', x => x.map(n => n.textContent))) === JSON.stringify(['3356047136', '3505408529', '7217235847']), '🔴 الترتيب بتاريخ إنشاء الشحنة (الأقدم أولًا) — مش ترتيب رد الـ Worker', JSON.stringify(await pg.$$eval('.s1m-cand .tn', x => x.map(n => n.textContent))));
+  is(JSON.stringify(await pg.$$eval('.s1m-cand', x => x.map(n => n.querySelectorAll('.s1m-hc').length))) === '[5,5,5]', 'رأس كل كارت = 5 خلايا مفصولة (رقم التتبع · الشحنة · الحالة · الإنشاء · الحكم)');
+  const heads = await pg.$$eval('.s1m-cand .s1m-h', hs => hs.map(h => [...h.querySelectorAll('.s1m-hc')].map(c => c.innerText.replace(/\s+/g, ' ').trim())));
+  is(JSON.stringify(heads[0]) === JSON.stringify(['رقم التتبع 3356047136', 'الشحنة S1 Send', 'حالة الشحنة Delivered · 45', 'تاريخ الإنشاء 2026-07-15', '🟣 تم تسجيل هذه الشحنة']), 'رأس S1: الخلايا بقيمها', JSON.stringify(heads[0]));
+  is(/S2 Return to Origin كانت EXCHANGE/.test(heads[1][1]) && /Returned to business · 46/.test(heads[1][2]) && /2026-08-02/.test(heads[1][3]) && /قابلة للتسجيل/.test(heads[1][4]), 'رأس RTO: النوع + «كانت EXCHANGE» + الحالة + التاريخ + قابلة', JSON.stringify(heads[1]));
+  is(JSON.stringify(await pg.$$eval('.s1m-cand .s1m-st', x => x.map(n => n.className.replace('s1m-st', '').trim()))) === JSON.stringify(['ok', 'ret', 'ret']), 'لون الحالة: Delivered أخضر · Returned كهرماني');
+  is(JSON.stringify(await pg.$$eval('.s1m-cand .s1m-leg', x => x.map(n => n.classList.contains('s2')))) === '[false,true,true]', 'شارة S1 بلون وS2 بلون تاني');
+  // 🔗 لينكات التتبع
+  const links = await pg.$$eval('.s1m-cand a.tn', a => a.map(x => [x.getAttribute('href'), x.target, x.rel]));
+  is(JSON.stringify(links) === JSON.stringify([['https://business.bosta.co/orders/3356047136', '_blank', 'noopener'], ['https://business.bosta.co/orders/3505408529', '_blank', 'noopener'], ['https://business.bosta.co/orders/7217235847', '_blank', 'noopener']]), '🔗 كل رقم تتبع في الرأس لينك لداشبورد بوسطة', JSON.stringify(links));
+  is(await pg.$$eval('.s1m-why a, .s1m-inf a', a => a.map(x => x.getAttribute('href')).sort().join()) === 'https://business.bosta.co/orders/3356047136,https://business.bosta.co/orders/3505408529', '🔗 أرقام التتبع جوّه الأسباب والملاحظات لينكات كمان');
+  is(!(await pg.$$eval('.s1m-why a, .s1m-inf a', a => a.some(x => /^\d{1,7}$/.test(x.textContent) || x.textContent.includes('.')))), 'ومفيش مبلغ/رقم قصير اتحوّل للينك بالغلط');
+  // ✅ المسجّلة
+  const card0 = await pg.$eval('.s1m-cand:nth-of-type(1)', n => n.innerText.replace(/\s+/g, ' ')).catch(() => '');
+  const c0 = await pg.$$eval('.s1m-cand', x => x[0].innerText.replace(/\s+/g, ' '));
+  is(/تم تسجيل هذه الشحنة/.test(c0) && !/اتسجّلت قبل كده/.test(c0) && !/مفيش معاملة SALE/.test(c0), '🟣 المسجّلة: الشارة «تم تسجيل هذه الشحنة» وسطرا السبب اتحذفوا', c0.slice(0, 250));
+  is(await pg.$$eval('.s1m-cand', x => x[0].querySelectorAll('.s1m-why').length) === 0, 'المسجّلة: مفيش قايمة أسباب خالص');
+  is(await pg.$$eval('.s1m-cand', x => x[2].querySelectorAll('.s1m-why li').length) === 1, 'الشحنة غير القابلة (مش مسجّلة) لسه بتعرض أسبابها');
+  // RTO
+  const c1 = await pg.$$eval('.s1m-cand', x => x[1].innerText.replace(/\s+/g, ' '));
+  is(/FlexShip \(اتحصّل من العميل\) 100(?!\.)/.test(c1) && /181\.26/.test(c1) && /[-−]81\.26/.test(c1) && /شحنة فاشلة/.test(c1) && /بلا أي حركة على شوبيفاي/.test(c1), 'RTO: رسوم 181.26 + FlexShip 100 + الصافي −81.26 + شرح «بلا حركة على شوبيفاي»', c1.slice(0, 400));
+  is(await pg.$$eval('.s1m-cand', x => x[1].querySelector('.s1m-net').classList.contains('bx-neg')), 'الصافي السالب أحمر');
+  // الضغط على اللينك مابيختارش الكارت
+  await pg.evaluate(() => document.addEventListener('click', e => { if (e.target.closest('a')) e.preventDefault(); }, true));
+  await pg.click('.s1m-cand:nth-child(2) a.tn, [data-s1tn="3505408529"] a.tn');
+  is(!(await pg.$eval('[data-s1tn="3505408529"]', n => n.classList.contains('sel'))) && await pg.$eval('#bxS1Go', b => b.disabled), 'الضغط على لينك التتبع مابيختارش الشحنة');
+  await pg.click('[data-s1tn="3505408529"] .s1m-grid');
+  is(await pg.$eval('[data-s1tn="3505408529"]', n => n.classList.contains('sel')) && /سجّل المختار \(1\)/.test(await txt(pg, '#bxS1Go')) && !(await pg.$eval('#bxS1Go', b => b.disabled)), 'الضغط على جسم الكارت بيختار RTO (S1 متسجّلة فالبوابة مفتوحة)');
+  is(/المختار: 1 شحنة · مجموع الـ Net [-−]81\.26/.test(await txt(pg, '#bxS1Body')), 'مجموع الـ Net للمختار −81.26');
+  await pg.click('#bxS1Go');
+  const cf = await txt(pg, '#confirmBody'), cfLinks = await pg.$$eval('#confirmBody a', a => a.map(x => x.getAttribute('href')));
+  is(/رسوم فقط/.test(cf) && /رسوم 181\.26/.test(cf) && /FlexShip 100(?!\.)/.test(cf) && /Net [-−]81\.26/.test(cf) && /مفيش أي حركة على شوبيفاي/.test(cf), 'نافذة التأكيد: «رسوم فقط» + رسوم − FlexShip = Net + بلا حركة على شوبيفاي', cf.slice(0, 300));
+  is(cfLinks.includes('https://business.bosta.co/orders/3505408529'), '🔗 رقم التتبع في نافذة التأكيد لينك كمان', JSON.stringify(cfLinks));
+  await confirmGo(pg);
+  await pg.waitForFunction(() => !document.getElementById('bxS1Overlay').classList.contains('open'), null, { timeout: 8000 });
+  const ps = c.filter(x => x.action === 'bostaPayS1');
+  is(ps.length === 1 && ps[0].body.trackingNumber === '3505408529' && JSON.stringify(ps[0].body.expected) === JSON.stringify({ gross: '0.00', net: '-81.26', cashOutId: 'WEDCOD05AUG26' }) && ps[0].body.ackRefundMissing === undefined && ps[0].body.orderRef === '#47530', 'bostaPayS1 بأرقام الـ RTO (إجمالي 0 · Net −81.26) بلا ackRefundMissing', JSON.stringify(ps.map(x => x.body)));
+  is(!c.some(x => ['bostaPay', 'pay', 'refund'].includes(x.action)), 'ولا تسجيل/تحصيل/استرداد على شوبيفاي من الصفحة');
+  is(e12.length === 0, 'صفر خطأ في الكونسول', e12.join(' | '));
+  await pg.context().close();
 }
 
 await browser.close(); server.close();

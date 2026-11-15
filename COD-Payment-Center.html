@@ -1028,8 +1028,23 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 #bxS1Go:not(:disabled) { background:var(--green); color:var(--on-accent); }
 #bxS1Go:not(:disabled):hover { filter:brightness(.92); }
 .s1m-cand.bad { opacity:.92; border-color:var(--red-border); }
-.s1m-h { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:8px; font-size:13px; font-weight:700; }
-.s1m-h .tn { font-family:var(--font-mono); font-size:15px; font-weight:800; direction:ltr; }
+/* 🔴 v1.93.0 — رأس كارت الشحنة: شريط خلايا مفصولة (رقم التتبع · الشحنة · الحالة · الإنشاء · الحكم) بدل سطر واحد متصل */
+.s1m-h { display:flex; flex-wrap:wrap; align-items:stretch; margin-bottom:10px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface-2); overflow:hidden; font-size:13px; font-weight:700; }
+.s1m-hc { display:flex; flex-direction:column; justify-content:center; gap:4px; padding:7px 14px; min-width:96px; border-inline-start:1px solid var(--border); }
+.s1m-hc:first-child { border-inline-start:0; }
+.s1m-hc > small { font-size:11px; font-weight:700; color:var(--text-secondary); }
+.s1m-hc-row { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.s1m-hc.verdict { margin-inline-start:auto; align-items:center; background:var(--surface); }
+.s1m-h .tn { font-family:var(--font-mono); font-size:15px; font-weight:800; direction:ltr; display:inline-block; color:var(--accent); text-decoration:none; }
+.s1m-h a.tn:hover { text-decoration:underline; color:var(--accent-dark); }
+.s1m-leg { display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:800; background:var(--accent-light); color:var(--accent-dark); border:1px solid var(--accent-border); }
+.s1m-leg.s2 { background:var(--purple-light); color:var(--purple); border-color:var(--purple-light); }
+.s1m-type { font-size:13px; font-weight:800; }
+.s1m-st { display:inline-block; padding:2px 10px; border-radius:var(--radius-sm); font-size:12px; font-weight:800; background:var(--surface); border:1px solid var(--border); color:var(--text-secondary); }
+.s1m-st.ok { background:var(--green-light); border-color:var(--green-border); color:var(--green-dark); }
+.s1m-st.ret { background:var(--amber-light); border-color:var(--amber-border); color:var(--amber-dark); }
+.s1m-st.bad { background:var(--red-light); border-color:var(--red-border); color:var(--red-dark); }
+.s1m-date { font-family:var(--font-mono); font-size:12.5px; font-weight:700; direction:ltr; display:inline-block; }
 .s1m-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:6px; }
 .s1m-why { margin:8px 0 0; padding:0 18px 0 0; font-size:12px; font-weight:700; line-height:1.7; color:var(--red-dark); }
 .s1m-net { color:var(--green-dark); }
@@ -1473,7 +1488,22 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.92.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.93.0</span>
+          <span class="cl-ver-date">15-11-2026 · «فحص شحنات من بوسطة»: شحنة RTO «رسوم فقط» (#47530) + رأس كارت الشحنة + لينكات التتبع + ترتيب بتاريخ الإنشاء (Worker 3.17.0)</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>شحنة Return to Origin (كانت Exchange) بعد محاولات توصيل فاشلة (#47530):</strong> بوسطة بتحاسبنا عليها رسوم والنافذة كانت بتمنعها «نوع مش مدعوم» فالرسوم ما بتدخلش الخزنة. دلوقتي بتتسجّل «رسوم فقط» في السجل بس (<b>بلا أي حركة على شوبيفاي</b>) بشرط إجمالي صفر. <b>الخزنة بتاخد الـ Net مش الرسوم:</b> رسوم 181.26 − FlexShip 100 (اتحصّل من العميل) = <b>−81.26</b> = اللي بوسطة خصمته فعلًا.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>رأس كارت الشحنة:</strong> شريط خلايا مفصولة بدل السطر المتصل — رقم التتبع · الشحنة (S1/S2 + النوع) · حالة الشحنة (ملوّنة) · تاريخ الإنشاء · الحكم.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>أي رقم تتبع بوسطة لينك</strong> لداشبورد بوسطة (<code>business.bosta.co/orders/…</code>) — في الكارت والأسباب والملاحظات ونافذة التأكيد. والضغط على اللينك مابيختارش الشحنة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الشحنات مرتّبة بتاريخ إنشاء الشحنة على بوسطة</strong> (الأقدم أولًا). ده ترتيب عرض بس — التسجيل لسه <b>S1 الأول</b>.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الشحنة المسجّلة قبل كده:</strong> الشارة بقت «🟣 تم تسجيل هذه الشحنة» واتحذف سطرا «مفيش معاملة SALE…» و«اتسجّلت قبل كده…» (الأول كان كاذب: بيحسب تسجيل الشحنة نفسها ضمن اللي اتصرف من SALE).</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span><code>codPayment.min</code> بقى <code>3.17.0</code> — <b>انشر الـ Worker قبل الصفحة</b> (على Worker أقدم الـ RTO بتفضل «نوع مش مدعوم» والسطر الكاذب بيفضل). Exchange +100 على #47530 <b>مؤجّلة</b> بقرار أحمد. ما اتجرّبش على بوسطة/شوبيفاي/D1 حقيقيين.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.92.0</span>
           <span class="cl-ver-date">15-11-2026 · «تحصيل بوسطة»: نصوص التنبيهات + تنبيه «الجلسة ناقصة» بثيم أحمر وزرار إقرار</span>
         </div>
         <ul class="cl-items">
@@ -6945,13 +6975,28 @@ async function bxExportResult() {
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
-// ══ §BX-S1-JS — فحص شحنات الأوردر من بوسطة مباشرة (v1.84.0 · v1.90.0: أي شحنة · Worker ≥ 3.16.0) ══════════════════════════
+// ══ §BX-S1-JS — فحص شحنات الأوردر من بوسطة مباشرة (v1.84.0 · v1.90.0: أي شحنة · v1.93.0: RTO رسوم فقط + رأس الكارت · Worker ≥ 3.17.0) ══════════════════════════
 // الفكرة: صف ممنوع لأن شحنات الأوردر ما اتسجّلتش في الخزنة (مثال #49395: S1 اتحوّل في cash-out قديم عمره ما اتعمله رفع · #46008: ٣ شحنات
 // Send + Exchange + Customer Return Pickup كل واحدة في cash-out). بدل رفع الملفات القديمة بنقرا شحنات الأوردر من بوسطة (`bostaS1Check` — قراءة بس)،
 // والموظف بيختار شحنة أو أكتر وبيأكّد (`bostaPayS1`) — تسجيل في D1 بس، صفر حركة على شوبيفاي. التسجيل بالترتيب: S1 الأول ثم الباقي واحدة واحدة.
 const BX_S1 = { i: -1, data: null, sel: new Set(), busy: false, token: 0, err: '' };
 const BX_S1_COLL = { cashed_out: 'اتحوّل في Cash-out', awaiting_cashout: 'اتحصّل ومستني التحويل', no_cycle: 'مفيش Cash Cycle', unknown: 'غير معروف' };
 const bxS1Money = v => v === null || v === undefined ? '—' : bxM(bxP(v));
+// 🔗 v1.93.0 — أي رقم تتبع بوسطة = لينك لداشبورد بوسطة (زي طابور المشحون): أرقام بس قبل ما يدخل الـ href، وغير كده نص عادي
+const bxTrk = (tn, cls = 'order-link') => {
+  const t = String(tn ?? '').trim();
+  return /^\d{5,15}$/.test(t) ? `<a class="${cls}" href="https://business.bosta.co/orders/${t}" target="_blank" rel="noopener" title="فتح الشحنة في داشبورد بوسطة">${esc(t)}</a>` : esc(t);
+};
+// نص حر (أسباب · ملاحظات · تحذيرات) فيه أرقام تتبع: بيتهرّب الأول وبعدين الرقم (8–15 رقم مش جزء من رقم عشري) بيتحوّل للينك
+const bxLinkTn = text => esc(text).replace(/(?<![\d.])\d{8,15}(?![\d.])/g, m => bxTrk(m));
+// 🔴 v1.93.0 — ترتيب العرض: تاريخ إنشاء الشحنة على بوسطة (الأقدم أولًا) — ده ترتيب عرض بس؛ ترتيب التسجيل لسه S1 الأول (bxS1Selected)
+const bxS1ByCreated = (a, b) => {
+  const ta = Date.parse(a.createdAt), tb = Date.parse(b.createdAt);
+  if (Number.isFinite(ta) && Number.isFinite(tb) && ta !== tb) return ta - tb;
+  if (Number.isFinite(ta) !== Number.isFinite(tb)) return Number.isFinite(ta) ? -1 : 1;   // اللي مالوش تاريخ في الآخر
+  return 0;
+};
+const bxS1StCls = code => code === 45 ? 'ok' : code === 46 ? 'ret' : (code === 47 || code === 48 || code === 49 || code === 100 || code === 101) ? 'bad' : '';
 const bxRefKey = v => String(v || '').replace(/^#/, '');
 async function bxS1Open(i) {
   const r = BX.rows[i]; if (!r || BX.busy || BX_S1.busy) return;
@@ -6971,7 +7016,7 @@ async function bxS1Load() {
     const d = await apiPostLegacy('bostaS1Check', { orderRef: ref });
     if (tok !== BX_S1.token) return;
     if (!d || !d.success) { BX_S1.err = (d && d.error) || 'رد غير متوقع'; BX_S1.data = null; }
-    else { BX_S1.data = d; BX_S1.err = ''; }
+    else { d.candidates = [...(d.candidates || [])].sort(bxS1ByCreated); BX_S1.data = d; BX_S1.err = ''; }
   } catch (e) { if (tok !== BX_S1.token) return; BX_S1.data = null; BX_S1.err = e.message || 'خطأ في الاتصال'; }
   bxS1Render();
 }
@@ -6989,7 +7034,7 @@ function bxS1Problem(list) {
 }
 function bxS1Render() {
   const d = BX_S1.data, body = $('bxS1Body');
-  if (!d) { body.innerHTML = `<div class="s1m-note bad">⛔ ${esc(BX_S1.err || 'تعذّر الفحص')}</div><div class="s1m-note">الفحص قراءة بس ومفيش حاجة اتغيّرت. لو الرسالة عن <b>BOSTA_API_KEY</b> أو <b>3.16.0</b> فالـ Worker محتاج Secret/نشر.</div>`; $('bxS1Go').disabled = true; return; }
+  if (!d) { body.innerHTML = `<div class="s1m-note bad">⛔ ${esc(BX_S1.err || 'تعذّر الفحص')}</div><div class="s1m-note">الفحص قراءة بس ومفيش حاجة اتغيّرت. لو الرسالة عن <b>BOSTA_API_KEY</b> أو <b>3.17.0</b> فالـ Worker محتاج Secret/نشر.</div>`; $('bxS1Go').disabled = true; return; }
   const elig = d.candidates.filter(c => c.eligible);
   const sel = bxS1Selected(), problem = bxS1Problem(sel);
   const note = [];
@@ -6997,7 +7042,7 @@ function bxS1Render() {
   if (!elig.length) note.push(`<div class="s1m-note ${d.candidates.some(c => c.registered) ? 'ok' : 'bad'}">${d.candidates.some(c => c.registered)
     ? '✅ مفيش شحنة تانية قابلة للتسجيل — اقفل النافذة واضغط «إعادة فحص الملف».'
     : '⛔ مفيش شحنة قابلة للتسجيل — راجع الأسباب تحت كل شحنة. ولو الشحنة فعلًا في ملف Cash-out تاني، ارفع الملف ده بدل التسجيل من بوسطة.'}</div>`);
-  else note.push(`<div class="s1m-note">اختار الشحنات اللي عايز تسجّلها (S1 وباقي الشحنات: Exchange · Customer Return Pickup). التسجيل <b>في السجل بس</b> (الـ Net للخزنة) — <b>صفر حركة على شوبيفاي</b> — وبالترتيب: <b>S1 الأول</b>.
+  else note.push(`<div class="s1m-note">اختار الشحنات اللي عايز تسجّلها (S1 وباقي الشحنات: Exchange · Customer Return Pickup · RTO فاشلة «رسوم فقط»). التسجيل <b>في السجل بس</b> (الـ Net للخزنة) — <b>صفر حركة على شوبيفاي</b> — وبالترتيب: <b>S1 الأول</b>.
     ${elig.length > 1 ? `<button type="button" class="bx-s1btn" data-s1all style="margin-inline-start:8px">${sel.length === elig.length ? 'إلغاء تحديد الكل' : `☑ تحديد كل القابل للتسجيل (${elig.length})`}</button>` : ''}</div>`);
   if (sel.length) {
     const sumP = sel.reduce((t, c) => t + bxP(c.net), 0);
@@ -7013,23 +7058,29 @@ function bxS1Render() {
     const on = BX_S1.sel.has(c.trackingNumber);
     const neg = c.net !== null && bxP(c.net) < 0;
     const cls = `s1m-cand ${c.eligible ? 'ok' : 'bad'}${on && c.eligible ? ' sel' : ''}`;
-    const badge = c.eligible ? (on ? '✔ مختارة' : '✅ معاملة قابلة للتسجيل') : c.registered ? '🟣 اتسجّلت قبل كده' : '⛔ معاملة غير قابلة للتسجيل';
+    const badge = c.eligible ? (on ? '✔ مختارة' : '✅ معاملة قابلة للتسجيل') : c.registered ? '🟣 تم تسجيل هذه الشحنة' : '⛔ معاملة غير قابلة للتسجيل';
+    const created = c.createdAt ? cairoDayStr(c.createdAt) : null, rto = c.legKind === 'rto_fee', flexP = c.flexShipAmount ? bxP(c.flexShipAmount) : 0;
     return `<div class="${cls}" data-s1tn="${esc(c.trackingNumber)}" ${c.eligible ? 'role="button" tabindex="0"' : ''}>
-      <div class="s1m-h"><span class="tn">${esc(c.trackingNumber)}</span><span class="bx-slot">${esc(c.leg || 'S1')}</span><span class="bx-slot">${esc(c.typeLabel)}</span>${c.oldType ? `<small>كانت ${esc(c.oldType)}</small>` : ''}
-        <span>${esc(c.stateLabel)} (${c.stateCode ?? '—'})</span>
-        <span class="bx-badge ${c.eligible ? 'ready' : c.registered ? 'done' : 'error'}">${badge}</span></div>
+      <div class="s1m-h">
+        <div class="s1m-hc"><small>رقم التتبع</small>${bxTrk(c.trackingNumber, 'tn')}</div>
+        <div class="s1m-hc"><small>الشحنة</small><span class="s1m-hc-row"><span class="s1m-leg ${c.leg === 'S2' ? 's2' : ''}">${esc(c.leg || 'S1')}</span><span class="s1m-type">${esc(c.typeLabel)}</span>${c.oldType ? `<small>كانت ${esc(c.oldType)}</small>` : ''}</span></div>
+        <div class="s1m-hc"><small>حالة الشحنة</small><span class="s1m-hc-row"><span class="s1m-st ${bxS1StCls(c.stateCode)}">${esc(c.stateLabel)} · ${c.stateCode ?? '—'}</span></span></div>
+        <div class="s1m-hc"><small>تاريخ الإنشاء</small><span class="s1m-date">${created ? esc(created) : '—'}</span></div>
+        <div class="s1m-hc verdict"><span class="bx-badge ${c.eligible ? 'ready' : c.registered ? 'done' : 'error'}">${badge}</span></div></div>
       <div class="s1m-grid">
         <div><small>الإجمالي (COD+Online)</small><b class="${c.gross !== null && bxP(c.gross) < 0 ? 'bx-neg' : ''}">${bxS1Money(c.gross)}</b></div>
         <div><small>الصافي — اللي الخزنة بتتوقعه</small><b class="s1m-net${neg ? ' bx-neg' : ''}">${bxS1Money(c.net)}</b></div>
         <div><small>رسوم بوسطة</small><b>${bxS1Money(c.fees)}</b></div>
+        ${flexP ? `<div><small>FlexShip (اتحصّل من العميل)</small><b>${bxS1Money(c.flexShipAmount)}</b></div>` : ''}
         <div><small>Cash-out</small><b>${esc(c.cashOutId || '—')}</b>${c.cashOutDate ? ` <small>${esc(c.cashOutDate)}</small>` : ''}</div>
         <div><small>حالة التحصيل</small><b style="font-family:inherit">${esc(BX_S1_COLL[c.collection] || c.collection)}</b></div>
         ${c.onlineAmount ? `<div><small>دفع أونلاين</small><b>${bxS1Money(c.onlineAmount)}</b> <small>${esc(c.onlineStatus || '')}${c.onlineProvider ? ' · ' + esc(c.onlineProvider) : ''}</small></div>` : ''}
       </div>
       ${c.eligible && c.afterS1 ? `<ul class="s1m-inf"><li>⏳ بتتسجّل بعد S1 (لازم S1 يتسجّل الأول — اختارهم مع بعض)</li></ul>` : ''}
+      ${c.eligible && rto ? `<div class="s1m-note" style="margin:8px 0 0">🧾 <b>شحنة فاشلة (محاولات توصيل بلا فايدة)</b> — بوسطة قفلتها Return to Origin وحاسبتنا عليها. الصافي = رسوم ${bxS1Money(c.fees)}${flexP ? ` − FlexShip ${bxS1Money(c.flexShipAmount)} (اتحصّل من العميل)` : ''} = <b>${bxS1Money(c.net)}</b> — ده اللي بوسطة خصمته فعلًا من الـ Cash-out. هتتسجّل في السجل بس (للخزنة) <b>بلا أي حركة على شوبيفاي</b>.</div>` : ''}
       ${c.eligible && c.refundMissing ? `<div class="s1m-note" style="margin:8px 0 0">⚠️ شوبيفاي <b>مفيهاش استرداد مقابل</b> الشحنة دي — هتتسجّل في السجل بس (الخزنة تاخد الـ Net) <b>من غير أي استرداد على شوبيفاي</b>، وهتطلب تأكيدك الصريح.</div>` : ''}
-      ${(c.notes && c.notes.length) ? `<ul class="s1m-inf">${c.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
-      ${c.blockers.length ? `<ul class="s1m-why">${c.blockers.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}</div>`;
+      ${(c.notes && c.notes.length) ? `<ul class="s1m-inf">${c.notes.map(n => `<li>${bxLinkTn(n)}</li>`).join('')}</ul>` : ''}
+      ${(c.blockers.length && !c.registered) ? `<ul class="s1m-why">${c.blockers.map(b => `<li>${bxLinkTn(b)}</li>`).join('')}</ul>` : ''}</div>`;
   }).join('') || '<div class="s1m-note bad">بوسطة ما رجّعتش أي شحنة بالمرجع ده.</div>';
   body.innerHTML = note.join('') + top + cards + (BX_S1.err ? `<div class="s1m-note bad">⛔ ${esc(BX_S1.err)}</div>` : '');
   const go = $('bxS1Go');
@@ -7053,12 +7104,12 @@ function bxS1Ask() {
   if (!d || !list.length || BX_S1.busy || bxS1Problem(list)) return;
   const row = (k, v, cls = '') => `<div class="confirm-detail-row"><span class="confirm-detail-label">${k}</span><span class="confirm-detail-val ${cls}">${v}</span></div>`;
   const sumP = list.reduce((t, c) => t + bxP(c.net), 0), missing = list.filter(c => c.refundMissing);
-  const legs = list.map((c, k) => row(`${k + 1}) ${esc(c.leg)} · ${esc(c.typeLabel)}`, `${esc(c.trackingNumber)} · ${esc(c.cashOutId)} (${esc(c.cashOutDate || '')}) · إجمالي ${bxS1Money(c.gross)} · <b class="${bxP(c.net) < 0 ? 'bx-neg' : ''}">Net ${bxS1Money(c.net)}</b>`)).join('');
+  const legs = list.map((c, k) => row(`${k + 1}) ${esc(c.leg)} · ${esc(c.typeLabel)}${c.legKind === 'rto_fee' ? ' (رسوم فقط)' : ''}`, `${bxTrk(c.trackingNumber)} · ${esc(c.cashOutId)} (${esc(c.cashOutDate || '')}) · إجمالي ${bxS1Money(c.gross)}${c.legKind === 'rto_fee' ? ` · رسوم ${bxS1Money(c.fees)}${c.flexShipAmount && bxP(c.flexShipAmount) ? ' − FlexShip ' + bxS1Money(c.flexShipAmount) : ''}` : ''} · <b class="${bxP(c.net) < 0 ? 'bx-neg' : ''}">Net ${bxS1Money(c.net)}</b>`)).join('');
   const body = `${row('الأوردر', esc(d.orderName))}${legs}
     <div style="background:var(--green-light);border:2px solid var(--green-border);border-radius:var(--radius-sm);padding:8px 14px;margin:6px 0;display:flex;justify-content:space-between;align-items:center">
       <span style="font-size:13px;font-weight:700">مجموع Net Value (اللي هتتوقعه الخزنة)</span><span style="font-family:var(--font-mono);font-size:18px;font-weight:800;direction:ltr">${bxM(sumP)}</span></div>
     ${missing.length ? `<div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span><div><div class="confirm-warning-title">استرداد بلا مقابل على شوبيفاي</div>
-      <div class="confirm-warning-text">${missing.map(c => esc(c.typeLabel) + ' ' + esc(c.trackingNumber) + ' (Net ' + bxS1Money(c.net) + ')').join(' · ')} — شوبيفاي مفيهاش استرداد مقابل. هيتسجّل في السجل بس والـ Net هيدخل الخزنة، <b>ومفيش createRefund على شوبيفاي</b> (قرار أحمد). الأوردر لسه محتاج مراجعة خدمة العملاء.</div></div></div>` : ''}
+      <div class="confirm-warning-text">${missing.map(c => esc(c.typeLabel) + ' ' + bxTrk(c.trackingNumber) + ' (Net ' + bxS1Money(c.net) + ')').join(' · ')} — شوبيفاي مفيهاش استرداد مقابل. هيتسجّل في السجل بس والـ Net هيدخل الخزنة، <b>ومفيش createRefund على شوبيفاي</b> (قرار أحمد). الأوردر لسه محتاج مراجعة خدمة العملاء.</div></div></div>` : ''}
     <div class="confirm-warning"><span class="confirm-warning-icon">⚠️</span><div><div class="confirm-warning-title">تسجيل في السجل فقط — لا يمكن التراجع</div>
       <div class="confirm-warning-text">مفيش أي حركة على شوبيفاي (فلوس الشحنات المحصّلة متسجّلة عليه قبل كده${d.preRegistered ? '، ومفتاح التسجيل المسبق هيتمسح لو مطابق لـ S1' : ''}). كل شحنة هتظهر في الخزنة كجلسة مستقلة، وبالترتيب: S1 الأول. راجع إن دي فعلًا شحنات الأوردر الصح.</div></div></div>`;
   openConfirm(`✅ تأكيد تسجيل ${list.length > 1 ? list.length + ' شحنات' : 'شحنة'} من بوسطة`, body, 'تأكيد التسجيل', 'green-btn', bxS1Pay);
@@ -7104,7 +7155,7 @@ async function bxS1Pay() {
 // ── ربط الأحداث ──────────────────────────────────────────────
 (function bxInit() {
   $('bxBody').addEventListener('click', e => { const b = e.target.closest('[data-s1]'); if (b) bxS1Open(+b.dataset.s1); });
-  $('bxS1Body').addEventListener('click', e => { if (e.target.closest('[data-s1all]')) { bxS1PickAll(); return; } const c = e.target.closest('[data-s1tn]'); if (c) bxS1Pick(c.dataset.s1tn); });
+  $('bxS1Body').addEventListener('click', e => { if (e.target.closest('a')) return; if (e.target.closest('[data-s1all]')) { bxS1PickAll(); return; } const c = e.target.closest('[data-s1tn]'); if (c) bxS1Pick(c.dataset.s1tn); });
   $('bxS1Body').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-s1tn]')) { e.preventDefault(); bxS1Pick(e.target.dataset.s1tn); } });
   $('bxS1Go').addEventListener('click', bxS1Ask);
   const drop = $('bxDrop'), inp = $('bxFile');
