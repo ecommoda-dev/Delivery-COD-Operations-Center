@@ -670,6 +670,7 @@ console.log('\n══ ⑫ v1.93.0 — #47530: RTO «رسوم فقط» + رأس �
   is(/S2 Return to Origin كانت EXCHANGE/.test(heads[1][1]) && /Returned to business · 46/.test(heads[1][2]) && /2026-08-02/.test(heads[1][3]) && /قابلة للتسجيل/.test(heads[1][4]), 'رأس RTO: النوع + «كانت EXCHANGE» + الحالة + التاريخ + قابلة', JSON.stringify(heads[1]));
   is(JSON.stringify(await pg.$$eval('.s1m-cand .s1m-st', x => x.map(n => n.className.replace('s1m-st', '').trim()))) === JSON.stringify(['ok', 'ret', 'ret']), 'لون الحالة: Delivered أخضر · Returned كهرماني');
   is(JSON.stringify(await pg.$$eval('.s1m-cand .s1m-leg', x => x.map(n => n.classList.contains('s2')))) === '[false,true,true]', 'شارة S1 بلون وS2 بلون تاني');
+  if (process.env.BX_SHOT) { await (await pg.$('#bxS1Overlay .eco-modal')).screenshot({ path: process.env.BX_SHOT }); await (await pg.$('[data-s1tn="3505408529"]')).screenshot({ path: process.env.BX_SHOT.replace('.png', '-rto.png') }); await (await pg.$('[data-s1tn="7217235847"]')).screenshot({ path: process.env.BX_SHOT.replace('.png', '-exc.png') }); }   // لقطة للنافذة (اختياري — للمراجعة بالعين)
   // 🔗 لينكات التتبع
   const links = await pg.$$eval('.s1m-cand a.tn', a => a.map(x => [x.getAttribute('href'), x.target, x.rel]));
   is(JSON.stringify(links) === JSON.stringify([['https://business.bosta.co/orders/3356047136', '_blank', 'noopener'], ['https://business.bosta.co/orders/3505408529', '_blank', 'noopener'], ['https://business.bosta.co/orders/7217235847', '_blank', 'noopener']]), '🔗 كل رقم تتبع في الرأس لينك لداشبورد بوسطة', JSON.stringify(links));

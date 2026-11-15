@@ -1028,13 +1028,16 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 #bxS1Go:not(:disabled) { background:var(--green); color:var(--on-accent); }
 #bxS1Go:not(:disabled):hover { filter:brightness(.92); }
 .s1m-cand.bad { opacity:.92; border-color:var(--red-border); }
+.s1m-cand.bad.reg { opacity:1; border-color:var(--border); }   /* v1.93.0 — المسجّلة قبل كده: مش «ممنوعة» فمفيش إطار أحمر */
 /* 🔴 v1.93.0 — رأس كارت الشحنة: شريط خلايا مفصولة (رقم التتبع · الشحنة · الحالة · الإنشاء · الحكم) بدل سطر واحد متصل */
 .s1m-h { display:flex; flex-wrap:wrap; align-items:stretch; margin-bottom:10px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface-2); overflow:hidden; font-size:13px; font-weight:700; }
-.s1m-hc { display:flex; flex-direction:column; justify-content:center; gap:4px; padding:7px 14px; min-width:96px; border-inline-start:1px solid var(--border); }
+.s1m-hc { display:flex; flex:0 0 auto; flex-direction:column; justify-content:center; align-items:flex-start; gap:4px; padding:7px 12px; border-inline-start:1px solid var(--border); }
 .s1m-hc:first-child { border-inline-start:0; }
 .s1m-hc > small { font-size:11px; font-weight:700; color:var(--text-secondary); }
 .s1m-hc-row { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
-.s1m-hc.verdict { margin-inline-start:auto; align-items:center; background:var(--surface); }
+.s1m-hc-row .s1m-was { flex-basis:100%; font-size:11px; font-weight:700; color:var(--text-secondary); }
+.s1m-hc.verdict { flex:1 1 110px; align-items:center; background:var(--surface); }
+.s1m-hc.verdict .bx-badge { white-space:normal; text-align:center; }
 .s1m-h .tn { font-family:var(--font-mono); font-size:15px; font-weight:800; direction:ltr; display:inline-block; color:var(--accent); text-decoration:none; }
 .s1m-h a.tn:hover { text-decoration:underline; color:var(--accent-dark); }
 .s1m-leg { display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:800; background:var(--accent-light); color:var(--accent-dark); border:1px solid var(--accent-border); }
@@ -7057,13 +7060,13 @@ function bxS1Render() {
   const cards = d.candidates.map(c => {
     const on = BX_S1.sel.has(c.trackingNumber);
     const neg = c.net !== null && bxP(c.net) < 0;
-    const cls = `s1m-cand ${c.eligible ? 'ok' : 'bad'}${on && c.eligible ? ' sel' : ''}`;
+    const cls = `s1m-cand ${c.eligible ? 'ok' : 'bad'}${!c.eligible && c.registered ? ' reg' : ''}${on && c.eligible ? ' sel' : ''}`;
     const badge = c.eligible ? (on ? '✔ مختارة' : '✅ معاملة قابلة للتسجيل') : c.registered ? '🟣 تم تسجيل هذه الشحنة' : '⛔ معاملة غير قابلة للتسجيل';
     const created = c.createdAt ? cairoDayStr(c.createdAt) : null, rto = c.legKind === 'rto_fee', flexP = c.flexShipAmount ? bxP(c.flexShipAmount) : 0;
     return `<div class="${cls}" data-s1tn="${esc(c.trackingNumber)}" ${c.eligible ? 'role="button" tabindex="0"' : ''}>
       <div class="s1m-h">
         <div class="s1m-hc"><small>رقم التتبع</small>${bxTrk(c.trackingNumber, 'tn')}</div>
-        <div class="s1m-hc"><small>الشحنة</small><span class="s1m-hc-row"><span class="s1m-leg ${c.leg === 'S2' ? 's2' : ''}">${esc(c.leg || 'S1')}</span><span class="s1m-type">${esc(c.typeLabel)}</span>${c.oldType ? `<small>كانت ${esc(c.oldType)}</small>` : ''}</span></div>
+        <div class="s1m-hc"><small>الشحنة</small><span class="s1m-hc-row"><span class="s1m-leg ${c.leg === 'S2' ? 's2' : ''}">${esc(c.leg || 'S1')}</span><span class="s1m-type">${esc(c.typeLabel)}</span>${c.oldType ? `<small class="s1m-was">كانت ${esc(c.oldType)}</small>` : ''}</span></div>
         <div class="s1m-hc"><small>حالة الشحنة</small><span class="s1m-hc-row"><span class="s1m-st ${bxS1StCls(c.stateCode)}">${esc(c.stateLabel)} · ${c.stateCode ?? '—'}</span></span></div>
         <div class="s1m-hc"><small>تاريخ الإنشاء</small><span class="s1m-date">${created ? esc(created) : '—'}</span></div>
         <div class="s1m-hc verdict"><span class="bx-badge ${c.eligible ? 'ready' : c.registered ? 'done' : 'error'}">${badge}</span></div></div>
