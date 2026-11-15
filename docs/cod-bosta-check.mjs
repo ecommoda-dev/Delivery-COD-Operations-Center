@@ -164,7 +164,7 @@ const waitReady = page => page.waitForFunction(() => BX.phase === 'ready', null,
 console.log('\n══ ① التاب والملفات المرفوضة ══');
 let { page, calls, errs } = await open();
 is(await page.$eval('#tabBosta', e => e.textContent.trim()) === '🚚 تحصيل بوسطة', 'التاب «🚚 تحصيل بوسطة» موجود');
-is(await page.evaluate(() => [...document.querySelectorAll('.main-tab-btn')].map(b => b.id).join()) === 'tabScan,tabBosta,tabLog', 'ترتيب التابات: تحصيل المناديب · تحصيل بوسطة · السجل');
+is(await page.evaluate(() => [...document.querySelectorAll('.main-tab-btn')].map(b => b.id).join()) === 'tabScan,tabBosta,tabBpr,tabLog', 'ترتيب التابات: تحصيل المناديب · تحصيل بوسطة · استرداد جزئي بوسطة · السجل');
 await page.click('#tabBosta');
 is(await page.$eval('#panelBosta', e => e.classList.contains('active')) && !(await page.$eval('#panelScan', e => e.classList.contains('active'))), 'فتح التاب بيقفل تاب المناديب');
 is(await page.$eval('#panelLog', e => !e.classList.contains('active')), 'ومايفتحش السجل');

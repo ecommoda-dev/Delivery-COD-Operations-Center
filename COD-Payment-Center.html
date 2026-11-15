@@ -1073,6 +1073,52 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
 .bx-neg { color:var(--red); }
 .log-tag.bx-co { background:var(--purple-light); color:var(--purple); }
+
+/* ══ §BPR-CSS — تاب «استرداد جزئي بوسطة» (v1.95.0 · Worker ≥ 3.19.0) ══ */
+.bpr-head { display:flex; flex-direction:column; gap:10px; }
+.bpr-title { font-size:16px; font-weight:800; }
+.bpr-sub { font-size:12.5px; font-weight:600; line-height:1.8; color:var(--text-secondary); }
+.bpr-sub b { color:var(--text-primary); font-family:var(--font-mono); direction:ltr; display:inline-block; }
+.bpr-bar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.bpr-chips { display:flex; flex-wrap:wrap; gap:6px; flex:1 1 320px; }
+.bpr-chip { font-family:inherit; font-size:12.5px; font-weight:700; padding:5px 12px; border-radius:999px; border:1.5px solid var(--border); background:var(--surface); color:var(--text-primary); cursor:pointer; }
+.bpr-chip b { font-family:var(--font-mono); direction:ltr; display:inline-block; margin-inline-start:4px; }
+.bpr-chip.on { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+.bpr-chip.ok:not(.on) { border-color:var(--green-border); background:var(--green-light); color:var(--green-dark); }
+.bpr-chip.bad:not(.on) { border-color:var(--red-border); background:var(--red-light); color:var(--red-dark); }
+.bpr-search { width:170px; padding:7px 10px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:var(--font-mono); font-size:13px; direction:ltr; background:var(--surface); color:var(--text-primary); }
+.bpr-search:focus { outline:none; border-color:var(--accent); }
+.bpr-wrap { overflow:auto; max-height:68vh; }
+.bpr-tbl { width:100%; border-collapse:collapse; font-size:12.5px; }
+.bpr-tbl th { position:sticky; top:0; z-index:1; background:var(--surface-2); font-size:var(--th-size, 12px); font-weight:var(--th-weight, 700); color:var(--th-color, var(--text-secondary)); text-align:right; padding:8px 10px; border-bottom:2px solid var(--border); white-space:nowrap; }
+.bpr-tbl td { padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top; font-weight:600; }
+.bpr-tbl td.num { font-family:var(--font-mono); direction:ltr; text-align:right; white-space:nowrap; }
+.bpr-tbl td.num b { font-weight:800; }
+.bpr-tbl tr.st-done td { opacity:.62; }
+.bpr-why { margin:4px 0 0; padding:0 16px 0 0; font-size:11.5px; font-weight:700; line-height:1.6; color:var(--red-dark); }
+.bpr-warn { margin:4px 0 0; padding:0 16px 0 0; font-size:11.5px; font-weight:700; line-height:1.6; color:var(--amber-dark); }
+.bpr-st { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11.5px; font-weight:800; border:1px solid var(--border); white-space:nowrap; }
+.bpr-st.ok { background:var(--green-light); border-color:var(--green-border); color:var(--green-dark); }
+.bpr-st.info { background:var(--accent-light); border-color:var(--accent); color:var(--accent-dark); }
+.bpr-st.bad { background:var(--red-light); border-color:var(--red-border); color:var(--red-dark); }
+.bpr-st.done { background:var(--purple-light); border-color:var(--purple-border); color:var(--purple); }
+.bpr-kind { font-size:11px; font-weight:800; color:var(--text-secondary); }
+.bpr-empty { padding:26px 12px; text-align:center; font-size:13px; font-weight:700; color:var(--text-secondary); }
+.bpr-sum { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:6px; margin-bottom:10px; }
+.bpr-cell { border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface-2); padding:7px 10px; display:flex; flex-direction:column; gap:2px; }
+.bpr-cell small { font-size:11px; font-weight:700; color:var(--text-secondary); }
+.bpr-cell b { font-size:14px; font-weight:800; font-family:var(--font-mono); direction:ltr; text-align:right; }
+.bpr-cell.big { border:2px solid var(--red); background:var(--red-lighter); }
+.bpr-cell.big b { font-size:20px; color:var(--red-darker); }
+.bpr-paycols { grid-template-columns:repeat(2,1fr); }
+@media (max-width:700px) { .bpr-paycols { grid-template-columns:1fr; } }
+.bpr-meter .pm-row { align-items:flex-end; }
+.bpr-in { width:100%; padding:7px 10px; border:2px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:13px; font-weight:600; background:var(--surface); color:var(--text-primary); }
+.bpr-in:focus { outline:none; border-color:var(--red); }
+.bpr-ack { display:block; width:100%; margin-top:10px; padding:10px 12px; border:2px solid var(--red); border-radius:var(--radius-sm); background:var(--surface); color:var(--red-dark); font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; text-align:right; }
+.bpr-ack[aria-pressed="true"] { background:var(--red); color:var(--surface); }
+.bpr-msg { margin-bottom:10px; }
+
 </style>
 <body>
 <!-- ══════════════════════════════════════════════════════════════
@@ -1100,6 +1146,10 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
     </button>
     <button class="main-tab-btn" id="tabBosta" onclick="switchMainTab('bosta')">
       🚚 تحصيل بوسطة
+    </button>
+    <button class="main-tab-btn" id="tabBpr" onclick="switchMainTab('bpr')">
+      🪙 استرداد جزئي بوسطة
+      <span class="mtb-badge" id="tabBadgeBpr" style="display:none">0</span>
     </button>
     <button class="main-tab-btn" id="tabLog" onclick="switchMainTab('log')">
       📜 سجل العمليات
@@ -1318,6 +1368,22 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
     </div>
   </div>
 
+  <!-- ══════════ §BPR-TAB — استرداد جزئي بوسطة (v1.95.0) ══════════ -->
+  <div class="tab-panel" id="panelBpr">
+    <div class="card">
+      <div class="card-body bpr-head">
+        <div class="bpr-title">🪙 استرداد جزئي بوسطة</div>
+        <div class="bpr-sub">بوسطة بتدفع للعميل <b id="bprCapTxt">2,000</b> ج كاش بس على استرداد الاسترجاع/الاستبدال (S2)، والباقي بيحوّله <b style="font-family:inherit;direction:rtl">موظف التحصيل</b> (انستاباي/محفظة). التسجيل هنا بيعمل <b style="font-family:inherit;direction:rtl">استرداد الباقي بس</b> على شوبيفاي ويسجّله للخزنة (ملاحظة «استرداد جزئي بوسطة») — جزء الـ 2000 بيتسجّل بمساره (تحصيل بوسطة).</div>
+        <div class="bpr-bar">
+          <div class="bpr-chips" id="bprChips"></div>
+          <input class="bpr-search" id="bprSearch" type="text" inputmode="numeric" dir="ltr" autocomplete="off" aria-label="بحث برقم الأوردر أو التتبع">
+          <button type="button" class="bx-sec" id="bprRefresh">↻ تحديث</button>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="card-body" id="bprBody"></div></div>
+  </div>
+
   <div class="tab-panel" id="panelLog">
     <div class="log-tab-wrap">
 
@@ -1510,7 +1576,21 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.94.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.95.0</span>
+          <span class="cl-ver-date">15-11-2026 · تاب جديد «استرداد جزئي بوسطة»: بوسطة بتدفع 2000 ج كاش بس والباقي بيحوّله موظف التحصيل (Worker 3.19.0)</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>تاب «🪙 استرداد جزئي بوسطة»:</strong> طابور بالأوردرات اللي أداة «رفع بوسطة» قصّت استردادها عند حد بوسطة (<code>codClipped</code> — استرجاع <b>واستبدال</b>)، بحالتها الحية من شوبيفاي: <b>S1 = Delivered</b> و<b>S2 ∈ Shipped / In-Return / Returned</b>. الحالات: جاهز · على شوبيفاي · موقوف (بسببه) · تم.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>التسجيل بيكتب حاجتين بس:</strong> استرداد <b>الباقي فقط</b> (المستحق − 2000) على شوبيفاي + صف واحد في السجل معلّم «استرداد جزئي بوسطة» (<code>bosta_partial_refund</code>) — الخزنة بتقراه وبتدفع المبلغ لموظف التحصيل اللي حوّل. جزء الـ 2000 بيتسجّل بمساره (تحصيل بوسطة)، ومفيش لمس ليه هنا.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>طرق الدفع انستاباي ومحفظة بس</strong> (مفيش نقدي) بنفس حسابات تحصيل المناديب، ومجموعها لازم يساوي الباقي بالظبط. إقرار صريح قبل التسجيل، وسبب إجباري لو الباقي الحالي ≠ المسجّل وقت الرفع.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>«فحص شحنات من بوسطة»:</strong> لو اللي بوسطة دفعته 2000 والمستحق أكبر، الحد الأقصى بقى 2000 (مفيش اختيار 2500 بالغلط) — الزيادة من التاب الجديدة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span><code>codPayment.min</code> بقى <code>3.19.0</code> — <b>انشر الـ Worker (وخزنة Treasury-Ledger ≥ 1.9.0) قبل الصفحة</b>. ⚠️ ما اتجرّبش على شوبيفاي ولا D1 حقيقيين — أول تسجيل حقيقي = #63994 (الباقي 500).</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.94.0</span>
           <span class="cl-ver-date">15-11-2026 · «فحص شحنات من بوسطة»: استرداد الـ CRP بيتكتب على شوبيفاي بمبلغ يختاره الموظف (#48116) + إصلاح «الأوردر متكرر في الملف»</span>
         </div>
         <ul class="cl-items">
@@ -2134,6 +2214,17 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
   </div>
 </div>
 
+<div class="eco-overlay" id="bprOverlay" onclick="if(event.target===this)bprClose()">
+  <div class="eco-modal" style="max-width:860px;">
+    <div class="eco-modal-hdr"><span id="bprTitle">🪙 استرداد جزئي بوسطة</span><button class="modal-close-x" onclick="bprClose()">✕</button></div>
+    <div class="eco-modal-body" id="bprModalBody"></div>
+    <div class="eco-modal-ftr">
+      <button class="btn-modal-cancel" onclick="bprClose()">إغلاق</button>
+      <button class="btn-modal-save" id="bprGo" disabled>🪙 سجّل استرداد الباقي</button>
+    </div>
+  </div>
+</div>
+
 <div class="confirm-overlay" id="confirmOverlay">
   <div class="confirm-modal">
     <div class="confirm-modal-hdr">
@@ -2326,12 +2417,15 @@ function switchMainTab(tab) {
   currentTab = tab;
   $('tabScan').classList.toggle('active', tab === 'scan');
   $('tabBosta').classList.toggle('active', tab === 'bosta');
+  $('tabBpr').classList.toggle('active', tab === 'bpr');
   $('tabLog').classList.toggle('active', tab === 'log');
   $('panelScan').classList.toggle('active', tab === 'scan');
   $('panelBosta').classList.toggle('active', tab === 'bosta');
+  $('panelBpr').classList.toggle('active', tab === 'bpr');
   $('panelLog').classList.toggle('active', tab === 'log');
   if (tab === 'scan') refocus();
   if (tab === 'log' && !logLoaded) fetchLog();
+  if (tab === 'bpr' && !BPR.loaded && !BPR.loading) bprLoad();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -7300,5 +7394,213 @@ async function bxS1Pay() {
   });
   window.addEventListener('beforeunload', e => { if (BX.busy) { e.preventDefault(); e.returnValue = ''; } });
   bxRender();
+})();
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════
+// §BPR-JS — تاب «استرداد جزئي بوسطة» (v1.95.0 · Worker ≥ 3.19.0 · 15-11-2026 · قرار أحمد)
+// بوسطة بتدفع للعميل 2000 ج كاش بس (حد بوسطة) على استرداد S2 (استرجاع/استبدال) والباقي بيحوّله موظف التحصيل (انستاباي/محفظة).
+// الطابور من سجل «رفع بوسطة» (`codClipped`) + الحالة الحية من شوبيفاي (S1 = Delivered · S2 ∈ Shipped/In-Return/Returned) — كله بيتحسب في الـ Worker.
+// التسجيل (`bostaPartialPay`) = استرداد الباقي على شوبيفاي + صف D1 واحد معلّم `bosta_partial_refund` (الخزنة بتقراه) — مفيش لمس لجزء الـ 2000.
+// 🔴 المبلغ بيتحسب في الـ Worker مش هنا؛ الواجهة بتعرضه وبتبعت `expected` (الباقي · المستحق · S2) والـ Worker بيرفض `stale` لو اتغيّر.
+// 🔴 طرق الدفع انستاباي/محفظة بس (مفيش نقدي) ومجموعها = الباقي بالظبط. بلاطات الدفع هنا مستقلة عن تاب «تحصيل المناديب» (حالتها `BPR.pay`).
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════
+const BPR = { items: [], loaded: false, loading: false, filter: 'all', q: '', err: '', cap: '2000.00', truncated: false, total: 0,
+  cur: null, d: null, loadingOne: false, pay: {}, reason: '', ack: false, busy: false, msg: '', msgCls: 'bad', tok: 0 };
+const BPR_ST = { ready: ['ok', 'جاهز للتسجيل'], exists: ['info', 'الاسترداد على شوبيفاي — يتسجّل في السجل'], blocked: ['bad', 'موقوف'], done: ['done', 'تم التسجيل'] };
+const BPR_KIND = { return: 'استرجاع (CRP)', exchange: 'استبدال' };
+const BPR_GROUPS = [{ id: 'instapay', label: 'انستاباي' }, { id: 'wallet', label: 'محفظة' }];
+const bprC = v => { const n = Number(String(v ?? '').replace(/,/g, '')); return Number.isFinite(n) ? Math.round(n * 100) : 0; };
+const bprF = v => { const n = Number(String(v ?? '').replace(/,/g, '')); return Number.isFinite(n) ? fmt(n) : '—'; };
+const bprDigits = v => String(v || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1');
+const bprSt = k => BPR_ST[k] || ['', k || '—'];
+
+function bprVisible() {
+  const q = BPR.q.trim().replace(/^#/, '');
+  return BPR.items.map((it, i) => ({ it, i })).filter(({ it }) =>
+    (BPR.filter === 'all' || it.state === BPR.filter) &&
+    (!q || String(it.orderName || '').replace('#', '').includes(q) || String(it.tracking || '').includes(q)));
+}
+function bprBadge() {
+  const n = BPR.items.filter(x => x.state === 'ready' || x.state === 'exists').length, el = $('tabBadgeBpr');
+  if (!el) return; el.textContent = n; el.style.display = n ? '' : 'none';
+}
+function bprRender() {
+  const cap = $('bprCapTxt'); if (cap) cap.textContent = fmt(Number(BPR.cap) || 2000);
+  const cnt = k => BPR.items.filter(x => x.state === k).length;
+  const chip = (k, label, cls = '') => `<button type="button" class="bpr-chip ${cls}${BPR.filter === k ? ' on' : ''}" data-bprf="${k}">${label}<b>${k === 'all' ? BPR.items.length : cnt(k)}</b></button>`;
+  $('bprChips').innerHTML = chip('all', 'الكل') + chip('ready', 'جاهز', 'ok') + chip('exists', 'على شوبيفاي') + chip('blocked', 'موقوف', 'bad') + chip('done', 'تم');
+  const body = $('bprBody');
+  if (BPR.loading) { body.innerHTML = '<div class="bpr-empty">⏳ جاري قراءة الطابور من سجل الرفع وفحصه على شوبيفاي…</div>'; return; }
+  if (BPR.err) { body.innerHTML = `<div class="s1m-note bad">⛔ ${esc(BPR.err)}</div>`; return; }
+  const vis = bprVisible();
+  const trunc = BPR.truncated ? `<div class="s1m-note">⚠ الطابور أكبر من اللي بيتعرض (${BPR.total} أوردر) — اتعرض أول ${BPR.items.length} بس.</div>` : '';
+  if (!vis.length) { body.innerHTML = trunc + `<div class="bpr-empty">${BPR.items.length ? 'مفيش نتيجة للفلتر' : 'مفيش أوردرات في الطابور'}</div>`; return; }
+  const rows = vis.map(({ it, i }) => {
+    const [cls, label] = bprSt(it.state);
+    const why = (it.blockers || []).length ? `<ul class="bpr-why">${it.blockers.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+    const warn = (it.warnings || []).length ? `<ul class="bpr-warn">${it.warnings.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+    const act = (it.state === 'ready' || it.state === 'exists') ? `<button type="button" class="bx-sec" data-bpro="${i}">${it.state === 'exists' ? 'سجّل في السجل' : '🪙 سجّل'}</button>` : '';
+    const rem = it.state === 'done' ? '—' : (it.state === 'exists' && it.existing ? bprF(it.existing.amount) : bprF(it.remainder));
+    return `<tr class="st-${esc(it.state)}"><td>${orderLink(it.orderName || '', it.orderId)}</td>
+      <td>${bxTrk(it.tracking)}<div class="bpr-kind">${esc(BPR_KIND[it.kind] || '')}</div></td>
+      <td>${esc(it.s1 || '—')}</td><td>${esc(it.s2 || '—')}</td>
+      <td class="num">${it.owed === undefined ? '—' : bprF(it.owed)}</td><td class="num"><b>${rem}</b></td><td class="num">${it.codRemainder ? bprF(it.codRemainder) : '—'}</td>
+      <td><span class="bpr-st ${cls}">${esc(label)}</span>${why}${warn}</td><td>${act}</td></tr>`;
+  }).join('');
+  body.innerHTML = trunc + `<div class="bpr-wrap"><table class="bpr-tbl"><thead><tr><th>الأوردر</th><th>الشحنة</th><th>S1</th><th>S2</th><th>المستحق</th><th>الباقي علينا</th><th>المسجّل وقت الرفع</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+async function bprLoad() {
+  if (BPR.loading) return;
+  BPR.loading = true; BPR.err = ''; bprRender();
+  try {
+    const d = await apiPostLegacy('bostaPartialList', {});
+    if (!d || !d.success) throw new Error((d && d.error) || 'رد غير متوقع من الـ Worker');
+    Object.assign(BPR, { items: d.items || [], cap: d.cap || '2000.00', truncated: !!d.truncated, total: d.total || 0, loaded: true });
+  } catch (e) { BPR.err = e.message || 'تعذّر تحميل الطابور'; }
+  BPR.loading = false; bprRender(); bprBadge();
+}
+
+// ── النافذة ────────────────────────────────────────────────
+const bprAmtP = () => { const d = BPR.d; if (!d) return 0; return d.state === 'exists' && d.existing ? bprC(d.existing.amount) : bprC(d.remainder); };
+function bprOpen(i) {
+  const it = BPR.items[i]; if (!it || BPR.busy) return;
+  Object.assign(BPR, { cur: { orderRef: it.orderName || it.orderId, tracking: it.tracking }, d: null, pay: {}, reason: '', ack: false, msg: '' });
+  $('bprOverlay').classList.add('open'); bprCheck();
+}
+function bprClose() { if (BPR.busy) return; $('bprOverlay').classList.remove('open'); }
+async function bprCheck(keepMsg = false) {
+  const tok = ++BPR.tok, c = BPR.cur; if (!c) return;
+  BPR.loadingOne = true; BPR.d = null; if (!keepMsg) BPR.msg = ''; bprModal();
+  try {
+    const d = await apiPostLegacy('bostaPartialCheck', { orderRef: String(c.orderRef), trackingNumber: c.tracking });
+    if (tok !== BPR.tok) return;
+    if (!d || !d.success) { BPR.msg = (d && d.error) || 'رد غير متوقع'; BPR.msgCls = 'bad'; BPR.d = null; } else BPR.d = d;
+  } catch (e) { if (tok !== BPR.tok) return; BPR.msg = e.message || 'تعذّر الفحص'; BPR.msgCls = 'bad'; }
+  BPR.loadingOne = false; bprModal();
+}
+function bprPayHTML() {
+  return `<div class="pay-cols bpr-paycols">` + BPR_GROUPS.map(g => {
+    const tiles = PAY_ACCOUNTS.map(acc => {
+      const k = `${g.id}:${acc}`, t = BPR.pay[k] || { on: false, val: '' };
+      return `<div class="pay-tile${t.on ? ' sel' : ''}"><button type="button" class="pay-tile-name" data-bptog="${esc(k)}" aria-pressed="${t.on}">${esc(acc)}</button>` +
+        (t.on ? `<div class="pay-tile-body"><input class="pay-tile-input" data-bpin="${esc(k)}" type="text" inputmode="decimal" autocomplete="off" dir="ltr" aria-label="${esc(g.label + ' - ' + acc)}" value="${esc(t.val)}"><button type="button" class="pay-tile-rest" data-bprest="${esc(k)}">الباقي</button></div>` : '') + `</div>`;
+    }).join('');
+    return `<div class="pay-col pay-col-${g.id}"><div class="pay-col-head"><span class="pay-ico">${PAY_ICON[g.id]}</span><span>${g.label}</span><span class="pay-col-tot" data-bptot="${g.id}"></span></div>${tiles}</div>`;
+  }).join('') + `</div>`;
+}
+const bprGroupP = gid => Object.keys(BPR.pay).filter(k => k.startsWith(gid + ':') && BPR.pay[k].on).reduce((a, k) => a + bprC(BPR.pay[k].val), 0);
+const bprSumP = () => BPR_GROUPS.reduce((a, g) => a + bprGroupP(g.id), 0);
+function bprReady() {
+  const d = BPR.d; if (!d || BPR.busy || BPR.loadingOne) return false;
+  if (d.state !== 'ready' && d.state !== 'exists') return false;
+  if (!BPR.ack) return false;
+  if (d.needsReason && BPR.reason.trim().length < 3) return false;
+  const amt = bprAmtP();
+  return amt > 0 && bprSumP() === amt;
+}
+function bprSync() {
+  const amt = bprAmtP(), sum = bprSumP(), rem = amt - sum, m = $('bprMeter'); if (!m) return;
+  $('bprSum').textContent = fmt(sum / 100); $('bprRem').textContent = fmt(Math.abs(rem) / 100);
+  $('bprMLbl').textContent = rem > 0 ? 'المتبقي' : rem < 0 ? 'زيادة' : 'مظبوط ✓';
+  m.classList.toggle('ok', rem === 0 && amt > 0); m.classList.toggle('over', rem < 0);
+  $('bprBar').style.width = (amt > 0 ? Math.min(100, Math.round(sum * 100 / amt)) : 0) + '%';
+  BPR_GROUPS.forEach(g => { const el = document.querySelector(`[data-bptot="${g.id}"]`); if (el) { const v = bprGroupP(g.id); el.textContent = v > 0 ? fmt(v / 100) + ' ج' : ''; } });
+  const go = $('bprGo'); if (go && !BPR.busy) { go.disabled = !bprReady(); go.textContent = `🪙 سجّل استرداد الباقي (${fmt(amt / 100)} ج)`; }
+}
+function bprModal() {
+  const body = $('bprModalBody'), go = $('bprGo');
+  const c = BPR.cur, d = BPR.d;
+  $('bprTitle').textContent = `🪙 استرداد جزئي بوسطة — ${c ? (String(c.orderRef).startsWith('#') ? c.orderRef : '#' + c.orderRef) : ''}`;
+  const msg = BPR.msg ? `<div class="s1m-note ${BPR.msgCls === 'ok' ? 'ok' : 'bad'} bpr-msg">${bxLinkTn(BPR.msg)}</div>` : '';
+  if (BPR.loadingOne) { body.innerHTML = msg + '<div class="s1m-note">⏳ جاري فحص الأوردر على شوبيفاي…</div>'; go.disabled = true; return; }
+  if (!d) { body.innerHTML = msg || '<div class="s1m-note bad">تعذّر فحص الأوردر</div>'; go.disabled = true; return; }
+  const [stCls, stLabel] = bprSt(d.state), amt = bprAmtP();
+  const cell = (k, v, cls = '') => `<div class="bpr-cell ${cls}"><small>${k}</small><b>${v}</b></div>`;
+  const why = (d.blockers || []).length ? `<div class="s1m-note bad"><ul class="bpr-why" style="margin:0">${d.blockers.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
+  const warn = (d.warnings || []).map(x => `<div class="s1m-note">⚠ ${esc(x)}</div>`).join('');
+  const emp = currentEmployee ? String(currentEmployee.username).replace(/_/g, ' ') : '';
+  let html = msg + `<div class="s1m-h"><div class="s1m-hc"><small>الأوردر</small><span class="s1m-type">${orderLink(d.orderName || '', d.orderId)}</span></div>
+      <div class="s1m-hc"><small>رقم التتبع</small><span>${bxTrk(d.tracking, 'tn')}</span></div>
+      <div class="s1m-hc"><small>النوع</small><span class="s1m-leg s2">${esc(BPR_KIND[d.kind] || '')}</span></div>
+      <div class="s1m-hc"><small>S1 · S2</small><span class="s1m-type">${esc(d.s1 || '—')} · ${esc(d.s2 || '—')}</span></div>
+      <div class="s1m-hc verdict"><small>الحالة</small><span class="bpr-st ${stCls}">${esc(stLabel)}</span></div></div>`;
+  if (d.state === 'done') html += `<div class="s1m-note ok">🟣 اتسجّل قبل كده${d.registered ? ' (' + esc(d.registered.at) + ')' : ''} — مفيش حاجة تتكرر.</div>`;
+  html += why + warn;
+  if (d.state === 'ready' || d.state === 'exists') {
+    html += `<div class="bpr-sum">${cell('المستحق على شوبيفاي', bprF(d.owed))}${cell('حد بوسطة (كاش للعميل)', bprF(d.bostaCap))}${cell(d.bostaRegistered ? 'جزء بوسطة' : 'جزء بوسطة (لسه ما اتسجّلش)', d.bostaRegistered ? 'اتسجّل ✓' : '— ' + bprF(d.bostaCap))}${cell(d.state === 'exists' ? 'الاسترداد الموجود على شوبيفاي' : 'الباقي علينا (هيتحوّل للعميل)', bprF(amt / 100), 'big')}</div>`;
+    if (d.state === 'exists') html += `<div class="s1m-note ok">✅ استرداد الباقي موجود على شوبيفاي (${esc(bprF(d.existing && d.existing.amount))} ج${d.existing && d.existing.refundId ? ' · ' + esc(d.existing.refundId.split('/').pop()) : ''}) — هيتسجّل في السجل للخزنة <b>بدون استرداد جديد</b>.</div>`;
+    else html += `<div class="s1m-note bad">⛔ هيتعمل <b>استرداد ${esc(bprF(amt / 100))} ج على شوبيفاي</b> ومفيش منه رجوع من الأداة. ${emp ? `التحويل للعميل بتعمله إنت (<b>${esc(emp)}</b>) والخزنة بتدفعلك المبلغ.` : ''}</div>`;
+    if (d.needsReason) html += `<div class="s1m-rf-reason" style="display:block;margin-bottom:10px"><div class="s1m-note">الباقي الحالي (<b>${esc(bprF(d.remainder))}</b>) غير المسجّل وقت الرفع (<b>${esc(bprF(d.codRemainder))}</b>) — اكتب السبب:</div><input class="bpr-in" id="bprReason" type="text" maxlength="300" autocomplete="off" aria-label="سبب اختلاف المبلغ" value="${esc(BPR.reason)}"></div>`;
+    html += `<div class="pay-meter bpr-meter" id="bprMeter"><div class="pm-row"><div class="pm-cell"><span id="bprMLbl">المتبقي</span><b id="bprRem">—</b></div><div class="pm-cell"><span>المدخل</span><b id="bprSum">—</b></div><div class="pm-cell"><span>المطلوب</span><b>${fmt(amt / 100)}</b></div></div><div class="pm-bar"><i id="bprBar"></i></div></div>`;
+    html += bprPayHTML();
+    html += `<button type="button" class="bpr-ack" id="bprAck" aria-pressed="${BPR.ack}">${BPR.ack ? '☑' : '☐'} راجعت المبلغ (${fmt(amt / 100)} ج) وطرق الدفع — ${d.state === 'exists' ? 'سجّل في السجل' : 'اعمل الاسترداد على شوبيفاي'}</button>`;
+  }
+  body.innerHTML = html; go.disabled = true; bprSync();
+}
+async function bprGo() {
+  if (!bprReady()) return;
+  const d = BPR.d, c = BPR.cur, emp = currentEmployee ? currentEmployee.username : null;
+  const methods = {}, accounts = {};
+  BPR_GROUPS.forEach(g => {
+    const entries = Object.keys(BPR.pay).filter(k => k.startsWith(g.id + ':') && BPR.pay[k].on && bprC(BPR.pay[k].val) > 0);
+    methods[g.id] = (bprGroupP(g.id) / 100).toFixed(2);
+    if (entries.length) accounts[g.id] = Object.fromEntries(entries.map(k => [k.split(':')[1], (bprC(BPR.pay[k].val) / 100).toFixed(2)]));
+  });
+  BPR.busy = true; window.__bxBusy = true; const go = $('bprGo'); go.disabled = true; go.textContent = '⏳ جاري التسجيل…'; BPR.msg = '';
+  let res = null, uncertain = false;
+  try {
+    res = await apiPostLegacy('bostaPartialPay', { orderRef: String(c.orderRef), trackingNumber: c.tracking, employee: emp, ack: true,
+      expected: { remainder: d.remainder, owed: d.owed, s2: d.s2 || '' }, reason: d.needsReason ? BPR.reason.trim() : undefined,
+      paymentMethods: methods, paymentAccounts: Object.keys(accounts).length ? accounts : undefined });
+  } catch (e) { uncertain = true; }
+  BPR.busy = false; window.__bxBusy = false;
+  if (uncertain) {
+    // 🔴 انقطاع/مهلة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل» — الكتابة ممكن تكون تمّت. الفحص بيتعاد ويحسم (done/exists).
+    playBeep('error'); logLoaded = false; await bprLoad();
+    BPR.msg = 'ما اتأكدناش إن التسجيل تم (انقطع الاتصال) — الفحص اتعاد: لو بقت «تم التسجيل» أو «على شوبيفاي» يبقى الاسترداد اتعمل ومتعيدوش.'; BPR.msgCls = 'bad';
+    await bprCheck(true); return;
+  }
+  if (res && res.success) {
+    playBeep(res.warning ? 'error' : 'success');
+    showToast(`${res.warning ? '⚠' : '✅'} اتسجّل استرداد جزئي بوسطة ${fmt(Number(res.amount))} ج — ${res.refund && res.refund.created ? 'اتعمل على شوبيفاي · ' : ''}الخزنة هتشوفه باسم ${res.courier}${res.warning ? ' — ' + res.warning : ''}`, res.warning ? 'warning' : 'success', 7000);
+    logLoaded = false; $('bprOverlay').classList.remove('open'); await bprLoad(); return;
+  }
+  const f = res || { error: 'فشل التسجيل' };
+  playBeep('error'); logLoaded = false;
+  if (f.stale || f.refundCreated) { await bprLoad(); BPR.msg = f.error || 'فشل التسجيل'; BPR.msgCls = 'bad'; BPR.pay = {}; BPR.ack = false; await bprCheck(true); return; }
+  BPR.msg = f.error || 'فشل التسجيل'; BPR.msgCls = 'bad'; bprModal();
+}
+
+// ── ربط الأحداث ──────────────────────────────────────────────
+(function bprInit() {
+  $('bprChips').addEventListener('click', e => { const b = e.target.closest('[data-bprf]'); if (b) { BPR.filter = b.dataset.bprf; bprRender(); } });
+  $('bprSearch').addEventListener('input', e => { const v = bprDigits(e.target.value); if (v !== e.target.value) e.target.value = v; BPR.q = v; bprRender(); });
+  $('bprRefresh').addEventListener('click', () => { if (!BPR.loading && !BPR.busy) bprLoad(); });
+  $('bprBody').addEventListener('click', e => { const b = e.target.closest('[data-bpro]'); if (b) bprOpen(+b.dataset.bpro); });
+  const mb = $('bprModalBody');
+  mb.addEventListener('click', e => {
+    const tog = e.target.closest('[data-bptog]'), rest = e.target.closest('[data-bprest]'), ack = e.target.closest('#bprAck');
+    if (tog) {
+      const k = tog.dataset.bptog, t = BPR.pay[k];
+      if (t && t.on) delete BPR.pay[k]; else BPR.pay[k] = { on: true, val: '' };
+      const keep = $('bprReason') ? $('bprReason').value : BPR.reason; BPR.reason = keep; bprModal();
+      const inp = mb.querySelector(`[data-bpin="${CSS.escape(k)}"]`); if (inp) inp.focus();
+    } else if (rest) {
+      const k = rest.dataset.bprest; if (!BPR.pay[k]) return;
+      const others = Object.keys(BPR.pay).reduce((a, x) => a + (x !== k && BPR.pay[x].on ? bprC(BPR.pay[x].val) : 0), 0);
+      const r = bprAmtP() - others; BPR.pay[k].val = r > 0 ? String(r / 100) : '';
+      const inp = mb.querySelector(`[data-bpin="${CSS.escape(k)}"]`); if (inp) inp.value = BPR.pay[k].val;
+      bprSync();
+    } else if (ack) { BPR.ack = !BPR.ack; ack.setAttribute('aria-pressed', BPR.ack); ack.textContent = (BPR.ack ? '☑' : '☐') + ack.textContent.slice(1); bprSync(); }
+  });
+  mb.addEventListener('input', e => {
+    const a = e.target.closest('[data-bpin]'), r = e.target.closest('#bprReason');
+    if (a) { const v = bprDigits(a.value); if (v !== a.value) a.value = v; if (BPR.pay[a.dataset.bpin]) BPR.pay[a.dataset.bpin].val = v; bprSync(); }
+    else if (r) { BPR.reason = r.value; bprSync(); }
+  });
+  $('bprGo').addEventListener('click', bprGo);
+  window.addEventListener('beforeunload', e => { if (BPR.busy) { e.preventDefault(); e.returnValue = ''; } });
 })();
 </script>
