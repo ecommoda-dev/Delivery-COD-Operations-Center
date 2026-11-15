@@ -158,7 +158,9 @@ const ECO_WORKERS = {
   //    وبتبعت `refund: { amount, reason, ack }` + `expected.owed/refundState` — والـ Worker هو اللي بيكتب الاسترداد على شوبيفاي. على Worker أقدم (≤ 3.17.x) الصفحة
   //    الجديدة مابتتفهمش: الـ CRP بتتسجّل في D1 بس من غير استرداد (#48116). **انشر الـ Worker قبل الصفحة.**
   // 🔴 `codPayment.min = '3.19.0'` (15-11-2026) — تاب «استرداد جزئي بوسطة» بينادي `bostaPartialList`/`bostaPartialCheck`/`bostaPartialPay`. على Worker أقدم النداء بيرجّع «action غير معروف».
-  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.19.0', label: 'تحصيل الأوردرات COD' },
+  // 🔴 `codPayment.min = '3.20.0'` (15-11-2026) — نافذة «فحص شحنات من بوسطة» بتقرا `captureGap`/`needsCaptureAck` على شحنة S2 موجبة (فرق تغطية شوبيفاي · #47530) وبتبعت `captureGap:{ack,reason}`.
+  //    على Worker أقدم الشحنة بتفضل ممنوعة بـ«مفيش معاملة SALE ناجحة» — انشر الـ Worker قبل الصفحة.
+  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.20.0', label: 'تحصيل الأوردرات COD' },
 
   // 🔴 **التسليم الجزئي (v1.10.0) — تالت أداة مدموجة، وأول واحدة من غير
   //    رابط قديم شغّال.** الأداتين اللي فوق (`orderStatus`/`codPayment`)
@@ -253,7 +255,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.95.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.96.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
