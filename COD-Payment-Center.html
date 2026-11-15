@@ -6313,6 +6313,13 @@ const BX_ST = {
 // ⚠️ الصف اللي لسه ما اتفحصش (ما جاش له رد) = null → «—» ومش «غير مسجّل»: «ما اتفحصش» ≠ «مش مسجّل».
 const BX_PRE_YES = '📋 مسجل مسبقاً', BX_PRE_NO = 'غير مسجّل';
 const bxPreLabel = r => r.pre ? BX_PRE_YES : (r.res ? BX_PRE_NO : null);
+// 🔗 v1.95.1 — رقم الأوردر لينك في **كل** الحالات: لو الـ Worker ما رجّعش orderId (مثلاً «مسجّل سابقًا») بنفتح بحث شوبيفاي بالرقم
+function bxOrderLink(name, orderId) {
+  if (orderId) return orderLink(name, orderId);
+  const digits = String(name ?? '').replace(/\D/g, '');
+  if (!digits) return esc(name);
+  return `<a href="https://${SHOP_DOMAIN}/admin/orders?query=${digits}" target="_blank" rel="noopener" class="order-link" title="فتح بحث الأوردر في شوبيفاي">${esc(String(name).startsWith('#') ? name : '#' + name)}</a>`;
+}
 function bxRowHtml(r, i) {
   const [cls, lbl] = BX_ST[r.status] || BX_ST.pending;
   const name = r.orderName || (r.raw.orderRef ? (String(r.raw.orderRef).startsWith('#') ? r.raw.orderRef : '#' + r.raw.orderRef) : '—');
@@ -6323,8 +6330,8 @@ function bxRowHtml(r, i) {
     : (r.status === 'ready' && r.slot === 'S2') ? 'S2 — بيتسجّل بعد S1 بتاعه' : '');
   return `<tr class="bx-${r.status}" data-i="${i}">
     <td class="col-ltr">${r.rowNo}</td>
-    <td>${r.orderId ? orderLink(name, r.orderId) : esc(name)}</td>
-    <td class="col-ltr">${esc(r.raw.trackingNumber || '—')}</td>
+    <td>${bxOrderLink(name, r.orderId)}</td>
+    <td class="col-ltr">${bxTrk(r.raw.trackingNumber || '—')}</td>
     <td class="col-center"><span class="bx-slot">${r.slot}</span> <small>${esc(r.raw.orderType || '')}</small></td>
     <td class="col-ltr">${gross}</td>
     <td class="col-ltr">${r.shopify === null || r.shopify === undefined ? '—' : bxM(bxP(r.shopify))}</td>
@@ -7074,7 +7081,7 @@ function bxOpenResult(stopped, left) {
     const r = BX.rows[e.i], [c, l] = BX_RES_LBL[e.kind];
     const name = r.orderName || r.raw.orderRef || '—';
     const why = [...r.reasons.map(esc), ...(r.warn ? [`<span class="bx-neg">⚠ ${esc(r.warn)}</span>`] : [])].join('<br>') || '—';
-    return `<tr><td class="col-ltr">${r.rowNo}</td><td>${r.orderId ? orderLink(name, r.orderId) : esc(name)}</td><td class="col-ltr">${esc(r.raw.trackingNumber || '—')}</td>` +
+    return `<tr><td class="col-ltr">${r.rowNo}</td><td>${bxOrderLink(name, r.orderId)}</td><td class="col-ltr">${bxTrk(r.raw.trackingNumber || '—')}</td>` +
       `<td><span class="bx-slot">${r.slot}</span></td><td><span class="bx-badge ${c}">${l}</span></td>` +
       `<td class="col-ltr">${r.grossP === null ? '—' : bxM(r.grossP)}</td><td class="col-ltr">${r.netP === null ? '—' : bxM(r.netP)}</td><td class="bxr-why">${why}</td></tr>`;
   }).join('');
