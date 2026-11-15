@@ -154,7 +154,10 @@ const ECO_WORKERS = {
   //    وبتبعت `ackRefundMissing`. على Worker أقدم الشحنات الغير S1 بتفضل ممنوعة بسبب «مش شحنة S1» (#46008).
   // 🔴 `codPayment.min = '3.17.0'` (15-11-2026) — نافذة «فحص شحنات من بوسطة» بتسجّل شحنة RTO (كانت Exchange/CRP) «رسوم فقط» وبتقرا `legKind` وبتعتمد على إن الشحنة المسجّلة سببها واحد بس.
   //    على Worker أقدم الـ RTO بتفضل «نوع مش مدعوم» (#47530).
-  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.17.0', label: 'تحصيل الأوردرات COD' },
+  // 🔴 `codPayment.min = '3.18.0'` (15-11-2026) — نافذة «فحص شحنات من بوسطة» بتقرا `refund` (خطة الاسترداد: create/nothing_owed/exists) على شحنة الاسترداد (CRP)
+  //    وبتبعت `refund: { amount, reason, ack }` + `expected.owed/refundState` — والـ Worker هو اللي بيكتب الاسترداد على شوبيفاي. على Worker أقدم (≤ 3.17.x) الصفحة
+  //    الجديدة مابتتفهمش: الـ CRP بتتسجّل في D1 بس من غير استرداد (#48116). **انشر الـ Worker قبل الصفحة.**
+  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.18.0', label: 'تحصيل الأوردرات COD' },
 
   // 🔴 **التسليم الجزئي (v1.10.0) — تالت أداة مدموجة، وأول واحدة من غير
   //    رابط قديم شغّال.** الأداتين اللي فوق (`orderStatus`/`codPayment`)
@@ -249,7 +252,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.93.0';                      // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v1.94.0';                      // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
