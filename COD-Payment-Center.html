@@ -1463,7 +1463,17 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.90.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.91.0</span>
+          <span class="cl-ver-date">15-11-2026 · سجل العمليات — أزرار فلتر المندوب بقت اتنين</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>زرار «مناديب + شو روم»</strong> (زرار واحد بيحدد المجموعتين مع بعض) و<strong>«بوسطة»</strong> زرار لوحده — بدل التلات أزرار (مناديب · بوسطة · شو روم). نفس السلوك: بتكتب في فلتر «المندوب» (القمع والـ chips بيتحدّثوا) والفلترة server-side وضغطة تانية بتلغي.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.90.0</span>
           <span class="cl-ver-date">14-11-2026 · «فحص شحنات من بوسطة»: تسجيل أي شحنة (Exchange · Customer Return Pickup) مع S1 (Worker 3.16.0)</span>
         </div>
         <ul class="cl-items">
@@ -4146,29 +4156,37 @@ document.addEventListener('click', (e) => {
 });
 
 const CHIP_LABEL = { logType: 'نوع العملية', logCourier: 'المندوب', logEmp: 'الموظف' };
-// ── §LOG-JS::courier-groups — «مناديب · بوسطة · شو روم» (v1.85.0) ──
+// ── §LOG-JS::courier-groups — «مناديب + شو روم» · «بوسطة» (v1.85.0 · اتقلّص لزرارين في v1.91.0) ──
 // 🔴 الأزرار **مش حالة تانية** — بتقرا وبتكتب في `msState.logCourier.selected` نفسها (زي قمع «المندوب» والـ chips)،
 //    فالتلاتة مستحيل يفترقوا. والتجميع من `ecoCourierGroup` (core.js) — نفس دالة الرئيسية والطوابير.
 // ⚠️ الفلترة server-side بأسماء المندوبين (`courier=a,b`) من قايمة `getCourierValues`: الاسم اللي مش في القايمة
 //    الحالية (مندوب اتحذف من التعريف) أو الصف بلا مندوب **مش بيدخل** في «مناديب». ⛔ مفيش عدّاد على الأزرار —
 //    العدّ محتاج استعلام لكل مجموعة من الـ Worker.
-function courierGroupNames(gkey) {
-  return msState.logCourier.items.filter(it => ecoCourierGroup(it.value) === gkey).map(it => it.value);
+// 🔴 v1.91.0: الأزرار بقت **اتنين** — «مناديب + شو روم» (زرار واحد) و«بوسطة» (لوحده). القايمة هنا محلية مش من
+//    `ECO_COURIER_GROUPS` (النواة المشتركة بين الهبّين — بتفضل تلات مجموعات للرئيسية والطوابير). كل زرار = مجموعة
+//    مجموعات من `ecoCourierGroup`، والتبديل بيعدّي على كل أسمائهم مع بعض.
+const LOG_GRP_BTNS = [
+  { key: 'crew',  label: 'مناديب + شو روم', cls: 'qc-courier', groups: ['other', 'showroom'] },
+  { key: 'bosta', label: 'بوسطة',            cls: 'qc-bosta',   groups: ['bosta'] },
+];
+function courierGroupNames(btnKey) {
+  const b = LOG_GRP_BTNS.find(x => x.key === btnKey); if (!b) return [];
+  return msState.logCourier.items.filter(it => b.groups.includes(ecoCourierGroup(it.value))).map(it => it.value);
 }
-function courierGroupOn(gkey) {
-  const names = courierGroupNames(gkey);
+function courierGroupOn(btnKey) {
+  const names = courierGroupNames(btnKey);
   return names.length > 0 && names.every(n => msState.logCourier.selected.has(n));
 }
-function courierGroupToggle(gkey) {
-  const names = courierGroupNames(gkey);
+function courierGroupToggle(btnKey) {
+  const names = courierGroupNames(btnKey);
   if (!names.length) return;
-  const st = msState.logCourier.selected, on = courierGroupOn(gkey);
+  const st = msState.logCourier.selected, on = courierGroupOn(btnKey);
   names.forEach(n => on ? st.delete(n) : st.add(n));
   msRenderList('logCourier'); renderChips(); onMsFilterChanged();
 }
 function renderCourierGroups() {
   const box = $('logGrpBar'); if (!box) return;
-  box.innerHTML = ECO_COURIER_GROUPS.map(g => {
+  box.innerHTML = LOG_GRP_BTNS.map(g => {
     const none = courierGroupNames(g.key).length === 0, on = !none && courierGroupOn(g.key);
     return `<button type="button" class="zchip ${esc(g.cls)}${on ? ' on' : ''}" data-cg="${esc(g.key)}" aria-pressed="${on}"${none ? ' disabled title="مفيش مندوبين في المجموعة دي في القايمة الحالية"' : ''}><span>${esc(g.label)}</span></button>`;
   }).join('');
