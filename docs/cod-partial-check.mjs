@@ -337,6 +337,11 @@ console.log('══ ⑦ إضافة أوردر يدويًا من خارج الط�
   is(/مضاف يدويًا/.test(await modalText(page)), 'تحذير «مضاف يدويًا» في النافذة');
   await page.click('[data-bptog="instapay:فادي"]'); await page.waitForSelector('[data-bpin="instapay:فادي"]'); await page.click('[data-bprest="instapay:فادي"]'); await page.click('#bprAck');
   await page.click('#bprGo'); await page.waitForFunction(() => !document.getElementById('bprOverlay').classList.contains('open'));
+  await page.waitForSelector('#bprResOverlay.open');
+  { const rt = await page.locator('#bprResBody').innerText();
+    is(/-500/.test(rt) && /70001/.test(rt) && /9090909090/.test(rt) && /الخزنة/.test(rt), 'نافذة نتيجة بدل التوست: المبلغ بالسالب والأوردر والتتبع والخزنة', rt.slice(0, 200));
+    is(!/اتسجّل استرداد جزئي/.test(await page.locator('.toast-container').innerText().catch(() => '')), 'مفيش توست لنتيجة التسجيل (النافذة هي اللي بتعرضها)');
+    await page.keyboard.press('Escape'); is(!(await page.locator('#bprResOverlay.open').count()), 'Esc بيقفل نافذة النتيجة'); }
   const pay = calls.find(c => c.action === 'bostaPartialPay').body;
   is(pay.manual === true && pay.orderRef === '#70001' && pay.trackingNumber === '9090909090' && pay.expected.remainder === '500.00' && pay.reason === undefined, 'التسجيل بيبعت manual:true وبلا سبب (مفيش codRemainder)', JSON.stringify(pay));
   await sleep(300);
