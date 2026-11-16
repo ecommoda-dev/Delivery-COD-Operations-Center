@@ -1188,6 +1188,9 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
       📜 سجل العمليات
       <span class="mtb-badge" id="tabBadgeLog" style="display:none">0</span>
     </button>
+    <button class="main-tab-btn" id="tabGwt" onclick="switchMainTab('gwt')">
+      🧪 تجربة gateway
+    </button>
   </div>
 
   <div class="tab-panel active" id="panelScan">
@@ -1435,6 +1438,30 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
         <table id="bprTable"><thead id="bpHead"></thead><tbody id="bprBodyRows"></tbody></table>
       </div></div></div>
     </div>
+  </div>
+
+  <!-- ══════════ §GWT-TAB — 🧪 تجربة gateway (مؤقتة · 16-11-2026 — هتتحذف) ══════════ -->
+  <div class="tab-panel" id="panelGwt">
+    <style>
+      .gwt-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+      .gwt-f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--text-secondary)}
+      .gwt-f input{padding:9px 10px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text-primary)}
+      .gwt-f input:focus{outline:2px solid var(--accent);outline-offset:1px}
+      .gwt-log{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+      .gwt-it{border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;font-size:13px;background:var(--surface)}
+      .gwt-it.ok{border-inline-start:4px solid var(--green)}
+      .gwt-it.bad{border-inline-start:4px solid var(--red);color:var(--red)}
+      .gwt-it b{font-weight:700}
+    </style>
+    <div class="card"><div class="card-body">
+      <div class="gwt-row">
+        <label class="gwt-f">رقم الأوردر<input id="gwtOrder" type="text" inputmode="numeric" dir="ltr" autocomplete="off" aria-label="رقم الأوردر" style="width:130px"></label>
+        <label class="gwt-f">المبلغ<input id="gwtAmount" type="text" inputmode="decimal" dir="ltr" autocomplete="off" aria-label="المبلغ" style="width:120px"></label>
+        <label class="gwt-f">اسم الـ gateway<input id="gwtGateway" type="text" autocomplete="off" spellcheck="false" aria-label="اسم الـ gateway" style="width:300px"></label>
+        <button type="button" class="btn-primary" id="gwtGo">تسجيل دفع جزئي</button>
+      </div>
+      <div class="gwt-log" id="gwtLog"></div>
+    </div></div>
   </div>
 
   <div class="tab-panel" id="panelLog">
@@ -2555,10 +2582,12 @@ function switchMainTab(tab) {
   $('tabBosta').classList.toggle('active', tab === 'bosta');
   $('tabBpr').classList.toggle('active', tab === 'bpr');
   $('tabLog').classList.toggle('active', tab === 'log');
+  $('tabGwt').classList.toggle('active', tab === 'gwt');
   $('panelScan').classList.toggle('active', tab === 'scan');
   $('panelBosta').classList.toggle('active', tab === 'bosta');
   $('panelBpr').classList.toggle('active', tab === 'bpr');
   $('panelLog').classList.toggle('active', tab === 'log');
+  $('panelGwt').classList.toggle('active', tab === 'gwt');
   if (tab === 'scan') refocus();
   if (tab === 'log' && !logLoaded) fetchLog();
   if (tab === 'bpr' && !BPR.loaded && !BPR.loading) bprLoad();
@@ -8195,5 +8224,44 @@ async function bprGo() {
   $('bprGo').addEventListener('click', bprGo);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('bprResOverlay').classList.contains('open')) bprResClose(); });
   window.addEventListener('beforeunload', e => { if (BPR.busy) { e.preventDefault(); e.returnValue = ''; } });
+})();
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// §GWT-JS — 🧪 تجربة gateway (مؤقتة — هتتحذف مع التاب والأكشن `gwTestPay` في الـ Worker)
+//   رقم أوردر + مبلغ + اسم gateway ← `gwTestPay` ← معاملة REST حقيقية على شوبيفاي (الأوردر لازم عليه تاج TEST-DELETE-ME).
+// ══════════════════════════════════════════════════════════════
+(function () {
+  const en = v => String(v ?? '').replace(/[\u0660-\u0669]/g, c => c.charCodeAt(0) - 0x0660).replace(/[\u06F0-\u06F9]/g, c => c.charCodeAt(0) - 0x06F0);
+  let busy = false;
+  const add = (cls, html) => {
+    const d = document.createElement('div'); d.className = 'gwt-it ' + cls; d.innerHTML = html;
+    $('gwtLog').prepend(d);
+  };
+  async function go() {
+    if (busy) return;
+    const orderName = en($('gwtOrder').value).replace(/\D/g, '');
+    const amount = en($('gwtAmount').value).replace(/[^\d.]/g, '');
+    const gateway = $('gwtGateway').value.trim();
+    if (!orderName || !amount || !gateway) { showToast('اكتب رقم الأوردر والمبلغ واسم الـ gateway', 'error'); return; }
+    busy = true; $('gwtGo').disabled = true;
+    try {
+      const d = await apiPostLegacy('gwTestPay', { orderName, amount, gateway });
+      if (d && d.success) {
+        const t = d.transaction || {};
+        add('ok', '<b>' + esc(d.orderName) + '</b> · ' + esc(t.amount) + ' ج · gateway: <b>' + esc(t.gateway) + '</b>'
+          + '<br>Message: <b>' + esc(t.message == null ? '(مفيش)' : t.message) + '</b>'
+          + '<br>manual_payment_gateway: ' + esc(t.manual_payment_gateway) + ' · ' + esc(t.status) + ' · ' + esc(t.payment_id || ''));
+      } else {
+        add('bad', '#' + esc(orderName) + ' · gateway: ' + esc(gateway) + '<br>' + esc((d && d.error) || 'فشل'));
+      }
+    } catch (e) {
+      add('bad', '#' + esc(orderName) + ' · ما اتأكدناش — راجع الأوردر على شوبيفاي قبل ما تعيد<br>' + esc(e && e.message || e));
+    } finally { busy = false; $('gwtGo').disabled = false; }
+  }
+  $('gwtGo').addEventListener('click', go);
+  ['gwtOrder', 'gwtAmount', 'gwtGateway'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') go(); }));
+  window.addEventListener('beforeunload', e => { if (busy) { e.preventDefault(); e.returnValue = ''; } });
 })();
 </script>

@@ -64,7 +64,7 @@ const TOOLS = [
     workerKey: 'codPayment',
     host:      'cod-payment-center-worker.ecommoda-dev.workers.dev',
     oldSecret: 'cod_payment_center_worker_secret',
-    tabs:      4,                       // تحصيل المناديب · تحصيل بوسطة (v1.77.0) · استرداد جزئي بوسطة (v1.95.0) · سجل العمليات
+    tabs:      5,                       // 🧪 +1 تاب «تجربة gateway» المؤقت (16-11-2026) — ارجعها 4 لما يتحذف · تحصيل المناديب · تحصيل بوسطة (v1.77.0) · استرداد جزئي بوسطة (v1.95.0) · سجل العمليات
     // ⛔ صفر `source` من v1.89.0 — ريبو `COD-Payment-Center` بقى Worker وبس والصفحة هنا هي النسخة الوحيدة.
   },
   {
