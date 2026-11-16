@@ -68,6 +68,7 @@ const L47 = [
 ];
 // v1.96.0 — #47530 النهارده: Exchange 100 وشوبيفاي مغطّية 75 (الفرق 25) — الـ Worker 3.20.0 بيرجّعها قابلة بـ captureGap + needsCaptureAck
 const CG = { on: false, s1: true, last: null };
+const CM = { last: null };
 const LCG = [
   { ...L47[2] },
   { leg: 'S2', typeCode: 30, typeLabel: 'Exchange', oldType: null, trackingNumber: '7217235847', stateCode: 46, stateLabel: 'Returned to business', createdAt: '2026-08-06T09:00:00Z', collection: 'cashed_out',
@@ -119,7 +120,18 @@ async function open({ payFail = {}, payNetwork = null, already = new Set(), payW
     if (action === 'bostaValidate' && body.rows.some(r => r.orderRef === '#47530')) {
       out = { success: true, results: body.rows.map(r => ({ rowNo: r.rowNo, status: 'error', orderId: '501', orderName: '#47530', shopify: '75.00', code: 'S1_MISSING', reasons: ['x'] })) };
     }
-    if (action === 'bostaS1Check' && body.orderRef === '#47530') {
+    if (action === 'bostaValidate' && body.rows.some(r => r.orderRef === '#51802')) {
+      out = { success: true, results: body.rows.map(r => ({ rowNo: r.rowNo, status: 'error', orderId: '803', orderName: '#51802', shopify: '0.00', reasons: ['المندوب على شوبيفاي «Mahmoud Samy» مش Bosta'] })) };
+    }
+    if ((action === 'bostaS1Check' || action === 'bostaPayS1') && body.orderRef === '#51802') {
+      if (action === 'bostaS1Check') out = { success: true, found: true, orderId: '803', orderName: '#51802', courier: 'Mahmoud Samy', financialStatus: 'PAID', shopifyOutstanding: '0.00', shopifySaleCaptured: '1325.00', shopifyRefunded: '0.00', t1: '6169665882', t2: null, hasS1: false, preRegistered: false, preReg: null, candidates: [
+        { leg: 'S1', typeCode: 10, typeLabel: 'Send', oldType: null, trackingNumber: '6169665882', stateCode: 45, stateLabel: 'Delivered', createdAt: '2026-08-17T09:00:00Z', collection: 'cashed_out', cashOutId: 'MONCOD31AUG26', cashOutDate: '2026-08-31', totalAmount: '1325.00', flexShipAmount: '0.00', fees: '113.43', onlineAmount: null, gross: '1325.00', net: '1211.57', afterS1: false, refundMissing: false,
+          notes: ['⚠ المندوب على شوبيفاي «Mahmoud Samy» مش Bosta — الشحنة جاية من بوسطة نفسها (محتاج تأكيد صريح)'], blockers: [], eligible: true, registered: null, needsCourierAck: true, courierMismatch: { shopify: 'Mahmoud Samy', expected: 'Bosta' } }] };
+      else { CM.last = body; const cm = body.courierMismatch;
+        if (!cm || cm.ack !== true) out = { success: false, status: 'error', needsCourierAck: true, error: 'محتاج تأكيد صريح', actions: [] };
+        else if (body.expected.courierMismatch !== 'Mahmoud Samy') out = { success: false, status: 'error', stale: true, error: 'اتغيّر', actions: [] };
+        else out = { success: true, status: 'warning', warning: 'المندوب على شوبيفاي «Mahmoud Samy» مش Bosta', actions: ['تم'], logged: true, leg: 'S1', kind: 's1_api', net: '1211.57', amount: '1325.00' }; }
+    } else if (action === 'bostaS1Check' && body.orderRef === '#47530') {
       out = { success: true, found: true, orderId: '501', orderName: '#47530', courier: 'Bosta', financialStatus: CG.on ? 'PAID' : 'PARTIALLY_PAID', shopifyOutstanding: CG.on ? '0.00' : '75.00', shopifySaleCaptured: CG.on ? '5350.00' : '5275.00', shopifyRefunded: '0.00',
         t1: null, t2: null, hasS1: true, preRegistered: false, preReg: null, candidates: CG.on ? LCG : L47 };
     } else if (action === 'bostaPayS1' && body.orderRef === '#47530' && CG.on) {
@@ -853,6 +865,36 @@ console.log('\n══ ⑬ v1.96.0 — #47530: فرق تغطية شوبيفاي (
   is(!c.some(x => ['bostaPay', 'pay', 'refund'].includes(x.action)), 'ولا تسجيل/تحصيل/استرداد على شوبيفاي من الصفحة');
   is(e13.length === 0, 'صفر خطأ في الكونسول', e13.join(' | '));
   CG.on = false;
+  await pg.context().close();
+}
+
+console.log('\n══ ⑭ v2.1.0 — #51802: المندوب على شوبيفاي مش Bosta — تنبيه + تأكيد يدوي ══');
+{
+  const ExcelNode = req(path.resolve(path.dirname(EXCEL), '..'));
+  const wb = new ExcelNode.Workbook(), ws = wb.addWorksheet('Cash Cycles');
+  ws.addRow(['Business ID', 'Order Id', 'Order Type', 'Order Status', 'Order Reference', 'COD', 'Online Payment Amount', 'Total Fees', 'Flex Ship Amount', 'Net Value', 'Payment Status', 'Paid At', 'Cash-out ID']);
+  ws.addRow(['MrQkqmcexcHuuMo7n', '6169665882', 'SEND', 'Delivered', '#51802', 1325, 0, 113.43, 0, 1211.57, 'Paid', '2026-08-31', 'MONCOD31AUG26']);
+  const F14 = path.join(os_tmp(), 'bx-51802-cm.xlsx'); await wb.xlsx.writeFile(F14);
+  CM.last = null;
+  const { page: pg, calls: c, errs: e14 } = await open();
+  await pg.click('#tabBosta'); await pg.setInputFiles('#bxFile', F14); await waitReady(pg);
+  await pg.click('.bx-s1btn'); await pg.waitForFunction(() => document.querySelectorAll('.s1m-cand').length === 1, null, { timeout: 5000 });
+  const ex = '[data-s1tn="6169665882"]';
+  is(/قابلة للتسجيل/.test(await txt(pg, ex + ' .s1m-hc.verdict')) && !(await pg.$(ex + ' .s1m-why')), 'S1: قابلة (مش ممنوعة)');
+  is(/Mahmoud Samy/.test(await txt(pg, ex)) && !(await pg.$(ex + ' [data-s1cmack]')), 'قبل الاختيار: تلميح بالمندوب بس · مفيش زرار تأكيد');
+  await pg.click(ex + ' .s1m-grid');
+  is(!!(await pg.$(ex + ' [data-s1cmack]')) && !(await pg.$(ex + ' [data-s1cgreason]')), 'بعد الاختيار: زرار التأكيد (بلا خانة سبب)');
+  is(await pg.$eval('#bxS1Go', b => b.disabled) && /أكّد/.test(await txt(pg, '#bxS1Sum')), 'زرار التسجيل مقفول لحد التأكيد');
+  await pg.click(ex + ' [data-s1cmack]');
+  is(!(await pg.$eval('#bxS1Go', b => b.disabled)), 'بعد التأكيد: مفتوح');
+  await pg.click('#bxS1Go');
+  const cf = await txt(pg, '#confirmBody');
+  is(/المندوب على شوبيفاي مش Bosta/.test(cf) && /Mahmoud Samy/.test(cf), 'نافذة التأكيد بتسمّي المندوب', cf.slice(0, 300));
+  await confirmGo(pg);
+  await pg.waitForFunction(() => !document.getElementById('bxS1Overlay').classList.contains('open'), null, { timeout: 8000 });
+  is(CM.last && CM.last.courierMismatch.ack === true && CM.last.expected.courierMismatch === 'Mahmoud Samy' && CM.last.expected.gross === '1325.00', 'bostaPayS1 بعت courierMismatch.ack + expected.courierMismatch');
+  is(!c.some(x => ['bostaPay', 'pay', 'refund'].includes(x.action)), 'ولا تحصيل/استرداد على شوبيفاي من الصفحة');
+  is(e14.length === 0, 'صفر خطأ في الكونسول', e14.join(' | '));
   await pg.context().close();
 }
 
