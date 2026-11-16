@@ -8024,7 +8024,6 @@ const bprSumP = () => BPR_GROUPS.reduce((a, g) => a + bprGroupP(g.id), 0);
 function bprReady() {
   const d = BPR.d; if (!d || BPR.busy || BPR.loadingOne) return false;
   if (d.state !== 'ready' && d.state !== 'exists') return false;
-  if (!BPR.ack) return false;
   if (d.needsReason && BPR.reason.trim().length < 3) return false;
   const amt = bprAmtP();
   return amt > 0 && bprSumP() === amt;
@@ -8060,11 +8059,9 @@ function bprModal() {
   if (d.state === 'ready' || d.state === 'exists') {
     html += `<div class="bpr-sum">${cell('المستحق على شوبيفاي', bprNeg(Number(d.owed)))}${cell('حد بوسطة (كاش للعميل)', bprNeg(Number(d.bostaCap)))}${d.bostaRegistered ? cell('جزء بوسطة', 'اتسجّل ✓') : ''}${cell(d.state === 'exists' ? 'الاسترداد الموجود على شوبيفاي' : 'الباقي علينا (هيتحوّل للعميل)', bprNeg(amt / 100), 'big')}</div>`;
     if (d.state === 'exists') html += `<div class="s1m-note ok">✅ استرداد الباقي موجود على شوبيفاي (${esc(bprF(d.existing && d.existing.amount))} ج${d.existing && d.existing.refundId ? ' · ' + esc(d.existing.refundId.split('/').pop()) : ''}) — هيتسجّل في السجل للخزنة <b>بدون استرداد جديد</b>.</div>`;
-    else html += `<div class="s1m-note bad">⛔ هيتعمل <b>استرداد ${esc(bprF(amt / 100))} ج على شوبيفاي</b> ومفيش منه رجوع من الأداة. ${emp ? `التحويل للعميل بتعمله إنت (<b>${esc(emp)}</b>) والخزنة بتدفعلك المبلغ.` : ''}</div>`;
     if (d.needsReason) html += `<div class="s1m-rf-reason" style="display:block;margin-bottom:10px"><div class="s1m-note">الباقي الحالي (<b>${esc(bprF(d.remainder))}</b>) غير المسجّل وقت الرفع (<b>${esc(bprF(d.codRemainder))}</b>) — اكتب السبب:</div><input class="bpr-in" id="bprReason" type="text" maxlength="300" autocomplete="off" aria-label="سبب اختلاف المبلغ" value="${esc(BPR.reason)}"></div>`;
     html += `<div class="pay-meter bpr-meter" id="bprMeter"><div class="pm-row"><div class="pm-cell"><span id="bprMLbl">المتبقي</span><b id="bprRem">—</b></div><div class="pm-cell"><span>المدخل</span><b id="bprSum">—</b></div><div class="pm-cell"><span>المطلوب</span><b>${bprNeg(amt / 100)}</b></div></div><div class="pm-bar"><i id="bprBar"></i></div></div>`;
     html += bprPayHTML();
-    html += `<button type="button" class="bpr-ack" id="bprAck" aria-pressed="${BPR.ack}">${BPR.ack ? '☑' : '☐'} راجعت المبلغ (${bprNeg(amt / 100)} ج) وطرق الدفع — ${d.state === 'exists' ? 'سجّل في السجل' : 'اعمل الاسترداد على شوبيفاي'}</button>`;
   }
   body.innerHTML = html; go.disabled = true; bprSync();
 }
@@ -8131,7 +8128,7 @@ async function bprGo() {
   $('bprBodyRows').addEventListener('click', e => { const b = e.target.closest('[data-bpro]'); if (b) bprOpen(b.dataset.bpro); });
   const mb = $('bprModalBody');
   mb.addEventListener('click', e => {
-    const tog = e.target.closest('[data-bptog]'), rest = e.target.closest('[data-bprest]'), ack = e.target.closest('#bprAck');
+    const tog = e.target.closest('[data-bptog]'), rest = e.target.closest('[data-bprest]');
     if (tog) {
       const k = tog.dataset.bptog, t = BPR.pay[k];
       if (t && t.on) delete BPR.pay[k]; else BPR.pay[k] = { on: true, val: '' };
@@ -8143,7 +8140,7 @@ async function bprGo() {
       const r = bprAmtP() - others; BPR.pay[k].val = r > 0 ? String(r / 100) : '';
       const inp = mb.querySelector(`[data-bpin="${CSS.escape(k)}"]`); if (inp) inp.value = bprDisp(BPR.pay[k].val);
       bprSync();
-    } else if (ack) { BPR.ack = !BPR.ack; ack.setAttribute('aria-pressed', BPR.ack); ack.textContent = (BPR.ack ? '☑' : '☐') + ack.textContent.slice(1); bprSync(); }
+    }
   });
   mb.addEventListener('input', e => {
     const a = e.target.closest('[data-bpin]'), r = e.target.closest('#bprReason');
