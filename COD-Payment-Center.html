@@ -1629,10 +1629,11 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.97.0</span>
-          <span class="cl-ver-date">16-11-2026 · «استرداد جزئي بوسطة»: إضافة أوردر يدويًا من خارج الطابور + الجدول على المعيار الموحّد (v8.7.0) · Worker 3.21.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.98.0</span>
+          <span class="cl-ver-date">16-11-2026 · «استرداد جزئي بوسطة»: المبالغ بالسالب + حذف مربع مكرر · (v1.97.0: إضافة أوردر يدويًا من خارج الطابور + الجدول على المعيار الموحّد (v8.7.0) · Worker 3.21.0</span>
         </div>
         <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نافذة «استرداد جزئي بوسطة»:</strong> المبالغ (المستحق · حد بوسطة · الباقي · العدّاد · خانات الدفع · الزرار) بتتعرض <b>بالسالب</b> زي تاب «تحصيل المناديب» — المخزَّن والمبعوت للـ Worker موجب. ومربع «جزء بوسطة (لسه ما اتسجّلش)» اتشال (نفس رقم «حد بوسطة»)؛ بيظهر «جزء بوسطة · اتسجّل ✓» بس لو اتسجّل فعلًا.</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>إضافة أوردر يدويًا من خارج الطابور:</strong> مربع «➕ إضافة أوردر من خارج الطابور» (رقم الأوردر · Enter أو «إضافة» · الأرقام العربي بتتحوّل). الـ Worker بيفحصه بنفس الحكم (S1 · S2 · المستحق · الباقي · المتاح للاسترداد) ورقم التتبع بيتاخد من <code>bosta_tracking_number_s2</code> على شوبيفاي. بيظهر في الجدول بشارة «يدوي» وتحذير، وبتسجيله بنفس خطوات الطابور (إقرار + طرق دفع). المدخل اللي مش رقم أوردر (حروف · طول غلط · باركود فاتورة) بيروح لصندوق أحمر بسبب قصير ✕ مش للجدول، والمكرر توست أصفر بدون نداء.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الجدول على معيار الجداول الموحّد (html-builder v8.7.0):</strong> كارت واحد (النتائج ← chips ← الجدول) · فلتر في رأس كل عمود (قيم · نطاق/قايمة · توكنز بـ Enter + اقتراحات) · ترتيب 3 حالات · عناوين ثابتة بخط 12/700 · tooltip بقيم الفلتر · «مسح كل الفلاتر». عدّادات الحالة بقت هي فلتر الحالة نفسه. مربع البحث القديم اتشال (الفلترة من قمع «الأوردر» و«رقم التتبع»). الأعمدة بقت: النوع منفصل عن التتبع.</span></li>
           <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span>أيقونة 💸 بدل 🪙 — الأخيرة مش موجودة في خطوط ويندوز القديمة فكانت بتظهر مربع فاضي في التاب والعنوان والزراير. وعدّادات الحالة كانت بتتمدّد رأسيًا، وعناوين الأعمدة الرقمية كانت بتلف على سطرين.</span></li>
@@ -7519,6 +7520,8 @@ const BPR_KIND = { return: 'استرجاع (CRP)', exchange: 'استبدال', m
 const BPR_GROUPS = [{ id: 'instapay', label: 'انستاباي' }, { id: 'wallet', label: 'محفظة' }];
 const bprC = v => { const n = Number(String(v ?? '').replace(/,/g, '')); return Number.isFinite(n) ? Math.round(n * 100) : 0; };
 const bprF = v => { const n = Number(String(v ?? '').replace(/,/g, '')); return Number.isFinite(n) ? fmt(n) : '—'; };
+const bprNeg = n => (Number(n) > 0 ? '-' : '') + fmt(n);   // الاسترداد بيتعرض بالسالب (زي تاب تحصيل المناديب) والمخزّن موجب
+const bprDisp = v => v ? '-' + v : '';
 const bprDigits = v => String(v || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1');
 const bprSt = k => BPR_ST[k] || ['', k || '—'];
 // كل الصفوف = اللي اتضاف يدويًا (ومش في الطابور) ثم الطابور — مصدر واحد للجدول والعدّادات والشارة
@@ -7974,7 +7977,7 @@ function bprPayHTML() {
     const tiles = PAY_ACCOUNTS.map(acc => {
       const k = `${g.id}:${acc}`, t = BPR.pay[k] || { on: false, val: '' };
       return `<div class="pay-tile${t.on ? ' sel' : ''}"><button type="button" class="pay-tile-name" data-bptog="${esc(k)}" aria-pressed="${t.on}">${esc(acc)}</button>` +
-        (t.on ? `<div class="pay-tile-body"><input class="pay-tile-input" data-bpin="${esc(k)}" type="text" inputmode="decimal" autocomplete="off" dir="ltr" aria-label="${esc(g.label + ' - ' + acc)}" value="${esc(t.val)}"><button type="button" class="pay-tile-rest" data-bprest="${esc(k)}">الباقي</button></div>` : '') + `</div>`;
+        (t.on ? `<div class="pay-tile-body"><input class="pay-tile-input" data-bpin="${esc(k)}" type="text" inputmode="decimal" autocomplete="off" dir="ltr" aria-label="${esc(g.label + ' - ' + acc)}" value="${esc(bprDisp(t.val))}"><button type="button" class="pay-tile-rest" data-bprest="${esc(k)}">الباقي</button></div>` : '') + `</div>`;
     }).join('');
     return `<div class="pay-col pay-col-${g.id}"><div class="pay-col-head"><span class="pay-ico">${PAY_ICON[g.id]}</span><span>${g.label}</span><span class="pay-col-tot" data-bptot="${g.id}"></span></div>${tiles}</div>`;
   }).join('') + `</div>`;
@@ -7991,12 +7994,12 @@ function bprReady() {
 }
 function bprSync() {
   const amt = bprAmtP(), sum = bprSumP(), rem = amt - sum, m = $('bprMeter'); if (!m) return;
-  $('bprSum').textContent = fmt(sum / 100); $('bprRem').textContent = fmt(Math.abs(rem) / 100);
+  $('bprSum').textContent = bprNeg(sum / 100); $('bprRem').textContent = bprNeg(Math.abs(rem) / 100);
   $('bprMLbl').textContent = rem > 0 ? 'المتبقي' : rem < 0 ? 'زيادة' : 'مظبوط ✓';
   m.classList.toggle('ok', rem === 0 && amt > 0); m.classList.toggle('over', rem < 0);
   $('bprBar').style.width = (amt > 0 ? Math.min(100, Math.round(sum * 100 / amt)) : 0) + '%';
-  BPR_GROUPS.forEach(g => { const el = document.querySelector(`[data-bptot="${g.id}"]`); if (el) { const v = bprGroupP(g.id); el.textContent = v > 0 ? fmt(v / 100) + ' ج' : ''; } });
-  const go = $('bprGo'); if (go && !BPR.busy) { go.disabled = !bprReady(); go.textContent = `💸 سجّل استرداد الباقي (${fmt(amt / 100)} ج)`; }
+  BPR_GROUPS.forEach(g => { const el = document.querySelector(`[data-bptot="${g.id}"]`); if (el) { const v = bprGroupP(g.id); el.textContent = v > 0 ? bprNeg(v / 100) + ' ج' : ''; } });
+  const go = $('bprGo'); if (go && !BPR.busy) { go.disabled = !bprReady(); go.textContent = `💸 سجّل استرداد الباقي (${bprNeg(amt / 100)} ج)`; }
 }
 function bprModal() {
   const body = $('bprModalBody'), go = $('bprGo');
@@ -8018,13 +8021,13 @@ function bprModal() {
   if (d.state === 'done') html += `<div class="s1m-note ok">🟣 اتسجّل قبل كده${d.registered ? ' (' + esc(d.registered.at) + ')' : ''} — مفيش حاجة تتكرر.</div>`;
   html += why + warn;
   if (d.state === 'ready' || d.state === 'exists') {
-    html += `<div class="bpr-sum">${cell('المستحق على شوبيفاي', bprF(d.owed))}${cell('حد بوسطة (كاش للعميل)', bprF(d.bostaCap))}${cell(d.bostaRegistered ? 'جزء بوسطة' : 'جزء بوسطة (لسه ما اتسجّلش)', d.bostaRegistered ? 'اتسجّل ✓' : '— ' + bprF(d.bostaCap))}${cell(d.state === 'exists' ? 'الاسترداد الموجود على شوبيفاي' : 'الباقي علينا (هيتحوّل للعميل)', bprF(amt / 100), 'big')}</div>`;
+    html += `<div class="bpr-sum">${cell('المستحق على شوبيفاي', bprNeg(Number(d.owed)))}${cell('حد بوسطة (كاش للعميل)', bprNeg(Number(d.bostaCap)))}${d.bostaRegistered ? cell('جزء بوسطة', 'اتسجّل ✓') : ''}${cell(d.state === 'exists' ? 'الاسترداد الموجود على شوبيفاي' : 'الباقي علينا (هيتحوّل للعميل)', bprNeg(amt / 100), 'big')}</div>`;
     if (d.state === 'exists') html += `<div class="s1m-note ok">✅ استرداد الباقي موجود على شوبيفاي (${esc(bprF(d.existing && d.existing.amount))} ج${d.existing && d.existing.refundId ? ' · ' + esc(d.existing.refundId.split('/').pop()) : ''}) — هيتسجّل في السجل للخزنة <b>بدون استرداد جديد</b>.</div>`;
     else html += `<div class="s1m-note bad">⛔ هيتعمل <b>استرداد ${esc(bprF(amt / 100))} ج على شوبيفاي</b> ومفيش منه رجوع من الأداة. ${emp ? `التحويل للعميل بتعمله إنت (<b>${esc(emp)}</b>) والخزنة بتدفعلك المبلغ.` : ''}</div>`;
     if (d.needsReason) html += `<div class="s1m-rf-reason" style="display:block;margin-bottom:10px"><div class="s1m-note">الباقي الحالي (<b>${esc(bprF(d.remainder))}</b>) غير المسجّل وقت الرفع (<b>${esc(bprF(d.codRemainder))}</b>) — اكتب السبب:</div><input class="bpr-in" id="bprReason" type="text" maxlength="300" autocomplete="off" aria-label="سبب اختلاف المبلغ" value="${esc(BPR.reason)}"></div>`;
-    html += `<div class="pay-meter bpr-meter" id="bprMeter"><div class="pm-row"><div class="pm-cell"><span id="bprMLbl">المتبقي</span><b id="bprRem">—</b></div><div class="pm-cell"><span>المدخل</span><b id="bprSum">—</b></div><div class="pm-cell"><span>المطلوب</span><b>${fmt(amt / 100)}</b></div></div><div class="pm-bar"><i id="bprBar"></i></div></div>`;
+    html += `<div class="pay-meter bpr-meter" id="bprMeter"><div class="pm-row"><div class="pm-cell"><span id="bprMLbl">المتبقي</span><b id="bprRem">—</b></div><div class="pm-cell"><span>المدخل</span><b id="bprSum">—</b></div><div class="pm-cell"><span>المطلوب</span><b>${bprNeg(amt / 100)}</b></div></div><div class="pm-bar"><i id="bprBar"></i></div></div>`;
     html += bprPayHTML();
-    html += `<button type="button" class="bpr-ack" id="bprAck" aria-pressed="${BPR.ack}">${BPR.ack ? '☑' : '☐'} راجعت المبلغ (${fmt(amt / 100)} ج) وطرق الدفع — ${d.state === 'exists' ? 'سجّل في السجل' : 'اعمل الاسترداد على شوبيفاي'}</button>`;
+    html += `<button type="button" class="bpr-ack" id="bprAck" aria-pressed="${BPR.ack}">${BPR.ack ? '☑' : '☐'} راجعت المبلغ (${bprNeg(amt / 100)} ج) وطرق الدفع — ${d.state === 'exists' ? 'سجّل في السجل' : 'اعمل الاسترداد على شوبيفاي'}</button>`;
   }
   body.innerHTML = html; go.disabled = true; bprSync();
 }
@@ -8084,13 +8087,13 @@ async function bprGo() {
       const k = rest.dataset.bprest; if (!BPR.pay[k]) return;
       const others = Object.keys(BPR.pay).reduce((a, x) => a + (x !== k && BPR.pay[x].on ? bprC(BPR.pay[x].val) : 0), 0);
       const r = bprAmtP() - others; BPR.pay[k].val = r > 0 ? String(r / 100) : '';
-      const inp = mb.querySelector(`[data-bpin="${CSS.escape(k)}"]`); if (inp) inp.value = BPR.pay[k].val;
+      const inp = mb.querySelector(`[data-bpin="${CSS.escape(k)}"]`); if (inp) inp.value = bprDisp(BPR.pay[k].val);
       bprSync();
     } else if (ack) { BPR.ack = !BPR.ack; ack.setAttribute('aria-pressed', BPR.ack); ack.textContent = (BPR.ack ? '☑' : '☐') + ack.textContent.slice(1); bprSync(); }
   });
   mb.addEventListener('input', e => {
     const a = e.target.closest('[data-bpin]'), r = e.target.closest('#bprReason');
-    if (a) { const v = bprDigits(a.value); if (v !== a.value) a.value = v; if (BPR.pay[a.dataset.bpin]) BPR.pay[a.dataset.bpin].val = v; bprSync(); }
+    if (a) { const v = bprDigits(a.value), w = bprDisp(v); if (w !== a.value) a.value = w; if (BPR.pay[a.dataset.bpin]) BPR.pay[a.dataset.bpin].val = v; bprSync(); }
     else if (r) { BPR.reason = r.value; bprSync(); }
   });
   $('bprGo').addEventListener('click', bprGo);

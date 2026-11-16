@@ -128,14 +128,17 @@ console.log('══ ② التسجيل الأساسي #63994 ══');
   is(/استرداد 500 ج على شوبيفاي/.test(t) && /Ahmed Ibraheem/.test(t), 'تنبيه الاسترداد على شوبيفاي باسم الموظف (بمسافة)');
   is(await page.locator('#bprGo').isDisabled(), 'زرار التسجيل مقفول في الأول');
   is(await page.locator('[data-bptog^="cash"]').count() === 0 && (await page.locator('.bpr-paycols .pay-col').count()) === 2, 'طرق الدفع انستاباي ومحفظة بس (مفيش نقدي)');
-  is((await page.locator('#bprMLbl').innerText()) === 'المتبقي' && (await page.locator('#bprRem').innerText()) === '500', 'العدّاد: المتبقي 500');
+  { const mt = await page.locator('#bprModalBody').innerText();
+    is(/-2,500/.test(mt) && /-2,000/.test(mt) && /-500/.test(mt), 'المربعات بالسالب (المستحق · حد بوسطة · الباقي)', mt.slice(0, 300));
+    is(!/لسه ما اتسجّلش/.test(mt) && (await page.locator('.bpr-cell').count()) === 3, 'مربع «جزء بوسطة (لسه ما اتسجّلش)» اتشال (3 مربعات بس)'); }
+  is((await page.locator('#bprMLbl').innerText()) === 'المتبقي' && (await page.locator('#bprRem').innerText()) === '-500', 'العدّاد: المتبقي 500');
   await page.click('[data-bptog="instapay:فادي"]'); await page.waitForSelector('[data-bpin="instapay:فادي"]');
-  await page.fill('[data-bpin="instapay:فادي"]', '٣٠٠'); is(await page.inputValue('[data-bpin="instapay:فادي"]') === '300', 'الأرقام العربي بتتحوّل في خانة المبلغ');
-  is((await page.locator('#bprRem').innerText()) === '200', 'المتبقي 200 بعد 300 انستاباي');
+  await page.fill('[data-bpin="instapay:فادي"]', '٣٠٠'); is(await page.inputValue('[data-bpin="instapay:فادي"]') === '-300', 'الأرقام العربي بتتحوّل في خانة المبلغ');
+  is((await page.locator('#bprRem').innerText()) === '-200', 'المتبقي 200 بعد 300 انستاباي');
   await page.click('#bprAck'); is(await page.locator('#bprGo').isDisabled(), 'مقفول: إقرار بس والمبلغ ناقص');
   await page.click('[data-bptog="wallet:إسلام"]'); await page.waitForSelector('[data-bpin="wallet:إسلام"]');
   await page.click('[data-bprest="wallet:إسلام"]');
-  is(await page.inputValue('[data-bpin="wallet:إسلام"]') === '200', 'زرار «الباقي» بيملا 200');
+  is(await page.inputValue('[data-bpin="wallet:إسلام"]') === '-200', 'زرار «الباقي» بيملا 200');
   is((await page.locator('#bprMLbl').innerText()).includes('مظبوط'), 'العدّاد «مظبوط ✓»');
   is(await page.locator('#bprGo').isEnabled(), 'الزرار اتفتح: المبلغ مظبوط + إقرار');
   await page.fill('[data-bpin="wallet:إسلام"]', '250'); is(await page.locator('#bprGo').isDisabled() && (await page.locator('#bprMLbl').innerText()) === 'زيادة', 'زيادة عن الباقي → مقفول');
@@ -185,7 +188,7 @@ console.log('══ ③ سبب إجباري · على شوبيفاي · Returned
   is(/بدون استرداد جديد/.test(t) && /700/.test(t) && /777/.test(t), 'على شوبيفاي: بيقول «بدون استرداد جديد» ومبلغ الاسترداد الموجود 700');
   is((await page.locator('.bpr-cell.big small').innerText()).includes('الاسترداد الموجود'), 'الخانة الكبيرة = الاسترداد الموجود');
   await page.click('[data-bptog="wallet:فادي"]'); await page.waitForSelector('[data-bpin="wallet:فادي"]'); await page.click('[data-bprest="wallet:فادي"]'); await page.click('#bprAck');
-  is(await page.inputValue('[data-bpin="wallet:فادي"]') === '700' && await page.locator('#bprGo').isEnabled(), 'المبلغ المطلوب 700 (مش الباقي المحسوب 0)');
+  is(await page.inputValue('[data-bpin="wallet:فادي"]') === '-700' && await page.locator('#bprGo').isEnabled(), 'المبلغ المطلوب 700 (مش الباقي المحسوب 0)');
   is(/سجّل في السجل/.test(await page.locator('#bprAck').innerText()), 'نص الإقرار «سجّل في السجل»');
   await page.close(); await ctx.close();
 }
@@ -218,7 +221,7 @@ console.log('══ ④ ردود الرفض والانقطاع ══');
   await rowOf(page, '#63994').locator('[data-bpro]').click(); await page.waitForSelector('#bprMeter');
   await page.click('[data-bptog="instapay:فادي"]'); await page.waitForSelector('[data-bpin="instapay:فادي"]'); await page.click('[data-bprest="instapay:فادي"]'); await page.click('#bprAck');
   await page.click('#bprGo'); await page.waitForFunction(() => /شوبيفاي رفضت/.test(document.getElementById('bprModalBody').innerText));
-  is(await page.inputValue('[data-bpin="instapay:فادي"]') === '500' && await page.locator('#bprGo').isEnabled(), 'الرفض: المبالغ محفوظة ويقدر يعيد');
+  is(await page.inputValue('[data-bpin="instapay:فادي"]') === '-500' && await page.locator('#bprGo').isEnabled(), 'الرفض: المبالغ محفوظة ويقدر يعيد');
   await page.close(); await ctx.close();
 }
 {
