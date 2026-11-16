@@ -161,7 +161,10 @@ const ECO_WORKERS = {
   // 🔴 `codPayment.min = '3.20.0'` (15-11-2026) — نافذة «فحص شحنات من بوسطة» بتقرا `captureGap`/`needsCaptureAck` على شحنة S2 موجبة (فرق تغطية شوبيفاي · #47530) وبتبعت `captureGap:{ack,reason}`.
   //    على Worker أقدم الشحنة بتفضل ممنوعة بـ«مفيش معاملة SALE ناجحة» — انشر الـ Worker قبل الصفحة.
   // 🔴 `codPayment.min = '3.21.0'` (16-11-2026) — تاب «استرداد جزئي بوسطة» بيبعت `manual:true` (إضافة أوردر يدويًا من خارج الطابور) وبيقرا `manual` من `bostaPartialCheck`. على Worker أقدم الأوردر بيرجّع «مفيهوش رفعة مقصوصة».
-  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.21.0', label: 'تحصيل الأوردرات COD' },
+  // 🔴 `codPayment.min = '3.23.0'` (16-11-2026) — «الرصيد الحقيقي للأوردر» (إجمالي − المدفوع) بدل المستحق الخام (`totalOutstandingSet` بيتصفّر بعد أي استرداد جزئي — #49667 · #65634)
+  //    في ملف الـ Cash-out ونافذة «فحص شحنات بوسطة» (3.22.0) و«استرداد جزئي بوسطة» ومسار «تحصيل المناديب» (3.23.0)، + سبب الاسترداد على شوبيفاي. الصفحة بتعرض أرقام الـ Worker زي ما هي — على Worker أقدم
+  //    الأرقام بتفضل بالمستحق الخام (أوردر له فلوس بعد استرداد جزئي بيبان «مدفوع بالكامل»). انشر الـ Worker قبل الصفحة.
+  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.23.0', label: 'تحصيل الأوردرات COD' },
 
   // 🔴 **التسليم الجزئي (v1.10.0) — تالت أداة مدموجة، وأول واحدة من غير
   //    رابط قديم شغّال.** الأداتين اللي فوق (`orderStatus`/`codPayment`)
@@ -256,7 +259,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v1.98.1';                     // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v2.0.0';                     // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +

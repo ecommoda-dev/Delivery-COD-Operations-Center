@@ -1629,7 +1629,20 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.98.1</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.0.0</span>
+          <span class="cl-ver-date">16-11-2026 · «الرصيد الحقيقي للأوردر» في كل مسارات التحصيل والاسترداد + سبب الاسترداد على شوبيفاي · Worker 3.23.0 (#49667 · #65634)</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>المستحق على شوبيفاي بعد أي استرداد جزئي:</strong> شوبيفاي بيصفّر «المستحق» بعد أي استرداد أقل من المقترح (بيسجّل الفرق «فرق استرداد» ويعتبره اتحجز عمدًا) — فالأوردر كان بيبان «مدفوع بالكامل» والعميل لسه له فلوس. الأداة دلوقتي بتحسب <b>الرصيد الحقيقي = إجمالي الأوردر − المدفوع الصافي</b> (موجب = تحصيل · سالب = استرداد) في: <b>تحصيل المناديب</b> (preview/pay/refund والبحث بالمندوب والتسليمات) · <b>تحصيل بوسطة</b> (ملف الـ Cash-out) · <b>فحص شحنات بوسطة</b> · <b>استرداد جزئي بوسطة</b>. أمثلة: #49667 (استرداد 2800 من 4800 ← صف بوسطة −2000 بقى بيطابق ويتسجّل بـ استرداد 2000 والفرق بيتعادل) · #65634 (استرداد 18 من 165 ← بقى «مستحق استرداد 147»).</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>نافذة «فحص شحنات بوسطة»:</strong> ملاحظة «Bosta partial refund &lt;تتبع&gt;» ما بقتش بتتعدّ استرداد الـ CRP نفسه (كانت بتطلّع «استرداد مقابل موجود (2,800)» غلط).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>سبب الاسترداد على شوبيفاي (Refund reason):</strong> استرداد الـ CRP من ملف الـ Cash-out بقى ليه سبب <code>Bosta &lt;النوع&gt; &lt;التتبع&gt;</code> (كان «No reason provided»)، واسترداد الباقي من «استرداد جزئي بوسطة» بقى <code>Bosta partial refund &lt;التتبع&gt; — remainder above the Bosta cash cap (2000.00 EGP) · transferred by &lt;الموظف&gt;</code>. البادئة والتتبع هم مفتاح منع التكرار.</span></li>
+          <li class="cl-item"><span class="cl-tag change">ملحوظة</span><span>أوردر فيه <b>فرق استرداد مقصود</b> (رسوم اتحجزت من العميل) هيظهر له «مستحق استرداد» بقد الفرق — الموظف هو اللي بيقرر. و<code>codPayment.min</code> بقى <code>3.23.0</code> — <b>انشر الـ Worker قبل الصفحة</b> (على Worker أقدم الأرقام بتفضل بالمستحق الخام). رقم نسخة الهب بقى <b>v2.0.0</b>.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.98.1</span>
           <span class="cl-ver-date">16-11-2026 · «استرداد جزئي بوسطة»: المبالغ بالسالب + حذف مربع مكرر · (v1.97.0: إضافة أوردر يدويًا من خارج الطابور + الجدول على المعيار الموحّد (v8.7.0) · Worker 3.21.0</span>
         </div>
         <ul class="cl-items">
@@ -2182,6 +2195,20 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
             <tr><td><code>diag</code></td><td>فحص ذاتي بدون كتابة: الأسرار (بالاسم والطول فقط) · الـ bindings · صلاحيات شوبيفاي · D1 · KV · الـ Origin</td></tr>
             <tr><td><code>audit_pending</code> <em>(مؤقت)</em></td><td>جرد <code>PRE_REG_KV</code> قبل تنظيفها — قراءة بحتة. <strong>يُحذف بعد انتهاء التنظيف</strong></td></tr>
           </table>
+        </div>
+      </details>
+
+      <details class="about-sec">
+        <summary>🧮 «المستحق على شوبيفاي» = الرصيد الحقيقي للأوردر (v2.0.0)</summary>
+        <div class="about-sec-body">
+          <p><strong>أي رقم «مستحق شوبيفاي» بتشوفه في الأداة (تحصيل المناديب · تحصيل بوسطة · فحص شحنات بوسطة · استرداد جزئي بوسطة) هو الرصيد الحقيقي للعميل:</strong>
+             <code>إجمالي الأوردر الحالي − المدفوع الصافي</code> (موجب = العميل عليه · سالب = العميل له فلوس).</p>
+          <ul>
+            <li>⚠️ <strong>ليه مش «المستحق» اللي شوبيفاي نفسه بيعرضه؟</strong> شوبيفاي بيصفّر «Outstanding balance» بعد أي استرداد <em>أقل من المقترح</em> — بيسجّل الفرق «فرق استرداد» (<code>REFUND_DISCREPANCY</code>) ويعتبره مبلغ اتحجز عمدًا من العميل. فأوردر زي #49667 (استرداد 2800 من 4800) كان بيبان عليه «مفيش مستحق» والعميل لسه له 2000 دفعتها بوسطة.</li>
+            <li>✅ <strong>اللي بيحصل في الحالة دي:</strong> صف بوسطة −2000 بيطابق الرصيد ويتسجّل بـ <strong>استرداد 2000 على شوبيفاي</strong> — فمجموع المسترد 4800 والمدفوع الصافي بيبقى = إجمالي الأوردر، والـ «فرق استرداد» بيتعادل لصفر. الأوردر بيفضل «Partially refunded» (العميل دفع فعلاً ثمن اللي استلمه).</li>
+            <li>⚠️ لو التاجر <strong>حجز مبلغ عمدًا</strong> من العميل (رسوم مثلاً) هيظهر له «مستحق استرداد» بقد الحجز — راجعه قبل ما تسجّل.</li>
+            <li>🧾 <strong>سبب الاسترداد (Refund reason) على شوبيفاي بقى مكتوب:</strong> <code>Bosta &lt;النوع&gt; &lt;التتبع&gt;</code> لاسترداد الـ CRP/Exchange من الملف أو النافذة، و<code>Bosta partial refund &lt;التتبع&gt; — remainder above the Bosta cash cap (2000.00 EGP) · transferred by &lt;الموظف&gt;</code> لاسترداد الباقي. البادئة والتتبع مفتاح منع التكرار — ما تعدّلهمش يدويًا.</li>
+          </ul>
         </div>
       </details>
 
