@@ -1629,10 +1629,11 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.98.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v1.98.1</span>
           <span class="cl-ver-date">16-11-2026 · «استرداد جزئي بوسطة»: المبالغ بالسالب + حذف مربع مكرر · (v1.97.0: إضافة أوردر يدويًا من خارج الطابور + الجدول على المعيار الموحّد (v8.7.0) · Worker 3.21.0</span>
         </div>
         <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نتيجة تسجيل «استرداد جزئي بوسطة» في نافذة بدل التوست:</strong> حكم (✅/⚠) + المبلغ بالسالب + الأوردر والتتبع وحالة شوبيفاي واسم الخزنة + تحذيرات الأوردر (زي «مضاف يدويًا») — بنفس شكل نافذة نتيجة «تحصيل بوسطة». Esc أو «تمام» بيقفلها.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نافذة «استرداد جزئي بوسطة»:</strong> المبالغ (المستحق · حد بوسطة · الباقي · العدّاد · خانات الدفع · الزرار) بتتعرض <b>بالسالب</b> زي تاب «تحصيل المناديب» — المخزَّن والمبعوت للـ Worker موجب. ومربع «جزء بوسطة (لسه ما اتسجّلش)» اتشال (نفس رقم «حد بوسطة»)؛ بيظهر «جزء بوسطة · اتسجّل ✓» بس لو اتسجّل فعلًا.</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>إضافة أوردر يدويًا من خارج الطابور:</strong> مربع «➕ إضافة أوردر من خارج الطابور» (رقم الأوردر · Enter أو «إضافة» · الأرقام العربي بتتحوّل). الـ Worker بيفحصه بنفس الحكم (S1 · S2 · المستحق · الباقي · المتاح للاسترداد) ورقم التتبع بيتاخد من <code>bosta_tracking_number_s2</code> على شوبيفاي. بيظهر في الجدول بشارة «يدوي» وتحذير، وبتسجيله بنفس خطوات الطابور (إقرار + طرق دفع). المدخل اللي مش رقم أوردر (حروف · طول غلط · باركود فاتورة) بيروح لصندوق أحمر بسبب قصير ✕ مش للجدول، والمكرر توست أصفر بدون نداء.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الجدول على معيار الجداول الموحّد (html-builder v8.7.0):</strong> كارت واحد (النتائج ← chips ← الجدول) · فلتر في رأس كل عمود (قيم · نطاق/قايمة · توكنز بـ Enter + اقتراحات) · ترتيب 3 حالات · عناوين ثابتة بخط 12/700 · tooltip بقيم الفلتر · «مسح كل الفلاتر». عدّادات الحالة بقت هي فلتر الحالة نفسه. مربع البحث القديم اتشال (الفلترة من قمع «الأوردر» و«رقم التتبع»). الأعمدة بقت: النوع منفصل عن التتبع.</span></li>
@@ -2301,6 +2302,15 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
       <button class="btn-modal-cancel" onclick="bprClose()">إغلاق</button>
       <button class="btn-modal-save" id="bprGo" disabled>💸 سجّل استرداد الباقي</button>
     </div>
+  </div>
+</div>
+
+<!-- §BPR-RES — نتيجة تسجيل «استرداد جزئي بوسطة»: نافذة بدل التوست (نفس شكل نتيجة «تحصيل بوسطة» bxr-*) -->
+<div class="eco-overlay" id="bprResOverlay" onclick="if(event.target===this)bprResClose()">
+  <div class="eco-modal bxr-modal" style="max-width:560px;">
+    <div class="eco-modal-hdr"><span id="bprResTitle">✅ نتيجة التسجيل</span><button class="modal-close-x" onclick="bprResClose()">✕</button></div>
+    <div class="eco-modal-body" id="bprResBody"></div>
+    <div class="eco-modal-ftr"><button class="btn-modal-save" id="bprResOk" onclick="bprResClose()">تمام</button></div>
   </div>
 </div>
 
@@ -8031,6 +8041,24 @@ function bprModal() {
   }
   body.innerHTML = html; go.disabled = true; bprSync();
 }
+function bprResClose() { $('bprResOverlay').classList.remove('open'); }
+function bprResShow(res, d, c) {
+  const warn = !!res.warning, amt = Number(res.amount) || 0;
+  const row = (k, v) => `<tr><td style="white-space:nowrap;color:var(--text-secondary);width:38%">${k}</td><td>${v}</td></tr>`;
+  const shop = res.refund && res.refund.created ? 'اتعمل استرداد على شوبيفاي' : 'الاسترداد كان موجود على شوبيفاي — اتسجّل في السجل بس';
+  const notes = (d.warnings || []).map(x => `<div>⚠ ${esc(x)}</div>`).join('');
+  $('bprResTitle').textContent = warn ? '⚠️ تم التسجيل — مع تحذير' : '✅ تم تسجيل الاسترداد';
+  $('bprResBody').innerHTML =
+    `<div class="bxr-verdict ${warn ? 'warn' : 'ok'}">${warn ? '⚠ اتسجّل استرداد جزئي بوسطة — راجع التحذير تحت.' : '✅ اتسجّل استرداد جزئي بوسطة.'}${warn ? `<div class="bxr-verdict-note">${esc(res.warning)}</div>` : ''}</div>` +
+    `<div class="bxr-net"><span>المبلغ المسجّل (الباقي)</span><b>${bprNeg(amt)} ج</b></div>` +
+    `<div class="bxr-details"><div class="bxr-scroll"><table><tbody>` +
+      row('الأوردر', orderLink(d.orderName || '', d.orderId)) +
+      row('رقم التتبع', bxTrk(d.tracking, 'tn')) +
+      row('على شوبيفاي', esc(shop)) +
+      row('الخزنة هتشوفه باسم', `<b>${esc(res.courier || '')}</b>`) +
+    `</tbody></table></div></div>` + (notes ? `<div class="bxr-verdict warn" style="margin-top:10px">${notes}</div>` : '');
+  $('bprResOverlay').classList.add('open'); $('bprResOk').focus();
+}
 async function bprGo() {
   if (!bprReady()) return;
   const d = BPR.d, c = BPR.cur, emp = currentEmployee ? currentEmployee.username : null;
@@ -8056,8 +8084,7 @@ async function bprGo() {
   }
   if (res && res.success) {
     playBeep(res.warning ? 'error' : 'success');
-    showToast(`${res.warning ? '⚠' : '✅'} اتسجّل استرداد جزئي بوسطة ${fmt(Number(res.amount))} ج — ${res.refund && res.refund.created ? 'اتعمل على شوبيفاي · ' : ''}الخزنة هتشوفه باسم ${res.courier}${res.warning ? ' — ' + res.warning : ''}`, res.warning ? 'warning' : 'success', 7000);
-    logLoaded = false; $('bprOverlay').classList.remove('open'); await bprLoad(); return;
+    logLoaded = false; $('bprOverlay').classList.remove('open'); bprResShow(res, d, c); await bprLoad(); return;
   }
   const f = res || { error: 'فشل التسجيل' };
   playBeep('error'); logLoaded = false;
@@ -8097,6 +8124,7 @@ async function bprGo() {
     else if (r) { BPR.reason = r.value; bprSync(); }
   });
   $('bprGo').addEventListener('click', bprGo);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('bprResOverlay').classList.contains('open')) bprResClose(); });
   window.addEventListener('beforeunload', e => { if (BPR.busy) { e.preventDefault(); e.returnValue = ''; } });
 })();
 </script>
