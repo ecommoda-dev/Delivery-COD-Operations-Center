@@ -77,12 +77,6 @@
 > 🔄 **أسماء قديمة في الملف ده (تاريخية):** قبل المرحلة ٣/٤ (هب المخزن v1.45.0 · هب الشحن v1.49.0) كان فيه `shared/shell.js` و`shared/shell.css` والبادئات `woc*`/`dco*`. دلوقتي:
 > `shell.js` ← **`core.js`** (المشترك) + **`hub-config.js`** (`ECO_WORKERS` · `TOOL_VERSION` · مفاتيح الجلسة والسر) + **`dco-rules.js`**، و`shell.css` ← **`core.css`** (المشترك) + **`hub.css`** (ألوان الهب)، والبادئات ← **`eco*`** / `eco-` (`wocApi`←`ecoApi` · `WOC_WORKERS`/`DCO_WORKERS`←`ECO_WORKERS` · `.woc-*`/`.dco-*`←`.eco-*`). **قيم مفاتيح التخزين ما اتغيّرتش** (`woc_session` · `dco_session` · `*_worker_secret`). أي نص تحت بيقول «في الـ shell» معناه الملف المناسب من دول.
 
-## 🧪 تاب مؤقت «تجربة gateway» في «تحصيل الأوردرات COD» (16-11-2026 · طلب أحمد — **هيتحذف**)
-
-- تاب خامس `#panelGwt` (`§GWT-TAB` · `§GWT-JS` آخر سكربت في `COD-Payment-Center.html`): رقم أوردر + مبلغ + اسم gateway ← `gwTestPay` في الـ Worker (v3.25.1) ← معاملة REST حقيقية (`kind=capture`) بالـ gateway المكتوب، والنتيجة (Message من شوبيفاي) بتتعرض في سطر. **بلا D1 ولا خزنة.**
-- ⛔ الـ Worker بيرفض أي أوردر **مالوش التاج `TEST-DELETE-ME`** — حماية من أوردر حقيقي بالغلط.
-- **للحذف:** شيل `tabGwt`/`panelGwt`/`§GWT-JS` وسطرين `switchMainTab`، وارجع `tabs: 4` في `docs/tools-check.mjs`، وشيل `gwTestPay` و`gw-test-check.mjs` من ريبو الـ Worker. `ECO_WORKERS.codPayment.min` ما اترفعتش عن قصد (تجربة مؤقتة) — الـ Worker القديم بيرد «action غير معروف».
-
 ## 💰 تمريرة v2.2.0 — «فحص شحنات بوسطة»: تحصيل على شوبيفاي لاستبدال بوسطة حصّلته (طلب أحمد 16-11-2026 · #51153)
 
 - الـ Worker `v3.25.0` (ريبو `COD-Payment-Center`) · `ECO_WORKERS.codPayment.min` → **`3.25.0`** (🔴 انشره قبل الصفحة) · الصفحة `COD-Payment-Center.html` `§BX-S1-JS`: `bxS1HasSc` · `bxS1Sc` · `bxS1ScHtml` · نافذة التأكيد الحمرا (`scs`) · فحص `docs/cod-bosta-check.mjs` §⑮.
