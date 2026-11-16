@@ -1458,7 +1458,6 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
         <label class="gwt-f">رقم الأوردر<input id="gwtOrder" type="text" inputmode="numeric" dir="ltr" autocomplete="off" aria-label="رقم الأوردر" style="width:130px"></label>
         <label class="gwt-f">المبلغ<input id="gwtAmount" type="text" inputmode="decimal" dir="ltr" autocomplete="off" aria-label="المبلغ" style="width:120px"></label>
         <label class="gwt-f">اسم الـ gateway<input id="gwtGateway" type="text" autocomplete="off" spellcheck="false" aria-label="اسم الـ gateway" style="width:300px"></label>
-        <label class="gwt-f">النوع<select id="gwtKind" aria-label="نوع المعاملة" style="padding:9px 10px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;background:var(--surface);color:var(--text-primary)"><option value="capture">capture</option><option value="sale">sale</option></select></label>
         <button type="button" class="btn-primary" id="gwtGo">تسجيل دفع جزئي</button>
       </div>
       <div class="gwt-log" id="gwtLog"></div>
@@ -8248,16 +8247,14 @@ async function bprGo() {
     if (!orderName || !amount || !gateway) { showToast('اكتب رقم الأوردر والمبلغ واسم الـ gateway', 'error'); return; }
     busy = true; $('gwtGo').disabled = true;
     try {
-      const kind = $('gwtKind').value;
-      const d = await apiPostLegacy('gwTestPay', { orderName, amount, gateway, kind });
+      const d = await apiPostLegacy('gwTestPay', { orderName, amount, gateway });
       if (d && d.success) {
         const t = d.transaction || {};
         add('ok', '<b>' + esc(d.orderName) + '</b> · ' + esc(t.amount) + ' ج · gateway: <b>' + esc(t.gateway) + '</b>'
           + '<br>Message: <b>' + esc(t.message == null ? '(مفيش)' : t.message) + '</b>'
-          + '<br>' + esc(t.kind) + ' · manual_payment_gateway: ' + esc(t.manual_payment_gateway) + ' · ' + esc(t.status) + ' · ' + esc(t.payment_id || '')
-          + '<br>parent_id: <b>' + esc(t.parent_id == null ? 'مفيش (مش مربوطة بـ pending)' : t.parent_id) + '</b>');
+          + '<br>manual_payment_gateway: ' + esc(t.manual_payment_gateway) + ' · ' + esc(t.status) + ' · ' + esc(t.payment_id || ''));
       } else {
-        add('bad', '#' + esc(orderName) + ' · ' + esc(kind) + ' · gateway: ' + esc(gateway) + '<br>' + esc((d && d.error) || 'فشل'));
+        add('bad', '#' + esc(orderName) + ' · gateway: ' + esc(gateway) + '<br>' + esc((d && d.error) || 'فشل'));
       }
     } catch (e) {
       add('bad', '#' + esc(orderName) + ' · ما اتأكدناش — راجع الأوردر على شوبيفاي قبل ما تعيد<br>' + esc(e && e.message || e));
