@@ -884,6 +884,12 @@ body.col-resizing,body.col-resizing *{cursor:col-resize !important;user-select:n
 .bx-run:disabled { opacity:.4; cursor:not-allowed; }
 .bx-sec { padding:9px 14px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface); color:var(--text-primary); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; }
 .bx-sec:disabled { opacity:.4; cursor:not-allowed; }
+/* 🆕 v2.3.0 — «إعادة فحص الملف» مميّز (كهرماني) + زرار إعادة فحص الصف لوحده */
+#bxRecheck { background:var(--amber-light); border:2px solid var(--amber); color:var(--amber-dark); font-weight:800; }
+#bxRecheck:not(:disabled):hover { background:var(--amber-border); }
+.bx-rcbtn { margin-top:6px; margin-inline-end:6px; display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border:1.5px solid var(--amber); background:var(--amber-light); color:var(--amber-dark); border-radius:var(--radius-sm); font-family:inherit; font-size:12px; font-weight:800; cursor:pointer; }
+.bx-rcbtn:hover:not(:disabled) { background:var(--amber-border); }
+.bx-rcbtn:disabled { opacity:.45; cursor:not-allowed; }
 .bx-hint { width:100%; font-size:12px; color:var(--text-secondary); min-height:16px; }
 .bx-hint.err { color:var(--red); }
 
@@ -1629,7 +1635,18 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.2.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.3.0</span>
+          <span class="cl-ver-date">17-11-2026 · «فحص شحنات بوسطة»: حد التفاصيل 8 · شحنات من 01-01-2026 بس · زرار إعادة فحص لكل صف · Worker 3.27.0</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>حد تفاصيل الشحنات:</strong> الأوردر اللي عليه شحنات كتير (#57833) بيجيب تفاصيل أول <b>8</b> شحنات بدل 5. القيد من الكود عندنا مش من بوسطة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>تاريخ الإنشاء:</strong> أي شحنة اتعملت قبل <b>01-01-2026</b> بتتجاهل في النافذة (وبتظهر ملاحظة بعددها).</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>🔄 إعادة فحص الشحنة:</strong> زرار في كل صف بيفحص الصف ده بس بدل الملف كله، وزرار «إعادة فحص الملف» بقى مميّز بالكهرماني.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v2.2.0</span>
           <span class="cl-ver-date">16-11-2026 · «فحص شحنات بوسطة»: تحصيل على شوبيفاي لاستبدال بوسطة حصّلته ومفيش عليه تحصيل (#51153) · Worker 3.25.0</span>
         </div>
         <ul class="cl-items">
@@ -6456,6 +6473,27 @@ function bxOrderLink(name, orderId) {
   if (!digits) return esc(name);
   return `<a href="https://${SHOP_DOMAIN}/admin/orders?query=${digits}" target="_blank" rel="noopener" class="order-link" title="فتح بحث الأوردر في شوبيفاي">${esc(String(name).startsWith('#') ? name : '#' + name)}</a>`;
 }
+// 🆕 v2.3.0 — إعادة فحص صف واحد بس (بدل الملف كله). الخطأ المحلي (تكرار في الملف) مالوش نداء Worker فمفيش زرار.
+const bxIsLocalErr = r => r.status === 'error' && r.res === null && !BX.regTn.has(r.raw.trackingNumber);
+const bxCanRecheckRow = r => !!BX.rows.length && !['checking', 'running', 'pending'].includes(r.status) && !bxIsLocalErr(r) && !['registered', 'failed'].includes(r.status);
+async function bxRecheckOne(i) {
+  const r = BX.rows[i];
+  if (!r || BX.busy || BX.phase === 'checking' || BX.phase === 'parsing' || !bxCanRecheckRow(r)) return;
+  const seq = BX.seq;
+  r.status = 'checking'; r.reasons = []; r.warn = null;
+  $('bxResult').className = 'result-box';
+  bxRender();
+  try {
+    const d = await apiPostLegacy('bostaValidate', { rows: [r.raw], ctx: BX.ctx });
+    if (seq !== BX.seq) return;
+    if (!d || !Array.isArray(d.results) || d.results.length !== 1) throw new Error((d && d.error) || 'رد غير متوقع من الـ Worker');
+    bxApply(r, d.results[0]);
+  } catch (e) {
+    if (seq !== BX.seq) return;
+    r.status = 'unknown'; r.reasons = [`تعذّر الفحص: ${e.message || 'خطأ في الاتصال'} — اضغط «إعادة فحص الشحنة»`];
+  }
+  bxAdjustCtx(); bxRender(); btRemeasure();
+}
 function bxRowHtml(r, i) {
   const [cls, lbl] = BX_ST[r.status] || BX_ST.pending;
   const name = r.orderName || (r.raw.orderRef ? (String(r.raw.orderRef).startsWith('#') ? r.raw.orderRef : '#' + r.raw.orderRef) : '—');
@@ -6474,7 +6512,7 @@ function bxRowHtml(r, i) {
     <td class="col-ltr">${net}</td>
     <td class="col-center">${bxPreLabel(r) === null ? '—' : r.pre ? `<span class="bx-badge prereg" title="فلوسه اتسجّلت على شوبيفاي في أداة التسجيل المسبق — لا يوجد تحصيل جديد عليه (PRE_REG_KV ما اتلمسش)">${BX_PRE_YES}</span>` : `<span class="bx-prenone">${BX_PRE_NO}</span>`}</td>
     <td class="col-center"><span class="bx-badge ${cls}">${lbl}</span></td>
-    <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}${(r.status === 'error' && r.raw.orderRef) ? `<br><button type="button" class="bx-s1btn" data-s1="${i}">🔎 فحص شحنات بوسطة</button>` : ''}</td>
+    <td class="bx-why">${why}${r.warn ? `<br><span class="bx-neg">${esc(r.warn)}</span>` : ''}${bxCanRecheckRow(r) ? `<br><button type="button" class="bx-rcbtn" data-rc="${i}" title="إعادة فحص الشحنة دي بس (مش الملف كله)">🔄 إعادة فحص الشحنة</button>` : ''}${(r.status === 'error' && r.raw.orderRef) ? `${bxCanRecheckRow(r) ? '' : '<br>'}<button type="button" class="bx-s1btn" data-s1="${i}">🔎 فحص شحنات بوسطة</button>` : ''}</td>
   </tr>`;
 }
 function bxRender() {
@@ -7408,6 +7446,7 @@ function bxS1Render() {
   const elig = d.candidates.filter(c => c.eligible);
   const sel = bxS1Selected(), problem = bxS1Problem(sel);
   const note = [];
+  if (d.skippedOld > 0) note.push(`<div class="s1m-note">ℹ️ ${d.skippedOld} شحنة تاريخ إنشائها قبل 01-01-2026 اتجاهلت ومابتظهرش هنا.</div>`);
   if (d.hasS1) note.push(`<div class="s1m-note ok">✅ S1 بتاع الأوردر ده متسجّل بالفعل في السجل.</div>`);
   if (!elig.length) note.push(`<div class="s1m-note ${d.candidates.some(c => c.registered) ? 'ok' : 'bad'}">${d.candidates.some(c => c.registered)
     ? '✅ مفيش شحنة تانية قابلة للتسجيل — اقفل النافذة واضغط «إعادة فحص الملف».'
@@ -7555,7 +7594,7 @@ async function bxS1Pay() {
 
 // ── ربط الأحداث ──────────────────────────────────────────────
 (function bxInit() {
-  $('bxBody').addEventListener('click', e => { const b = e.target.closest('[data-s1]'); if (b) bxS1Open(+b.dataset.s1); });
+  $('bxBody').addEventListener('click', e => { const rc = e.target.closest('[data-rc]'); if (rc) { bxRecheckOne(+rc.dataset.rc); return; } const b = e.target.closest('[data-s1]'); if (b) bxS1Open(+b.dataset.s1); });
   $('bxS1Body').addEventListener('click', e => { const ro = e.target.closest('[data-s1rfopt]'); if (ro) { bxS1RfPick(ro.dataset.s1rfopt, ro.dataset.v); return; } const sca = e.target.closest('[data-s1scack]'); if (sca) { const g = BX_S1.sc[sca.dataset.s1scack] || (BX_S1.sc[sca.dataset.s1scack] = { ack: false }); g.ack = !g.ack; sca.setAttribute('aria-pressed', String(g.ack)); sca.textContent = sca.textContent.replace(/^[☐☑]/, g.ack ? '☑' : '☐'); bxS1CgSync(); return; } const cma = e.target.closest('[data-s1cmack]'); if (cma) { const g = BX_S1.cm[cma.dataset.s1cmack] || (BX_S1.cm[cma.dataset.s1cmack] = { ack: false }); g.ack = !g.ack; cma.setAttribute('aria-pressed', String(g.ack)); cma.textContent = cma.textContent.replace(/^[☐☑]/, g.ack ? '☑' : '☐'); bxS1CgSync(); return; } const ga = e.target.closest('[data-s1cgack]'); if (ga) { const g = BX_S1.cg[ga.dataset.s1cgack] || (BX_S1.cg[ga.dataset.s1cgack] = { ack: false, reason: '' }); g.ack = !g.ack; ga.setAttribute('aria-pressed', String(g.ack)); ga.textContent = ga.textContent.replace(/^[☐☑]/, g.ack ? '☑' : '☐'); bxS1CgSync(); return; } if (e.target.closest('.s1m-rf') || e.target.closest('.s1m-cg')) return; if (e.target.closest('a')) return; if (e.target.closest('[data-s1all]')) { bxS1PickAll(); return; } const c = e.target.closest('[data-s1tn]'); if (c) bxS1Pick(c.dataset.s1tn); });
   $('bxS1Body').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-s1tn]')) { e.preventDefault(); bxS1Pick(e.target.dataset.s1tn); } });
   $('bxS1Body').addEventListener('input', e => {
