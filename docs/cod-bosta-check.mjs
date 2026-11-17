@@ -941,6 +941,25 @@ console.log('\n══ ⑮ v2.2.0 — #51153: تحصيل على شوبيفاي ل
   await pg.context().close();
 }
 
+console.log('\n══ ⑯ v2.3.0 — إعادة فحص صف واحد + زرار «إعادة فحص الملف» مميّز ══');
+{
+  const F16 = path.join(os_tmp(), 'bx-51153-sc.xlsx');
+  const { page: pg, calls: c, errs: e16 } = await open();
+  await pg.click('#tabBosta'); await pg.setInputFiles('#bxFile', F16); await waitReady(pg);
+  const col = await pg.$eval('#bxRecheck', b => { const cs = getComputedStyle(b); return { bg: cs.backgroundColor, bd: cs.borderTopColor, w: cs.borderTopWidth }; });
+  const ref = await pg.$eval('.bx-sec:not(#bxRecheck)', b => getComputedStyle(b).borderTopColor).catch(() => null);
+  is(col.w === '2px' && col.bd !== ref, 'زرار «إعادة فحص الملف» مميّز (إطار 2px بلون مختلف عن الأزرار العادية)', JSON.stringify(col));
+  is(!!(await pg.$('.bx-rcbtn[data-rc="0"]')), 'زرار «إعادة فحص الشحنة» ظاهر على الصف');
+  const before = c.filter(x => x.action === 'bostaValidate').length;
+  await pg.click('.bx-rcbtn[data-rc="0"]');
+  await pg.waitForTimeout(600);
+  const vs = c.filter(x => x.action === 'bostaValidate');
+  is(vs.length === before + 1 && vs[vs.length - 1].body.rows.length === 1 && vs[vs.length - 1].body.rows[0].trackingNumber === '5575612262', 'إعادة فحص الصف بعتت صف واحد بس للـ Worker');
+  is(!!(await pg.$('.bx-rcbtn[data-rc="0"]')) && !(await pg.$eval('.bx-rcbtn[data-rc="0"]', b => b.disabled)), 'الزرار رجع بعد الفحص');
+  is(e16.length === 0, 'صفر خطأ في الكونسول', e16.join(' | '));
+  await pg.context().close();
+}
+
 await browser.close(); server.close();
 console.log(`\n${fail ? '❌' : '✅'} ${pass} عدّى · ${fail} فشل`);
 process.exit(fail ? 1 : 0);
