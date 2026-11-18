@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center
 
-![version](https://img.shields.io/badge/version-v1.34.0-blue)
+![version](https://img.shields.io/badge/version-v1.35.0-blue)
 
 **هب واحد لمحطة الشحن والتحصيل.** الموظف بيدخل مرة واحدة وبيشوف طوابير الشحن —
 **وبيشتغل على أدوات المحطة من نفس المكان** (دخول واحد وسر واحد).
@@ -17,7 +17,7 @@
 | `Ready-Orders.html` | **أوردرات جاهزة للشحن** — حالته `Ready` (S1 أو S2) | `ready-orders-worker` **1.3.0** |
 | `Shipped-Orders.html` | **أوردرات تحت التوصيل** — حالته `Shipped` ولسه بلا `Delivered`/`Returned` | `shipped-orders-worker` |
 | `In-Return-Orders.html` 🟤 | **في طريق الرجوع (In-Return)** — حالته `In-Return` (S1 أو S2) ولسه بلا `Returned` (v1.65.0) · **عرض بحت** · متولّدة من `docs/build-pages.py` | `in-return-orders-worker` (في ريبو `In-Return-Orders` — Worker وبس) |
-| `Order-Status-Updater.html` 🔗 | **تحديث حالة الأوردرات** — أداة مدموجة (v1.5.0 · اسم الملف اتغيّر v1.11.0) | `order-status-updater-worker` (في ريبوه) |
+| `Order-Status-Updater.html` 🔗 | **تحديث حالة الأوردرات** — أداة مدموجة (v1.5.0 · **النسخة الوحيدة من v2.6.0** — الريبو بقى Worker وبس · تاب السجل على معيار الجداول v9.1.0) | `order-status-updater-worker` **4.8.0** (في ريبو `Order-Status-Updater` — Worker وبس) |
 | `COD-Payment-Center.html` 🔗 | **تحصيل الأوردرات COD** — أداة مدموجة (v1.5.0 · **النسخة الوحيدة من v1.89.0**) | `cod-payment-center-worker` (في ريبو `COD-Payment-Center` — Worker وبس) |
 | `Partial-Delivery.html` 🔗 | **التسليم الجزئي** — أداة مدموجة (v1.10.0 · اسم الملف اتغيّر v1.11.0) | `partial-delivery-worker` (في ريبوه) |
 | `Courier-Names.html` 🛵 | **أسماء المناديب** — قسم «أدوات أخرى» (v1.30.0): إضافة / حذف / ترتيب قايمة `custom.courier` | `courier-names-worker` (في ريبو `Courier-Names` — Worker وبس) |
@@ -31,8 +31,8 @@
 > 🔴 **والطابورين عرض بحت** — صفر كتابة على شوبيفاي وصفر صف في السجل.
 > ⚠️ **أما الأداتين المدموجتين فبيكتبوا فعلاً** — حالة أوردر على شوبيفاي،
 > وصفوف فلوس في D1. وعشان كده هما في قسم «أدوات» في الرئيسية **بلا عدّاد**.
-> 🔴 **وصفحتهم متولّدة** من ريبوهاتهم الأصلية (`docs/port-standalone.py`) —
-> الروابط القديمة فضلت شغّالة بقرار أحمد، فأي تعديل هناك محتاج تشغيلة هنا.
+> 🔴 **وصفحاتهم كلها النسخة الوحيدة** — ريبو كل أداة بقى Worker وبس (آخرهم `Order-Status-Updater` من
+> v2.6.0 — 18-11-2026)، ومفيش مولّد: التعديل على الواجهة بيتعمل هنا مباشرة.
 
 ## الملفات
 
@@ -49,10 +49,10 @@ docs/build-pages.py   مولّد الصفحتين — 🔴 الـ HTML **متو�
 docs/css-check.js     فحص CSS بـ parser حقيقي
 docs/rules-check.mjs  فحص منطق §QUEUE-RULES و§AUDIT-RULES — ٩٠ بند (بلا تنصيب)
 docs/queues-check.mjs فحص متصفح فعلي — ٤٤٨ بند (فلاتر رأس العمود وعرض الأعمدة في §⑩ · وطي الأقسام في §⑫)
-Order-Status-Updater.html 🔗 محدّث حالة الأوردر — 🔴 **متولّدة**، عدّل في ريبوها
+Order-Status-Updater.html 🔗 تحديث حالة الأوردرات — ✅ النسخة الوحيدة (v2.6.0)، عدّل هنا مباشرة
 COD-Payment-Center.html   🔗 مركز التحصيل — ✅ النسخة الوحيدة (v1.89.0)، عدّل هنا مباشرة
 Partial-Delivery.html     🔗 التسليم الجزئي — عدّل هنا مباشرة (بلا مولّد)
-docs/port-standalone.py  مولّد صفحتَي الأداتين من ريبوهاتهم
+docs/order-status-log-check.mjs  فحص تاب «سجل العمليات» في تحديث الحالة — متصفح فعلي (v2.6.0 · ١١٤ بند)
 docs/tools-check.mjs  فحص عقد الدمج — ١٦٠ بند
 docs/bosta-webhook-check.mjs  فحص صفحة مستقبل حالة بوسطة — ٢٨ بند (v1.35.0)
 Re-Assign-Package-Zone-BOSTA.html 🚚 تحويل الشحنة إلى بوسطة — عدّل هنا مباشرة (بلا مولّد) · الأهلية والكتابة في الـ Worker
@@ -77,11 +77,11 @@ node docs/reassign-check.mjs        # تحويل الشحنة إلى بوسطة 
 node docs/idle-check.mjs        # الخروج التلقائي لعدم النشاط (v1.32.0 · ٢١ بند)
 ```
 
-🔴 **ولو عدّلت في `Order-Status-Updater`** (مش التحصيل — صفحته بتتعدّل هنا مباشرة من v1.89.0) — شغّل
-المولّد قبل الفحص (لازم الريبوهين يكونوا جنب بعض):
+🔴 **ولو عدّلت في `Order-Status-Updater.html`** — اتعدّل هنا مباشرة (مفيش مولّد)، وشغّل:
 
 ```bash
-python3 docs/port-standalone.py
+node docs/order-status-log-check.mjs   # تاب سجل العمليات (١١٤ بند · متصفح فعلي)
+node docs/tools-check.mjs
 ```
 
 ## النشر
@@ -111,5 +111,7 @@ chip واحد باسم مش موجود، والـ Worker **بيتجمّد على
 **محصور في العمود ده** — الطابور والجرد وباقي الأعمدة شغّالين بالكامل.
 
 التفاصيل والقرارات والفخاخ → **`CLAUDE.md`**
+
+آخر تحديث: 18-11-2026 — 15:01
 
 </div>

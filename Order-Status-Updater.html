@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <!-- skills: html-builder v6.6.0 · worker-builder v2.1.0 · constants v1.4.0 · order-lifecycle v1.3.0 - 08-09-2026 -->
+  <!-- skills: html-builder v9.1.0 (تاب سجل العمليات فقط — باقي الصفحة v6.6.0) · worker-builder v2.1.0 · constants v1.4.0 · order-lifecycle v1.3.0 - 18-11-2026 -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>تحديث حالة الأوردرات — مركز عمليات الشحن والتحصيل</title>
@@ -15,21 +15,11 @@
 </head>
 <body>
 <!-- ══════════════════════════════════════════════════════════════
-     🔴 **الملف ده متولّد من `docs/port-standalone.py`.**
-     المصدر: ريبو `Order-Status-Updater` → `index.html`.
-     ⛔ **متعدّلش الملف ده بالإيد** — عدّل في الريبو الأصلي وشغّل المولّد:
-
-         python3 docs/port-standalone.py && node docs/tools-check.mjs
-
-     ⚠️ أي تعديل يدوي هنا **بيضيع في صمت** مع أول تشغيل.
-
-     🔴 **وفيه نسختين من الواجهة دي على الهوا** (قرار أحمد 16-09-2026:
-        الروابط القديمة تفضل شغّالة). النسخة دي بتاخد **الشِل من الهب**:
-        دخول واحد (`dco_session`) · سر واحد (مجموعة `delivery_cod_ops`) ·
-        هيدر الهب بزرار رجوع للرئيسية. والنسخة الأصلية في ريبوها لسه
-        بشاشة دخولها وسرّها.
-     ⚠️ **والـ Worker واحد للاتنين** (`order-status-updater-worker` في ريبو
-        `Order-Status-Updater`) — ما اتلمسش ولا سطر في التمريرة دي.
+     🔴 **الصفحة دي هي النسخة الوحيدة من واجهة «تحديث حالة الأوردرات»** (قرار أحمد 18-11-2026).
+     ريبو `Order-Status-Updater` بقى **Worker وبس** (`index.js` · `wrangler.toml`) — واجهته
+     اتشالت والرابط القديم `.../Order-Status-Updater/` بقى 404 بلا تحويل. فمفيش مولّد ولا نسخة تانية:
+     **التعديل على الواجهة بيتعمل هنا مباشرة**، وأي تعديل على الـ Worker بيتعمل في ريبوه.
+     ⛔ ومفيش Promote للـ Worker من الهب (قرار ٨: Worker بتاعها في ريبوها).
      ══════════════════════════════════════════════════════════════ -->
 </head>
 <body>
@@ -357,205 +347,160 @@
 .csm-tbl input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); }
 .warn-box { background: var(--amber-light); border: 1.5px solid var(--amber-border); color: var(--amber); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 12px; font-weight: 700; }
 
-/* ─── Log Tab — القسم الموحّد (data-table-standard.md) v3.7.0 ─── */
-/* .log-tab-wrap القديمة → .unified-section: كارت واحد للفلاتر+الجدول، بدون
-   overflow:hidden (كانت بتقص .ms-menu/.range-preset-menu اللي بيفتحوا جواها). */
+/* ─── Log Tab — القسم الموحّد على html-builder v9.1.0 (data-table-standard.md · v8.6.0) ─── */
+/* كارت واحد: صف النتائج ← chips ← الجدول. الفلاتر كلها في رأس العمود (قايمة عايمة على body)،
+   فمفيش قسم فلاتر فوق الجدول ومفيش overflow:hidden على الكارت. */
 .unified-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
 .section-divider{border-top:1px solid var(--border);}
-.log-filters-section{}
-.log-filters-header{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:var(--surface-2);cursor:pointer;user-select:none;transition:background .12s;border-radius:var(--radius) var(--radius) 0 0;}
-.log-filters-header:hover{background:var(--surface-hover);}
-/* المجموعة اليمين: سهم الطي أول عنصر + أيقونة فلتر بس (بدون كلمة "الفلاتر") */
-.log-filters-title{display:flex;align-items:center;gap:10px;}
-.log-filters-toggle{font-size:13px;color:var(--text-muted);transition:transform .25s;}
-.log-filters-toggle.open{transform:rotate(180deg);}
-.log-filters-icon{width:34px;height:22.5px;color:var(--text-muted);transition:color .2s;flex-shrink:0;}
-.log-filters-icon.active{color:var(--accent);}
-.log-filters-body{padding:12px 16px;display:flex;flex-direction:column;gap:10px;}
-.log-filters-body.collapsed{display:none;}
-.log-frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
-.log-fg{display:flex;flex-direction:column;gap:3px;}
-.log-flabel{font-size:10px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;}
-.log-fsel,.log-finput{border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 10px;font-family:inherit;font-size:12px;color:var(--text-primary);background:var(--surface);outline:none;height:34px;box-sizing:border-box;transition:border-color .15s, background .15s;}
-.log-fsel:focus,.log-finput:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(37,99,235,.08);}
-.log-finput.has-value{border-color:var(--accent);background:var(--accent-light);}
-.log-fsel.w-emp{width:160px;}.log-finput.w-search{width:220px;padding-left:32px;}
-/* مربع البحث — أيقونة على الشمال (data-table-standard.md § 5) */
-.log-search-wrap{position:relative;}
-.log-search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text-muted);pointer-events:none;}
-.log-clear-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--radius-sm);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;height:34px;border:1px solid var(--red-border);color:var(--red);background:var(--red-light);}
-.log-clear-btn:hover{background:var(--red);color:var(--on-accent);border-color:var(--red);}
-/* باهت ومعطّل بصريًا لما مفيش أي فلتر مفعّل (anyFilterActive) */
-.log-clear-btn.inactive{border-color:var(--border);color:var(--text-muted);background:var(--surface-2);cursor:not-allowed;opacity:.6;}
-.log-clear-btn.inactive:hover{background:var(--surface-2);color:var(--text-muted);border-color:var(--border);}
-/* Standards #30 — بانر التصدير المقصوص. ثابت فوق الجدول عشان يفضل ظاهر بعد
-   ما التوست يختفي والملف الناقص يكون لسه على الديسك. */
-.export-warn{margin:0 16px 12px;padding:10px 14px;border-radius:9px;
-  background:var(--amber-light);border:1px solid var(--amber);
-  color:var(--amber);font-size:13px;font-weight:600;line-height:1.7;}
-.log-stats-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface-2);flex-wrap:wrap;cursor:pointer;user-select:none;transition:background .12s;}
+.clear-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--radius-sm);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;height:34px;border:1px solid var(--red-border);color:var(--red);background:var(--red-light);}
+.clear-btn:hover{background:var(--red);color:var(--on-accent);border-color:var(--red);}
+.clear-btn.inactive{border-color:var(--border);color:var(--text-muted);background:var(--surface-2);cursor:not-allowed;opacity:.6;}
+.clear-btn.inactive:hover{background:var(--surface-2);color:var(--text-muted);border-color:var(--border);}
+.export-warn{margin:0 16px 12px;padding:10px 14px;border-radius:9px;background:var(--amber-light);border:1px solid var(--amber);color:var(--amber);font-size:13px;font-weight:600;line-height:1.7;}
+
+/* صف النتائج */
+.log-stats-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface-2);flex-wrap:wrap;cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;}
 .log-stats-bar:hover{background:var(--surface-hover);}
-.log-stats-right{display:flex;align-items:center;gap:10px;}
+.log-stats-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .tbl-toggle{font-size:13px;color:var(--text-muted);transition:transform .25s;}
 .tbl-toggle.open{transform:rotate(180deg);}
 .results-wrap{display:flex;align-items:center;gap:8px;}
 .results-label{font-size:14px;font-weight:800;color:var(--text-primary);white-space:nowrap;}
-.results-count{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:34px;padding:0 10px;font-family:var(--font-mono);font-size:17px;font-weight:800;color:var(--purple);background:var(--purple-light);border:1.5px solid var(--purple-border);border-radius:var(--radius-sm);}
-.log-refresh-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(--green-border);border-radius:var(--radius-sm);font-family:inherit;font-size:11px;font-weight:600;color:var(--green);background:var(--green-light);cursor:pointer;transition:all .15s;white-space:nowrap;}
-.log-refresh-btn:hover{background:var(--green);color:var(--on-accent);}
-.log-export-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(--green-border);border-radius:var(--radius-sm);font-family:inherit;font-size:11px;font-weight:600;color:var(--green);background:var(--green-light);cursor:pointer;transition:all .15s;}
-.log-export-btn:hover{background:var(--green);color:var(--on-accent);}
-.log-print-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(--accent-border);border-radius:var(--radius-sm);font-family:inherit;font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-light);cursor:pointer;transition:all .15s;}
+.results-count{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:34px;padding:0 12px;border-radius:var(--radius-sm);background:var(--purple-light);border:1px solid var(--purple-border);color:var(--purple);font-size:20px;font-weight:800;}
+.log-stat-sub{font-size:12px;font-weight:500;color:var(--text-secondary);}
+.log-stat-sub strong{color:var(--text-primary);font-weight:700;}
+.log-sel-hint{font-size:11px;font-weight:600;color:var(--amber-dark);}
+.log-btns-end{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.log-refresh-btn,.log-export-btn,.log-print-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;height:34px;border:1px solid var(--green-border);border-radius:var(--radius-sm);background:var(--green-light);color:var(--green);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;}
+.log-refresh-btn:hover,.log-export-btn:hover{background:var(--green);color:var(--on-accent);}
+.log-print-btn{border-color:var(--accent-border);background:var(--accent-light);color:var(--accent);}
 .log-print-btn:hover{background:var(--accent);color:var(--on-accent);}
-.log-btns-end{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap;}
+
+/* chips — سطر لكل فلتر، واسم الفلتر مرة واحدة في أوله */
+.log-chips{display:flex;flex-direction:column;gap:6px;padding:8px 16px;border-bottom:1px solid var(--border);}
+.log-chips:not(:has(.ms-chip)){display:none;}
+.ms-chips-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.chips-label{font-size:11.5px;font-weight:700;color:var(--text-secondary);white-space:nowrap;}
+.ms-chip{display:flex;align-items:center;gap:5px;background:var(--accent-light);color:var(--accent-dark);border:1px solid var(--accent-border);border-radius:20px;padding:3px 6px 3px 10px;font-size:11.5px;font-weight:600;}
+.ms-chip.pend{opacity:.7;border-style:dashed;}
+.ms-chip button{border:none;background:var(--accent-border);color:var(--accent-dark);width:16px;height:16px;border-radius:50%;font-size:11px;cursor:pointer;line-height:1;padding:0;}
+.ms-chip button:hover{background:var(--accent);color:var(--on-accent);}
+
+/* الجدول — سكرول داخلي والعناوين sticky (#49) */
 .log-table-wrap.collapsed{display:none;}
-.log-body{overflow-y:auto;max-height:600px;}
-.log-empty{padding:40px;text-align:center;color:var(--text-muted);font-size:13px;}
+.log-body{overflow:auto;max-height:68vh;transition:opacity .15s;}
+.log-body.is-loading{opacity:.55;}
+.log-empty,.log-none{padding:40px;text-align:center;color:var(--text-muted);font-size:13px;font-weight:600;}
+.log-otbl{width:100%;border-collapse:collapse;font-size:var(--td-size,12.5px);font-weight:var(--td-weight,600);table-layout:fixed;}
+.log-otbl.col-auto{table-layout:auto;}
+.log-otbl.col-auto thead th{white-space:nowrap;}
+.log-otbl.col-auto tbody tr.log-batch-row td{white-space:nowrap;}
+.log-otbl.col-measure th,.log-otbl.col-measure td{white-space:nowrap;}
+.log-otbl thead th{position:sticky;top:0;z-index:2;text-align:center;padding:8px 8px;background:var(--surface-2);box-shadow:0 1.5px 0 var(--border);font-size:var(--th-size,12px);font-weight:var(--th-weight,700);color:var(--th-color,var(--text-mid));white-space:nowrap;border-inline-start:1px solid var(--border);}
+.log-otbl thead th:first-child{border-inline-start:none;}
+.log-otbl tbody td{padding:8px 8px;text-align:center;vertical-align:middle;border-inline-start:1px solid var(--border);border-bottom:1px solid var(--border);}
+.log-otbl tbody td:first-child{border-inline-start:none;}
+.log-otbl tbody tr.log-batch-row td{overflow-wrap:anywhere;}
+.th-in{display:inline-flex;align-items:center;gap:4px;max-width:100%;}
+.th-label{cursor:pointer;user-select:none;padding:2px 4px;border-radius:5px;transition:background .12s,color .12s;}
+.th-label:hover,th.sorted .th-label{background:var(--accent-light);color:var(--accent-dark);}
+.sort-icon{display:inline-block;font-size:10px;color:var(--accent);font-weight:900;}
+.sort-icon:not(:empty){margin-inline-start:4px;}
+.hfn{display:inline-flex;align-items:center;justify-content:center;gap:2px;min-width:22px;height:22px;padding:0 3px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--text-muted);cursor:pointer;font-family:inherit;font-size:10px;font-weight:800;}
+.hfn svg{width:13px;height:13px;fill:currentColor;}
+.hfn:hover{background:var(--surface-hover);color:var(--text-primary);}
+th.flt-on .hfn,.hfn.on{color:var(--accent);background:var(--accent-light);border-color:var(--accent-border);}
+.col-rz{position:absolute;top:0;bottom:0;inset-inline-end:0;width:10px;cursor:col-resize;touch-action:none;z-index:3;}
+.col-rz::after{content:'';position:absolute;top:24%;bottom:24%;inset-inline-end:3px;width:2px;border-radius:2px;background:var(--border-strong);transition:background .12s,top .12s,bottom .12s;}
+.col-rz:hover::after,.col-rz.active::after{background:var(--accent);top:8%;bottom:8%;}
+body.col-resizing{cursor:col-resize;user-select:none;}
+.log-otbl col.hl{background:var(--accent-light);}
+.w-badge{position:fixed;z-index:220;bottom:14px;left:50%;transform:translateX(-50%);background:var(--neutral-dark);color:var(--on-accent);font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:8px;pointer-events:none;}
 
-/* Log table — organized columns (§LOG-JS::renderLog) */
-.log-otbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-/* v4.5.0 — بادج الدفعة المقسومة على أكتر من صفحة + سطر تحذير التحديد */
-.split-badge { display: inline-block; margin-inline-start: 6px; padding: 1px 7px; border-radius: 5px;
-  font-size: 10px; font-weight: 800; background: var(--amber-light); color: var(--amber-dark);
-  border: 1px solid var(--amber-border); cursor: help; white-space: nowrap; }
-.log-sel-hint { font-size: 11px; font-weight: 600; color: var(--amber-dark); }
-.log-otbl thead th { position: sticky; top: 0; text-align: center; padding: 8px 8px; background: var(--surface-2); border-bottom: 1.5px solid var(--border); font-size: 10.5px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; border-inline-start: 1px solid var(--border); z-index: 2; }
-.log-otbl thead th:first-child { border-inline-start: none; }
-.log-otbl thead th.sortable-th { cursor: pointer; user-select: none; transition: background .12s, color .12s; }
-.log-otbl thead th.sortable-th:hover { background: var(--accent-light); color: var(--accent-dark); }
-.log-otbl thead th.sortable-th.sorted { background: var(--accent-light); color: var(--accent-dark); }
-.log-otbl .sort-icon { display: inline-block; font-size: 10px; color: var(--accent); font-weight: 900; }
-.log-otbl .sort-icon.active { margin-inline-start: 4px; }
-.log-otbl tbody td { padding: 8px 8px; text-align: center; vertical-align: middle; border-inline-start: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.log-otbl tbody td:first-child { border-inline-start: none; }
-.log-batch-row { cursor: pointer; transition: background .12s; }
-.log-batch-row:hover { background: var(--surface-2); }
-.log-batch-row.open { background: var(--accent-light); }
-.log-batch-row .lb-arrow { font-size: 10px; color: var(--text-muted); transition: transform .2s; display: inline-block; }
-.log-batch-row.open .lb-arrow { transform: rotate(90deg); }
-.log-detail-row td { padding: 0; border-inline-start: none; background: var(--surface-2); }
-.log-detail-inner { padding: 6px 10px 10px 34px; }
-.log-detail-tbl { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--surface); border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
-.log-detail-tbl th { padding: 6px 8px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 10.5px; font-weight: 700; color: var(--text-secondary); text-align: center; border-inline-start: 1px solid var(--border); }
-.log-detail-tbl th:first-child { border-inline-start: none; }
-.log-detail-tbl td { padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border); border-inline-start: 1px solid var(--border); }
-.log-detail-tbl td:first-child { border-inline-start: none; }
-.log-detail-tbl tr:last-child td { border-bottom: none; }
-.log-tag { padding: 1px 7px; border-radius: 5px; font-size: 11px; font-weight: 700; border: 1px solid; display: inline-block; }
-.log-tag.s1 { background: var(--accent-light); color: var(--accent); border-color: var(--accent-border); }
-.log-tag.s2 { background: var(--amber-light);  color: var(--amber);  border-color: var(--amber-border); }
-.log-tag.cr { background: var(--purple-light); color: var(--purple); border-color: var(--purple-border); }
-.log-tag.emp{ background: var(--accent-light); color: var(--accent-dark); border-color: var(--accent-border); }
-.log-cb { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); }
-.log-cb:disabled { opacity: .25; cursor: not-allowed; }
+/* صفوف الدفعة والتفاصيل */
+.log-batch-row{cursor:pointer;transition:background .12s;}
+.log-batch-row:hover{background:var(--surface-2);}
+.log-batch-row.open{background:var(--accent-light);}
+.log-batch-row .lb-arrow{font-size:10px;color:var(--text-muted);transition:transform .2s;display:inline-block;}
+.log-batch-row.open .lb-arrow{transform:rotate(90deg);}
+.log-detail-row td{padding:0;border-inline-start:none;background:var(--surface-2);}
+.log-detail-inner{padding:6px 10px 10px 34px;}
+.log-detail-tbl{width:100%;border-collapse:collapse;font-size:12px;background:var(--surface);border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+.log-detail-tbl th{padding:6px 8px;background:var(--surface-2);border-bottom:1px solid var(--border);font-size:10.5px;font-weight:700;color:var(--text-secondary);text-align:center;border-inline-start:1px solid var(--border);}
+.log-detail-tbl th:first-child{border-inline-start:none;}
+.log-detail-tbl td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);border-inline-start:1px solid var(--border);}
+.log-detail-tbl td:first-child{border-inline-start:none;}
+.log-detail-tbl tr:last-child td{border-bottom:none;}
+.log-tag{padding:1px 7px;border-radius:5px;font-size:11px;font-weight:700;border:1px solid;display:inline-block;}
+.log-tag.s1{background:var(--accent-light);color:var(--accent);border-color:var(--accent-border);}
+.log-tag.s2{background:var(--amber-light);color:var(--amber);border-color:var(--amber-border);}
+.log-tag.cr{background:var(--purple-light);color:var(--purple);border-color:var(--purple-border);}
+.log-tag.emp{background:var(--accent-light);color:var(--accent-dark);border-color:var(--accent-border);}
+.log-cb,.log-cb-all{width:15px;height:15px;cursor:pointer;accent-color:var(--accent);}
+.log-cb:disabled,.log-cb-all:disabled{opacity:.25;cursor:not-allowed;}
+.split-badge{display:inline-block;margin-inline-start:6px;padding:1px 7px;border-radius:5px;font-size:10px;font-weight:800;background:var(--amber-light);color:var(--amber-dark);border:1px solid var(--amber-border);cursor:help;white-space:nowrap;}
 
-/* Multi-select filter component (شارد, راجع references/multi-select-filter.md) */
-.ms-wrap { position: relative; }
-.ms-btn {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  min-width: 170px; height: 34px; padding: 6px 10px;
-  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
-  background: var(--surface); font-family: inherit; font-size: 12px; font-weight: 600;
-  color: var(--text-primary); cursor: pointer; transition: all .15s; white-space: nowrap;
-}
-.ms-btn:hover { border-color: var(--accent); }
-.ms-btn.has-selection { border-color: var(--accent); color: var(--accent-dark); background: var(--accent-light); }
-.ms-btn.open { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37,99,235,.08); }
-.ms-btn .ms-count {
-  font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; color: var(--on-accent);
-  background: var(--accent); border-radius: 20px; padding: 1px 7px; min-width: 18px; text-align: center;
-}
-.ms-btn .ms-arrow { font-size: 9px; color: var(--text-muted); transition: transform .2s; flex-shrink: 0; }
-.ms-btn.open .ms-arrow { transform: rotate(180deg); }
-.ms-menu {
-  position: absolute; top: calc(100% + 4px); right: 0; z-index: 200;
-  width: 260px; max-width: 80vw;
-  background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
-  box-shadow: 0 8px 28px rgba(0,0,0,.14); display: none; flex-direction: column; overflow: hidden;
-}
-.ms-menu.open { display: flex; }
-.ms-search-wrap { padding: 8px; border-bottom: 1px solid var(--border); }
-.ms-search {
-  width: 100%; height: 32px; border: 1px solid var(--border-strong); border-radius: 6px;
-  padding: 0 10px; font-family: inherit; font-size: 12px; outline: none; background: var(--surface-2);
-}
-.ms-search:focus { border-color: var(--accent); background: var(--surface); }
-.ms-selectall-row {
-  display: flex; align-items: center; gap: 8px; padding: 7px 12px;
-  border-bottom: 1px solid var(--border); background: var(--surface-2); font-size: 12px; font-weight: 700;
-  cursor: pointer; user-select: none;
-}
-.ms-selectall-row:hover { background: var(--surface-hover); }
-.ms-list { max-height: 220px; overflow-y: auto; padding: 4px; }
-.ms-item {
-  display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px;
-  font-size: 12.5px; cursor: pointer; user-select: none; transition: background .1s;
-}
-.ms-item:hover { background: var(--surface-2); }
-.ms-item.checked { background: var(--accent-light); }
-.ms-item input[type=checkbox], .ms-selectall-row input[type=checkbox] {
-  width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); flex-shrink: 0;
-}
-.ms-item .ms-item-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ms-item .ms-item-mono { font-family: var(--font-mono); direction: ltr; }
-.ms-empty { padding: 18px; text-align: center; font-size: 12px; color: var(--text-muted); }
-/* v3.7.0 — "مسح الاختيار" اتنقل لأعلى القايمة (multi-select-filter.md § 3،
-   قرار معتمد 20-08-2026). border-bottom بدل border-top عشان يفصل عن الليستة تحته. */
-.ms-ftr-top {
-  display: flex; justify-content: space-between; align-items: center; gap: 8px;
-  padding: 7px 10px; border-bottom: 1px solid var(--border); background: var(--surface-2);
-}
-.ms-ftr-clear {
-  font-size: 11.5px; font-weight: 700; color: var(--red); background: none; border: none;
-  cursor: pointer; padding: 4px 6px; border-radius: 5px;
-}
-.ms-ftr-clear:hover { background: var(--red-light); }
-.ms-ftr-count { font-size: 11px; color: var(--text-muted); }
-.ms-chips-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.ms-chips-row:empty { display: none; }
-.ms-chips-label { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; }
-.ms-chip {
-  display: flex; align-items: center; gap: 5px; background: var(--accent-light); color: var(--accent-dark);
-  border: 1px solid var(--accent-border); border-radius: 20px; padding: 3px 6px 3px 10px; font-size: 11.5px; font-weight: 600;
-}
-.ms-chip button { border: none; background: rgba(37,99,235,.15); color: var(--accent-dark);
-  width: 16px; height: 16px; border-radius: 50%; font-size: 11px; cursor: pointer; line-height: 1; }
-.ms-chip button:hover { background: var(--accent); color: var(--on-accent); }
-
-/* Date-range filter component (شارد, راجع references/date-range-filter.md) */
-.range-frow { display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; }
-.range-fg { display:flex; flex-direction:column; gap:3px; }
-.range-flabel { font-size:10px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.4px; white-space:nowrap; }
-.range-date-wrap input[type=date] {
-  width:150px; height:34px; border:1px solid var(--border-strong); border-radius:var(--radius-sm);
-  padding:6px 10px; font-family:var(--font-mono); font-size:12px; color:var(--text-primary);
-  background:var(--surface); outline:none; cursor:pointer;
-}
-.range-preset-wrap { position:relative; }
-.range-preset-btn {
-  display:flex; align-items:center; gap:6px; padding:6px 12px; border:1px solid var(--border-strong);
-  border-radius:var(--radius-sm); font-family:var(--font-body); font-size:12px; font-weight:600;
-  color:var(--text-secondary); background:var(--surface); cursor:pointer; height:34px; white-space:nowrap;
-}
-.range-preset-btn.has-preset { border-color:var(--accent); color:var(--accent); background:var(--accent-light); }
-.range-preset-menu {
-  position:absolute; top:calc(100% + 4px); right:0; background:var(--surface); border:1px solid var(--border-strong);
-  border-radius:var(--radius-sm); box-shadow:0 4px 20px rgba(0,0,0,.12); z-index:200; min-width:170px; padding:4px; display:none;
-}
-.range-preset-menu.open { display:block; }
-.range-preset-item { padding:7px 12px; font-size:12px; cursor:pointer; border-radius:6px; color:var(--text-primary); display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.range-preset-item:hover { background:var(--surface-2); }
-.range-preset-item.active { background:var(--accent-light); color:var(--accent); }
-/* v4.5.0 — .pr-arrow كانت مستخدمة في زرار الفترة السريعة ومش معرّفة، فالسهم
-   ماكانش بيلف مع فتح القائمة (بعكس .ms-arrow) */
-.range-preset-btn .pr-arrow { font-size: 10px; color: var(--text-secondary); transition: transform .15s; }
-.range-preset-btn.open .pr-arrow { transform: rotate(180deg); }
-.range-preset-item .pr-check { font-size:11px; color:var(--accent); display:none; }
-.range-preset-item.active .pr-check { display:block; }
-.range-preset-sep { height:1px; background:var(--border); margin:3px 4px; }
-/* v3.7.0 — "✕ مسح الاختيار" إلزامي جوّه قائمة الفترة السريعة (date-range-filter.md) */
-.range-preset-item.range-preset-clear { color: var(--red); font-weight: 700; justify-content: flex-start; }
-.range-preset-item.range-preset-clear:hover { background: var(--red-light); }
+/* القائمة العائمة (#hfPop) + tooltip القمع — position:fixed على body، z 200/210 */
+.hfpop{position:fixed;z-index:200;max-width:92vw;max-height:72vh;overflow:auto;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 28px rgba(0,0,0,.18);padding:10px;display:flex;flex-direction:column;gap:8px;}
+.hfpop[hidden]{display:none;}
+.hfpop-title{font-size:12px;font-weight:700;color:var(--text-secondary);padding:2px 4px;}
+.hfpop>.lf-sec+.lf-sec{border-top:1px solid var(--border);padding-top:8px;}
+.hfn-tip{position:fixed;z-index:210;max-width:300px;background:var(--neutral-dark);color:var(--on-accent);font-size:12px;font-weight:600;line-height:1.7;padding:6px 10px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.2);pointer-events:none;word-break:break-word;}
+.hfn-tip[hidden]{display:none;}
+.lf-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.hfpop .clear-btn{height:30px;padding:4px 10px;font-size:12px;}
+.hfpop .clear-btn:disabled{border-color:var(--border);color:var(--text-muted);background:var(--surface-2);cursor:not-allowed;opacity:.6;}
+.lf-sec{display:flex;flex-direction:column;gap:6px;transition:opacity .15s;}
+.lf-sec.dim{opacity:.4;}.lf-sec.dim:hover{opacity:.8;}
+.lf-sl{font-size:12px;font-weight:700;color:var(--text-secondary);display:flex;justify-content:space-between;align-items:center;}
+.lf-link{font-family:inherit;font-size:12px;font-weight:700;color:var(--accent);background:transparent;border:0;cursor:pointer;padding:0 4px;}
+.lf-lab{display:flex;flex-direction:column;gap:3px;font-size:11.5px;font-weight:700;color:var(--text-secondary);min-width:0;flex:1;}
+.lf-inp{font-family:inherit;font-size:12.5px;font-weight:600;height:32px;padding:0 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-primary);min-width:0;width:100%;box-sizing:border-box;text-align:start;}
+.lf-inp[type=date]{padding:0 8px;}
+.lf-inp:focus{outline:2px solid var(--accent-border);border-color:var(--accent);}
+.lf-inp.has-value{border-color:var(--accent);background:var(--accent-light);}
+.lf-rng,.lf-sec.lf-rng{display:flex;flex-direction:row;gap:8px;}
+.lf-rng>.lf-lab,.lf-rng>div{min-width:0;}
+.lf-sw{position:relative;}
+.lf-sw svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none;}
+.lf-search{padding-left:34px;}
+.lf-toks{display:flex;flex-wrap:wrap;gap:6px;}.lf-toks:empty{display:none;}
+.lf-sugg{border:1px solid var(--border);border-radius:var(--radius-sm);max-height:236px;overflow:auto;padding:3px;}.lf-sugg:empty{display:none;}
+.lf-sg{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12.5px;font-weight:600;padding:6px 8px;border-radius:6px;cursor:pointer;}
+.lf-sg:hover,.lf-sg.act{background:var(--accent-light);}
+.lf-n{font-size:11.5px;color:var(--text-muted);font-weight:600;}
+.lf-more{font-size:11.5px;color:var(--text-muted);padding:6px 8px;}
+.lf-list{max-height:240px;overflow:auto;display:flex;flex-direction:column;gap:1px;}
+.lf-it{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;padding:5px 6px;border-radius:6px;cursor:pointer;}
+.lf-it:hover{background:var(--surface-hover);}
+.lf-it input{width:15px;height:15px;accent-color:var(--accent);flex-shrink:0;}
+.lf-it .lf-n{margin-inline-start:auto;}
+.lf-pills{display:grid;gap:6px;}.lf-pills.c3{grid-template-columns:repeat(3,1fr);}.lf-pills.c4{grid-template-columns:repeat(4,1fr);}.lf-pills.c6{grid-template-columns:repeat(6,1fr);}
+.lf-pill,.lf-year{font-family:inherit;font-size:11.5px;font-weight:700;min-height:30px;padding:3px 4px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-primary);cursor:pointer;white-space:normal;line-height:1.25;}
+.lf-pill:hover,.lf-year:hover{background:var(--surface-hover);}
+.lf-pill.on,.lf-year.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
+.lf-ynav{display:flex;align-items:center;justify-content:center;gap:10px;}
+.lf-yb{font-family:inherit;font-size:16px;font-weight:800;width:30px;height:28px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;color:var(--text-primary);}
+.lf-yb:disabled{opacity:.35;cursor:default;}.lf-year{min-width:64px;font-size:13px;}
+.lf-tl{font-size:12.5px;font-weight:700;color:var(--text-primary);text-align:center;}
+.lf-dual{position:relative;height:28px;direction:rtl;}
+.lf-track{position:absolute;inset-inline:0;top:12px;height:4px;border-radius:2px;background:var(--border-strong);}
+.lf-fill{position:absolute;top:12px;height:4px;border-radius:2px;background:var(--accent);}
+.lf-dual input[type=range]{position:absolute;inset:0;width:100%;margin:0;background:transparent;pointer-events:none;-webkit-appearance:none;appearance:none;}
+.lf-dual input[type=range]::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);cursor:pointer;}
+.lf-dual input[type=range]::-moz-range-thumb{pointer-events:auto;width:14px;height:14px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);cursor:pointer;}
+.lf-tfs{flex-direction:row;gap:8px;}
+.lf-tf{cursor:pointer;display:flex;align-items:center;justify-content:center;direction:ltr;}
+.lf-err{font-size:12px;font-weight:700;color:var(--red);padding:2px 4px;}
+.lf-tp{position:fixed;z-index:205;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 28px rgba(0,0,0,.2);padding:8px;width:210px;direction:ltr;}
+.lf-tpcols{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.lf-tph{font-size:11.5px;font-weight:700;color:var(--text-secondary);text-align:center;padding-bottom:4px;}
+.lf-tpl{height:190px;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:1px;}
+.lf-tpi{direction:ltr;unicode-bidi:isolate;text-align:center;font-family:inherit;font-size:12.5px;font-weight:600;padding:5px 4px;border:0;border-radius:6px;background:transparent;color:var(--text-primary);cursor:pointer;flex-shrink:0;}
+.lf-tpi:hover{background:var(--surface-hover);}.lf-tpi.on{background:var(--accent);color:var(--on-accent);}
+.lf-tpf{display:flex;justify-content:space-between;margin-top:8px;}
+.lf-tpb{font-family:inherit;font-size:12px;font-weight:700;padding:5px 14px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;color:var(--text-primary);}
+.lf-tpb.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
 
 /* Pagination */
 .pagination-row { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; flex-wrap: wrap; }
@@ -638,7 +583,25 @@
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.5.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.6.0</span>
+          <span class="cl-ver-date">18-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>تاب «سجل العمليات» اتعاد بناؤه كله على معيار الجداول الموحّد (html-builder v9.1.0):</strong> كارت واحد (النتائج ← chips ← الجدول) وعناوين ثابتة وسكرول داخلي. لوحة الفلاتر اللي فوق الجدول اتشالت — <strong>كل فلتر في رأس عموده</strong> (قمع ▽ ← قايمة عايمة تفضل مفتوحة بعد الاختيار).</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>عمودا <strong>«التاريخ»</strong> و<strong>«الوقت»</strong> منفصلين مع فلتر لكل واحد: التاريخ بأقسام (أيام · فترات · شهر/عام محدد · من/إلى) بلا فترة افتراضية، والوقت بمنزلق وقايمة ساعة/دقيقة 12 ساعة (بتوقيت القاهرة).</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>رقم الأوردر بتوكنز:</strong> Enter يضيف رقم، والمسافة بين رقمين = أوردر تاني (OR)، مع اقتراحات لايف بعدد العمليات. <strong>عمود «الأوردرات»</strong> بعدد أوردرات الدفعة.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>فلتر وترتيب على ✓ / ⚠ / ✗</strong> (نافذة واحدة: نطاق أو قايمة قيم، متبادلين). بيشتغل على <strong>الدفعة كلها</strong> والأرقام المعروضة بقت للدفعة كاملة حتى لو متقسّمة على صفحتين.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>سحب عرض الأعمدة</strong> (دبل كليك = ضبط على المحتوى) محفوظ على الجهاز، وخانة <strong>تحديد الكل</strong> لدفعات الصفحة.</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>قوايم الموظف والمندوب في فلتر السجل كانت فاضية</strong> في النسخة المدموجة (دالة التحميل ما كانتش بتتنادى).</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>عمود «النتيجة» في ملف الإكسيل</strong> كان بيحوّل «مرفوض» و«خلاص متعمل» والصف القديم لـ«فشل». دلوقتي نفس تسميات الشاشة، والصف بلا نتيجة = «—». واسم الملف بتاريخ القاهرة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>فلتر «النتيجة» اتشال</strong> — اتبدّل بفلاتر عدّاد ✓/⚠/✗ (✗ ≥ 1 = دفعات فيها فشل). محتاج <code>order-status-updater-worker</code> <strong>4.8.0</strong> — انشره قبل الصفحة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الواجهة المستقلة اتحذفت:</strong> الصفحة دي هي النسخة الوحيدة، وريبو الأداة بقى Worker وبس. الرابط القديم بقى 404 بلا تحويل.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v1.5.0</span>
           <span class="cl-ver-date">16-09-2026</span>
         </div>
         <ul class="cl-items">
@@ -939,6 +902,7 @@
             <li><strong>سر واحد للمركز كله</strong> (مجموعة <code>delivery_cod_ops</code>) بدل سر
                 لكل أداة. الحقل في ⚙️ الإعدادات، والقيمة بتتلزق <strong>مرة واحدة على كل جهاز</strong>.</li>
             <li><strong>🏠 الرئيسية</strong> في الهيدر بترجّعك للمركز.</li>
+            <li>🔴 <strong>الواجهة المستقلة اتحذفت (18-11-2026):</strong> الصفحة دي هي <strong>النسخة الوحيدة</strong>، وريبو <code>Order-Status-Updater</code> بقى <strong>Worker وبس</strong>. مفيش مولّد ولا نسخة تانية بتفترق — التعديل على الواجهة بيتعمل هنا مباشرة. الرابط القديم <code>…/Order-Status-Updater/</code> بقى 404 بلا تحويل (قرار أحمد).</li>
             <li>🔴 <strong>ومنطق الأداة ما اتلمسش ولا سطر</strong> — نفس الـ Worker
                 (<code>order-status-updater-worker</code>) ونفس الخطوات ونفس المانفيست ونفس
                 السجل بالظبط.</li>
@@ -984,8 +948,10 @@
             <tr><td><code>search_courier_orders</code></td><td>أوردرات مندوب مؤهلة لحالة مستهدفة (أو <code>noCourier:true</code> لأوردرات بدون مندوب) — تبحث S1 وS2 مع بعض وتدمج النتائج</td></tr>
             <tr><td><code>update_status</code></td><td>يحسم S1/S2 لكل أوردر تلقائياً + يتحقق + ينفّذ + يسجّل في D1</td></tr>
             <tr><td><code>order_details</code></td><td>اسم العميل والهاتف والعنوان والـ COD للمانفيست</td></tr>
-            <tr><td><code>get_logs</code></td><td>صفحة سجل (100 صف) — يقبل employee/status/courier/result/search/dateFrom/dateTo (كلهم اختيار متعدد comma-separated ما عدا search/dateFrom/dateTo) + <code>sortKey</code>/<code>sortDir</code> (v3.7.0 — ترتيب على السيرفر: timestamp/employee/courier/status، مش result). <code>result</code> بيفلتر على <code>extra.result</code>: success/warning/error</td></tr>
-            <tr><td><code>get_logs_count</code></td><td>العدد الكلي المطابق لنفس الفلاتر أعلاه</td></tr>
+            <tr><td><code>get_logs</code></td><td>صفحة سجل (100 صف) — الفلاتر كلها server-side: <code>employee</code>/<code>status</code>/<code>courier</code> (قوايم CSV) · <code>orders</code> (توكنز أرقام، OR، تطابق جزئي) · <code>dateFrom</code>/<code>dateTo</code> (يوم القاهرة) · <code>timeFrom</code>/<code>timeTo</code> (HH:MM بتوقيت القاهرة) · <code>okIn|okFrom|okTo</code> و<code>warn…</code> و<code>err…</code> (عدّادات الدفعة الكاملة) · <code>result</code>/<code>search</code> (توافق خلفي — مفيش لهم واجهة) + <code>sortKey</code>/<code>sortDir</code> (timestamp/time/employee/courier/status/n/ok/warn/err). بيرجّع <code>batchStats</code> {batchId: {n, ok, warn, err}} للدفعات الظاهرة (+ <code>batchSizes</code> توافق خلفي).</td></tr>
+            <tr><td><code>get_logs_count</code></td><td>العدد الكلي المطابق لنفس الفلاتر أعلاه (عمليات مش دفعات)</td></tr>
+            <tr><td><code>get_log_suggest</code></td><td>(v2.6.0 · Worker 4.8.0) اقتراحات رقم الأوردر: أحدث 10 + العدد الكلي، على آخر جزء مكتوب، <code>exclude</code> بيشيل اللي اتضاف توكن</td></tr>
+            <tr><td><code>get_log_num_values</code></td><td>(v2.6.0) القيم الموجودة لعدّاد <code>ok</code> / <code>warn</code> / <code>err</code> + عدد الدفعات لكل قيمة — بتغذّي قايمة القيم في فلتر العدّاد</td></tr>
             <tr><td><code>get_logs_export</code></td><td>تصدير XLSX — السقف بيرجع من الـ Worker في <code>cap</code> مع <code>total</code> و<code>truncated</code> (الواجهة ماتكتبش الرقم عندها)</td></tr>
           </table>
 
@@ -1023,9 +989,10 @@
             <li><code>الكتابة على Shopify + مسح المندوب عند Ready</code> — Worker §STATUS — <code>applyDirect()</code> / §SHOPIFY — <code>deleteMetafields()</code></li>
             <li><code>نافذة ملخص التحديث (بديل قائمة النتائج القديمة)</code> — HTML §TOOL — <code>#summaryOverlay</code> / §TOOL-JS — <code>showUpdateSummary()</code> / <code>summaryStartFresh()</code> / <code>summaryOpenLog()</code> / <code>summaryPrint()</code></li>
             <li><code>طباعة المانفيست (فردي أو مجمّع من السجل)</code> — HTML §TOOL-JS — <code>printManifest()</code> / <code>MANIFEST_TYPE_LABEL</code> / §LOG-JS — <code>printBatch()</code> / <code>printSelectedBatches()</code> — Worker §STATUS — <code>order_details</code> / <code>DETAILS_CHUNK</code>. 🔴 (v4.6.0) <code>cod</code> بقى <code>totalOutstandingSet</code> <strong>موقّع</strong> — الصيغة القديمة <code>Math.abs(outstanding &gt; 0 ? outstanding : currentTotalPrice)</code> كان فرعها التاني بيشتغل <strong>بس</strong> لما يكون <code>outstanding &lt;= 0</code>، وده تعريف أوردر الاستبدال/الاسترجاع — يعني رقم مخترع <strong>مضمون</strong> على كل أوردر R/E. و<code>orderType</code> من <strong>أحدث دورة إرجاع غير ملغية</strong> (<code>exchangeLineItems</code> = استبدال) — ⛔ مش من <code>status_2_r_e</code> (قيمته <code>Shipped</code> في الحالتين وقت المانفيست) ولا من <code>fulfillableQuantity</code> (قطعة الاستبدال بتبقى fulfilled خلاص).</li>
-            <li><code>سجل العمليات (جدول أعمدة + تفاصيل قابلة للتوسيع)</code> — HTML §LOG-JS — <code>get_logs</code> / <code>renderLog()</code></li>
-            <li><code>فلاتر السجل (حالة/مندوب/النتيجة/موظف اختيار متعدد + بحث + فترة تاريخ في صف منفصل، قسم موحّد unified-section من v3.7.0)</code> — HTML §LOG-JS — <code>msState</code> / <code>fetchLog()</code> / <code>anyFilterActive()</code> — Worker §SHARED — <code>buildLogFilterSQL()</code></li>
-            <li><code>ترتيب أعمدة السجل (تاريخ/حالة/مندوب/موظف — تصاعدي/تنازلي/بلا ترتيب، على السيرفر)</code> — HTML §LOG-JS — <code>toggleLogSort()</code> / <code>logSortState</code> — Worker §SHARED — <code>buildLogSortSQL()</code> / <code>LOG_SORT_COLUMNS</code></li>
+            <li><code>سجل العمليات (جدول دفعات + تفاصيل قابلة للتوسيع — html-builder v9.1.0)</code> — HTML §LOG-JS — <code>get_logs</code> / <code>renderLog()</code> / <code>LOG_COLS</code>. كارت واحد: صف «النتائج» ← chips ← الجدول (سكرول داخلي + عناوين sticky). «النتائج» = دفعات الصفحة + «من N عملية مطابقة».</li>
+            <li><code>فلاتر السجل في رأس العمود (قمع ▽ ← قايمة عايمة #hfPop على body)</code> — HTML §LOG-JS::header-filters — <code>HF</code> / <code>hfToggle()</code> / <code>LF</code> (حالة الفلاتر) / <code>buildLogParams()</code> / <code>anyFilterActive()</code> / <code>renderChips()</code>. قيم: الحالة · المندوب · الموظف · نص بتوكنز: رقم الأوردر (Enter · OR + اقتراحات لايف) · تاريخ بأقسام بلا عناوين · وقت (منزلق + قايمة ساعة/دقيقة 12 ساعة) · أرقام: ✓/⚠/✗ نافذة واحدة نطاق/قايمة متبادلين. — Worker §SHARED — <code>buildLogFilterSQL()</code> / <code>readLogFilters()</code> / <code>cairoMinuteOfDaySQL()</code></li>
+            <li><code>ترتيب أعمدة السجل (التاريخ · الوقت · الحالة · المندوب · الموظف · الأوردرات · ✓ · ⚠ · ✗ — تصاعدي/تنازلي/بلا ترتيب، على السيرفر، مستقل عن الفلاتر)</code> — HTML §LOG-JS::sort — <code>toggleLogSort()</code> / <code>logSort</code> — Worker §SHARED — <code>buildLogSortSQL()</code> / <code>BATCH_AGG_SQL</code></li>
+            <li><code>سحب عرض أعمدة السجل (محفوظ في localStorage · دبل كليك = ضبط على المحتوى · كل الأعمدة متماثلة بالتناسب)</code> — HTML §LOG-JS::col-widths — <code>colLog</code> / <code>COL_LS_KEY</code> (<code>dco_col_widths_v1_Order-Status-Updater.html_log</code>)</li>
             <li><code>تصدير XLSX (الكل أو المحدد)</code> — HTML §LOG-JS — <code>exportLogXLSX()</code> / <code>exportSelectedLogXLSX()</code> / <code>buildAndDownloadWorkbook()</code> / <code>reportExportResult()</code> / <code>clearExportWarn()</code>. (v4.4.0) <code>get_logs_export</code> بيرجّع <code>{ cap, total, truncated }</code> والواجهة بتعرض بانر ثابت <code>#logExportWarn</code> بالرقمين لو الملف اتقص — رسالة النجاح في فرع <code>else</code> بس.</li>
             <li><code>كشف الأكواد المجهولة (لاصقة غلط) + تمييز بصري + نافذة شيل</code> — HTML §TOOL-JS — <code>hydrateOrders()</code> / <code>showUnknownCodesDialog()</code> / <code>removeUnknownOrders()</code> / <code>.row-unknown</code></li>
             <li><code>قفل الإدخال أثناء التحديث + لقطة ثابتة للدفعة</code> — HTML §TOOL-JS — <code>setUpdateLock()</code> / <code>doStartUpdate()</code></li>
@@ -1060,7 +1027,7 @@
             <li><code>orderInfo[id]</code> — يحمل <code>courier</code> بجانب <code>s1</code>/<code>s2</code>/<code>isCancelled</code> (فاضي = بدون مندوب)</li>
             <li><code>ordersCollapsed</code> — حالة طي جدول الأوردرات</li>
             <li><code>ordersManualOverride</code> — true بمجرد ما المستخدم يضغط زرار الطي/الفتح يدوياً؛ طول ما هو true، <code>applyAutoCollapseRule()</code> مبيغيّرش الحالة تلقائي (بيتصفّر عند اختيار حالة جديدة، مسح الكل، تسجيل خروج، أو نجاح تحديث). <strong>استثناء (v4.2.0):</strong> <code>startUpdate()</code> بيفتح الجدول بالقوة (<code>ordersCollapsed = false</code> مباشرة) لو فيه سبب ناقص، حتى لو <code>ordersManualOverride</code> true — عشان الموظف لازم يشوف عمود السبب في اللحظة دي بالذات.</li>
-            <li><code>msState</code> — حالة فلاتر الاختيار المتعدد في السجل (<code>logStatus</code>/<code>logCourier</code>/<code>logResult</code>/<code>logEmp</code>)</li>
+            <li><code>LF</code> — حالة فلاتر السجل كلها (<code>ms</code> قيم الحالة/المندوب/الموظف · <code>tok</code>+<code>pending</code> توكنز الأوردر · <code>num</code> عدّادات ✓/⚠/✗ · <code>tm</code> الوقت · <code>date</code> التاريخ) · <code>logSort</code> حالة الترتيب · <code>logBatchStats</code> عدّادات الدفعات من الـ Worker · <code>RESULT_LABELS</code> ماب النتيجة (مصدر واحد للجدول والتصدير)</li>
             <li><code>selectedLogBatches</code> — Set لمعرّفات batch المحددة (لأي حالة) — يغذّي زراري "تصدير المحدد" و"طباعة المحدد" (الأخير Shipped بس)</li>
           </ul>
 
@@ -1088,6 +1055,12 @@
             <li><strong>v4.5.0 — كل فعل بعد كتابة الحالة = warning مش error:</strong> <code>cancelFulfillments</code> · <code>createFulfillment</code> · <code>disposeReturns</code> بقوا في <code>try/catch</code> زي <code>deleteMetafields</code> بالظبط. الحالة اتكتبت خلاص ومفيش رجوع فيها، فـ"فشل" كان بيخلّي الأوردر يفضل في القايمة وإعادة المحاولة ترجّع "انتقال غير مسموح". التحذير بيقول <strong>إيه</strong> المطلوب مراجعته يدويًا.</li>
             <li><strong>v4.5.0 — الكود المجهول:</strong> <code>hydrateOrders()</code> بتقارن الـ IDs المطلوبة بالراجعة من <code>order_statuses</code>؛ الناقص بياخد <code>orderInfo[id].unknown = true</code> → <code>orderIsBlocked()</code> بترجع true → صف <code>.row-unknown</code> + بادج + نافذة <code>showUnknownCodesDialog()</code> فيها زرار <code>removeUnknownOrders()</code>. الترطيب نفسه بقى مقسّم <code>HYDRATE_CHUNK = 50</code>.</li>
             <li><strong>v4.5.0 — قفل الدفعة:</strong> <code>setUpdateLock()</code> بتقفل مربع السكان والإضافة اليدوية وأزرار الحذف، و<code>doStartUpdate()</code> بتشتغل على <code>batchOrders = orders.slice()</code>. اللوب كان بيقرا <code>orders</code> الحية، وإضافة أوردر في النص كانت بتزحزح الحدود فأوردر يتبعت مرتين وأوردر يتخطّى.</li>
+            <li><strong>v2.6.0 — سجل العمليات على html-builder v9.1.0:</strong> لوحة الفلاتر فوق الجدول اتشالت؛ كل فلتر في رأس عموده. التاريخ والوقت عمودين منفصلين. فلاتر النص والأرقام والوقت وقوايم الاقتراحات محتاجة <code>order-status-updater-worker</code> <strong>4.8.0</strong> (<code>ECO_WORKERS.orderStatus.min</code>) — انشره قبل الصفحة.</li>
+            <li><strong>v2.6.0 — فلتر «النتيجة» اتشال من الواجهة:</strong> النتيجة بتختلف جوّه الدفعة الواحدة ومفيش عمود «نتيجة» في جدول الدفعات. اتبدّل بفلاتر عدّاد ✓/⚠/✗ (مثلاً ✗ ≥ 1 = دفعات فيها فشل) وهي بتشتغل على <strong>الدفعة كلها</strong>. الـ Worker لسه بيقبل <code>result=</code> توافقًا.</li>
+            <li><strong>v2.6.0 — عدّادات ✓/⚠/✗ من الـ Worker (<code>batchStats</code>) مش من الصفوف الظاهرة:</strong> الدفعة المتقسّمة على صفحتين أو اللي فلتر مخبّي جزء منها كانت بتتعرض بعدّادات جزئية. دلوقتي الأرقام للدفعة كلها وعلامة ✂ «N من M» بتقول إن الظاهر جزء بس (الطباعة والتصدير للجزء الظاهر).</li>
+            <li><strong>v2.6.0 — إصلاح خفي:</strong> <code>loadEmployeeFilter()</code> كانت متعرّفة ومالهاش مستدعي في النسخة المدموجة، فقوايم الموظف والمندوب في فلتر السجل كانت فاضية. دلوقتي <code>loadLogFilterLists()</code> بتتنادى أول ما التاب يتفتح.</li>
+            <li><strong>v2.6.0 — التصدير:</strong> عمود النتيجة بنفس <code>RESULT_LABELS</code> (تم · تم جزئيًا · فشل · مرفوض · خلاص متعمل · «—» للصف القديم بلا <code>extra.result</code>) بدل «ناجح/تحذير/فشل» اللي كانت بتحوّل أي حالة تانية لـ«فشل». واسم الملف بتاريخ القاهرة.</li>
+            <li><strong>v2.6.0 — الواجهة المستقلة اتحذفت:</strong> ريبو <code>Order-Status-Updater</code> بقى Worker وبس. الصفحة دي هي النسخة الوحيدة، ومفيش <code>docs/port-standalone.py</code> بيولّدها. الرابط القديم بقى 404 بلا تحويل.</li>
             <li><strong>v4.5.0 — التوقيت محسوب:</strong> <code>CAIRO_OFFSET_HOURS</code> اتشال من الملفين. البديل <code>Intl.DateTimeFormat</code> بـ <code>timeZone: 'Africa/Cairo'</code> (<code>cairoParts</code>/<code>cairoOffsetMinutes</code>) — نفس الدوال بالحرف في الواجهة وفي الـ Worker. <code>toCairo()</code> في الواجهة لسه بترجّع Date مزحزحة عشان باقي الكود يقرا منها بـ <code>getUTC*</code> — العقد ما اتغيّرش.</li>
             <li><strong>v4.5.0 — سقوف وحماية:</strong> <code>MAX_ORDER_IDS = 50</code> على كل endpoint بياخد <code>orderIds</code> · <code>STATES_CHUNK_RETURNS = 5</code> لبلوك المرتجعات الغالي · حارس <code>WORKER_SECRET</code> الغايب (من غيره المقارنة بتبقى مع <code>"Bearer undefined"</code>) · <code>ESCAPE</code> في <code>LIKE</code> · حارس <code>NaN</code> على <code>limit</code>/<code>offset</code> · GraphQL variables بدل التضفير النصي · <code>readJson()</code> لرد مش JSON.</li>
             <li><strong>v4.5.0 — <code>diag</code> بالشكل الموحّد:</strong> بقى بيرجّع <code>checks: [{ok,label,detail}]</code> (worker-builder v2.1.0) <strong>مع</strong> المفاتيح القديمة (<code>d1</code>/<code>shopifyAuth</code>/<code>locationCheck</code>) فترة انتقالية — أي واجهة متكاشة في متصفح موظف لسه بتقراها، وشيلها دلوقتي = شاشة فحص فاضية بلا رسالة. <code>runDiag()</code> بتقرا الجديد وبتعمل fallback على القديم.</li>
@@ -1210,205 +1183,32 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     §LOG — سجل العمليات
+     §LOG — سجل العمليات (data-table-standard.md · v8.6.0)
+     كارت واحد: صف النتائج ← chips ← الجدول. الفلاتر في رأس كل عمود (قمع ▽ ← قايمة عايمة #hfPop).
      ══════════════════════════════════════════════════════════════ -->
 <div class="tab-panel" id="panelLog">
   <div class="unified-section">
-
-    <div class="log-filters-section">
-      <div class="log-filters-header" onclick="toggleLogFilters()">
-        <div class="log-filters-title">
-          <span class="log-filters-toggle open" id="logFiltersToggleIcon">▲</span>
-          <svg class="log-filters-icon" id="logFiltersIcon" viewBox="0 0 36 24" fill="none"
-               stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="2 3 13 3 8.3 10.2 8.3 19 6.7 19 6.7 10.2 2 3"></polygon>
-            <line x1="18" y1="5"  x2="33" y2="5"></line>
-            <line x1="18" y1="11" x2="29" y2="11"></line>
-            <line x1="18" y1="17" x2="25" y2="17"></line>
-          </svg>
-        </div>
-        <button class="log-clear-btn inactive" id="logClearAllBtn"
-          onclick="event.stopPropagation(); clearLogFilters();">✕ مسح كل الفلاتر</button>
-      </div>
-      <div class="log-filters-body" id="logFiltersBody">
-        <div class="log-frow">
-          <!-- 1) الحالة — multi-select -->
-          <div class="log-fg">
-            <span class="log-flabel">الحالة</span>
-            <div class="ms-wrap" id="msWrap-logStatus">
-              <button class="ms-btn" id="msBtn-logStatus" onclick="msToggle('logStatus')">
-                <span id="msBtnLabel-logStatus">كل الحالات</span>
-                <span class="ms-arrow">▾</span>
-              </button>
-              <div class="ms-menu" id="msMenu-logStatus">
-                <div class="ms-ftr-top">
-                  <button class="ms-ftr-clear" onclick="msClear('logStatus')">مسح الاختيار</button>
-                  <span class="ms-ftr-count" id="msFtrCount-logStatus"></span>
-                </div>
-                <div class="ms-selectall-row" onclick="msToggleSelectAll('logStatus')">
-                  <input type="checkbox" id="msSelectAll-logStatus"
-                    onclick="event.stopPropagation()" onchange="msToggleSelectAll('logStatus', this.checked)">
-                  <span id="msSelectAllLabel-logStatus">تحديد الكل</span>
-                </div>
-                <div class="ms-list" id="msList-logStatus"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 2) النتيجة — multi-select -->
-          <div class="log-fg">
-            <span class="log-flabel">النتيجة</span>
-            <div class="ms-wrap" id="msWrap-logResult">
-              <button class="ms-btn" id="msBtn-logResult" onclick="msToggle('logResult')">
-                <span id="msBtnLabel-logResult">كل النتائج</span>
-                <span class="ms-arrow">▾</span>
-              </button>
-              <div class="ms-menu" id="msMenu-logResult">
-                <div class="ms-ftr-top">
-                  <button class="ms-ftr-clear" onclick="msClear('logResult')">مسح الاختيار</button>
-                  <span class="ms-ftr-count" id="msFtrCount-logResult"></span>
-                </div>
-                <div class="ms-selectall-row" onclick="msToggleSelectAll('logResult')">
-                  <input type="checkbox" id="msSelectAll-logResult"
-                    onclick="event.stopPropagation()" onchange="msToggleSelectAll('logResult', this.checked)">
-                  <span id="msSelectAllLabel-logResult">تحديد الكل</span>
-                </div>
-                <div class="ms-list" id="msList-logResult"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3) المندوب — multi-select (مع بحث) -->
-          <div class="log-fg">
-            <span class="log-flabel">المندوب</span>
-            <div class="ms-wrap" id="msWrap-logCourier">
-              <button class="ms-btn" id="msBtn-logCourier" onclick="msToggle('logCourier')">
-                <span id="msBtnLabel-logCourier">كل المناديب</span>
-                <span class="ms-arrow">▾</span>
-              </button>
-              <div class="ms-menu" id="msMenu-logCourier">
-                <div class="ms-ftr-top">
-                  <button class="ms-ftr-clear" onclick="msClear('logCourier')">مسح الاختيار</button>
-                  <span class="ms-ftr-count" id="msFtrCount-logCourier"></span>
-                </div>
-                <div class="ms-search-wrap">
-                  <input type="text" class="ms-search" id="msSearch-logCourier"
-                    placeholder="بحث..." oninput="msFilterList('logCourier', this.value)">
-                </div>
-                <div class="ms-selectall-row" onclick="msToggleSelectAll('logCourier')">
-                  <input type="checkbox" id="msSelectAll-logCourier"
-                    onclick="event.stopPropagation()" onchange="msToggleSelectAll('logCourier', this.checked)">
-                  <span id="msSelectAllLabel-logCourier">تحديد الكل</span>
-                </div>
-                <div class="ms-list" id="msList-logCourier"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- صف 2: بحث ← فترة سريعة ← من ← إلى ← الموظف (data-table-standard.md § 5) -->
-        <div class="log-frow">
-          <div class="log-fg">
-            <label class="log-flabel">بحث برقم الأوردر</label>
-            <div class="log-search-wrap">
-              <input type="text" class="log-finput w-search" id="logSearch" placeholder="مثال: 37269" autocomplete="off" spellcheck="false" oninput="toggleSearchActiveState(this)" />
-              <span class="log-search-icon">🔍</span>
-            </div>
-          </div>
-
-          <div class="log-fg">
-            <span class="range-flabel">فترة سريعة</span>
-            <div class="range-preset-wrap" id="rangePresetWrap">
-              <button class="range-preset-btn" id="rangePresetBtn" onclick="toggleRangePresetMenu(event)">
-                <span id="rangePresetLabel">⚡ اختار فترة</span><span class="pr-arrow">▾</span>
-              </button>
-              <div class="range-preset-menu" id="rangePresetMenu">
-                <div class="range-preset-item range-preset-clear" onclick="clearRangePreset()">✕ مسح الاختيار</div>
-                <div class="range-preset-sep"></div>
-                <div class="range-preset-item" data-preset="today"       onclick="applyRangePreset('today')">      <span>اليوم</span>        <span class="pr-check">✓</span></div>
-                <div class="range-preset-item" data-preset="yesterday"   onclick="applyRangePreset('yesterday')">  <span>أمس</span>          <span class="pr-check">✓</span></div>
-                <div class="range-preset-sep"></div>
-                <div class="range-preset-item" data-preset="last3"       onclick="applyRangePreset('last3')">      <span>آخر 3 أيام</span>   <span class="pr-check">✓</span></div>
-                <div class="range-preset-item" data-preset="last7"       onclick="applyRangePreset('last7')">      <span>آخر 7 أيام</span>   <span class="pr-check">✓</span></div>
-                <div class="range-preset-item" data-preset="last30"      onclick="applyRangePreset('last30')">     <span>آخر 30 يوم</span>   <span class="pr-check">✓</span></div>
-                <div class="range-preset-item" data-preset="last90"      onclick="applyRangePreset('last90')">     <span>آخر 90 يوم</span>   <span class="pr-check">✓</span></div>
-                <div class="range-preset-sep"></div>
-                <div class="range-preset-item" data-preset="thisMonth"   onclick="applyRangePreset('thisMonth')">  <span>الشهر الحالي</span>  <span class="pr-check">✓</span></div>
-                <div class="range-preset-item" data-preset="lastMonth"   onclick="applyRangePreset('lastMonth')">  <span>الشهر السابق</span>  <span class="pr-check">✓</span></div>
-                <div class="range-preset-item" data-preset="thisQuarter" onclick="applyRangePreset('thisQuarter')"><span>الربع الحالي</span>  <span class="pr-check">✓</span></div>
-                <div class="range-preset-sep"></div>
-                <div class="range-preset-item" data-preset="thisYear"    onclick="applyRangePreset('thisYear')">   <span>العام الحالي</span>  <span class="pr-check">✓</span></div>
-                <div class="range-preset-item" data-preset="lastYear"    onclick="applyRangePreset('lastYear')">   <span>العام السابق</span>  <span class="pr-check">✓</span></div>
-              </div>
-            </div>
-          </div>
-          <div class="log-fg">
-            <span class="range-flabel">من تاريخ</span>
-            <div class="range-date-wrap">
-              <input type="date" id="rangeDateFrom"
-                onclick="this.showPicker&&this.showPicker();"
-                onchange="onRangeDateChange()">
-            </div>
-          </div>
-          <div class="log-fg">
-            <span class="range-flabel">إلى تاريخ</span>
-            <div class="range-date-wrap">
-              <input type="date" id="rangeDateTo"
-                onclick="this.showPicker&&this.showPicker();"
-                onchange="onRangeDateChange()">
-            </div>
-          </div>
-
-          <!-- 5) الموظف — multi-select -->
-          <div class="log-fg">
-            <span class="log-flabel">الموظف</span>
-            <div class="ms-wrap" id="msWrap-logEmp">
-              <button class="ms-btn" id="msBtn-logEmp" onclick="msToggle('logEmp')">
-                <span id="msBtnLabel-logEmp">كل الموظفين</span>
-                <span class="ms-arrow">▾</span>
-              </button>
-              <div class="ms-menu" id="msMenu-logEmp">
-                <div class="ms-ftr-top">
-                  <button class="ms-ftr-clear" onclick="msClear('logEmp')">مسح الاختيار</button>
-                  <span class="ms-ftr-count" id="msFtrCount-logEmp"></span>
-                </div>
-                <div class="ms-selectall-row" onclick="msToggleSelectAll('logEmp')">
-                  <input type="checkbox" id="msSelectAll-logEmp"
-                    onclick="event.stopPropagation()" onchange="msToggleSelectAll('logEmp', this.checked)">
-                  <span id="msSelectAllLabel-logEmp">تحديد الكل</span>
-                </div>
-                <div class="ms-list" id="msList-logEmp"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Chips — سطر منفصل لكل فلتر، اسم الفلتر مرة واحدة أول السطر -->
-        <div class="ms-chips-row" id="chipsRow-logStatus"></div>
-        <div class="ms-chips-row" id="chipsRow-logResult"></div>
-        <div class="ms-chips-row" id="chipsRow-logCourier"></div>
-        <div class="ms-chips-row" id="chipsRow-logEmp"></div>
-      </div>
-    </div>
-
-    <div class="section-divider"></div>
 
     <div class="log-stats-bar" onclick="toggleLogTable()">
       <div class="log-stats-right">
         <span class="tbl-toggle open" id="logTblToggleIcon">▲</span>
         <div class="results-wrap">
           <span class="results-label">النتائج:</span>
-          <span class="results-count" id="logFilteredCount">—</span>
+          <span class="results-count" id="logSessCount">—</span>
+          <span class="log-stat-sub" id="logFilteredCount"></span>
         </div>
         <span class="log-sel-hint" id="logSelHint" style="display:none"></span>
       </div>
       <div class="log-btns-end">
+        <button class="clear-btn inactive" id="logClearAllBtn" onclick="event.stopPropagation(); clearLogFilters();">✕ مسح كل الفلاتر</button>
         <button class="log-refresh-btn" onclick="event.stopPropagation(); fetchLog();">↺ تحديث</button>
         <button class="log-print-btn" id="logPrintSelectedBtn" onclick="event.stopPropagation(); printSelectedBatches();" style="display:none">🖨️ طباعة المحدد (<span id="logSelCount">0</span>)</button>
         <button class="log-export-btn" id="logExportSelectedBtn" onclick="event.stopPropagation(); exportSelectedLogXLSX();" style="display:none">⬇ تصدير المحدد (<span id="logExportSelCount">0</span>)</button>
         <button class="log-export-btn" id="logExportBtn" onclick="event.stopPropagation(); exportLogXLSX();">⬇ تصدير الكل</button>
       </div>
     </div>
+
+    <div class="log-chips" id="logChips"></div>
 
     <div id="logExportWarn" class="export-warn" style="display:none;"></div>
 
@@ -1426,6 +1226,10 @@
 
   </div>
 </div>
+
+<!-- القايمة العائمة + tooltip القمع — position:fixed على body (z 200/210)، مش جوّه الجدول -->
+<div class="hfpop" id="hfPop" hidden></div>
+<div class="hfn-tip" id="hfTip" hidden role="tooltip"></div>
 
 <!-- ─── §TOOL::courierSearchModal ─── -->
 <div class="eco-overlay" id="csmOverlay" onclick="if(event.target===this)closeCourierSearch()">
@@ -1555,42 +1359,9 @@ function closeConfirmOnBackdrop(e) { if (e.target === e.currentTarget) closeConf
 
 // ⛔ `showToast` اتشالت — نسخة الـ shell بتكتب في نفس `#toastContainer`.
 
-function toggleSearchActiveState(el) {
-  el.classList.toggle('has-value', el.value.trim().length > 0);
-}
-
-// ── ⏰ توقيت القاهرة — محسوب مش ثابت (v4.5.0) ──
-// الثابت القديم (CAIRO_OFFSET_HOURS = 3) كان بيغلط بساعة من 29-10-2026 من غير
-// ما يتغيّر سطر في الكود: كل وقت معروض، وكل حدود "فترة سريعة"، وكل حساب
-// "اليوم/أمس". نفس الدوال بالظبط في الـ Worker (§HELPERS::cairoTime).
-// ⚠️ toCairo() بترجّع Date **مزحزحة** عمدًا عشان باقي الكود يقرا منها بـ
-//    getUTC* — نفس عقد النسخة القديمة بالحرف، فمفيش أي استدعاء اتغيّر.
-// ⛔ `CAIRO_TZ` و`_cairoFmt` و`cairoParts` اتشالوا — في الـ shell بالحرف
-//    **وبزيادة مهمة**: نسخة الـ shell فيها حارس `Invalid Date`. النسخة
-//    اللي كانت هنا بترمي `RangeError` على تاريخ باظ، وصف واحد بتاريخ غلط
-//    كان كفاية **يوقّع رسم الجدول كله**.
-// ⚠️ واللي تحت **مالوش مقابل في الـ shell** وبيستخدمه فلتر «فترة سريعة»:
-//    `toCairo` بترجّع `Date` **مزحزحة** عمدًا عشان باقي الكود يقرا منها
-//    بـ`getUTC*` — نفس العقد القديم بالحرف، فمفيش أي استدعاء اتغيّر.
-function cairoOffsetMinutes(d) {
-  const p = cairoParts(d);
-  return Math.round((Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - d.getTime()) / 60000);
-}
-function toCairo(iso) {
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return new Date(NaN);
-  return new Date(d.getTime() + cairoOffsetMinutes(d) * 60000);
-}
-function cairoNow() { return toCairo(new Date().toISOString()); }
-function cairoDateStr(d) {
-  const pad = n => String(n).padStart(2, '0');
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
-}
-function addDays(dateStr, n) {
-  const d = new Date(`${dateStr}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return cairoDateStr(d);
-}
+// ⏰ توقيت القاهرة: `cairoParts()` / `formatDate*` في shared/core.js بس — محسوب بـ Intl مش ثابت.
+// ⛔ `toCairo()` + `getUTC*` و`cairoNow` و`cairoDateStr` و`addDays` و`cairoOffsetMinutes` اتشالوا (html-builder v9.0.0):
+//    الشكل ده هو اللي الإزاحة بتعيش جوّاه. تواريخ فلتر السجل في `cairoToday()` / `addDaysStr()` (§LOG-JS::helpers).
 
 // ⛔ `formatDateTime` · `formatDate` · `formatDateForExport` ·
 //    `formatTimeForExport` اتشالوا — الأربعة في الـ shell **بنفس صيغة
@@ -1879,7 +1650,7 @@ function switchMainTab(tab) {
   document.getElementById('panelMain').classList.toggle('active', isMain);
   document.getElementById('panelLog') .classList.toggle('active', !isMain);
   if (isMain) focusScan();
-  else if (!logLoaded) fetchLog();
+  else if (!logLoaded) { loadLogFilterLists(); fetchLog(); }
 }
 
 // ─── §TOOL-JS::renderTargetGrid (step 1 — full grid, shown before selection or on "تغيير الحالة") ───
@@ -3141,399 +2912,622 @@ setTimeout(function(){window.print()},400)};<\/script>
 
 
 // ══════════════════════════════════════════════════════════════
-// §LOG-JS — سجل العمليات (server search + pagination + batch grouping)
+// §LOG-JS — سجل العمليات (html-builder v9.1.0 · data-table-standard.md v8.6.0)
 // ══════════════════════════════════════════════════════════════
+// 🔴 كل الفلاتر والترتيب **server-side** (Worker ≥ 4.8.0): الجدول دفعات والصفحة ١٠٠ عملية —
+//    فلتر في المتصفح كان هيعدّ الصفحة بس والصفحة التانية تيجي بلا فلتر والتصدير غير مفلتر.
+//    الحالة كلها في `LF` و`buildLogParams()` مصدر واحد لـ`get_logs` و`get_logs_count` و`get_logs_export`.
+// 🔴 مفيش قسم فلاتر فوق الجدول: كل فلتر في **رأس عموده** (قمع ▽ ← قايمة `position:fixed` على body).
+const $ = id => document.getElementById(id);
 const LOG_PAGE_SIZE = 100;
 let logCurrentPage  = 1;
 let logTotalCount   = 0;
-let logSearchTimer  = null;
-let logFiltersOpen  = true;
-let selectedLogBatches = new Set(); // §LOG-JS::printSelectedBatches — batchId set
-// v4.5.0 — الحجم الكامل لكل دفعة من الـ Worker (batchId → عدد الصفوف الكلي).
-// الصفحة ١٠٠ صف، فالدفعة الواقعة على الحد كانت بتتعرض **مجموعتين في صفحتين**
-// بعدادات مقسومة وزرار طباعة بيطبع نصها — من غير أي إشارة إنها ناقصة.
-let logBatchSizes = {};
+let logTableOpen    = true;
+let logSeq          = 0;
+let logSort         = { key: null, dir: null };     // dir: 'asc' | 'desc' | null — مستقل تمامًا عن الفلاتر
+let selectedLogBatches = new Set();                // batchId — بيفضل عبر الصفحات
+// v4.8.0 — عدّادات الدفعة الكاملة من الـ Worker { batchId: {n, ok, warn, err} }: الدفعة الواقعة على حد الصفحة
+// (أو المتفلترة بنتيجة/رقم) كانت بتتعرض بعدّادات جزئية وزرار طباعة بيطبع نصها من غير أي إشارة.
+let logBatchStats = {};
 
-function toggleLogFilters() {
-  logFiltersOpen = !logFiltersOpen;
-  document.getElementById('logFiltersBody').classList.toggle('collapsed', !logFiltersOpen);
-  document.getElementById('logFiltersToggleIcon').classList.toggle('open', logFiltersOpen);
+// ─── §LOG-JS::helpers ───
+const pad2 = n => String(n).padStart(2, '0');
+const latinDigits = v => String(v == null ? '' : v).replace(/[٠-٩]/g, c => String(c.charCodeAt(0) - 1632));
+const orderParts = v => latinDigits(v).split(/\D+/).filter(Boolean);
+const fmtN = v => Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+// 🔴 تواريخ القاهرة من `cairoParts()` (shared/core.js) — مفيش `toCairo`+`getUTC*` ولا إزاحة ثابتة (constants §13)
+function cairoToday() { const p = cairoParts(new Date()); return `${p.year}-${p.month}-${p.day}`; }
+function addDaysStr(day, n) { const d = new Date(`${day}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+const ymd = (y, m, d) => `${y}-${pad2(m)}-${pad2(d)}`;
+const lastDayOf = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+const nowYM = () => { const p = cairoParts(new Date()); return { y: +p.year, m: +p.month }; };
+
+// Step 3C — ٤ حالات مش اتنين، ومصدر واحد للجدول والتصدير. `—` = ما اتحاولش/مش معروفة، وبس.
+const RESULT_LABELS = { success: 'تم', warning: 'تم جزئيًا', error: 'فشل', rejected: 'مرفوض', already: 'خلاص متعمل' };
+const RESULT_CLS    = { success: 'log-ok', warning: 'log-warn', error: 'log-err', rejected: 'log-err', already: '' };
+const RESULT_ICON   = { success: '✓', warning: '⚠', error: '✗', rejected: '⛔', already: 'ℹ️' };
+const resultLabel = v => RESULT_LABELS[v] || '—';
+
+// ─── §LOG-JS::state — حالة الفلاتر (مصدر واحد: الواجهة + chips + tooltip + الباراميترات) ───
+const mkNum = () => ({ from: '', to: '', sel: new Set() });
+const LF = {
+  ms:    { status: new Set(), courier: new Set(), emp: new Set() },
+  items: { status: [], courier: [], emp: [] },
+  tok: [], pending: '',
+  num:   { ok: mkNum(), warn: mkNum(), err: mkNum() },
+  tm:    { from: '', to: '' },
+  date:  { from: '', to: '', preset: '', month: '' },
+};
+const MS_TITLE = { status: 'الحالة', courier: 'المندوب', emp: 'الموظف' };
+const NUM_TITLE = { ok: '✓ نجح', warn: '⚠ تحذير', err: '✗ فشل' };
+const numMode = a => a.sel.size ? 'list' : ((a.from !== '' || a.to !== '') ? 'range' : '');
+const numActive = k => !!numMode(LF.num[k]);
+const lfOrders = () => [...new Set([...LF.tok, ...orderParts(LF.pending)])];
+const dateActive = () => !!(LF.date.from || LF.date.to);
+let lfT = null, lfSeq = 0, dtYear = null;
+function lfRefetch(ms) { clearTimeout(lfT); lfT = setTimeout(() => { logCurrentPage = 1; fetchLog(); }, ms || 0); }
+
+// ⚠️ `!!value` مش مقارنة صريحة بـ null (data-table-standard § 3) — undefined !== null بترجع true فتفضل الأيقونة مولّعة دايمًا
+function activeCount(k) {
+  if (MS_TITLE[k]) return LF.ms[k].size;
+  if (LF.num[k]) { const a = LF.num[k]; return a.sel.size || ((a.from !== '' || a.to !== '') ? 1 : 0); }
+  if (k === 'orders') return lfOrders().length;
+  if (k === 'time')   return (LF.tm.from || LF.tm.to) ? 1 : 0;
+  if (k === 'date')   return dateActive() ? 1 : 0;
+  return 0;
 }
+const FLT_KEYS = ['date', 'time', 'status', 'courier', 'emp', 'orders', 'ok', 'warn', 'err'];
+function anyFilterActive() { return FLT_KEYS.some(k => activeCount(k) > 0); }
+
+function buildLogParams() {
+  const p = {};
+  if (LF.ms.status.size)  p.status   = [...LF.ms.status].join(',');
+  if (LF.ms.courier.size) p.courier  = [...LF.ms.courier].join(',');
+  if (LF.ms.emp.size)     p.employee = [...LF.ms.emp].join(',');
+  const o = lfOrders(); if (o.length) p.orders = o.join(',');
+  if (LF.date.from) p.dateFrom = LF.date.from;
+  if (LF.date.to)   p.dateTo   = LF.date.to;
+  if (LF.tm.from) p.timeFrom = LF.tm.from;
+  if (LF.tm.to)   p.timeTo   = LF.tm.to;
+  Object.keys(LF.num).forEach(k => {
+    const a = LF.num[k], m = numMode(a);
+    if (m === 'list') p[k + 'In'] = [...a.sel].join(',');
+    else if (m === 'range') { if (a.from !== '') p[k + 'From'] = a.from; if (a.to !== '') p[k + 'To'] = a.to; }
+  });
+  return p;
+}
+
+// ─── §LOG-JS::columns — ترتيب الأعمدة (يمين ← شمال) ───
+//  sort = مفتاح الترتيب في الـ Worker · flt = مفتاح القمع في HF. عمودا الطباعة والسهم بلا ترتيب ولا فلتر.
+const LOG_COLS = [
+  { k: 'cb' },
+  { k: 'date',    label: 'التاريخ',   sort: 'timestamp', flt: 'date' },
+  { k: 'time',    label: 'الوقت',     sort: 'time',      flt: 'time' },
+  { k: 'status',  label: 'الحالة',    sort: 'status',    flt: 'status' },
+  { k: 'courier', label: 'المندوب',   sort: 'courier',   flt: 'courier' },
+  { k: 'emp',     label: 'الموظف',    sort: 'employee',  flt: 'emp' },
+  { k: 'orders',  label: 'الأوردرات', sort: 'n',         flt: 'orders' },
+  { k: 'ok',      label: '✓',         sort: 'ok',        flt: 'ok' },
+  { k: 'warn',    label: '⚠',         sort: 'warn',      flt: 'warn' },
+  { k: 'err',     label: '✗',         sort: 'err',       flt: 'err' },
+  { k: 'print',   label: 'طباعة' },
+  { k: 'arrow',   label: '' },
+];
+const FUNNEL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18l-7 8.5V20l-4-2v-5.5L3 4z"/></svg>';
 
 // ─── §LOG-JS::toggleLogTable — صف "النتائج" قابل للطي (data-table-standard.md § 7) ───
-let logTableOpen = true;
 function toggleLogTable() {
   logTableOpen = !logTableOpen;
-  document.getElementById('logTableWrap').classList.toggle('collapsed', !logTableOpen);
-  document.getElementById('logTblToggleIcon').classList.toggle('open', logTableOpen);
+  $('logTableWrap').classList.toggle('collapsed', !logTableOpen);
+  $('logTblToggleIcon').classList.toggle('open', logTableOpen);
 }
 
-document.getElementById('logSearch').addEventListener('input', () => {
-  updateLogFilterIconState();
-  clearTimeout(logSearchTimer);
-  logSearchTimer = setTimeout(() => { logCurrentPage = 1; fetchLog(); }, 400);
+// ─── §LOG-JS::header-filters — القمع في رأس العمود (Standards #47 · #50) ───
+const HF = {
+  date:    { title: 'التاريخ',     width: 340, render: p => renderDatePop(p) },
+  time:    { title: 'الوقت',       width: 340, render: p => renderTimePop(p) },
+  status:  { title: 'الحالة',      width: 260, render: p => renderMsPop(p, 'status') },
+  courier: { title: 'المندوب',     width: 260, render: p => renderMsPop(p, 'courier') },
+  emp:     { title: 'الموظف',      width: 260, render: p => renderMsPop(p, 'emp') },
+  orders:  { title: 'رقم الأوردر', width: 300, render: p => renderOrdersPop(p) },
+  ok:      { title: NUM_TITLE.ok,   width: 300, render: p => renderNumPop(p, 'ok') },
+  warn:    { title: NUM_TITLE.warn, width: 300, render: p => renderNumPop(p, 'warn') },
+  err:     { title: NUM_TITLE.err,  width: 300, render: p => renderNumPop(p, 'err') },
+};
+let hfOpen = null;   // { key, btn }
+function hfClose() {
+  if (!hfOpen) return;
+  tpClose();
+  const pop = $('hfPop'); pop.hidden = true; pop.innerHTML = '';
+  hfOpen = null;
+}
+function hfPlace() {
+  if (!hfOpen) return;
+  const pop = $('hfPop'), r = hfOpen.btn.getBoundingClientRect(), w = HF[hfOpen.key].width;
+  pop.style.width = w + 'px';
+  pop.style.top  = Math.min(r.bottom + 4, innerHeight - 80) + 'px';
+  pop.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + 'px';
+}
+function hfToggle(key, btn) {
+  const same = hfOpen && hfOpen.key === key;
+  hfClose();
+  if (same) return;
+  const pop = $('hfPop');
+  pop.innerHTML = `<div class="hfpop-title">${esc(HF[key].title)}</div>`;
+  pop.hidden = false; hfOpen = { key, btn };
+  HF[key].render(pop);
+  hfPlace();
+  const first = pop.querySelector('.lf-search,input[type=text],input[type=number]');
+  if (first) first.focus();
+}
+// حالة القمع (مولّع/عدّاد) + إعادة تثبيت القايمة بعد أي إعادة رسم للجدول
+function syncFunnels() {
+  const on = anyFilterActive();
+  const cb = $('logClearAllBtn'); if (cb) cb.classList.toggle('inactive', !on);
+  document.querySelectorAll('#logBody th[data-fk]').forEach(th => {
+    const n = activeCount(th.dataset.fk);
+    th.classList.toggle('flt-on', n > 0);
+    const c = th.querySelector('.th-cnt'); if (c) c.textContent = n > 1 ? n : (n ? '●' : '');
+  });
+  if (hfOpen) { const nb = document.querySelector(`#logBody .hfn[data-hf="${hfOpen.key}"]`); if (nb) { hfOpen.btn = nb; hfPlace(); } }
+  renderChips();
+}
+document.addEventListener('click', e => {
+  if (!document.contains(e.target)) return;      // Standards #32 — العنصر اتشال بعد إعادة رسم القايمة
+  const f = e.target.closest && e.target.closest('.hfn[data-hf]');
+  if (f && $('logBody').contains(f)) { e.stopPropagation(); hfToggle(f.dataset.hf, f); return; }
+  if (hfOpen && !$('hfPop').contains(e.target) && !e.target.closest('.lf-tp')) hfClose();
 });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && tpEl) { tpClose(); return; }   // قايمة الساعة/الدقيقة بتتقفل الأول
+  if (!hfOpen) return;
+  if (e.key === 'Escape') hfClose();
+  else if (e.key === 'Enter' && $('hfPop').contains(e.target) && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') hfClose();   // Enter يقفل القايمة والفلتر يفضل
+});
+window.addEventListener('resize', hfClose);
+$('logBody').addEventListener('scroll', hfPlace);
 
-function onLogFilterChange() { logCurrentPage = 1; fetchLog(); }
-
-// ─── §LOG-JS::anyFilterActive — data-table-standard.md § 3 ⚠️ ───
-// !!value truthy — مش مقارنة صريحة بـ null (الباج اللي اتكرر 3 مرات في
-// الستاك: undefined !== null بترجع true فتفضل الأيقونة/الزرار شغالين دايمًا).
-function anyFilterActive() {
-  const msActive     = Object.keys(msState).some(k => msState[k].selected.size > 0);
-  const searchActive = document.getElementById('logSearch').value.trim().length > 0;
-  const dateActive   = !!document.getElementById('rangeDateFrom').value || !!document.getElementById('rangeDateTo').value;
-  return msActive || searchActive || dateActive;
+// ── tooltip القمع (#50): قيم الفلتر المفعّل بس — ومفيش tooltip لو مفيش اختيار. مخصّص مش `title` native ──
+function hm2m(hm) { const p = String(hm || '').split(':'); return p.length === 2 ? (+p[0]) * 60 + (+p[1]) : 0; }
+function m2hm(m) { return pad2(Math.floor(m / 60)) + ':' + pad2(m % 60); }
+function fT(hm, long) {
+  if (!hm) return '--:--';
+  const h = +hm.slice(0, 2), mm = hm.slice(3, 5);
+  return `${pad2(h % 12 || 12)}:${mm} ${long ? (h < 12 ? 'صباحاً' : 'مساءً') : (h < 12 ? 'ص' : 'م')}`;
 }
-
-function updateLogFilterIconState() {
-  const active = anyFilterActive();
-  document.getElementById('logFiltersIcon').classList.toggle('active', active);
-  document.getElementById('logClearAllBtn').classList.toggle('inactive', !active);
+function fD(d) { return d ? `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}` : '—'; }
+function dateChipText() {
+  const nm = LF.date.preset ? (RANGE_PRESET_LABELS[LF.date.preset] || '') : '';
+  return `${nm ? nm + ' · ' : ''}من 📅 ${fD(LF.date.from)} إلى 📅 ${fD(LF.date.to)}`;
 }
+function timeChipText() { return `من 🕐 ${LF.tm.from ? fT(LF.tm.from, true) : 'بداية اليوم'} إلى 🕐 ${LF.tm.to ? fT(LF.tm.to, true) : 'نهاية اليوم'}`; }
+function numChipText(k) {
+  const a = LF.num[k];
+  return numMode(a) === 'list' ? [...a.sel].map(fmtN).join('، ') : `من ${a.from !== '' ? fmtN(a.from) : '—'} إلى ${a.to !== '' ? fmtN(a.to) : '—'}`;
+}
+const msLabel = (k, v) => ((LF.items[k].find(it => it.value === v) || {}).label || v);
+function hfValuesText(k) {
+  if (MS_TITLE[k]) return [...LF.ms[k]].map(v => msLabel(k, v)).join('، ');
+  if (k === 'orders') return lfOrders().map(t => '#' + t).join('، ');
+  if (k === 'time') return timeChipText();
+  if (LF.num[k]) return numChipText(k);
+  return dateChipText();
+}
+function hfTipShow(btn) {
+  const k = btn.dataset.hf; if (!HF[k] || !activeCount(k) || (hfOpen && hfOpen.key === k)) return hfTipHide();
+  const tip = $('hfTip'), txt = hfValuesText(k); if (!txt) return hfTipHide();
+  tip.textContent = `${HF[k].title}: ${txt}`; tip.hidden = false;
+  const r = btn.getBoundingClientRect(), w = tip.offsetWidth;
+  tip.style.top = Math.min(r.bottom + 6, innerHeight - tip.offsetHeight - 8) + 'px';
+  tip.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + 'px';
+}
+function hfTipHide() { const t = $('hfTip'); if (t) t.hidden = true; }
+document.addEventListener('mouseover', e => { const b = e.target.closest && e.target.closest('.hfn'); if (b) hfTipShow(b); });
+document.addEventListener('mouseout',  e => { if (e.target.closest && e.target.closest('.hfn')) hfTipHide(); });
+document.addEventListener('focusin',   e => { const b = e.target.closest && e.target.closest('.hfn'); if (b) hfTipShow(b); });
+document.addEventListener('focusout',  hfTipHide);
+document.addEventListener('click',     hfTipHide, true);
+$('logBody').addEventListener('scroll', hfTipHide);
+
+// ─── §LOG-JS::chips — سطر لكل فلتر، واسم الفلتر مرة واحدة في أوله (#23) ───
+function renderChips() {
+  const box = $('logChips'); if (!box) return;
+  const row = (label, inner) => inner ? `<div class="ms-chips-row"><span class="chips-label">${label}:</span>${inner}</div>` : '';
+  const chip = (txt, rm) => `<span class="ms-chip">${txt}<button type="button" aria-label="شيل" data-chiprm="${rm}">✕</button></span>`;
+  let h = '';
+  Object.keys(MS_TITLE).forEach(k => {
+    h += row(MS_TITLE[k], [...LF.ms[k]].map(v => chip(esc(msLabel(k, v)), `ms:${k}:${esc(v)}`)).join(''));
+  });
+  h += row('رقم الأوردر', lfOrders().map(t => chip(esc('#' + t), `ord:${esc(t)}`)).join(''));
+  if (dateActive()) h += row('التاريخ', chip(esc(dateChipText()), 'date'));
+  if (LF.tm.from || LF.tm.to) h += row('الوقت', chip(esc(timeChipText()), 'time'));
+  Object.keys(LF.num).forEach(k => { if (numActive(k)) h += row(NUM_TITLE[k], chip(esc(numChipText(k)), `num:${k}`)); });
+  box.innerHTML = h;
+}
+$('logChips').addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-chiprm]'); if (!b) return;
+  const [t, a, ...rest] = b.dataset.chiprm.split(':'), v = rest.join(':');
+  if (t === 'ms') LF.ms[a].delete(v);
+  else if (t === 'ord') { LF.tok = LF.tok.filter(x => x !== a); LF.pending = ''; }
+  else if (t === 'date') { dateSet('', '', '', ''); return; }
+  else if (t === 'time') LF.tm = { from: '', to: '' };
+  else if (t === 'num') { LF.num[a] = mkNum(); }
+  syncFunnels(); lfRefetch(0);
+});
 
 function clearLogFilters() {
-  document.getElementById('logSearch').value = '';
-  toggleSearchActiveState(document.getElementById('logSearch'));
-  msState.logStatus.selected.clear();
-  msState.logResult.selected.clear();
-  msState.logCourier.selected.clear();
-  msState.logEmp.selected.clear();
-  msRenderList('logStatus'); msRenderList('logResult'); msRenderList('logCourier'); msRenderList('logEmp');
-  renderChips();
-  clearRangePreset();   // بيمسح فترة التاريخ وبينادي fetchLog() بنفسه (logCurrentPage=1)
-  updateLogFilterIconState();
+  hfClose();
+  Object.keys(LF.ms).forEach(k => LF.ms[k].clear());
+  LF.tok = []; LF.pending = '';
+  Object.keys(LF.num).forEach(k => { LF.num[k] = mkNum(); });
+  LF.tm = { from: '', to: '' };
+  LF.date = { from: '', to: '', preset: '', month: '' };
+  syncFunnels(); lfRefetch(0);   // الترتيب مستقل عن الفلاتر — بيفضل بعد «مسح كل الفلاتر»
 }
 
-// ─── §LOG-JS::multi-select filters (الحالة / المندوب / الموظف) ───
-// راجع references/multi-select-filter.md — كومبوننت موحّد بمفتاح key
-const msState = {
-  logStatus:  { items: [], selected: new Set(), search: '' },
-  logResult:  { items: [], selected: new Set(), search: '' },
-  logCourier: { items: [], selected: new Set(), search: '' },
-  logEmp:     { items: [], selected: new Set(), search: '' },
-};
-
-function msRenderList(key) {
-  const st = msState[key];
-  const listEl = document.getElementById(`msList-${key}`);
-  const q = st.search.trim().toLowerCase();
-  const visible = q ? st.items.filter(it => it.label.toLowerCase().includes(q)) : st.items;
-
-  listEl.innerHTML = !visible.length
-    ? '<div class="ms-empty">لا توجد نتائج مطابقة للبحث</div>'
-    : visible.map(it => {
-        const checked = st.selected.has(it.value);
-        const labelCls = it.mono ? 'ms-item-label ms-item-mono' : 'ms-item-label';
-        // v4.5.0 — الهروب كان في renderChips بس. اسم مندوب أو موظف فيه `'`
-        // كان بيكسر الـ onclick هنا: العنصر شكله سليم ومابيعملش حاجة خالص.
-        const v = escJsAttr(it.value);
-        return `<div class="ms-item ${checked ? 'checked' : ''}" onclick="msToggleItem('${escJsAttr(key)}','${v}')">
-          <input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation(); msToggleItem('${escJsAttr(key)}','${v}')">
-          <span class="${labelCls}">${escHtml(it.label)}</span>
-        </div>`;
-      }).join('');
-
-  const allVisibleChecked = visible.length > 0 && visible.every(it => st.selected.has(it.value));
-  document.getElementById(`msSelectAll-${key}`).checked = allVisibleChecked;
-
-  const selectAllLbl = document.getElementById(`msSelectAllLabel-${key}`);
-  if (selectAllLbl) selectAllLbl.textContent = q ? `تحديد كل نتائج البحث (${visible.length})` : 'تحديد الكل';
-
-  msUpdateButtonLabel(key);
-  document.getElementById(`msFtrCount-${key}`).textContent = `${st.selected.size} مختار`;
+// ─── §LOG-JS::ms-pop — قايمة الاختيار المتعدد (حالة · مندوب · موظف) ───
+const SEARCH_MIN = 10;   // بحث داخل القايمة من ١٠ عناصر (v8.6.0)
+let msQ = '';
+function msVisible(k) { const q = msQ.trim().toLowerCase(); return q ? LF.items[k].filter(it => it.label.toLowerCase().includes(q)) : LF.items[k]; }
+function msListHtml(k) {
+  const vis = msVisible(k);
+  return vis.length ? vis.map(it => `<label class="lf-it"><input type="checkbox" data-msv="${esc(it.value)}"${LF.ms[k].has(it.value) ? ' checked' : ''}><span>${esc(it.label)}</span></label>`).join('')
+                    : '<div class="lf-more">لا توجد نتائج مطابقة للبحث</div>';
+}
+function msSyncAll(k) {
+  const vis = msVisible(k), all = $('lfMsAll'); if (!all) return;
+  all.textContent = msQ.trim() ? `تحديد كل نتائج البحث (${vis.length})` : 'تحديد الكل';
+  const c = $('lfMsClear'); if (c) c.disabled = !LF.ms[k].size;
+}
+function renderMsPop(pop, k) {
+  msQ = '';
+  const search = LF.items[k].length >= SEARCH_MIN
+    ? '<div class="lf-sw"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="text" class="lf-inp lf-search" id="lfMsQ" autocomplete="off" spellcheck="false" aria-label="بحث في القايمة"></div>' : '';
+  pop.insertAdjacentHTML('beforeend', `
+    <div class="lf-head"><button type="button" class="clear-btn" id="lfMsClear">✕ مسح الاختيار</button><button type="button" class="lf-link" id="lfMsAll">تحديد الكل</button></div>
+    ${search}<div class="lf-list" id="lfMsList" data-k="${k}">${LF.items[k].length ? msListHtml(k) : '<div class="lf-more">جاري تحميل القايمة…</div>'}</div>`);
+  msSyncAll(k);
 }
 
-const MS_DEFAULT_LABEL = { logStatus: 'كل الحالات', logResult: 'كل النتائج', logCourier: 'كل المناديب', logEmp: 'كل الموظفين' };
-function msUpdateButtonLabel(key) {
-  const st = msState[key];
-  const btn = document.getElementById(`msBtn-${key}`);
-  const lbl = document.getElementById(`msBtnLabel-${key}`);
-  const n = st.selected.size;
-  btn.classList.toggle('has-selection', n > 0);
-  if (n === 0)       lbl.textContent = MS_DEFAULT_LABEL[key] || 'الكل';
-  else if (n === 1)  lbl.textContent = [...st.selected].map(v => (st.items.find(it=>it.value===v)||{}).label || v)[0];   // textContent — آمن
-  else               lbl.innerHTML   = `${n} محددين <span class="ms-count">${n}</span>`;
+// ─── وقت: 24 ساعة HH:MM للتخزين والإرسال، 12 ساعة للعرض ───
+let tpEl = null, tpWhich = null, tpH = null, tpM = null;
+function tpClose() { if (tpEl) { tpEl.remove(); tpEl = null; tpWhich = null; } }
+function tpOpen(btn) {
+  const which = btn.dataset.tf; if (tpEl && tpWhich === which) { tpClose(); return; } tpClose();
+  tpWhich = which; const cur = LF.tm[which]; tpH = cur ? +cur.slice(0, 2) : null; tpM = cur ? +cur.slice(3, 5) : null;
+  tpEl = document.createElement('div'); tpEl.className = 'lf-tp'; tpEl.setAttribute('role', 'dialog'); tpEl.setAttribute('aria-label', which === 'from' ? 'من وقت' : 'إلى وقت');
+  const hrs = Array.from({ length: 24 }, (_, h) => `<button type="button" class="lf-tpi${tpH === h ? ' on' : ''}" data-tph="${h}">${pad2(h % 12 || 12)} ${h < 12 ? 'ص' : 'م'}</button>`).join('');
+  const mins = Array.from({ length: 60 }, (_, m) => `<button type="button" class="lf-tpi${tpM === m ? ' on' : ''}" data-tpm="${m}">${pad2(m)}</button>`).join('');
+  tpEl.innerHTML = `<div class="lf-tpcols"><div><div class="lf-tph">ساعة · HH</div><div class="lf-tpl" id="lfTpH">${hrs}</div></div><div><div class="lf-tph">دقيقة · MM</div><div class="lf-tpl" id="lfTpM">${mins}</div></div></div><div class="lf-tpf"><button type="button" class="lf-tpb" data-tpclear>مسح</button><button type="button" class="lf-tpb pri" data-tpdone>تم</button></div>`;
+  document.body.appendChild(tpEl);
+  const r = btn.getBoundingClientRect();
+  tpEl.style.top = Math.min(r.bottom + 4, innerHeight - tpEl.offsetHeight - 8) + 'px';
+  tpEl.style.left = Math.max(8, Math.min(r.left, innerWidth - tpEl.offsetWidth - 8)) + 'px';
+  const on = tpEl.querySelector('#lfTpH .on'); if (on) on.scrollIntoView({ block: 'center' });
+  const om = tpEl.querySelector('#lfTpM .on'); if (om) om.scrollIntoView({ block: 'center' });
+}
+function tpSet(h, m) {
+  tpH = h; tpM = m; if (tpH === null) return;
+  LF.tm[tpWhich] = pad2(tpH) + ':' + pad2(tpM == null ? 0 : tpM);
+  tmSyncUI(true); lfRefetch(250); syncFunnels();
+  if (tpEl) { tpEl.querySelectorAll('#lfTpH .lf-tpi').forEach(b => b.classList.toggle('on', +b.dataset.tph === tpH)); tpEl.querySelectorAll('#lfTpM .lf-tpi').forEach(b => b.classList.toggle('on', +b.dataset.tpm === (tpM == null ? 0 : tpM))); }
+}
+document.addEventListener('click', e => {
+  if (!tpEl) return;
+  const t = e.target; if (!document.contains(t)) return;
+  const bh = t.closest && t.closest('[data-tph]'), bm = t.closest && t.closest('[data-tpm]');
+  if (tpEl.contains(t)) {
+    if (bh) tpSet(+bh.dataset.tph, tpM);
+    else if (bm) { tpM = +bm.dataset.tpm; if (tpH !== null) tpSet(tpH, tpM); else tpEl.querySelectorAll('#lfTpM .lf-tpi').forEach(b => b.classList.toggle('on', +b.dataset.tpm === tpM)); }
+    else if (t.closest('[data-tpclear]')) { LF.tm[tpWhich] = ''; tpClose(); tmSyncUI(true); lfRefetch(250); syncFunnels(); }
+    else if (t.closest('[data-tpdone]')) tpClose();
+    return;
+  }
+  if (!t.closest('[data-tf]')) tpClose();
+}, true);
+window.addEventListener('scroll', e => { if (tpEl && !tpEl.contains(e.target)) tpClose(); }, true);
+
+function tmSyncUI(fromFields) {
+  const a = $('lfTmA'), b = $('lfTmB'); if (!a || !b) return;
+  const lo = LF.tm.from ? hm2m(LF.tm.from) : 0, hi = LF.tm.to ? hm2m(LF.tm.to) : 1440;
+  if (fromFields) { a.value = lo; b.value = hi; }
+  const x = Math.min(+a.value, +b.value), y = Math.max(+a.value, +b.value);
+  $('lfTmLbl').textContent = `من ${LF.tm.from ? fT(LF.tm.from, true) : 'بداية اليوم'} إلى ${LF.tm.to ? fT(LF.tm.to, true) : 'نهاية اليوم'}`;
+  const fill = $('lfTmFill'); fill.style.right = (x / 1440 * 100) + '%'; fill.style.width = ((y - x) / 1440 * 100) + '%';
+  document.querySelectorAll('#hfPop [data-tf]').forEach(bt => { bt.textContent = fT(LF.tm[bt.dataset.tf]); });
+  $('lfTmErr').hidden = !(LF.tm.from && LF.tm.to && LF.tm.from > LF.tm.to);
+  const c = $('lfTmClear'); if (c) c.disabled = !(LF.tm.from || LF.tm.to);
+}
+function renderTimePop(pop) {
+  pop.insertAdjacentHTML('beforeend', `
+    <div class="lf-head"><button type="button" class="clear-btn" id="lfTmClear">✕ مسح الاختيار</button></div>
+    <div class="lf-sec"><div class="lf-tl" id="lfTmLbl"></div>
+      <div class="lf-dual"><div class="lf-track"></div><div class="lf-fill" id="lfTmFill"></div>
+        <input type="range" min="0" max="1440" step="1" id="lfTmA" aria-label="بداية الوقت"><input type="range" min="0" max="1440" step="1" id="lfTmB" aria-label="نهاية الوقت"></div></div>
+    <div class="lf-sec lf-tfs"><label class="lf-lab">من وقت<button type="button" class="lf-inp lf-tf" data-tf="from"></button></label><label class="lf-lab">إلى وقت<button type="button" class="lf-inp lf-tf" data-tf="to"></button></label></div>
+    <div class="lf-err" id="lfTmErr" hidden>وقت «من» بعد وقت «إلى» — لا يوجد نتايج</div>`);
+  tmSyncUI(true);
 }
 
-function msToggle(key) {
-  const menu = document.getElementById(`msMenu-${key}`), btn = document.getElementById(`msBtn-${key}`);
-  const willOpen = !menu.classList.contains('open');
-  Object.keys(msState).forEach(k => {
-    document.getElementById(`msMenu-${k}`).classList.remove('open');
-    document.getElementById(`msBtn-${k}`).classList.remove('open');
-  });
-  if (willOpen) { menu.classList.add('open'); btn.classList.add('open'); }
+// ─── §LOG-JS::orders-pop — توكنز رقم الأوردر (Enter · OR) + اقتراحات لايف ───
+let sgItems = [], sgAct = -1, sgT = null;
+function ordRenderToks() {
+  const box = $('lfToks'); if (!box) return;
+  const pend = orderParts(LF.pending);
+  box.innerHTML = LF.tok.map((t, i) => `<span class="ms-chip">${esc(t)}<button type="button" data-tokx="${i}" aria-label="شيل ${esc(t)}">✕</button></span>`).join('') +
+    pend.map(t => `<span class="ms-chip pend">${esc(t)}</span>`).join('');
+}
+async function ordSuggest() {
+  const box = $('lfSugg'); if (!box) return;
+  const parts = orderParts(LF.pending);
+  if (!parts.length) { box.innerHTML = ''; sgItems = []; sgAct = -1; return; }
+  const seq = ++lfSeq;
+  try {
+    const d = await apiGet('get_log_suggest', { q: parts.join(' '), exclude: LF.tok.join(',') });
+    if (seq !== lfSeq || !$('lfSugg')) return;
+    sgItems = d.suggestions || []; sgAct = -1;
+    const more = (d.total || 0) - sgItems.length;
+    $('lfSugg').innerHTML = sgItems.length
+      ? sgItems.map((s, i) => `<div class="lf-sg" role="option" data-sg="${i}">${esc(s.name)}<span class="lf-n">${s.count} ${s.count === 1 ? 'عملية' : 'عمليات'}</span></div>`).join('') + (more > 0 ? `<div class="lf-more">+${more} أخرى — كمّل الكتابة لتضييق النتائج</div>` : '')
+      : '<div class="lf-more">لا يوجد اقتراحات — Enter بيضيف اللي كتبته كبحث جزئي</div>';
+  } catch { if ($('lfSugg')) $('lfSugg').innerHTML = ''; }
+}
+function ordAdd(list) {
+  list.forEach(t => { if (t && !LF.tok.includes(t)) LF.tok.push(t); });
+  LF.pending = ''; const inp = $('lfOrdInp'); if (inp) { inp.value = ''; inp.focus(); }
+  ordRenderToks(); const sb = $('lfSugg'); if (sb) sb.innerHTML = ''; sgItems = []; sgAct = -1;
+  syncFunnels(); lfRefetch(0);
+}
+function ordPick(i) {
+  const s = sgItems[i]; if (!s) return;
+  const digits = orderParts(s.name).pop(), parts = orderParts(LF.pending);
+  ordAdd([...parts.slice(0, -1), digits]);
+}
+function renderOrdersPop(pop) {
+  pop.insertAdjacentHTML('beforeend', `
+    <div class="lf-head"><button type="button" class="clear-btn" id="lfOrdClear">✕ مسح الاختيار</button></div>
+    <div class="lf-sw"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="text" class="lf-inp lf-search" id="lfOrdInp" autocomplete="off" spellcheck="false" inputmode="numeric" aria-label="رقم الأوردر"></div>
+    <div class="lf-toks" id="lfToks"></div><div class="lf-sugg" id="lfSugg" role="listbox"></div>`);
+  $('lfOrdInp').value = LF.pending; ordRenderToks(); if (LF.pending) ordSuggest();
 }
 
-function msToggleItem(key, value) {
-  const st = msState[key];
-  st.selected.has(value) ? st.selected.delete(value) : st.selected.add(value);
-  msRenderList(key); renderChips(); onMsFilterChanged();
+// ─── §LOG-JS::num-pop — نافذة واحدة: نطاق + قايمة قيم (متبادلين، والتاني باهت وقابل للضغط) ───
+const numVals = {};
+function markNumPop() {
+  const k = hfOpen && hfOpen.key; if (!k || !LF.num[k]) return;
+  const m = numMode(LF.num[k]);
+  const r = document.querySelector('#hfPop [data-sec="range"]'), l = document.querySelector('#hfPop [data-sec="list"]');
+  if (r) r.classList.toggle('dim', m === 'list'); if (l) l.classList.toggle('dim', m === 'range');
+  const c = $('lfNumClear'); if (c) c.disabled = !m;
+}
+function numListHtml(k) {
+  const v = numVals[k]; if (!v) return '<div class="lf-more">جاري التحميل…</div>';
+  const q = latinDigits(($('lfNumQ') || {}).value || '');
+  const items = v.filter(x => !q || fmtN(x.v).includes(q));
+  return items.length ? items.map(x => `<label class="lf-it"><input type="checkbox" data-nv="${x.v}"${LF.num[k].sel.has(String(x.v)) ? ' checked' : ''}><span>${fmtN(x.v)}</span><span class="lf-n">(${x.n} دفعة)</span></label>`).join('') : '<div class="lf-more">لا توجد قيم</div>';
+}
+function renderNumPop(pop, k) {
+  const a = LF.num[k];
+  pop.insertAdjacentHTML('beforeend', `
+    <div class="lf-head"><button type="button" class="clear-btn" id="lfNumClear">✕ مسح الاختيار</button></div>
+    <div class="lf-sec" data-sec="range"><div class="lf-sl">نطاق (من — إلى)</div><div class="lf-rng"><label class="lf-lab">من<input type="number" min="0" class="lf-inp" id="lfNF" step="any" value="${esc(a.from)}"></label><label class="lf-lab">إلى<input type="number" min="0" class="lf-inp" id="lfNT" step="any" value="${esc(a.to)}"></label></div></div>
+    <div class="lf-sec" data-sec="list"><div class="lf-sl">أو اختار قيم <button type="button" class="lf-link" id="lfNumAll">تحديد الكل</button></div><div id="lfNumQW"></div><div class="lf-list" id="lfNumList">${numListHtml(k)}</div></div>`);
+  markNumPop();
+  apiGet('get_log_num_values', { field: k }).then(d => {
+    numVals[k] = d.values || []; if (!hfOpen || hfOpen.key !== k) return;
+    if (numVals[k].length >= SEARCH_MIN && !$('lfNumQ')) $('lfNumQW').innerHTML = '<input type="text" class="lf-inp lf-search" id="lfNumQ" autocomplete="off" aria-label="بحث في القيم" inputmode="decimal">';
+    $('lfNumList').innerHTML = numListHtml(k); markNumPop();
+  }).catch(() => { if ($('lfNumList')) $('lfNumList').innerHTML = '<div class="lf-more">تعذّر تحميل القيم — تأكد إن الـ Worker على نسخة ' + esc(ECO_WORKERS.orderStatus.min) + ' أو أحدث</div>'; });
+}
+function numSetRange(k) {
+  LF.num[k].sel.clear();
+  document.querySelectorAll('#lfNumList input[type=checkbox]').forEach(c => c.checked = false);
+  markNumPop(); syncFunnels(); lfRefetch(350);
+}
+function numSetList(k) {
+  const a = LF.num[k]; a.from = a.to = ''; if ($('lfNF')) { $('lfNF').value = ''; $('lfNT').value = ''; }
+  markNumPop(); syncFunnels(); lfRefetch(150);
 }
 
-function msToggleSelectAll(key, forceState) {
-  const st = msState[key];
-  const q = st.search.trim().toLowerCase();
-  const visible = q ? st.items.filter(it => it.label.toLowerCase().includes(q)) : st.items;
-  const allVisibleChecked = visible.length > 0 && visible.every(it => st.selected.has(it.value));
-  const shouldCheck = forceState !== undefined ? forceState : !allVisibleChecked;
-  visible.forEach(it => shouldCheck ? st.selected.add(it.value) : st.selected.delete(it.value));
-  msRenderList(key); renderChips(); onMsFilterChanged();
-}
-
-function msFilterList(key, value) { msState[key].search = value; msRenderList(key); }
-
-function msClear(key) {
-  msState[key].selected.clear();
-  msRenderList(key); renderChips(); onMsFilterChanged();
-}
-
-document.addEventListener('click', (e) => {
-  // 🔴 Standards #32 — msRenderList بتعيد بناء innerHTML عند كل اختيار، فالعنصر
-  //    المضغوط بيتشال من الـ DOM قبل ما الحدث يوصل هنا، و contains(detached)
-  //    بترجّع false فالقائمة كانت بتتقفل بعد **أول** اختيار — يعني فلتر اسمه
-  //    multi-select وعمليًا قيمة واحدة، بلا أي رسالة. الهدف اللي مش في الصفحة
-  //    أصلاً مش معروف كان فين وقت الضغط، فمفيش قرار قفل.
-  if (!document.contains(e.target)) return;
-  Object.keys(msState).forEach(k => {
-    const wrap = document.getElementById(`msWrap-${k}`);
-    if (wrap && !wrap.contains(e.target)) {
-      document.getElementById(`msMenu-${k}`).classList.remove('open');
-      document.getElementById(`msBtn-${k}`).classList.remove('open');
-    }
-  });
-});
-
-// اسم الفلتر مرة واحدة أول السطر (multi-select-filter.md § 4) — مش مكرر جوّه كل chip
-const MS_CHIPS_LABEL = { logStatus: 'الحالة', logResult: 'النتيجة', logCourier: 'المندوب', logEmp: 'الموظف' };
-function renderChips() {
-  Object.keys(msState).forEach(key => {
-    const row = document.getElementById(`chipsRow-${key}`);
-    if (!row) return;
-    const chips = [...msState[key].selected].map(val => {
-      const label = (msState[key].items.find(it => it.value === val) || {}).label || val;
-      return `<span class="ms-chip">${escHtml(label)}<button onclick="msToggleItem('${escJsAttr(key)}','${escJsAttr(val)}')">✕</button></span>`;
-    }).join('');
-    row.innerHTML = chips ? `<span class="ms-chips-label">${MS_CHIPS_LABEL[key] || key}:</span>${chips}` : '';
-  });
-}
-
-function onMsFilterChanged() { updateLogFilterIconState(); logCurrentPage = 1; fetchLog(); }
-
-// status list is static (TARGET_LABELS keys) — populate once
-function initLogStatusFilter() {
-  msState.logStatus.items = Object.entries(TARGET_LABELS).map(([label, s]) => ({ value: label, label: `${s.icon} ${label}` }));
-  msRenderList('logStatus');
-}
-
-// result list is static (3-state model) — populate once
-function initLogResultFilter() {
-  msState.logResult.items = [
-    { value: 'success', label: '✓ نجح' },
-    { value: 'warning', label: '⚠ تحذير' },
-    { value: 'error',   label: '✗ فشل' },
-  ];
-  msRenderList('logResult');
-}
-
-async function loadLogCourierFilter() {
-  const list = await ensureCourierList();
-  msState.logCourier.items = list.map(c => ({ value: c, label: c }));
-  msRenderList('logCourier');
-}
-
-// ─── §LOG-JS::date-range filter (راجع references/date-range-filter.md) ───
+// ─── §LOG-JS::date-pop — أقسام بلا عناوين: أيام · فترات · شهر/عام محدد · من/إلى (بلا فترة افتراضية) ───
 const RANGE_PRESET_LABELS = {
-  today:'اليوم', yesterday:'أمس', last3:'آخر 3 أيام',
-  last7:'آخر 7 أيام', last30:'آخر 30 يوم', last90:'آخر 90 يوم',
-  thisMonth:'الشهر الحالي', lastMonth:'الشهر السابق', thisQuarter:'الربع الحالي',
-  thisYear:'العام الحالي', lastYear:'العام السابق',
+  today: 'اليوم', yesterday: 'أمس', last3: 'آخر 3 أيام', last7: 'آخر 7 أيام', last14: 'آخر 14 يوم', last21: 'آخر 21 يوم',
+  last30: 'آخر 30 يوم', last60: 'آخر 60 يوم', last90: 'آخر 90 يوم',
+  thisMonth: 'الشهر الحالي', lastMonth: 'الشهر السابق', thisYear: 'العام الحالي', lastYear: 'العام السابق',
 };
-let activeRangePreset = '';
-let rangeDebounce = null;
-
-function toggleRangePresetMenu(e) {
-  e.stopPropagation();
-  const menu = document.getElementById('rangePresetMenu'), btn = document.getElementById('rangePresetBtn');
-  const isOpen = menu.classList.contains('open');
-  menu.classList.toggle('open', !isOpen); btn.classList.toggle('open', !isOpen);
-}
-document.addEventListener('click', () => {
-  document.getElementById('rangePresetMenu')?.classList.remove('open');
-  document.getElementById('rangePresetBtn')?.classList.remove('open');
-});
-
+const DAY_PRESETS = ['today','yesterday','last3','last7','last14','last21','last30','last60','last90'].map(k => [k, RANGE_PRESET_LABELS[k]]);
+const QUICK_PRESETS = ['thisMonth','lastMonth','thisYear','lastYear'].map(k => [k, RANGE_PRESET_LABELS[k]]);
 function computePresetRange(preset) {
-  const now = cairoNow();
-  const today = cairoDateStr(now);
+  const today = cairoToday(), { y, m } = nowYM();
+  const back = n => ({ from: addDaysStr(today, -(n - 1)), to: today });
   switch (preset) {
-    case 'today':      return { from: today, to: today };
-    case 'yesterday':  { const y = addDays(today, -1); return { from: y, to: y }; }
-    case 'last3':        return { from: addDays(today, -2),  to: today };
-    case 'last7':        return { from: addDays(today, -6),  to: today };
-    case 'last30':       return { from: addDays(today, -29), to: today };
-    case 'last90':       return { from: addDays(today, -89), to: today };
-    case 'thisMonth': {
-      const from = `${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}-01`;
-      return { from, to: today };
-    }
-    case 'lastMonth': {
-      const firstThis = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-      const lastPrev  = new Date(firstThis); lastPrev.setUTCDate(0);
-      const firstPrev = new Date(Date.UTC(lastPrev.getUTCFullYear(), lastPrev.getUTCMonth(), 1));
-      return { from: cairoDateStr(firstPrev), to: cairoDateStr(lastPrev) };
-    }
-    case 'thisQuarter': {
-      const q = Math.floor(now.getUTCMonth() / 3);
-      return { from: cairoDateStr(new Date(Date.UTC(now.getUTCFullYear(), q * 3, 1))), to: today };
-    }
-    case 'thisYear':    return { from: `${now.getUTCFullYear()}-01-01`, to: today };
-    case 'lastYear':  { const y = now.getUTCFullYear() - 1; return { from: `${y}-01-01`, to: `${y}-12-31` }; }
+    case 'today': return { from: today, to: today };
+    case 'yesterday': { const d = addDaysStr(today, -1); return { from: d, to: d }; }
+    case 'last3': return back(3);   case 'last7': return back(7);   case 'last14': return back(14);
+    case 'last21': return back(21); case 'last30': return back(30); case 'last60': return back(60); case 'last90': return back(90);
+    case 'thisMonth': return { from: ymd(y, m, 1), to: today };
+    case 'lastMonth': { const py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1; return { from: ymd(py, pm, 1), to: ymd(py, pm, lastDayOf(py, pm)) }; }
+    case 'thisYear': return { from: ymd(y, 1, 1), to: today };
+    case 'lastYear': return { from: ymd(y - 1, 1, 1), to: ymd(y - 1, 12, 31) };
     default: return null;
   }
 }
-
-function applyRangePreset(preset) {
-  document.getElementById('rangePresetMenu').classList.remove('open');
-  document.getElementById('rangePresetBtn').classList.remove('open');
-  const range = computePresetRange(preset);
-  if (!range) return;
-  activeRangePreset = preset;
-  document.getElementById('rangeDateFrom').value = range.from;
-  document.getElementById('rangeDateTo').value   = range.to;
-  document.querySelectorAll('.range-preset-item').forEach(el => el.classList.toggle('active', el.dataset.preset === preset));
-  document.getElementById('rangePresetLabel').textContent = `⚡ ${RANGE_PRESET_LABELS[preset]}`;
-  document.getElementById('rangePresetBtn').classList.add('has-preset');
-  updateLogFilterIconState();
-  logCurrentPage = 1;
-  fetchLog();
+function dmGridHtml() {
+  const ny = nowYM().y;
+  return `<div class="lf-ynav"><button type="button" class="lf-yb" data-dy="-1" aria-label="السنة السابقة"${dtYear <= ny - 10 ? ' disabled' : ''}>›</button><button type="button" class="lf-year${LF.date.month === String(dtYear) ? ' on' : ''}" data-dyear>${dtYear}</button><button type="button" class="lf-yb" data-dy="1" aria-label="السنة التالية"${dtYear >= ny ? ' disabled' : ''}>‹</button></div>` +
+    `<div class="lf-pills c6">${MONTHS_AR.map((n, i) => `<button type="button" class="lf-pill${LF.date.month === dtYear + '-' + pad2(i + 1) ? ' on' : ''}" data-dm="${i + 1}">${n}</button>`).join('')}</div>`;
+}
+function renderDatePop(pop) {
+  if (dtYear === null) dtYear = LF.date.month ? +LF.date.month.slice(0, 4) : nowYM().y;
+  const pills = (arr, c) => `<div class="lf-pills ${c}">${arr.map(([k, l]) => `<button type="button" class="lf-pill${LF.date.preset === k ? ' on' : ''}" data-dp="${k}">${l}</button>`).join('')}</div>`;
+  pop.insertAdjacentHTML('beforeend', `
+    <div class="lf-head"><button type="button" class="clear-btn" id="lfDClear">✕ مسح الاختيار</button></div>
+    <div class="lf-sec">${pills(DAY_PRESETS, 'c3')}</div>
+    <div class="lf-sec">${pills(QUICK_PRESETS, 'c4')}</div>
+    <div class="lf-sec" id="lfDM">${dmGridHtml()}</div>
+    <div class="lf-sec lf-rng"><label class="lf-lab">من تاريخ<input type="date" class="lf-inp" id="lfDF" value="${esc(LF.date.from)}" onclick="try{this.showPicker&&this.showPicker()}catch(e){}"></label><label class="lf-lab">إلى تاريخ<input type="date" class="lf-inp" id="lfDT" value="${esc(LF.date.to)}" onclick="try{this.showPicker&&this.showPicker()}catch(e){}"></label></div>`);
+  dateMark();
+}
+function dateMark() {
+  document.querySelectorAll('#hfPop [data-dp]').forEach(b => b.classList.toggle('on', LF.date.preset === b.dataset.dp));
+  const g = $('lfDM'); if (g) g.innerHTML = dmGridHtml();
+  const c = $('lfDClear'); if (c) c.disabled = !dateActive();
+}
+function dateSet(from, to, preset, month) {
+  LF.date = { from, to, preset, month };
+  if ($('lfDF')) { $('lfDF').value = from; $('lfDT').value = to; }
+  dateMark(); syncFunnels(); lfRefetch(0);
+}
+const dateClear = () => dateSet('', '', '', '');
+function dateMonth(y, m) {
+  const key = y + '-' + pad2(m);
+  if (LF.date.month === key) return dateClear();
+  dateSet(`${key}-01`, `${key}-${pad2(lastDayOf(y, m))}`, '', key);
+}
+function dateYear(y) {
+  if (LF.date.month === String(y)) return dateClear();
+  dateSet(`${y}-01-01`, `${y}-12-31`, '', String(y));
 }
 
-// ─── §LOG-JS::clearRangePreset — date-range-filter.md ⚠️ ───
-// "✕ مسح الاختيار" جوّه قائمة الفترة السريعة نفسها — إلزامي، مش الاعتماد بس
-// على "مسح كل الفلاتر" العام. بيرجّع فلتر التاريخ لحالته المحايدة (بلا فلتر).
-function clearRangePreset() {
-  document.getElementById('rangePresetMenu').classList.remove('open');
-  document.getElementById('rangePresetBtn').classList.remove('open');
-  activeRangePreset = '';
-  document.getElementById('rangeDateFrom').value = '';
-  document.getElementById('rangeDateTo').value   = '';
-  document.querySelectorAll('.range-preset-item').forEach(el => el.classList.remove('active'));
-  document.getElementById('rangePresetLabel').textContent = '⚡ اختار فترة';
-  document.getElementById('rangePresetBtn').classList.remove('has-preset');
-  updateLogFilterIconState();
-  logCurrentPage = 1;
-  fetchLog();
-}
+// ─── ربط أحداث القايمة (تفويض على #hfPop) ───
+const hfPopEl = $('hfPop');
+hfPopEl.addEventListener('click', e => {
+  const t = e.target; if (!t.closest) return;
+  let el;
+  if ((el = t.closest('[data-dp]'))) { const r = computePresetRange(el.dataset.dp); if (r) { if (LF.date.preset === el.dataset.dp) dateClear(); else dateSet(r.from, r.to, el.dataset.dp, ''); } }
+  else if ((el = t.closest('[data-dy]'))) { const ny = nowYM().y; dtYear = Math.max(ny - 10, Math.min(ny, dtYear + (+el.dataset.dy))); dateMark(); }
+  else if (t.closest('[data-dyear]')) dateYear(dtYear);
+  else if ((el = t.closest('[data-dm]'))) dateMonth(dtYear, +el.dataset.dm);
+  else if (t.closest('#lfDClear')) dateClear();
+  else if ((el = t.closest('[data-sg]'))) ordPick(+el.dataset.sg);
+  else if ((el = t.closest('[data-tokx]'))) { LF.tok.splice(+el.dataset.tokx, 1); ordRenderToks(); syncFunnels(); lfRefetch(0); }
+  else if (t.closest('#lfOrdClear')) { LF.tok = []; LF.pending = ''; $('lfOrdInp').value = ''; ordRenderToks(); $('lfSugg').innerHTML = ''; syncFunnels(); lfRefetch(0); }
+  else if (t.closest('#lfTmClear')) { LF.tm = { from: '', to: '' }; tmSyncUI(true); syncFunnels(); lfRefetch(0); }
+  else if (t.closest('#lfNumClear')) { const k = hfOpen.key; LF.num[k] = mkNum(); $('lfNF').value = ''; $('lfNT').value = ''; document.querySelectorAll('#lfNumList input').forEach(c => c.checked = false); markNumPop(); syncFunnels(); lfRefetch(0); }
+  else if (t.closest('#lfNumAll')) { const a = LF.num[hfOpen.key]; document.querySelectorAll('#lfNumList input[data-nv]').forEach(c => { c.checked = true; a.sel.add(c.dataset.nv); }); numSetList(hfOpen.key); }
+  else if (t.closest('#lfMsClear')) { const k = $('lfMsList').dataset.k; LF.ms[k].clear(); $('lfMsList').innerHTML = msListHtml(k); msSyncAll(k); syncFunnels(); lfRefetch(0); }
+  else if (t.closest('#lfMsAll')) { const k = $('lfMsList').dataset.k, vis = msVisible(k), all = vis.length && vis.every(it => LF.ms[k].has(it.value)); vis.forEach(it => all ? LF.ms[k].delete(it.value) : LF.ms[k].add(it.value)); $('lfMsList').innerHTML = msListHtml(k); msSyncAll(k); syncFunnels(); lfRefetch(0); }
+  else if ((el = t.closest('[data-tf]'))) tpOpen(el);
+});
+// ⭐ القسم الباهت قابل للضغط: الضغط عليه بيمسح الاختيار التاني ويشتغل هو
+hfPopEl.addEventListener('pointerdown', e => {
+  const s = e.target.closest && e.target.closest('.lf-sec.dim'); if (!s || !hfOpen || !LF.num[hfOpen.key]) return;
+  const a = LF.num[hfOpen.key];
+  if (s.dataset.sec === 'range') { a.sel.clear(); document.querySelectorAll('#lfNumList input').forEach(c => c.checked = false); }
+  else { a.from = a.to = ''; $('lfNF').value = ''; $('lfNT').value = ''; }
+  markNumPop(); syncFunnels(); lfRefetch(150);
+});
+hfPopEl.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'lfOrdInp') {
+    const v = latinDigits(t.value); if (v !== t.value) t.value = v;
+    LF.pending = v; ordRenderToks(); syncFunnels(); lfRefetch(350);
+    clearTimeout(sgT); sgT = setTimeout(ordSuggest, 180);
+  } else if (t.id === 'lfNF' || t.id === 'lfNT') {
+    const a = LF.num[hfOpen.key]; a.from = $('lfNF').value; a.to = $('lfNT').value; numSetRange(hfOpen.key);
+  } else if (t.id === 'lfNumQ') { $('lfNumList').innerHTML = numListHtml(hfOpen.key); }
+  else if (t.id === 'lfMsQ') { msQ = t.value; const k = $('lfMsList').dataset.k; $('lfMsList').innerHTML = msListHtml(k); msSyncAll(k); }
+  else if (t.id === 'lfTmA' || t.id === 'lfTmB') {
+    t.value = Math.round(t.value / 5) * 5;
+    const a = +$('lfTmA').value, b = +$('lfTmB').value, lo = Math.min(a, b), hi = Math.max(a, b);
+    LF.tm.from = lo > 0 ? m2hm(lo) : ''; LF.tm.to = hi < 1440 ? m2hm(Math.min(hi, 1439)) : '';
+    tmSyncUI(false); syncFunnels(); lfRefetch(300);
+  }
+});
+hfPopEl.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'lfDF' || t.id === 'lfDT') {
+    LF.date = { from: $('lfDF').value, to: $('lfDT').value, preset: '', month: '' };
+    dateMark(); syncFunnels();
+    if (!LF.date.from || !LF.date.to || LF.date.from <= LF.date.to) lfRefetch(400);
+  } else if (t.dataset && t.dataset.nv !== undefined) {
+    const a = LF.num[hfOpen.key]; t.checked ? a.sel.add(t.dataset.nv) : a.sel.delete(t.dataset.nv); numSetList(hfOpen.key);
+  } else if (t.dataset && t.dataset.msv !== undefined) {
+    const k = $('lfMsList').dataset.k; t.checked ? LF.ms[k].add(t.dataset.msv) : LF.ms[k].delete(t.dataset.msv);
+    msSyncAll(k); syncFunnels(); lfRefetch(0);   // القايمة بتفضل مفتوحة — مفيش إعادة بناء لـ#lfMsList (#32)
+  }
+});
+hfPopEl.addEventListener('keydown', e => {
+  if (e.target.id !== 'lfOrdInp') return;
+  const k = e.key;
+  if (k === 'ArrowDown' || k === 'ArrowUp') {
+    if (!sgItems.length) return; e.preventDefault();
+    sgAct = (sgAct + (k === 'ArrowDown' ? 1 : -1) + sgItems.length) % sgItems.length;
+    document.querySelectorAll('#lfSugg .lf-sg').forEach((n, i) => n.classList.toggle('act', i === sgAct));
+  } else if (k === 'Enter') {
+    e.preventDefault(); e.stopPropagation();
+    if (sgAct >= 0) ordPick(sgAct);
+    else if (orderParts(e.target.value).length) ordAdd(orderParts(e.target.value));
+    else hfClose();   // Enter على حقل فاضي = يقفل القايمة والفلتر يفضل
+  }
+});
 
-function onRangeDateChange() {
-  activeRangePreset = '';
-  document.querySelectorAll('.range-preset-item').forEach(el => el.classList.remove('active'));
-  document.getElementById('rangePresetLabel').textContent = '⚡ اختار فترة';
-  document.getElementById('rangePresetBtn').classList.remove('has-preset');
-  updateLogFilterIconState();
-
-  const fromVal = document.getElementById('rangeDateFrom').value;
-  const toVal   = document.getElementById('rangeDateTo').value;
-  if (!fromVal || !toVal || fromVal > toVal) return;
-
-  clearTimeout(rangeDebounce);
-  rangeDebounce = setTimeout(() => { logCurrentPage = 1; fetchLog(); }, 400);
-}
-
-// ─── §LOG-JS::sort — data-table-standard.md § 8 ───
-// ⚠️ التاب ده server-paginated (100 صف/صفحة عن طريق get_logs) — الترتيب لازم
-// يبقى server-side (sortKey/sortDir بيتبعتوا لـ get_logs)، وإلا هيرتّب صفحة
-// واحدة بس ويرجع لترتيبه الأصلي في الصفحة التالية. عمود "النتيجة" عمداً مش
-// قابل للترتيب — النتيجة بتختلف من أوردر لأوردر جوّه نفس الدفعة (batchId)،
-// وترتيب بيها هيفرّق صفوف الدفعة الواحدة عن بعض ويكسر تجميع renderLog().
-const LOG_SORT_LABELS = { timestamp: 'التاريخ', status: 'الحالة', courier: 'المندوب', employee: 'الموظف' };
-let logSortState = { key: null, dir: null };   // dir: 'asc' | 'desc' | null
-
+// ─── §LOG-JS::sort — 3 حالات (تصاعدي ← تنازلي ← بلا)، server-side، مستقل تمامًا عن الفلاتر ───
+// الترتيب لازم يبقى على السيرفر: الجدول 100 صف/صفحة، وترتيب الصفحة المعروضة بس بيكدب.
+// عمود «النتيجة» مالوش وجود هنا (النتيجة بتختلف جوّه الدفعة الواحدة) — ✓/⚠/✗ بيرتّبوا بعدّادات الدفعة كلها.
 function toggleLogSort(key) {
-  if (logSortState.key !== key)          { logSortState.key = key; logSortState.dir = 'asc'; }
-  else if (logSortState.dir === 'asc')   { logSortState.dir = 'desc'; }
-  else                                   { logSortState.key = null; logSortState.dir = null; }
-  updateLogSortHeaderUI();
-  logCurrentPage = 1;
-  fetchLog();
+  if (logSort.key !== key)          { logSort.key = key; logSort.dir = 'asc'; }
+  else if (logSort.dir === 'asc')   { logSort.dir = 'desc'; }
+  else                              { logSort.key = null; logSort.dir = null; }
+  hfClose(); logCurrentPage = 1; fetchLog();
 }
-
 function updateLogSortHeaderUI() {
-  document.querySelectorAll('#logBody .sort-icon').forEach(el => {
-    const isActive = logSortState.key === el.dataset.sortKey;
-    el.textContent = isActive ? (logSortState.dir === 'asc' ? '▲' : '▼') : '';
-    el.classList.toggle('active', isActive);
-  });
-  document.querySelectorAll('#logBody .sortable-th').forEach(th => {
-    th.classList.toggle('sorted', th.dataset.sortKey === logSortState.key);
+  document.querySelectorAll('#logBody .th-label[data-sort]').forEach(el => {
+    const on = logSort.key === el.dataset.sort;
+    el.querySelector('.sort-icon').textContent = on ? (logSort.dir === 'asc' ? '▲' : '▼') : '';   // الأيقونة بس عند التفعيل
+    el.closest('th').classList.toggle('sorted', on);
   });
 }
+$('logBody').addEventListener('click', e => {
+  const l = e.target.closest && e.target.closest('.th-label[data-sort]');
+  if (l) toggleLogSort(l.dataset.sort);
+});
 
 // ─── §LOG-JS::fetchLog ───
-// Builds params for status/courier/employee (multi-select) + order search +
-// date range.
-function buildLogParams() {
-  const params = {};
-  if (msState.logStatus.selected.size)  params.status    = [...msState.logStatus.selected].join(',');
-  if (msState.logResult.selected.size)  params.result    = [...msState.logResult.selected].join(',');
-  if (msState.logCourier.selected.size) params.courier   = [...msState.logCourier.selected].join(',');
-  if (msState.logEmp.selected.size)     params.employee  = [...msState.logEmp.selected].join(',');
-  const search = document.getElementById('logSearch').value.trim();
-  if (search) params.search = search;
-  const from = document.getElementById('rangeDateFrom').value;
-  const to   = document.getElementById('rangeDateTo').value;
-  if (from) params.dateFrom = from;
-  if (to)   params.dateTo   = to;
-  return params;
+function clearExportWarn() {
+  const w = $('logExportWarn');
+  if (w) { w.style.display = 'none'; w.innerHTML = ''; }
 }
-
 async function fetchLog() {
-  // نقطة اختناق واحدة لمسح بانر التصدير: كل تغيير فلتر (بحث · multi-select ·
-  // مدى تاريخ · ترتيب) بيعدّي من هنا، فمستحيل تحذير قديم يفضل معلّق على فلاتر
-  // جديدة. (Standards #30 — «البانر يتمسح مع أي تغيير في الفلاتر».)
+  // نقطة اختناق واحدة لمسح بانر التصدير: كل تغيير فلتر/ترتيب بيعدّي من هنا، فمستحيل تحذير قديم
+  // يفضل معلّق على فلاتر جديدة. (Standards #30)
   clearExportWarn();
-  const body = document.getElementById('logBody');
-  body.innerHTML = '<div class="log-empty"><div class="loading-spinner"></div><p style="margin-top:8px;font-size:12px">جاري التحميل...</p></div>';
+  const body = $('logBody'), seq = ++logSeq;
+  if (body.querySelector('.log-otbl')) body.classList.add('is-loading');   // الجدول وعناوينه بيفضلوا ظاهرين أثناء التحميل
+  else body.innerHTML = ecoLoadingHTML('⏳ جاري تحميل السجل ...');
 
   const filterParams = buildLogParams();
-  const offset = (logCurrentPage - 1) * LOG_PAGE_SIZE;
-  const sortParams = logSortState.key ? { sortKey: logSortState.key, sortDir: logSortState.dir } : {};
-  const params = { limit: LOG_PAGE_SIZE, offset, ...filterParams, ...sortParams };
-
+  const params = { limit: LOG_PAGE_SIZE, offset: (logCurrentPage - 1) * LOG_PAGE_SIZE, ...filterParams,
+                   ...(logSort.key ? { sortKey: logSort.key, sortDir: logSort.dir } : {}) };
   try {
-    const [pageData, countData] = await Promise.all([
-      apiGet('get_logs',       params),
-      apiGet('get_logs_count', filterParams),
-    ]);
+    const [pageData, countData] = await Promise.all([apiGet('get_logs', params), apiGet('get_logs_count', filterParams)]);
+    if (seq !== logSeq) return;   // رد قديم — فلتر أحدث اتبعت بعده
     logTotalCount = countData.total || 0;
-    logBatchSizes = pageData.batchSizes || {};   // v4.5.0 — كشف الدفعة المقسومة
-    logLoaded     = true;
-    document.getElementById('logFilteredCount').textContent = logTotalCount.toLocaleString('en-US');
+    logBatchStats = pageData.batchStats || {};
+    logLoaded = true;
     renderLog(pageData.entries || []);
     renderPagination();
   } catch (e) {
-    body.innerHTML = `<div class="log-empty">⚠️ ${e.message}</div>`;
-    document.getElementById('logFilteredCount').textContent = '—';
+    if (seq !== logSeq) return;
+    body.classList.remove('is-loading');
+    if (!body.querySelector('.log-otbl')) body.innerHTML = `<div class="log-empty">⚠️ ${esc(e.message)}</div>`;
+    else showToast(`تعذّر تحديث السجل: ${e.message}`, 'error');
+    $('logSessCount').textContent = '—'; $('logFilteredCount').textContent = '';
   }
 }
-
 function goPage(dir) {
   const totalPages = Math.max(1, Math.ceil(logTotalCount / LOG_PAGE_SIZE));
   const next = logCurrentPage + dir;
   if (next < 1 || next > totalPages) return;
-  logCurrentPage = next;
-  fetchLog();
+  logCurrentPage = next; fetchLog();
 }
-
 function renderPagination() {
-  const row        = document.getElementById('paginationRow');
-  const totalPages = Math.max(1, Math.ceil(logTotalCount / LOG_PAGE_SIZE));
+  const row = $('paginationRow'), totalPages = Math.max(1, Math.ceil(logTotalCount / LOG_PAGE_SIZE));
   row.style.display = logTotalCount > LOG_PAGE_SIZE ? 'flex' : 'none';
-  document.getElementById('pageInfo').textContent   = `${logCurrentPage} / ${totalPages}`;
-  document.getElementById('btnPrevPage').disabled   = logCurrentPage <= 1;
-  document.getElementById('btnNextPage').disabled   = logCurrentPage >= totalPages;
+  $('pageInfo').textContent = `${logCurrentPage} / ${totalPages}`;
+  $('btnPrevPage').disabled = logCurrentPage <= 1;
+  $('btnNextPage').disabled = logCurrentPage >= totalPages;
 }
 
 // ─── §LOG-JS::parseExtra ───
@@ -3543,88 +3537,77 @@ function parseExtra(raw) {
 }
 
 // ─── §LOG-JS::renderLog ───
-// Organized as a real <table> (بند 11): one row per batch (grouped by batchId),
-// expandable to a detail sub-table per order. A checkbox column lets the user
-// select several Shipped batches together for a combined manifest print (بند 10).
-// The Flow/مباشر tag was removed from display entirely (بند 12) — still present
-// in extra.writeMode for XLSX export / historical analysis if ever needed.
+// جدول حقيقي: صف لكل دفعة (batchId) قابل للتوسيع لتفاصيل كل أوردر. رأس الجدول بيتبني دايمًا — حتى على صفر
+// نتايج — فالقمعات والترتيب مايختفوش (الرسالة صف جوّه الجدول). عمود checkbox لتصدير/طباعة مجمّعة.
+function logTheadHtml() {
+  return '<thead><tr>' + LOG_COLS.map(c => {
+    if (c.k === 'cb') return `<th data-col="cb" style="width:36px"><input type="checkbox" class="log-cb-all" id="logCbAll" aria-label="تحديد كل دفعات الصفحة" onclick="toggleLogSelectAll(this.checked)"></th>`;
+    const lbl = c.sort ? `<span class="th-label" data-sort="${c.sort}">${esc(c.label)}<span class="sort-icon"></span></span>` : `<span>${esc(c.label)}</span>`;
+    const fl  = c.flt ? `<button type="button" class="hfn" data-hf="${c.flt}" aria-label="فلتر ${esc(c.label)}">${FUNNEL_SVG}<b class="th-cnt"></b></button>` : '';
+    return `<th data-col="${c.k}"${c.flt ? ` data-fk="${c.flt}"` : ''}><div class="th-in">${lbl}${fl}</div></th>`;
+  }).join('') + '</tr></thead>';
+}
 function renderLog(entries) {
-  const body = document.getElementById('logBody');
-  if (!entries.length) {
-    body.innerHTML = '<div class="log-empty">لا توجد عمليات مطابقة</div>';
-    return;
-  }
+  const body = $('logBody');
+  body.classList.remove('is-loading');
 
   const groups = [];
   let current = null;
-
   for (const e of entries) {
     const x   = parseExtra(e.extra);
     const key = x.batchId || `single-${e.id}`;
     if (!current || current.key !== key) {
-      current = {
-        key,
-        targetLabel: x.targetLabel || x.specifier || '',
-        courier:   x.courier   || '',
-        employee:  e.employee  || '',
-        timestamp: e.timestamp,
-        rows: [],
-      };
+      current = { key, targetLabel: x.targetLabel || x.specifier || '', courier: x.courier || '', employee: e.employee || '', timestamp: e.timestamp, rows: [] };
       groups.push(current);
     }
     current.rows.push({ entry: e, extra: x });
   }
-
   window.__logGroups = groups;
 
-  // v4.5.0 — التحديد **مابيتمسحش** مع تغيير الصفحة. كان بيتمسح بصمت، فاللي
-  // بيحدد في صفحة ١ ويروح ٢ ويرجع بيلاقي اختياره راح. الطباعة/التصدير لسه
-  // بيشتغلوا على الصفحة الحالية (البيانات مش محمّلة لغيرها)، وده بيتقال صراحةً
-  // في السطر التحذيري تحت العدّاد بدل ما يتخفي.
-
+  // التحديد بيفضل عبر الصفحات — الطباعة/التصدير بيشتغلوا على الصفحة الحالية (باقي الصفحات مش محمّلة)
+  // ومكتوب ده صراحةً في `#logSelHint` بدل ما يتخفي. ولو الفلتر رجّع صفر، `__logGroups` بتتصفّر.
   const rowsHtml = groups.map((g, gi) => {
-    const ok   = g.rows.filter(r => r.extra.result === 'success').length;
-    const warn = g.rows.filter(r => r.extra.result === 'warning').length;
-    const err  = g.rows.length - ok - warn;
-    const canPrint = g.targetLabel === 'Shipped' && ok > 0;
-    const checked = selectedLogBatches.has(g.key);
-    // v4.5.0 — الدفعة المقسومة على صفحتين: العدد الكامل جاي من الـ Worker.
-    const fullSize = logBatchSizes[g.key] || 0;
-    const isSplit  = fullSize > g.rows.length;
-    const splitBadge = isSplit
-      ? `<span class="split-badge" title="الدفعة دي متقسّمة على أكتر من صفحة — الأرقام والطباعة هنا للجزء الظاهر بس">✂ ${g.rows.length.toLocaleString('en-US')} من ${fullSize.toLocaleString('en-US')}</span>`
-      : '';
+    const st   = logBatchStats[g.key];
+    // العدّادات من الـ Worker (الدفعة كاملة) — fallback على عدّ الصفوف الظاهرة لو الـ Worker أقدم
+    const ok   = st ? st.ok   : g.rows.filter(r => r.extra.result === 'success').length;
+    const warn = st ? st.warn : g.rows.filter(r => r.extra.result === 'warning').length;
+    const n    = st ? st.n    : g.rows.length;
+    const err  = st ? st.err  : n - ok - warn;
+    g.ok = ok;
+    const canPrint = g.targetLabel === 'Shipped' && g.rows.some(r => r.extra.result === 'success');
+    const checked  = selectedLogBatches.has(g.key);
+    // الدفعة اللي ظاهر منها جزء بس (متقسّمة على صفحتين، أو الفلتر مخبّي باقيها): الطباعة والتصدير هنا للجزء الظاهر بس
+    const splitBadge = n > g.rows.length
+      ? `<span class="split-badge" title="الدفعة دي ظاهر منها جزء بس (صفحة تانية أو فلتر) — الطباعة والتصدير هنا للجزء الظاهر بس">✂ ${g.rows.length.toLocaleString('en-US')} من ${n.toLocaleString('en-US')}</span>` : '';
 
     const detailRows = g.rows.map(r => {
       const res = r.extra.result;
-      const resCls  = res === 'success' ? 'log-ok' : res === 'warning' ? 'log-warn' : res === 'error' ? 'log-err' : '';
-      const resText = res === 'success' ? '✓ نجح'  : res === 'warning' ? '⚠ تحذير' : res === 'error' ? '✗ فشل'  : '—';
-      const fieldTag = r.extra.field ? `<span class="log-tag ${r.extra.field === 'S2' ? 's2' : 's1'}">${r.extra.field}</span>` : '—';
+      const fieldTag = r.extra.field ? `<span class="log-tag ${r.extra.field === 'S2' ? 's2' : 's1'}">${esc(r.extra.field)}</span>` : '—';
       return `<tr>
         <td>${orderLink(r.entry.order_name || r.entry.order_id, r.entry.order_id)}</td>
         <td>${fieldTag}</td>
-        <td class="${resCls}">${resText}</td>
-        <td>${escHtml(r.entry.notes || '—')}</td>
+        <td class="${RESULT_CLS[res] || ''}">${res ? `${RESULT_ICON[res] || ''} ${esc(resultLabel(res))}` : '—'}</td>
+        <td>${esc(r.entry.notes || '—')}</td>
       </tr>`;
     }).join('');
 
     return `<tr class="log-batch-row" id="lbr-${gi}" onclick="toggleBatch(${gi})">
-      <td onclick="event.stopPropagation()">
-        <input type="checkbox" class="log-cb" ${checked ? 'checked' : ''}
-          onchange="toggleLogBatchSelect('${escJsAttr(g.key)}', this.checked)" title="تحديد للتصدير أو الطباعة المجمّعة">
-      </td>
-      <td>${formatDateTime(g.timestamp)}</td>
-      <td>${g.targetLabel ? `<span class="pill p-purple">${TARGET_LABELS[g.targetLabel]?.icon || '🎯'} ${escHtml(g.targetLabel)}</span>` : '—'}${splitBadge}</td>
-      <td>${g.courier ? `<span class="log-tag cr">🛵 ${escHtml(g.courier)}</span>` : '—'}</td>
-      <td>${g.employee ? `<span class="log-tag emp">👤 ${escHtml(g.employee.replace(/_/g, ' '))}</span>` : '—'}</td>
-      <td class="log-ok">✓${ok}</td>
+      <td data-col="cb" onclick="event.stopPropagation()"><input type="checkbox" class="log-cb" ${checked ? 'checked' : ''}
+          onchange="toggleLogBatchSelect('${escJsAttr(g.key)}', this.checked)" aria-label="تحديد للتصدير أو الطباعة المجمّعة"></td>
+      <td>${formatDate(g.timestamp)}</td>
+      <td>${formatTimeOnly(g.timestamp)}</td>
+      <td>${g.targetLabel ? `<span class="pill p-purple">${TARGET_LABELS[g.targetLabel]?.icon || '🎯'} ${esc(g.targetLabel)}</span>` : '—'}${splitBadge}</td>
+      <td>${g.courier ? `<span class="log-tag cr">🛵 ${esc(g.courier)}</span>` : '—'}</td>
+      <td>${g.employee ? `<span class="log-tag emp">👤 ${esc(g.employee.replace(/_/g, ' '))}</span>` : '—'}</td>
+      <td>${n.toLocaleString('en-US')}</td>
+      <td class="log-ok">${ok ? `✓${ok}` : '—'}</td>
       <td>${warn ? `<span class="log-warn">⚠${warn}</span>` : '—'}</td>
       <td>${err ? `<span class="log-err">✗${err}</span>` : '—'}</td>
       <td onclick="event.stopPropagation()">${canPrint ? `<button class="btn-sm" style="font-size:11px;padding:3px 9px" onclick="printBatch(${gi})">🖨️ طباعة</button>` : '—'}</td>
       <td><span class="lb-arrow" id="lba-${gi}">▶</span></td>
     </tr>
     <tr class="log-detail-row" id="lbd-${gi}" style="display:none">
-      <td colspan="10">
+      <td colspan="${LOG_COLS.length}">
         <div class="log-detail-inner">
           <table class="log-detail-tbl">
             <thead><tr><th>رقم الأوردر</th><th>النوع</th><th>النتيجة</th><th>ملحوظات</th></tr></thead>
@@ -3635,55 +3618,53 @@ function renderLog(entries) {
     </tr>`;
   }).join('');
 
-  const sortTh = key => `<th class="sortable-th" data-sort-key="${key}" onclick="toggleLogSort('${key}')">${LOG_SORT_LABELS[key]}<span class="sort-icon" data-sort-key="${key}"></span></th>`;
+  // صفر نتايج = الجدول وعناوينه وقمعاته ظاهرين والرسالة صف جوّاه (.log-none)
+  const none = `<tr class="empty-row"><td colspan="${LOG_COLS.length}"><div class="log-none">${anyFilterActive() ? 'لا توجد عمليات مطابقة للفلاتر' : 'لا توجد عمليات'}</div></td></tr>`;
+  body.innerHTML = `<table class="log-otbl col-auto">${logTheadHtml()}<tbody>${rowsHtml || none}</tbody></table>`;
 
-  body.innerHTML = `<table class="log-otbl">
-    <thead><tr>
-      <th style="width:32px"></th>
-      ${sortTh('timestamp')}${sortTh('status')}${sortTh('courier')}${sortTh('employee')}
-      <th>✓</th><th>⚠</th><th>✗</th><th>طباعة</th><th></th>
-    </tr></thead>
-    <tbody>${rowsHtml}</tbody>
-  </table>`;
-
+  // «النتائج» = دفعات الصفحة + «من N عملية مطابقة» (الفلترة server-side على العمليات)
+  $('logSessCount').textContent = groups.length.toLocaleString('en-US');
+  $('logFilteredCount').innerHTML = `دفعة في الصفحة · من <strong>${logTotalCount.toLocaleString('en-US')}</strong> عملية مطابقة`;
   updateLogSortHeaderUI();
+  syncFunnels();
   updatePrintSelectedUI();
+  colLog.maybeInit();
 }
 
 function toggleBatch(i) {
-  const row = document.getElementById(`lbr-${i}`), detail = document.getElementById(`lbd-${i}`);
+  const row = $(`lbr-${i}`), detail = $(`lbd-${i}`);
   const open = detail.style.display !== 'none';
   detail.style.display = open ? 'none' : 'table-row';
   row.classList.toggle('open', !open);
 }
-
 function toggleLogBatchSelect(key, checked) {
   checked ? selectedLogBatches.add(key) : selectedLogBatches.delete(key);
   updatePrintSelectedUI();
 }
-
-// بند: التحديد متاح لكل العمليات — تصدير المحدد شغال لأي حالة، أما طباعة
-// المحدد فبتظهر بس لو كل العمليات المحددة حالتها Shipped.
+// تحديد الكل = **دفعات الصفحة المعروضة** (`__logGroups`) بس — نفس نطاق «تصدير المحدد»، ⛔ مش «كل نتايج الفلتر» (ده «تصدير الكل»)
+function toggleLogSelectAll(checked) {
+  (window.__logGroups || []).forEach(g => { checked ? selectedLogBatches.add(g.key) : selectedLogBatches.delete(g.key); });
+  document.querySelectorAll('#logBody .log-cb').forEach(c => { c.checked = checked; });
+  updatePrintSelectedUI();
+}
+// التحديد متاح لكل العمليات — تصدير المحدد شغال لأي حالة، أما طباعة المحدد فبتظهر بس لو كل المحدد Shipped.
 function updatePrintSelectedUI() {
   const groups = window.__logGroups || [];
   const selected = groups.filter(g => selectedLogBatches.has(g.key));
   const n = selected.length;
-  // v4.5.0 — التحديد بيفضل عبر الصفحات، بس الطباعة/التصدير على الصفحة الحالية
-  // بس (بيانات باقي الصفحات مش محمّلة). الفرق بيتقال بدل ما يتخفي.
   const offPage = Math.max(0, selectedLogBatches.size - n);
-  const hint = document.getElementById('logSelHint');
+  const hint = $('logSelHint');
   if (hint) {
-    hint.textContent = offPage
-      ? `(${offPage.toLocaleString('en-US')} محددة في صفحات تانية — الطباعة والتصدير بيشتغلوا على الصفحة دي بس)` : '';
+    hint.textContent = offPage ? `(${offPage.toLocaleString('en-US')} محددة في صفحات تانية — الطباعة والتصدير بيشتغلوا على الصفحة دي بس)` : '';
     hint.style.display = offPage ? '' : 'none';
   }
-
-  document.getElementById('logSelCount').textContent = n.toLocaleString('en-US');
-  document.getElementById('logExportSelCount').textContent = n.toLocaleString('en-US');
-
+  $('logSelCount').textContent = n.toLocaleString('en-US');
+  $('logExportSelCount').textContent = n.toLocaleString('en-US');
   const allShipped = n > 0 && selected.every(g => g.targetLabel === 'Shipped');
-  document.getElementById('logPrintSelectedBtn').style.display = allShipped ? 'flex' : 'none';
-  document.getElementById('logExportSelectedBtn').style.display = n > 0 ? 'flex' : 'none';
+  $('logPrintSelectedBtn').style.display = allShipped ? 'flex' : 'none';
+  $('logExportSelectedBtn').style.display = n > 0 ? 'flex' : 'none';
+  const all = $('logCbAll');
+  if (all) { all.disabled = !groups.length; all.checked = !!groups.length && n === groups.length; all.indeterminate = n > 0 && n < groups.length; }
 }
 
 // ─── §LOG-JS::printSelectedBatches — combined manifest for several Shipped batches ───
@@ -3691,50 +3672,199 @@ function printSelectedBatches() {
   const groups = window.__logGroups || [];
   const selected = groups.filter(g => selectedLogBatches.has(g.key));
   if (!selected.length) return;
-
-  const ids = [];
-  const couriers = new Set();
+  const ids = [], couriers = new Set();
   selected.forEach(g => {
     g.rows.filter(r => r.extra.result === 'success').forEach(r => { if (r.entry.order_id) ids.push(r.entry.order_id); });
     if (g.courier) couriers.add(g.courier);
   });
   if (!ids.length) { showToast('لا توجد أوردرات ناجحة في العمليات المحددة', 'warning'); return; }
-
-  const courierLabel = couriers.size === 1 ? [...couriers][0] : `${couriers.size} مناديب`;
-  printManifest(ids, courierLabel);
+  printManifest(ids, couriers.size === 1 ? [...couriers][0] : `${couriers.size} مناديب`);
 }
-
 function printBatch(i) {
   const g = (window.__logGroups || [])[i];
   if (!g) return;
-  const ids = g.rows.filter(r => r.extra.result === 'success')
-                    .map(r => r.entry.order_id).filter(Boolean);
+  const ids = g.rows.filter(r => r.extra.result === 'success').map(r => r.entry.order_id).filter(Boolean);
   if (!ids.length) { showToast('لا توجد أوردرات ناجحة للطباعة', 'warning'); return; }
   printManifest(ids, g.courier || '—');
 }
 
-// ─── §LOG-JS::loadEmployeeFilter ───
-async function loadEmployeeFilter() {
-  try {
-    const data = await apiGet('get_employees');
-    msState.logEmp.items = (data.employees || []).map(e => ({ value: e.username, label: e.display_name }));
-    msRenderList('logEmp');
-  } catch { /* filter stays empty on failure */ }
-  initLogStatusFilter();
-  initLogResultFilter();
-  loadLogCourierFilter();
+// ─── §LOG-JS::filter-lists — القوايم بتتحمّل أول ما التاب يتفتح (مش مجرد تعريف دالة بلا مستدعي) ───
+let logListsLoaded = false;
+async function loadLogFilterLists() {
+  if (logListsLoaded) return;
+  logListsLoaded = true;
+  LF.items.status = Object.entries(TARGET_LABELS).map(([label, s]) => ({ value: label, label: `${s.icon} ${label}` }));
+  // 🔴 الحارس إلزامي — apiGet بيفتح الإعدادات لو مفيش سر (Standards #29)
+  if (!isConfigured()) { logListsLoaded = false; return; }
+  const jobs = [
+    apiGet('get_employees').then(d => { LF.items.emp = (d.employees || []).map(e => ({ value: e.username, label: e.display_name })); }),
+    ensureCourierList().then(list => { LF.items.courier = list.map(c => ({ value: c, label: c })); }),
+  ];
+  const res = await Promise.allSettled(jobs);
+  if (res.some(r => r.status === 'rejected')) logListsLoaded = false;   // يتعاد عند أول فتح تاني
+  if (hfOpen && MS_TITLE[hfOpen.key]) { const k = hfOpen.key; const l = $('lfMsList'); if (l) { l.innerHTML = msListHtml(k); msSyncAll(k); } }
 }
+
+// ══ §LOG-JS::col-widths — سحب عرض الأعمدة (#51 · data-table-standard § 9ب) ══
+// مفتاح التخزين: `dco_col_widths_v1_<اسم الصفحة>_log` — تفضيل شاشة مش بيانات (مايتمسحش مع الخروج).
+// ⭐ كل الأعمدة متماثلة بالتناسب (مفيش عمود بيمتص الفراغ لوحده). الدبل كليك بيضبط على المحتوى (بـRange مش الخلية).
+const COL_LS_KEY = 'dco_col_widths_v1_' + (location.pathname.split('/').pop() || 'page') + '_log';
+const COL_MIN = 64, COL_MAX = 700, COL_INIT_CAP = 320;
+const colMinOf = k => (k === 'cb' || k === 'arrow') ? 36 : COL_MIN;
+const colLog = (() => {
+  const S = { w: {}, e: {}, drag: null, badge: null, ready: false, free: false, fontWait: false, ro: null };
+  const SOFT_MIN = 90, FIXED = k => k === 'cb' || k === 'arrow';
+  const tbl = () => document.querySelector('#logBody .log-otbl');
+  const wrap = () => $('logBody');
+  // 🔴 رؤوس الجدول الرئيسي بس — تفاصيل الدفعة جواها جداول فرعية بـ`thead` خاص بيها
+  const hcells = () => tbl().tHead.rows[0].cells;
+  const keys = () => [...hcells()].map((th, i) => th.dataset.col || ('c' + i));
+  const avail = () => Math.floor(wrap().clientWidth);
+  const save = () => { try { localStorage.setItem(COL_LS_KEY, JSON.stringify(S.w)); } catch (e) {} };
+  const load = () => {
+    try {
+      const o = JSON.parse(localStorage.getItem(COL_LS_KEY) || 'null'); if (!o) return null;
+      const ks = keys(); if (!ks.every(k => o[k] >= colMinOf(k))) return null;
+      // 🛡️ حارس العرض المحفوظ المنفوخ: مجموع المحفوظ > max(2×المتاح، 2000) بيتتجاهل ويتقاس من جديد
+      let sum = 0; ks.forEach(k => sum += o[k]); if (sum > Math.max(2 * avail(), 2000)) return null;
+      return o;
+    } catch (e) { return null; }
+  };
+  // توزيع تناسبي: لو المجموع أصغر من المتاح كل الأعمدة بتتمدّد بالنسبة (باقي القسمة لآخر عمود غير مثبّت)؛ لو أكبر بيتقلّصوا
+  function effective(av, pin) {
+    const ks = keys(), E = {}; ks.forEach(k => E[k] = S.w[k]);
+    if (S.free) return E;
+    const fixedSum = ks.filter(FIXED).reduce((s, k) => s + E[k], 0);
+    const flex = ks.filter(k => !FIXED(k) && k !== pin), pinW = pin && !FIXED(pin) ? E[pin] : 0;
+    const room = av - fixedSum - pinW; if (room <= 0 || !flex.length) return E;
+    const sumW = flex.reduce((s, k) => s + S.w[k], 0);
+    if (sumW <= room) {
+      let used = 0; flex.forEach((k, i) => { E[k] = i === flex.length - 1 ? room - used : Math.floor(S.w[k] * room / sumW); used += E[k]; });
+      return E;
+    }
+    let excess = sumW - room;
+    for (const floor of [SOFT_MIN, null]) {
+      const mn = k => floor === null ? colMinOf(k) : Math.max(colMinOf(k), Math.min(floor, S.w[k]));
+      const cap = flex.reduce((s, k) => s + Math.max(0, E[k] - mn(k)), 0); if (cap <= 0) continue;
+      const take = Math.min(excess, cap);
+      flex.forEach(k => { E[k] = Math.max(mn(k), E[k] - take * (E[k] - mn(k)) / cap); });
+      excess -= take; if (excess <= 0.5) break;
+    }
+    ks.forEach(k => E[k] = Math.floor(E[k]));
+    if (excess <= 0.5) { const rem = room - flex.reduce((x, k) => x + E[k], 0); if (rem > 0) E[flex[flex.length - 1]] += rem; }
+    return E;
+  }
+  function apply(pin) {
+    const t = tbl(); if (!t) return;
+    const E = effective(avail(), pin); S.e = E; let sum = 0;
+    t.querySelectorAll('colgroup col').forEach(col => { const w = E[col.dataset.c]; col.style.width = w + 'px'; sum += w; });
+    t.style.width = sum + 'px';
+  }
+  function freeze() { tbl().classList.remove('col-auto'); apply(); }
+  function attach() {
+    const t = tbl(); if (!t) return; const ks = keys();
+    if (!t.querySelector('colgroup')) { const cg = document.createElement('colgroup'); cg.innerHTML = ks.map(k => `<col data-c="${k}">`).join(''); t.insertBefore(cg, t.firstChild); }
+    [...t.tHead.rows[0].cells].forEach((th, i) => {
+      if (ks[i] === 'cb' || th.querySelector('.col-rz')) return;
+      const h = document.createElement('span'); h.className = 'col-rz'; h.dataset.rz = ks[i]; th.appendChild(h);
+    });
+    if (!S.ro && window.ResizeObserver) { S.ro = new ResizeObserver(() => { if (S.ready && tbl() && wrap().clientWidth) apply(); }); S.ro.observe(wrap()); }
+  }
+  // 🔴 Math.floor مش round — التقريب لفوق كان بيعدّي عرض الكارت بـ١-٢px فيظهر سكرول أفقي من غير سبب
+  function measure() {
+    const t = tbl(), ks = keys();
+    t.classList.add('col-auto'); t.style.width = ''; t.querySelectorAll('colgroup col').forEach(c => c.style.width = '');
+    [...t.tHead.rows[0].cells].forEach((th, i) => { S.w[ks[i]] = Math.min(COL_INIT_CAP, Math.max(colMinOf(ks[i]), Math.floor(th.getBoundingClientRect().width))); });
+    freeze();
+  }
+  function init() {
+    if (S.ready) return; attach();
+    const saved = load();
+    if (saved) { Object.assign(S.w, saved); S.ready = true; freeze(); return; }
+    measure(); S.ready = true;
+  }
+  // أول قياس بيستنى الخطوط + الجدول ظاهر وفيه صفوف — القياس على تاب مخفي أو بخط احتياطي بيدّي عروض ضيقة
+  function maybeInit() {
+    const t = tbl(), w = wrap(); if (!t || !w || !w.clientWidth) return;
+    if (S.ready) { attach(); if (t.classList.contains('col-auto')) freeze(); else apply(); return; }
+    if (!t.querySelector('tbody tr.log-batch-row')) return;
+    if (document.fonts && document.fonts.status !== 'loaded') {
+      if (!S.fontWait) { S.fontWait = true; document.fonts.ready.then(() => { S.fontWait = false; maybeInit(); }); }
+      return;
+    }
+    init();
+  }
+  function showBadge(w) { if (!S.badge) { S.badge = document.createElement('div'); S.badge.className = 'w-badge'; document.body.appendChild(S.badge); } S.badge.textContent = w + ' px'; }
+  const capFor = k => {
+    if (S.free) return COL_MAX;
+    let others = 0; keys().forEach(x => { if (x !== k) others += FIXED(x) ? S.w[x] : SOFT_MIN; });
+    return Math.max(colMinOf(k), Math.min(COL_MAX, avail() - others));
+  };
+  const bake = () => { keys().forEach(k => { if (S.e[k] != null) S.w[k] = Math.max(colMinOf(k), S.e[k]); }); };
+  function down(e, h) {
+    const k = h.dataset.rz; let tot = 0; keys().forEach(x => tot += S.e[x] || S.w[x]);
+    S.free = tot > avail() + 1;
+    const before = Object.assign({}, S.w); bake();
+    S.drag = { k, x: e.clientX, w: S.w[k], sign: getComputedStyle(tbl()).direction === 'rtl' ? -1 : 1, h, before, moved: false };
+    try { h.setPointerCapture(e.pointerId); } catch (_) {}
+    h.classList.add('active'); document.body.classList.add('col-resizing');
+    const col = tbl().querySelector(`colgroup col[data-c="${k}"]`); if (col) col.classList.add('hl');
+    showBadge(S.w[k]);
+  }
+  function move(e) {
+    if (!S.drag) return;
+    const d = S.drag, nw = Math.max(colMinOf(d.k), Math.min(capFor(d.k), Math.round(d.w + d.sign * (e.clientX - d.x))));
+    if (nw !== S.w[d.k]) d.moved = true;
+    S.w[d.k] = nw; apply(d.k); showBadge(S.e[d.k] != null ? S.e[d.k] : nw);
+  }
+  function end() {
+    if (!S.drag) return;
+    const d = S.drag; d.h.classList.remove('active'); document.body.classList.remove('col-resizing');
+    const t = tbl(); if (t) t.querySelectorAll('col.hl').forEach(c => c.classList.remove('hl'));
+    S.drag = null; if (S.badge) { S.badge.remove(); S.badge = null; }
+    if (!d.moved) { S.w = d.before; S.free = false; apply(); return; }   // كليك من غير حركة بيرجّع العروض القديمة
+    bake(); S.free = false; apply(); save();
+  }
+  // دبل كليك = ضبط على أطول محتوى (عنوانه + خلاياه) في حدود capFor. القياس بـRange على المحتوى مش الخلية.
+  function fit(k) {
+    const t = tbl(), ks = keys(), i = ks.indexOf(k); if (i < 0) return;
+    S.free = false; bake();
+    t.classList.add('col-measure');
+    const th = t.tHead.rows[0].cells[i], rz = th.querySelector('.col-rz');
+    const hr = document.createRange(); hr.setStart(th, 0);
+    if (rz) hr.setEndBefore(rz); else hr.setEnd(th, th.childNodes.length);
+    let w = hr.getBoundingClientRect().width + 16;
+    t.querySelectorAll('tbody tr.log-batch-row').forEach(tr => {
+      const td = tr.children[i]; if (!td) return;
+      const rg = document.createRange(); rg.selectNodeContents(td); w = Math.max(w, rg.getBoundingClientRect().width + 16);
+    });
+    t.classList.remove('col-measure');
+    const want = Math.max(colMinOf(k), Math.ceil(w)), cap = capFor(k);
+    S.w[k] = Math.min(cap, want); apply(k); bake(); apply(); save();
+    if (want > cap) showToast('العمود وصل لأقصى مساحة متاحة في الكارت', 'warning');
+  }
+  function onResize() { if (S.ready && tbl() && wrap().clientWidth) apply(); }
+  return { down, move, end, fit, onResize, maybeInit, ready: () => S.ready, owns: el => !!tbl() && tbl().contains(el) };
+})();
+document.addEventListener('pointerdown', e => {
+  const h = e.target.closest && e.target.closest('[data-rz]'); if (!h || e.button || !colLog.owns(h)) return;
+  e.preventDefault(); e.stopPropagation(); hfClose();
+  colLog.down(e, h);
+});
+document.addEventListener('pointermove', e => colLog.move(e));
+document.addEventListener('pointerup', () => colLog.end());
+document.addEventListener('pointercancel', () => colLog.end());
+document.addEventListener('dblclick', e => { const h = e.target.closest && e.target.closest('[data-rz]'); if (h && colLog.owns(h)) { e.preventDefault(); colLog.fit(h.dataset.rz); } });
+// ⚠️ المقبض جوّه <th> — الضغطة بعد السحب لازم ما توصلش للترتيب
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.col-rz')) { e.stopPropagation(); e.preventDefault(); } }, true);
+window.addEventListener('resize', () => colLog.onResize());
 
 // ─── §LOG-JS::buildAndDownloadWorkbook — shared by exportLogXLSX / exportSelectedLogXLSX ───
 async function buildAndDownloadWorkbook(entries, filenameSuffix) {
   if (!entries.length) { showToast('لا توجد بيانات للتصدير', 'warning'); return false; }
 
-  // 🔴 **محروس بـ`typeof ExcelJS`** — المكتبة من CDN، وCDN محجوب أو شبكة
-  //    واقعة بتخلّي السطر اللي تحت يرمي `ReferenceError`. والرمي ده
-  //    **بيقطع الدالة اللي نادت**، والمستدعي هنا `async` فالخطأ بيتحوّل
-  //    لـ«رفض غير ممسوك»: الموظف بيدوس «تصدير» و**مايشوفش أي حاجة**.
-  //    ⛔ والأسوأ إن المستدعي كان بيكمّل ويقول «✅ تم تصدير N صف» على ملف
-  //       ما اتعملش — عشان كده الرجوع `false` هنا **لازم يتقرا** فوق.
+  // 🔴 **محروس بـ`typeof ExcelJS`** — المكتبة من CDN، وCDN محجوب أو شبكة واقعة بتخلّي السطر اللي تحت يرمي
+  //    `ReferenceError` ويقطع الدالة. ⛔ والمستدعي لازم يقرا الرجوع `false` — وإلا بيقول «✅ تم تصدير N صف» على ملف ما اتعملش.
   if (typeof ExcelJS === 'undefined') {
     showToast('مكتبة التصدير ما اتحمّلتش — راجع الاتصال وحدّث الصفحة', 'error', 6000);
     return false;
@@ -3756,9 +3886,9 @@ async function buildAndDownloadWorkbook(entries, filenameSuffix) {
     { header: 'المندوب',        key: 'courier', width: 16 },
     { header: 'قبل',            key: 'before',  width: 20 },
     { header: 'بعد',            key: 'after',   width: 14 },
-    { header: 'النتيجة',        key: 'result',  width: 10 },
+    { header: 'النتيجة',        key: 'result',  width: 12 },
     { header: 'وضع الكتابة',    key: 'mode',    width: 12 },
-    { header: 'ملحوظات',        key: 'notes',   width: 40 },
+    { header: 'ملاحظة النتيجة', key: 'notes',   width: 40 },
   ];
 
   ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -3766,9 +3896,10 @@ async function buildAndDownloadWorkbook(entries, filenameSuffix) {
   ws.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
   ws.getRow(1).height = 22;
 
+  const COLOR = { success: 'FF16A34A', warning: 'FFD97706', error: 'FFDC2626', rejected: 'FFDC2626', already: 'FF4B5563' };
   entries.forEach(e => {
     const x = parseExtra(e.extra);
-    ws.addRow({
+    const row = ws.addRow({
       ts:      e.timestamp ? formatDateForExport(e.timestamp) : '',
       tm:      e.timestamp ? formatTimeForExport(e.timestamp) : '',
       emp:     (e.employee || '').replace(/_/g, ' '),
@@ -3780,43 +3911,31 @@ async function buildAndDownloadWorkbook(entries, filenameSuffix) {
       courier: x.courier     || '',
       before:  e.value_before || '',
       after:   e.value_after  || '',
-      result:  x.result === 'success' ? 'ناجح' : x.result === 'warning' ? 'تحذير' : 'فشل',
+      result:  resultLabel(x.result),      // نفس ماب الشاشة — `—` = مش معروفة (صفوف قديمة بلا extra.result) مش «تم»
       mode:    x.writeMode === 'direct' ? 'مباشر' : 'Flow',
       notes:   e.notes || '',
     });
+    row.getCell('result').font = { bold: true, color: { argb: COLOR[x.result] || 'FF4B5563' } };
   });
-
-  ws.eachRow((row, i) => {
-    if (i === 1) return;
-    row.alignment = { horizontal: 'right', vertical: 'middle' };
-    const res = row.getCell('result');
-    res.font = { bold: true, color: { argb: res.value === 'ناجح' ? 'FF16A34A' : res.value === 'تحذير' ? 'FFD97706' : 'FFDC2626' } };
-  });
+  ws.eachRow((row, i) => { if (i > 1) row.alignment = { horizontal: 'right', vertical: 'middle' }; });
 
   const buf  = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url;
-  a.download = `order-status-log-${filenameSuffix}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  a.download = `order-status-log-${filenameSuffix}-${cairoToday()}.xlsx`;   // تاريخ القاهرة — toISOString() كان UTC
   a.click();
-  // v4.5.0 — الإلغاء الفوري ممكن يوقف التنزيل نفسه في بعض المتصفحات
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);   // الإلغاء الفوري ممكن يوقف التنزيل نفسه في بعض المتصفحات
   return true;
 }
 
-function clearExportWarn() {
-  const w = document.getElementById('logExportWarn');
-  if (w) { w.style.display = 'none'; w.innerHTML = ''; }
-}
-
-// الحقيقة بتيجي من الـ Worker (cap/total/truncated) — ممنوع الواجهة تكتب
-// السقف عندها، وإلا يتغيّر في مكان ويفضل قديم في التاني. (Standards #30)
+// الحقيقة بتيجي من الـ Worker (cap/total/truncated) — ممنوع الواجهة تكتب السقف عندها (Standards #30)
 function reportExportResult(entries, data) {
   const n = entries.length.toLocaleString('en-US');
   const truncated = data && (data.truncated === true || (data.cap && entries.length >= data.cap));
   if (truncated) {
-    const warn = document.getElementById('logExportWarn');
+    const warn = $('logExportWarn');
     warn.innerHTML = `⚠️ <b>التصدير اتقص</b> — الملف فيه ${n} صف`
       + (data.total != null ? ` من أصل <b>${data.total.toLocaleString('en-US')}</b> مطابقين للفلاتر` : '')
       + `. ضيّق الفترة أو الفلاتر وصدّر على دفعات.`;
@@ -3830,15 +3949,12 @@ function reportExportResult(entries, data) {
 // ─── §LOG-JS::exportLogXLSX — كل الصفوف المطابقة للفلاتر الحالية ───
 async function exportLogXLSX() {
   clearExportWarn();
-  const params = buildLogParams();
-  const btn = document.getElementById('logExportBtn');
+  const btn = $('logExportBtn');
   btn.textContent = '⏳ جاري التصدير...';
   try {
-    const data    = await apiGet('get_logs_export', params);
+    const data    = await apiGet('get_logs_export', buildLogParams());   // نفس مصدر الفلاتر بالظبط
     const entries = data.entries || [];
-    // ⚠️ مشروط عن قصد — `reportExportResult` بتقول «✅ تم تصدير N صف»،
-    //    ولو البناء فشل (مكتبة ما اتحمّلتش) الرسالة دي بتبقى **ادعاء غلط**.
-    //    ⛔ ومش `return` — بعد الـ try فيه سطر بيرجّع نص الزرار من «⏳».
+    // ⚠️ مشروط عن قصد — البناء ممكن يفشل (مكتبة ما اتحمّلتش) وساعتها «✅ تم تصدير» = ادعاء غلط
     if (await buildAndDownloadWorkbook(entries, 'all')) reportExportResult(entries, data);
   } catch (e) {
     showToast(`تعذّر التصدير: ${e.message}`, 'error');
@@ -3848,12 +3964,9 @@ async function exportLogXLSX() {
 
 // ─── §LOG-JS::exportSelectedLogXLSX — بس العمليات المحددة بالخانة (أي حالة) ───
 async function exportSelectedLogXLSX() {
-  const groups = window.__logGroups || [];
-  const selected = groups.filter(g => selectedLogBatches.has(g.key));
+  const selected = (window.__logGroups || []).filter(g => selectedLogBatches.has(g.key));
   const entries = selected.flatMap(g => g.rows.map(r => r.entry));
   if (!entries.length) { showToast('لا توجد عمليات محددة', 'warning'); return; }
-  // ⚠️ الرجوع بيتقرا — التوست تحت بيقول «✅ تم تصدير N صف»، ولو البناء
-  //    فشل كان بيتعرض على ملف ما اتنزّلش. (ومفيش نص زرار يترجّع هنا.)
   if (!await buildAndDownloadWorkbook(entries, 'selected')) return;
   // مجموعة مختارة من الصفحة المعروضة — مفيش سقف سيرفر عليها، فمفيش قص ممكن.
   showToast(`✅ تم تصدير ${entries.length.toLocaleString('en-US')} صف`, 'success');
