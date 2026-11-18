@@ -1114,7 +1114,6 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 .bpr-go, .bpr-main-btn { background:var(--red-dark); color:#fff; border:1px solid var(--red-dark); font-family:inherit; font-weight:800; cursor:pointer; transition:background .15s; }
 .bpr-go { padding:7px 12px; border-radius:var(--radius-sm); font-size:12.5px; }
 .bpr-go:hover, .bpr-main-btn:hover:not(:disabled) { background:var(--red-darker); border-color:var(--red-darker); }
-#bprOverlay .eco-modal-hdr { justify-content:center; text-align:center; }
 #bprOverlay .eco-modal-ftr { padding:0; border-top:none; }
 .bpr-main-btn { width:100%; padding:17px 12px; border-radius:0 0 var(--radius) var(--radius); font-size:16px; text-align:center; }
 .bpr-main-btn:disabled { background:var(--surface-2); color:var(--text-muted); border-color:var(--border); border-top-color:var(--border); cursor:not-allowed; }
@@ -1632,7 +1631,7 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
           <span class="cl-ver-date">18-11-2026 · «استرداد جزئي بوسطة»: زرار نافذة واحد بعرض النافذة · أرقام بالسالب · تنبيه اختلاف الباقي عن المسجّل وقت الرفع · زرار «سجّل الاسترداد» أحمر · صفحة الهب بس (صفر تعديل Worker)</span>
         </div>
         <ul class="cl-items">
-          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نافذة التسجيل:</strong> اتشال زرار ✕ وزرار «إغلاق»، وفضل زرار التسجيل الرئيسي بعرض النافذة كلها والنص في النص. رمادي (مقفول) لحد ما المبلغ يتدخّل كامل، وبعدها أحمر. الإغلاق بالضغط برّه النافذة أو Esc.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نافذة التسجيل:</strong> اتشال زرار «إغلاق» السفلي (✕ فوق فضل)، وفضل زرار التسجيل الرئيسي بعرض النافذة كلها والنص في النص. رمادي (مقفول) لحد ما المبلغ يتدخّل كامل، وبعدها أحمر. الإغلاق بـ ✕ أو الضغط برّه النافذة أو Esc.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الجدول:</strong> المبالغ (المستحق · الباقي علينا · المسجّل وقت الرفع) بقت بالسالب، وعمود «المستحق» اتسمّى «المستحق للعميل».</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>تنبيه الفرق:</strong> لو «الباقي علينا» ≠ «المسجّل وقت الرفع» الخليتين بتتلوّن بالأحمر وبيظهر في «ملحوظات» سطر بالفرق (والتسجيل لسه بيطلب سبب).</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>زرار الإجراء:</strong> «سجّل الاسترداد» بنفس الثيم الأحمر بتاع زرار النافذة.</span></li>
@@ -2390,7 +2389,7 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
 <div class="eco-overlay" id="bprOverlay" onclick="if(event.target===this)bprClose()">
   <div class="eco-modal" style="max-width:860px;">
-    <div class="eco-modal-hdr"><span id="bprTitle">💸 استرداد جزئي بوسطة</span></div>
+    <div class="eco-modal-hdr"><span id="bprTitle">💸 استرداد جزئي بوسطة</span><button class="modal-close-x" onclick="bprClose()">✕</button></div>
     <div class="eco-modal-body" id="bprModalBody"></div>
     <div class="eco-modal-ftr">
       <button class="bpr-main-btn" id="bprGo" disabled>💸 سجّل استرداد الباقي</button>
