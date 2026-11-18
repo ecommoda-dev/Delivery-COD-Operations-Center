@@ -89,25 +89,18 @@ console.log('══ ① التاب والطابور ══');
   await page.click('#tabBpr'); await page.waitForSelector('#bprBodyRows tr[data-oid]');
   is(calls.filter(c => c.action === 'bostaPartialList').length === 1, 'فتح التاب نادى bostaPartialList مرة واحدة');
   is(await page.locator('#panelBpr.active').count() === 1 && await page.locator('#panelScan.active').count() === 0, 'اللوحة اتفتحت والتانية اتقفلت');
-  is(await page.locator('#bprBodyRows tr[data-oid]').count() === 6, '6 صفوف (حالة لكل أوردر)');
+  is(await page.locator('#bprBodyRows tr[data-oid]').count() === 4, '4 صفوف بس: الجاهز للتسجيل + «على شوبيفاي» (الموقوف والمسجّل مابيظهروش)');
   is((await page.locator('#tabBadgeBpr').innerText()) === '4' && await page.locator('#tabBadgeBpr').isVisible(), 'بادج التاب = جاهز + على شوبيفاي (4)');
-  const chips = await page.locator('#bprChips .bpr-chip').allInnerTexts();
-  is(chips.join('|').replace(/\s+/g, '') === 'الكل6|جاهز3|علىشوبيفاي1|موقوف1|تم1'.replace(/\s+/g, ''), 'عدّادات الشرائح', chips.join('|'));
+  is(await page.locator('#bprChips, [data-bpcard]').count() === 0, 'عدّادات الحالة فوق الجدول اتشالت (الجدول للجاهز بس)');
   const a = await rowOf(page, '#63994').innerText();
   is(/4962164025/.test(a) && /2,500/.test(a) && /500/.test(a) && /Delivered/.test(a) && /In-Return/.test(a) && /جاهز للتسجيل/.test(a), 'صف #63994: التتبع · المستحق · الباقي · S1/S2 · الحالة', a);
   is(await rowOf(page, '#63994').locator('a[href*="business.bosta.co/orders/4962164025"]').count() === 1, 'رقم التتبع لينك لداشبورد بوسطة');
   is(/استبدال/.test(await rowOf(page, '#57634').innerText()), 'الاستبدال متعلّم «استبدال»');
   is(/رجعت \(Returned\)/.test(await rowOf(page, '#54860').innerText()), 'تحذير Returned ظاهر على الصف');
-  const b = rowOf(page, '#57212');
-  is(/موقوف/.test(await b.innerText()) && /S1 = «Shipped»/.test(await b.innerText()) && await b.locator('[data-bpro]').count() === 0, 'الموقوف: السبب ظاهر وبلا زرار تسجيل');
-  is(await rowOf(page, '#59971').locator('[data-bpro]').count() === 0 && /تم التسجيل/.test(await rowOf(page, '#59971').innerText()), '«تم» بلا زرار');
+  is(await rowOf(page, '#54860').locator('td.bpr-stc').count() === 1 && /رجعت \(Returned\)/.test(await rowOf(page, '#54860').locator('td.bpr-stc').innerText()) && !/رجعت/.test(await rowOf(page, '#54860').locator('td:has(.bpr-st)').first().innerText()), 'التحذير في عمود «ملحوظات» والحالة لوحدها (بادج بس)');
+  is(await rowOf(page, '#57212').count() === 0 && await rowOf(page, '#59971').count() === 0, 'الموقوف (#57212) والمسجّل (#59971) مش في الجدول');
+  { const hs = (await page.locator('#bprTable thead th').allInnerTexts()).map(x => x.replace(/\s+/g, '')).join('|'); is(hs.includes('الحالة|ملحوظات|إجراء'), 'عمودا «الحالة» و«ملحوظات» منفصلين', hs); }
   is(await rowOf(page, '#60015').locator('[data-bpro]').count() === 1 && /سجّل في السجل/.test(await rowOf(page, '#60015').locator('[data-bpro]').innerText()), '«على شوبيفاي»: زرار «سجّل في السجل»');
-  // عدّادات الحالة = فلتر الحالة (نفس حالة قمع العمود)
-  await page.click('[data-bpcard="blocked"]'); is(await page.locator('#bprBodyRows tr[data-oid]').count() === 1, 'عدّاد «موقوف» = فلتر: صف واحد');
-  is(await page.locator('#bpCount').innerText() === '1' && /من 6 صف/.test(await page.locator('#bpOf').innerText()), '«النتائج: 1 من 6 صف»');
-  is(await page.locator('#bprChips [data-bpcard="blocked"].on').count() === 1 && await page.locator('#bprTable th[data-fk="status"].flt-on').count() === 1, 'العدّاد والقمع على نفس الحالة');
-  await page.click('[data-bpcard="blocked"]'); is(await page.locator('#bprBodyRows tr[data-oid]').count() === 6, 'ضغطة تانية على العدّاد بتلغي الفلتر');
-  await page.click('[data-bpcard="all"]');
   await page.click('#bprRefresh'); await sleep(200);
   is(calls.filter(c => c.action === 'bostaPartialList').length === 2, 'زرار «تحديث» بيجيب الطابور تاني');
   is(!calls.some(c => ['bostaPartialPay', 'bostaPay', 'bostaPayS1', 'pay', 'refund'].includes(c.action)), 'العرض ما كتبش حاجة');
@@ -255,7 +248,7 @@ console.log('══ ⑥ الجدول على المعيار الموحّد (v8.7.
   is(await page.locator('#bprBody').count() === 0 && await page.locator('#bprSearch').count() === 0, 'مفيش مربع بحث/شرايح قديمة — الفلترة من رأس العمود');
   is(await page.locator('#bprTable th[data-fk]').count() === 9, 'كل عمود فيه فلتر/ترتيب عدا «إجراء» (9 قمعات)');
   is(await page.locator('#bprTable th[data-col="act"] .bp-flt').count() === 0, '«إجراء» بلا قمع');
-  is((await page.locator('#bpCount').innerText()) === '6' && (await page.locator('#bpClearAll').getAttribute('class')).includes('inactive'), '«النتائج: 6» و«مسح كل الفلاتر» باهت');
+  is((await page.locator('#bpCount').innerText()) === '4' && (await page.locator('#bpClearAll').getAttribute('class')).includes('inactive'), '«النتائج: 6» و«مسح كل الفلاتر» باهت');
   is(await page.evaluate(() => getComputedStyle(document.querySelector('#bprTable thead th')).position) === 'sticky' && await page.evaluate(() => getComputedStyle(document.getElementById('bpScroll')).maxHeight !== 'none'), 'العناوين sticky جوّه سكرول داخلي');
   is(await page.evaluate(() => { const th = getComputedStyle(document.querySelector('#bprTable thead th')); return th.fontSize === '12px' && th.fontWeight === '700'; }), 'خط العنوان 12px/700');
   is(!(await page.locator('.bt-tip').count()), 'مفيش tooltip من غير فلتر مفعّل');
@@ -265,11 +258,11 @@ console.log('══ ⑥ الجدول على المعيار الموحّد (v8.7.
   is(items.some(x => /In-Return/.test(x)) && items.some(x => /Returned/.test(x)), 'قايمة S2 فيها القيم بعدّاداتها', items.join('|'));
   await page.click('.bt-pop [data-bpms="Returned"]'); is(await page.locator('.bt-pop').count() === 1, 'القايمة فضلت مفتوحة بعد أول اختيار');
   is(await rowsN() === 1, 'فلتر S2=Returned: صف واحد (#54860)');
-  await page.click('.bt-pop [data-bpms="In-Return"]'); is(await page.locator('.bt-pop').count() === 1 && await rowsN() === 6, 'اختيار تاني: القايمة مفتوحة والصفوف 6');
+  await page.click('.bt-pop [data-bpms="In-Return"]'); is(await page.locator('.bt-pop').count() === 1 && await rowsN() === 4, 'اختيار تاني: القايمة مفتوحة والصفوف 6');
   is(await page.locator('#bprChips .bt-chips-row, #bpChips .bt-chips-row').count() === 1 && /S2/.test(await page.locator('#bpChips').innerText()), 'chips: سطر لكل فلتر باسمه مرة واحدة');
   await page.mouse.click(5, 5); is(await page.locator('.bt-pop').count() === 0, 'ضغطة برّه بتقفل القايمة والفلتر يفضل');
   await page.hover('[data-bpflt="s2"]'); await page.waitForSelector('.bt-tip'); is(/Returned/.test(await page.locator('.bt-tip').innerText()), 'tooltip بقيم الفلتر المفعّل');
-  await page.click('[data-bpclear]'); is(await rowsN() === 6 && (await page.locator('#bpClearAll').getAttribute('class')).includes('inactive'), '«مسح كل الفلاتر»');
+  await page.click('[data-bpclear]'); is(await rowsN() === 4 && (await page.locator('#bpClearAll').getAttribute('class')).includes('inactive'), '«مسح كل الفلاتر»');
   // قمع الأوردر (توكنز + اقتراحات) — Enter بيضيف وبيقفل الفلتر يفضل
   await page.click('[data-bpflt="order"]'); await page.fill('#bpQ', '٦٣٩٩'); await page.waitForSelector('#bpSugg [data-bpsg]');
   is(await page.locator('#bpSugg [data-bpsg]').count() >= 1 && /63994/.test(await page.locator('#bpSugg').innerText()), 'اقتراحات لايف بالأرقام العربي');
@@ -278,7 +271,7 @@ console.log('══ ⑥ الجدول على المعيار الموحّد (v8.7.
   await page.mouse.click(5, 5); await page.click('[data-bpclear]');
   // نطاق رقمي
   await page.click('[data-bpflt="rem"]'); await page.fill('#bpRf', '1000'); is(await rowsN() === 1, 'نطاق الباقي ≥ 1000 → #57634 بس');
-  await page.click('.bt-pop [data-bpact="clear"]'); is(await rowsN() === 6, '«مسح الاختيار» في القايمة'); await page.mouse.click(5, 5);
+  await page.click('.bt-pop [data-bpact="clear"]'); is(await rowsN() === 4, '«مسح الاختيار» في القايمة'); await page.mouse.click(5, 5);
   // ترتيب 3 حالات
   const firstName = () => page.locator('#bprBodyRows tr[data-oid]').first().locator('td').first().innerText();
   await page.click('[data-bpsort="order"]'); const asc = (await firstName()).replace(/\D/g, '');
@@ -296,40 +289,43 @@ console.log('══ ⑦ إضافة أوردر يدويًا من خارج الط�
   const { page, calls, ctx, errs } = await open({ listAfterPay: { '#70001': { state: 'done', registered: { at: '2026-11-16 12:00' } } } });
   await page.click('#tabBpr'); await page.waitForSelector('#bprBodyRows tr[data-oid]');
   const inp = page.locator('#bprAddIn');
-  is(await inp.getAttribute('placeholder') === null && await inp.getAttribute('aria-label') === 'رقم الأوردر' && await page.locator('label[for="bprAddIn"]').count() === 1, 'مربع الإدخال: بلا placeholder وليه label');
+  is(await inp.getAttribute('placeholder') === null && await inp.getAttribute('aria-label') === 'رقم الأوردر' && await page.locator('label[for="bprAddIn"]').count() === 0, 'مربع الإدخال: بلا placeholder وبلا label ظاهر (aria-label بس)');
+  is(await page.locator('#bprEntryBar.entry-bar .entry-chip.is-on').count() === 1 && await page.locator('#bprEntryBar .entry-hint').count() === 1 && await page.locator('#bprEntryBar .btn-entry').innerText() === 'إضافة', 'مربع إدخال موحّد: شريط + chip رقم الأوردر + pill + زرار «إضافة»');
+  is(await page.locator('.bpr-title, .bpr-sub, .bpr-add-l, #bprCapTxt').count() === 0, 'العنوان والشرح وسطر «إضافة أوردر من خارج الطابور» اتشالوا');
   const add = async v => { await inp.fill(v); await inp.press('Enter'); };
   // مدخلات مش رقم أوردر → الصندوق الأحمر (مش الجدول) وبلا نداء
   const n0 = calls.filter(c => c.action === 'bostaPartialCheck').length;
   await add('abc'); await page.waitForSelector('#bprAddFail:not([hidden])');
   is(/حروف/.test(await page.locator('#bprAddFailTxt').innerText()), 'حروف → صندوق أحمر بسبب قصير');
-  await add('12345678'); is(/طوله 8/.test(await page.locator('#bprAddFailTxt').innerText()), 'طول 8 → رفض بالطول');
+  await add('12345678'); is(/8 خانة/.test(await page.locator('#bprAddFailTxt').innerText()), 'طول 8 → رفض بالطول');
   await add('6959895839042'); is(/Order ID/.test(await page.locator('#bprAddFailTxt').innerText()), 'باركود فاتورة شوبيفاي → رفض بسببه');
   await add('70001 70002'); is(/واحد في المرة/.test(await page.locator('#bprAddFailTxt').innerText()), 'أكتر من رقم → رفض');
-  is(calls.filter(c => c.action === 'bostaPartialCheck').length === n0 && await page.locator('#bprBodyRows tr[data-oid]').count() === 6, 'الرفض المحلي: صفر نداء وصفر صف في الجدول');
+  is(calls.filter(c => c.action === 'bostaPartialCheck').length === n0 && await page.locator('#bprBodyRows tr[data-oid]').count() === 4, 'الرفض المحلي: صفر نداء وصفر صف في الجدول');
   await page.click('#bprAddFailX'); is(await page.locator('#bprAddFail').isHidden(), '✕ بيقفل الصندوق');
   // غير موجود/بلا تتبع → صندوق أحمر
   await add('70002'); await page.waitForSelector('#bprAddFail:not([hidden])');
-  is(/bosta_tracking_number_s2/.test(await page.locator('#bprAddFailTxt').innerText()) && await page.locator('#bprBodyRows tr[data-oid]').count() === 6, 'أوردر بلا تتبع S2 → صندوق أحمر بسببه ومش بيتضاف');
+  is(/bosta_tracking_number_s2/.test(await page.locator('#bprAddFailTxt').innerText()) && await page.locator('#bprBodyRows tr[data-oid]').count() === 4, 'أوردر بلا تتبع S2 → صندوق أحمر بسببه ومش بيتضاف');
   // نجاح
   await add('٧٠٠٠١'); await page.waitForSelector('#bprBodyRows tr[data-oid="70001"]');
   const ck = calls.filter(c => c.action === 'bostaPartialCheck').pop();
   is(ck.body.orderRef === '70001' && ck.body.manual === true, 'الفحص اتبعت بـ manual:true والأرقام العربي اتحوّلت', JSON.stringify(ck.body));
   is(await page.locator('#bprAddFail').isHidden() && await inp.inputValue() === '', 'الصندوق الأحمر اتقفل والمربع اتفضّى');
   const r = page.locator('#bprBodyRows tr[data-oid="70001"]');
-  is(await page.locator('#bprBodyRows tr[data-oid]').count() === 7 && await page.locator('#bprBodyRows tr[data-oid]').first().getAttribute('data-oid') === '70001', 'الصف اتضاف في أول الجدول');
+  is(await page.locator('#bprBodyRows tr[data-oid]').count() === 5 && await page.locator('#bprBodyRows tr[data-oid]').first().getAttribute('data-oid') === '70001', 'الصف اتضاف في أول الجدول');
   is(/يدوي/.test(await r.innerText()) && /9090909090/.test(await r.innerText()) && /مضاف يدويًا/.test(await r.innerText()) && /جاهز للتسجيل/.test(await r.innerText()), 'الصف: شارة «يدوي» · التتبع · النوع · الحالة');
-  is(await page.locator('#bpCount').innerText() === '7' && await page.locator('#tabBadgeBpr').innerText() === '5', '«النتائج» وبادج التاب اتحدّثوا');
+  is(await page.locator('#bpCount').innerText() === '5' && await page.locator('#tabBadgeBpr').innerText() === '5', '«النتائج» وبادج التاب اتحدّثوا');
   is(await page.locator('#bprToast, .toast-success').count() >= 1, 'توست نجاح');
   // مكرر
   const nDup = calls.filter(c => c.action === 'bostaPartialCheck').length;
   await add('70001'); await sleep(150);
-  is(calls.filter(c => c.action === 'bostaPartialCheck').length === nDup && await page.locator('.toast-warning').count() >= 1 && await page.locator('#bprBodyRows tr[data-oid]').count() === 7, 'مكرر: توست أصفر وصفر نداء وصفر صف جديد');
+  is(calls.filter(c => c.action === 'bostaPartialCheck').length === nDup && await page.locator('.toast-dup').count() >= 1 && await page.locator('#bprBodyRows tr[data-oid]').count() === 5, 'مكرر: توست أصفر وصفر نداء وصفر صف جديد');
   await add('63994'); await sleep(150);
-  is(await page.locator('#bprBodyRows tr[data-oid]').count() === 7, 'أوردر موجود في الطابور: ما اتكررش');
-  // موقوف بيتضاف بسببه
-  await add('70003'); await page.waitForSelector('#bprBodyRows tr[data-oid="70003"]');
-  const rb = page.locator('#bprBodyRows tr[data-oid="70003"]');
-  is(/موقوف/.test(await rb.innerText()) && /S1 = «Shipped»/.test(await rb.innerText()) && await rb.locator('[data-bpro]').count() === 0, 'الموقوف: بيتضاف بسببه وبلا زرار تسجيل');
+  is(await page.locator('#bprBodyRows tr[data-oid]').count() === 5, 'أوردر موجود في الطابور: ما اتكررش');
+  // موقوف = مش بيتضاف للجدول، سببه في الصندوق الأحمر بسطر قصير
+  await add('70003'); await page.waitForSelector('#bprAddFail:not([hidden])');
+  is(/70003/.test(await page.locator('#bprAddFailLbl').innerText()) && /S1 = «Shipped»/.test(await page.locator('#bprAddFailTxt').innerText()) && await page.locator('#bprBodyRows tr[data-oid="70003"]').count() === 0 && await page.locator('#bprBodyRows tr[data-oid]').count() === 5, 'الموقوف: سببه في الصندوق الأحمر ومش بيتضاف للجدول');
+  await add('59971'); await sleep(150);
+  is(await page.locator('#bprAddFail').isHidden() && await page.locator('.toast-dup').count() >= 1 && await page.locator('#bprBodyRows tr[data-oid]').count() === 5, 'اتسجّل قبل كده (#59971): تنبيه محايد (مكرر) مش أحمر ومش بيتضاف');
   // تسجيل المضاف → manual:true في الفحص والتسجيل
   await r.locator('[data-bpro]').click(); await page.waitForSelector('#bprMeter');
   const ck2 = calls.filter(c => c.action === 'bostaPartialCheck').pop();
@@ -345,7 +341,7 @@ console.log('══ ⑦ إضافة أوردر يدويًا من خارج الط�
   const pay = calls.find(c => c.action === 'bostaPartialPay').body;
   is(pay.manual === true && pay.orderRef === '#70001' && pay.trackingNumber === '9090909090' && pay.expected.remainder === '500.00' && pay.reason === undefined, 'التسجيل بيبعت manual:true وبلا سبب (مفيش codRemainder)', JSON.stringify(pay));
   await sleep(300);
-  is(/تم التسجيل/.test(await page.locator('#bprBodyRows tr[data-oid="70001"]').innerText()), 'المضاف اتحدّث بعد التسجيل → «تم التسجيل»');
+  is(await page.locator('#bprBodyRows tr[data-oid="70001"]').count() === 0 && await page.locator('#bprBodyRows tr[data-oid]').count() === 4, 'المضاف بعد التسجيل بقى «تم» ← اختفى من الجدول (للجاهز بس)');
   is(errs.length === 0, 'صفر خطأ في الكونسول', errs.join(' | '));
   await ctx.close();
 }

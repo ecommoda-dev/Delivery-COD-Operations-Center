@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<!-- skills: html-builder v8.7.0 (تاب تحصيل بوسطة: القسم الموحّد + مربع الرفع + ملخّص — 09-11-2026) · v8.6.0 (جدول السجل: #47 #49 #50 #51 + بنود v8.6.0 — توكنز · نافذة أرقام · وقت · تاريخ بأقسام · أعمدة متماثلة) · v8.5.0 (مربع الإدخال) · v6.6.0 (باقي الصفحة) · worker-builder v2.1.0 · constants v1.8.0 — 02-11-2026 -->
+<!-- skills: html-builder v9.1.0 (تاب استرداد جزئي بوسطة: مربع الإدخال الموحّد — 18-11-2026) · v8.7.0 (تاب تحصيل بوسطة: القسم الموحّد + مربع الرفع + ملخّص — 09-11-2026) · v8.6.0 (جدول السجل: #47 #49 #50 #51 + بنود v8.6.0 — توكنز · نافذة أرقام · وقت · تاريخ بأقسام · أعمدة متماثلة) · v8.5.0 (مربع الإدخال) · v6.6.0 (باقي الصفحة) · worker-builder v2.1.0 · constants v1.8.0 — 02-11-2026 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>تحصيل الأوردرات COD — مركز عمليات الشحن والتحصيل</title>
@@ -1086,39 +1086,21 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 .log-tag.bx-co { background:var(--purple-light); color:var(--purple); }
 
 /* ══ §BPR-CSS — تاب «استرداد جزئي بوسطة» (v1.95.0 · Worker ≥ 3.19.0) ══ */
-.bpr-head { display:flex; flex-direction:column; gap:10px; }
-.bpr-title { font-size:16px; font-weight:800; }
-.bpr-sub { font-size:12.5px; font-weight:600; line-height:1.8; color:var(--text-secondary); }
-.bpr-sub b { color:var(--text-primary); font-family:var(--font-mono); direction:ltr; display:inline-block; }
-.bpr-chips { display:flex; flex-wrap:wrap; gap:6px; flex:0 0 auto; align-items:center; }
+.bpr-head { display:flex; flex-direction:column; gap:6px; }
 #bprTable .bt-th-in { flex-wrap:nowrap; max-width:none; }
-.bpr-chip { font-family:inherit; font-size:12.5px; font-weight:700; padding:5px 12px; border-radius:999px; border:1.5px solid var(--border); background:var(--surface); color:var(--text-primary); cursor:pointer; }
-.bpr-chip b { font-family:var(--font-mono); direction:ltr; display:inline-block; margin-inline-start:4px; }
-.bpr-chip.on { background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
-.bpr-chip.ok:not(.on) { border-color:var(--green-border); background:var(--green-light); color:var(--green-dark); }
-.bpr-chip.bad:not(.on) { border-color:var(--red-border); background:var(--red-light); color:var(--red-dark); }
-.bpr-add { display:flex; flex-direction:column; gap:6px; }
-.bpr-add-l { font-size:12.5px; font-weight:700; color:var(--text-mid); }
-.bpr-add-row { display:flex; gap:8px; align-items:stretch; flex-wrap:wrap; }
-.bpr-add-in { flex:1 1 220px; min-width:0; max-width:340px; min-height:44px; padding:0 14px; border:2px solid var(--border-strong); border-radius:var(--radius-sm); background:var(--surface); color:var(--text-primary); font-family:var(--font-mono); font-size:16px; font-weight:700; direction:ltr; text-align:left; outline:none; transition:border-color .15s, box-shadow .15s; }
-.bpr-add-in:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,.18); }
-.bpr-add-in.has-value { border-color:var(--accent); background:var(--accent-light); }
-.bpr-add-in:disabled { opacity:.55; cursor:not-allowed; }
-.bpr-add-btn { min-width:96px; padding:0 18px; border:1px solid var(--accent); border-radius:var(--radius-sm); background:var(--accent); color:var(--on-accent); font-family:var(--font-body); font-size:14px; font-weight:800; cursor:pointer; }
-.bpr-add-btn:disabled { opacity:.55; cursor:not-allowed; }
-.bpr-add-row .bx-sec { min-height:44px; }
-.bpr-fail { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:2px 0 0; }
-.bpr-fail[hidden] { display:none; }
-.bpr-fail-x { flex-shrink:0; width:24px; height:24px; border:1px solid var(--red-border); border-radius:50%; background:var(--surface); color:var(--red-dark); font-size:11px; line-height:1; cursor:pointer; }
-.bpr-fail-x:hover { background:var(--red); color:var(--on-accent); border-color:var(--red); }
 #bprTable { width:100%; border-collapse:collapse; font-size:var(--td-size); }
-#bprTable thead th { position:sticky; top:0; z-index:20; background:var(--surface-2); color:var(--th-color); font-weight:var(--th-weight); font-size:var(--th-size); padding:10px 8px; text-align:center; white-space:nowrap; box-shadow:inset 0 -2px 0 var(--border-strong); }
-#bprTable tbody td { text-align:center; padding:9px 8px; border-bottom:1px solid var(--border); vertical-align:middle; white-space:nowrap; font-size:var(--td-size); font-weight:var(--td-weight); }
+#bprTable thead th { position:sticky; top:0; z-index:20; background:var(--surface-2); color:var(--th-color); font-weight:var(--th-weight); font-size:var(--th-size); padding:10px 6px; text-align:center; white-space:nowrap; box-shadow:inset 0 -2px 0 var(--border-strong); }
+#bprTable tbody td { text-align:center; padding:9px 6px; border-bottom:1px solid var(--border); vertical-align:middle; white-space:nowrap; font-size:var(--td-size); font-weight:var(--td-weight); }
 #bprTable thead th, #bprTable tbody td { border-inline-start:1px solid var(--border); }
 #bprTable thead th:first-child, #bprTable tbody td:first-child { border-inline-start:none; }
 #bprTable td.num { font-family:var(--font-mono); direction:ltr; }
 #bprTable td.num b { font-weight:800; }
-#bprTable td.bpr-stc { white-space:normal; min-width:230px; max-width:380px; text-align:start; }
+.entry-input-wrap .bx-sec { min-height:52px; }
+#bprTable td.bpr-stc { white-space:normal; min-width:190px; max-width:300px; text-align:start; }
+#bprTable td.bpr-sttd { white-space:nowrap; }
+#bprTable td.bpr-sttd .bpr-st.info { white-space:normal; display:inline-block; line-height:1.4; max-width:130px; }
+#bprTable th[data-col="rec"] .bt-th-label { white-space:normal; line-height:1.35; max-width:96px; }
+#bprTable .bpr-go { padding:6px 10px; }
 #bprTable tbody tr:hover td { filter:brightness(.97); }
 #bprTable tr.st-blocked td { background:var(--red-light); }
 #bprTable tr.st-done td { background:var(--purple-light); }
@@ -1410,19 +1392,20 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
   <!-- ══════════ §BPR-TAB — استرداد جزئي بوسطة (v1.95.0) ══════════ -->
   <div class="tab-panel" id="panelBpr">
     <div class="card">
-      <div class="card-body bpr-head">
-        <div class="bpr-title">💸 استرداد جزئي بوسطة</div>
-        <div class="bpr-sub">بوسطة بتدفع للعميل <b id="bprCapTxt">2,000</b> ج كاش بس على استرداد الاسترجاع/الاستبدال (S2)، والباقي بيحوّله <b style="font-family:inherit;direction:rtl">موظف التحصيل</b> (انستاباي/محفظة). التسجيل هنا بيعمل <b style="font-family:inherit;direction:rtl">استرداد الباقي بس</b> على شوبيفاي ويسجّله للخزنة (ملاحظة «استرداد جزئي بوسطة») — جزء الـ 2000 بيتسجّل بمساره (تحصيل بوسطة).</div>
-        <div class="bpr-add">
-          <label class="bpr-add-l" for="bprAddIn">➕ إضافة أوردر من خارج الطابور</label>
-          <div class="bpr-add-row">
-            <input class="bpr-add-in" id="bprAddIn" type="text" inputmode="numeric" dir="ltr" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="رقم الأوردر">
-            <button type="button" class="bpr-add-btn" id="bprAddBtn">إضافة</button>
+      <div class="card-body entry-card-body bpr-head">
+        <!-- §ENTRY-BAR — مربع إدخال موحّد (unified-entry-box.md · html-builder v9.1.0): نوع واحد (رقم الأوردر) · Enter أو «إضافة» بس · الفشل في الصندوق الأحمر مش في الجدول -->
+        <div class="entry-bar" id="bprEntryBar" data-view="manual">
+          <div class="entry-chips">
+            <div class="entry-segs"><span class="entry-chip is-on" data-m="manual">⌨️ رقم الأوردر</span></div>
+            <span class="entry-hint" data-m="manual" aria-hidden="true">⌨️ كتابة الرقم يدوي</span>
+          </div>
+          <div class="entry-input-wrap">
+            <input class="entry-input" id="bprAddIn" type="text" inputmode="numeric" dir="ltr" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="رقم الأوردر">
+            <button type="button" class="btn-entry" id="bprAddBtn">إضافة</button>
             <button type="button" class="bx-sec" id="bprRefresh">↻ تحديث</button>
           </div>
-          <div class="bc-fails bpr-fail" id="bprAddFail" hidden role="alert"><span id="bprAddFailTxt"></span><button type="button" class="bpr-fail-x" id="bprAddFailX" aria-label="إغلاق">✕</button></div>
         </div>
-        <div class="bpr-chips" id="bprChips"></div>
+        <div class="bc-fails" id="bprAddFail" hidden role="alert"><div class="bc-fail-row"><span aria-hidden="true">⚠️</span><span class="bc-fail-lbl" id="bprAddFailLbl"></span><span class="bc-fail-why" id="bprAddFailTxt"></span><button type="button" class="bc-fail-x" id="bprAddFailX" aria-label="إغلاق">✕</button></div></div>
       </div>
     </div>
 
@@ -1635,7 +1618,20 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.3.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.4.0</span>
+          <span class="cl-ver-date">18-11-2026 · «استرداد جزئي بوسطة»: مربع إدخال موحّد · الجدول للجاهز للتسجيل بس · عمود «ملحوظات» · صفحة الهب بس (صفر تعديل Worker)</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>مربع الإدخال:</strong> بقى «مربع إدخال موحّد» (html-builder v9.1.0) زي تاب تحصيل المناديب — شريط بحد علوي ورمز «رقم الأوردر» وحقل بزرار «إضافة» (Enter أو الزرار بس). الأرقام العربي بتتحوّل لإنجليزي لحظيًا.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الفشل في الصندوق الأحمر:</strong> سطر واحد قصير «الرقم — السبب» + ✕. الأوردر الموقوف اللي بتضيفه بإيدك مابقاش بيتضاف للجدول — بيظهر سببه في الصندوق بس. «اتسجّل قبل كده» تنبيه محايد (مكرر).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الجدول للجاهز للتسجيل بس:</strong> الجاهز + «استرداد موجود على شوبيفاي» (اللي ليهم زرار تسجيل). الموقوف والمسجّل مابيظهروش، واتشالت عدّادات الحالة فوق الجدول. بادج التاب بيعدّ نفس الصفوف.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>عمود «ملحوظات»:</strong> عمود «الحالة» اتقسم لعمودين — الحالة (بادج) وملحوظات (أي تحذير أو سبب كان مكتوب جنبها، زي «الشحنة رجعت (Returned)…»).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>اتشال:</strong> عنوان التاب وفقرة الشرح وسطر «➕ إضافة أوردر من خارج الطابور» (الشرح في «عن الأداة»).</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v2.3.0</span>
           <span class="cl-ver-date">17-11-2026 · «فحص شحنات بوسطة»: حد التفاصيل 8 · شحنات من 01-01-2026 بس · زرار إعادة فحص لكل صف · Worker 3.27.0</span>
         </div>
         <ul class="cl-items">
@@ -2232,6 +2228,18 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
             <tr><td><code>diag</code></td><td>فحص ذاتي بدون كتابة: الأسرار (بالاسم والطول فقط) · الـ bindings · صلاحيات شوبيفاي · D1 · KV · الـ Origin</td></tr>
             <tr><td><code>audit_pending</code> <em>(مؤقت)</em></td><td>جرد <code>PRE_REG_KV</code> قبل تنظيفها — قراءة بحتة. <strong>يُحذف بعد انتهاء التنظيف</strong></td></tr>
           </table>
+        </div>
+      </details>
+
+      <details class="about-sec">
+        <summary>💸 تاب «استرداد جزئي بوسطة» — الفكرة والجدول (v2.4.0)</summary>
+        <div class="about-sec-body">
+          <p>بوسطة بتدفع للعميل <b>2,000 ج كاش بس</b> على استرداد الاسترجاع/الاستبدال (S2)، والباقي بيحوّله <b>موظف التحصيل</b> (انستاباي/محفظة). التسجيل هنا بيعمل <b>استرداد الباقي بس</b> على شوبيفاي ويسجّله للخزنة (ملاحظة «استرداد جزئي بوسطة») — جزء الـ 2,000 بيتسجّل بمساره (تحصيل بوسطة).</p>
+          <ul>
+            <li><strong>الجدول للجاهز للتسجيل بس:</strong> «جاهز للتسجيل» و«استرداد موجود على شوبيفاي» (ليهم زرار تسجيل). الموقوف والمسجّل مابيظهروش.</li>
+            <li><strong>«ملحوظات»:</strong> أي تحذير أو سبب على الأوردر (زي «الشحنة رجعت (Returned) — العميل غالبًا أخد الباقي فعلًا من خارج الأداة. تأكد قبل ما تسجّل»).</li>
+            <li><strong>إضافة أوردر من خارج الطابور:</strong> اكتب رقم الأوردر (١–٧ أرقام) في المربع واضغط Enter أو «إضافة». لو الأوردر مش جاهز (موقوف) أو اتسجّل قبل كده بيظهر سببه في الصندوق الأحمر أو تنبيه محايد ومابيتضافش للجدول. المضاف بيعيش في الصفحة بس.</li>
+          </ul>
         </div>
       </details>
 
@@ -7647,9 +7655,12 @@ const bprDigits = v => String(v || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦�
 const bprSt = k => BPR_ST[k] || ['', k || '—'];
 // كل الصفوف = اللي اتضاف يدويًا (ومش في الطابور) ثم الطابور — مصدر واحد للجدول والعدّادات والشارة
 const bprAll = () => { const have = new Set(BPR.items.map(x => String(x.orderId))); return [...BPR.manual.filter(x => !have.has(String(x.orderId))), ...BPR.items]; };
+// الجدول بيعرض الجاهز للتسجيل بس (ready = استرداد على شوبيفاي + سجل · exists = سجل بس). الموقوف/المسجّل بيفضلوا في bprAll للتكرار والفحص بس.
+const BP_SHOW = new Set(['ready', 'exists']);
+const bprVisible = () => bprAll().filter(x => BP_SHOW.has(x.state));
 const bprFind = oid => bprAll().find(x => String(x.orderId) === String(oid));
 function bprBadge() {
-  const n = bprAll().filter(x => x.state === 'ready' || x.state === 'exists').length, el = $('tabBadgeBpr');
+  const n = bprVisible().length, el = $('tabBadgeBpr');
   if (!el) return; el.textContent = n; el.style.display = n ? '' : 'none';
 }
 
@@ -7663,7 +7674,7 @@ const BP_COLS = [
   { k: 'order', l: 'الأوردر', t: 'q' }, { k: 'track', l: 'رقم التتبع', t: 'q' }, { k: 'kind', l: 'النوع', t: 'ms' },
   { k: 's1', l: 'S1', t: 'ms' }, { k: 's2', l: 'S2', t: 'ms' },
   { k: 'owed', l: 'المستحق', t: 'num' }, { k: 'rem', l: 'الباقي علينا', t: 'num' }, { k: 'rec', l: 'المسجّل وقت الرفع', t: 'num' },
-  { k: 'status', l: 'الحالة', t: 'ms' }, { k: 'act', l: 'إجراء', t: 'none' },
+  { k: 'status', l: 'الحالة', t: 'ms' }, { k: 'notes', l: 'ملحوظات', t: 'none' }, { k: 'act', l: 'إجراء', t: 'none' },
 ];
 const BP_T = k => BP_COLS.find(c => c.k === k).t;
 const BP_L = k => BP_COLS.find(c => c.k === k).l;
@@ -7683,6 +7694,7 @@ function bpVal(it, k) {
     case 'rem': return it.state === 'done' ? null : (it.state === 'exists' && it.existing ? bpNum(it.existing.amount) : bpNum(it.remainder));
     case 'rec': return bpNum(it.codRemainder);
     case 'status': return bprSt(it.state)[1];
+    case 'notes': return [...(it.blockers || []), ...(it.warnings || [])].join(' · ');
   }
   return '';
 }
@@ -7693,7 +7705,7 @@ const bpQOn = k => bp.tok[k].length > 0 || !!bpQClean(k);
 const bpSelOf = k => BP_T(k) === 'ms' ? bp.ms[k] : bp.num[k].sel;
 function bpItems(k) {
   const m = new Map();
-  bprAll().forEach(it => { const v = bpVal(it, k); if (v === null || v === '') return; const key = String(v); m.set(key, (m.get(key) || 0) + 1); });
+  bprVisible().forEach(it => { const v = bpVal(it, k); if (v === null || v === '') return; const key = String(v); m.set(key, (m.get(key) || 0) + 1); });
   const num = BP_T(k) === 'num';
   const a = [...m].map(([v, c]) => ({ v, c, t: num ? fmt(+v) : v }));
   if (num) a.sort((x, y) => (+x.v) - (+y.v));
@@ -7775,13 +7787,6 @@ function bpRenderChips() {
   });
   $('bpChips').innerHTML = rows.join('');
 }
-// عدّادات الحالة فوق الجدول = فلتر الحالة نفسه (ضغطة تانية بتلغيه) — مش حالة تانية جنبه
-function bpCardsHtml() {
-  const all = bprAll(), cnt = k => all.filter(x => x.state === k).length;
-  const on = k => k === 'all' ? bp.ms.status.size === 0 : (bp.ms.status.size === 1 && bp.ms.status.has(bprSt(k)[1]));
-  const chip = (k, label, cls = '') => `<button type="button" class="bpr-chip ${cls}${on(k) ? ' on' : ''}" data-bpcard="${k}" aria-pressed="${on(k)}">${label}<b>${k === 'all' ? all.length : cnt(k)}</b></button>`;
-  return chip('all', 'الكل') + chip('ready', 'جاهز', 'ok') + chip('exists', 'على شوبيفاي') + chip('blocked', 'موقوف', 'bad') + chip('done', 'تم');
-}
 function bpStates() {
   $('bpClearAll').classList.toggle('inactive', !bpAnyActive());
   document.querySelectorAll('#bprTable th[data-fk]').forEach(th => {
@@ -7803,23 +7808,21 @@ function bprRowHtml(it) {
     <td class="num">${bxTrk(it.tracking)}</td><td>${esc(bpVal(it, 'kind'))}</td>
     <td>${esc(bpVal(it, 's1'))}</td><td>${esc(bpVal(it, 's2'))}</td>
     <td class="num">${n('owed')}</td><td class="num"><b>${n('rem')}</b></td><td class="num">${n('rec')}</td>
-    <td class="bpr-stc"><span class="bpr-st ${cls}">${esc(label)}</span>${why}${warn}</td><td>${act}</td></tr>`;
+    <td class="bpr-sttd"><span class="bpr-st ${cls}">${esc(label)}</span></td><td class="bpr-stc">${why || warn ? why + warn : '—'}</td><td>${act}</td></tr>`;
 }
 function bpApply() {
   bpHideTip(); bpBuildQ();
-  const all = bprAll(), f = all.filter(bpPass), s = bpSort(f);
+  const all = bprVisible(), f = all.filter(bpPass), s = bpSort(f);
   const cols = BP_COLS.length;
   let body;
   if (BPR.loading) body = `<tr><td colspan="${cols}" class="bt-empty">⏳ جاري قراءة الطابور من سجل الرفع وفحصه على شوبيفاي…</td></tr>`;
   else if (BPR.err) body = `<tr><td colspan="${cols}" class="bt-empty"><div class="s1m-note bad">⛔ ${esc(BPR.err)}</div></td></tr>`;
-  else if (!s.length) body = `<tr><td colspan="${cols}" class="bt-empty">${all.length ? 'لا يوجد نتايج مطابقة للفلاتر' : 'مفيش أوردرات في الطابور'}</td></tr>`;
+  else if (!s.length) body = `<tr><td colspan="${cols}" class="bt-empty">${all.length ? 'لا يوجد نتايج مطابقة للفلاتر' : 'مفيش أوردرات جاهزة للتسجيل'}</td></tr>`;
   else body = s.map(bprRowHtml).join('');
   $('bprBodyRows').innerHTML = body;
   $('bpCount').textContent = BPR.loading || BPR.err ? '—' : f.length.toLocaleString('en-US');
   $('bpOf').textContent = !BPR.loading && !BPR.err && f.length !== all.length ? `من ${all.length.toLocaleString('en-US')} صف` : '';
-  const cap = $('bprCapTxt'); if (cap) cap.textContent = fmt(Number(BPR.cap) || 2000);
   $('bprNote').innerHTML = BPR.truncated ? `<div class="s1m-note">⚠ الطابور أكبر من اللي بيتعرض (${BPR.total} أوردر) — اتعرض أول ${BPR.items.length} بس. ممكن تضيف أي أوردر يدويًا من المربع فوق.</div>` : '';
-  $('bprChips').innerHTML = bpCardsHtml();
   bpRenderChips(); bpStates();
 }
 const bprRender = bpApply;
@@ -7850,7 +7853,7 @@ function bpListHtml(k) {
 function bpSuggItems(k) {
   const ps = btParts(bp.q[k]), p = ps[ps.length - 1]; if (!p) return { items: [], more: 0 };
   const done = new Set(bp.tok[k]), seen = new Set(), all = [];
-  bprAll().forEach(it => {
+  bprVisible().forEach(it => {
     const v = k === 'order' ? bpDigits(bpVal(it, 'order')) : bpVal(it, 'track');
     if (!v || !v.includes(p) || done.has(v) || seen.has(v)) return; seen.add(v);
     all.push({ v, t: k === 'order' ? bpVal(it, 'order') : v, s: k === 'order' ? bpVal(it, 'track') : bpVal(it, 'order') });
@@ -7979,13 +7982,6 @@ document.addEventListener('click', e => {
   }
   if (t.closest && t.closest('[data-bpclear]')) { e.stopPropagation(); if (bpAnyActive()) { bpClearAll(); bpSyncInputs(); bpApply(); } return; }
   const so = t.closest && t.closest('[data-bpsort]'); if (so) { bpToggleSort(so.dataset.bpsort); return; }
-  const cd = t.closest && t.closest('[data-bpcard]');
-  if (cd) {   // عدّاد الحالة = فلتر الحالة (ضغطة تانية بتلغيه)
-    const k = cd.dataset.bpcard, lab = k === 'all' ? null : bprSt(k)[1];
-    const same = lab && bp.ms.status.size === 1 && bp.ms.status.has(lab);
-    bp.ms.status = (!lab || same) ? new Set() : new Set([lab]);
-    bpApply(); return;
-  }
   if (t.closest && t.closest('#bpBar')) bpToggleFold();
 });
 document.addEventListener('input', e => {
@@ -8019,7 +8015,8 @@ document.addEventListener('keydown', e => {
 // ── إضافة أوردر يدويًا من خارج الطابور (v1.97.0 · Worker ≥ 3.21.0) ──────────────────
 // مربع إدخال بنوع واحد (رقم الأوردر) — Enter أو «إضافة» بس (مفيش مؤقّت)، الأرقام العربي بتتحوّل لحظيًا، والمدخل اللي مش رقم أوردر بيروح للصندوق الأحمر (سطر قصير + ✕) مش للجدول.
 // الأوردر اللي الـ Worker فحصه (حتى لو «موقوف» بسببه) بيتضاف للجدول بحكمه — زي صفوف الطابور. المضاف بيعيش في الصفحة بس (refresh بيفضّيه) وبيتفحص تاني مع «تحديث».
-function bprFailShow(msg) { $('bprAddFailTxt').textContent = msg; $('bprAddFail').hidden = false; }
+// الصندوق الأحمر: سطر واحد قصير «الرقم — السبب» + ✕ (unified-entry-box.md § ٤)
+function bprFailShow(label, why) { $('bprAddFailLbl').textContent = label; $('bprAddFailTxt').textContent = '— ' + why; $('bprAddFail').hidden = false; }
 function bprFailHide() { $('bprAddFail').hidden = true; }
 function bprFlash(oid) {
   BPR.flash = oid; bpApply();
@@ -8028,33 +8025,41 @@ function bprFlash(oid) {
   setTimeout(() => { if (String(BPR.flash) === String(oid)) { BPR.flash = null; bpApply(); } }, 1800);
   return !!tr;
 }
+// أوردر موجود/متفحوص بس مش جاهز للتسجيل = مش بيتضاف للجدول: «تم» ← تنبيه محايد (مكرر) · «موقوف» ← الصندوق الأحمر بسببه
+function bprNotReady(name, it, inp) {
+  const reset = () => { inp.value = ''; inp.focus(); };
+  if (it.state === 'done') { playBeep('dup'); showToast(`${name} اتسجّل قبل كده`, 'dup', 3200); bprFailHide(); reset(); return; }
+  const why = (it.blockers || [])[0] || 'مش جاهز للتسجيل';
+  playBeep('fail'); bprFailShow(name, why); showToast(`⛔ ${name} — ${why}`, 'error', 6500); reset();
+}
 async function bprAddSubmit() {
   if (BPR.adding || BPR.busy) return;
   const inp = $('bprAddIn'), btn = $('bprAddBtn'), raw = btLatin(String(inp.value || '')).trim();
   if (!raw) return;
-  const bad = m => { playBeep('fail'); bprFailShow(m); showToast('⛔ ' + m, 'error', 6500); inp.focus(); inp.select(); };
-  if (/[^\d\s#]/.test(raw)) return bad('المدخل فيه حروف — اكتب رقم الأوردر (أرقام بس).');
+  const bad = (label, why) => { playBeep('fail'); bprFailShow(label, why); showToast(`⛔ ${label} — ${why}`, 'error', 6500); inp.focus(); inp.select(); };
+  if (/[^\d\s#]/.test(raw)) return bad(raw, 'مش رقم أوردر — اكتب أرقام بس (من غير حروف)');
   const nums = raw.replace(/#/g, '').split(/\s+/).filter(Boolean);
-  if (nums.length > 1) return bad('اكتب أوردر واحد في المرة.');
+  if (nums.length > 1) return bad(raw, 'اكتب أوردر واحد في المرة');
   const digits = nums[0] || '';
-  if (!digits) return bad('اكتب رقم الأوردر.');
-  if (digits.length >= 13 && digits.length <= 15) return bad('الرقم ده شكله باركود فاتورة شوبيفاي (Order ID) — اكتب رقم الأوردر (من ١ لـ ٧ أرقام).');
-  if (digits.length > 7) return bad(`الرقم طوله ${digits.length} — رقم الأوردر من ١ لـ ٧ أرقام. غالبًا اتلزق باركودين أو اتقرا غلط، اكتبه تاني.`);
+  if (!digits) return bad(raw, 'اكتب رقم الأوردر');
+  if (digits.length >= 13 && digits.length <= 15) return bad(digits, 'باركود فاتورة شوبيفاي (Order ID) — اكتب رقم الأوردر (١–٧ أرقام)');
+  if (digits.length > 7) return bad(digits, `${digits.length} خانة — مش طول رقم أوردر (١–٧)، غالبًا اتقرا غلط أو اتلزق باركودين`);
   bprFailHide();
   const name = '#' + digits, have = bprAll().find(x => String(x.orderName) === name);
-  if (have) { playBeep('dup'); const vis = bprFlash(have.orderId); showToast(`ℹ️ ${name} موجود بالفعل في الجدول${vis ? '' : ' (مخفي بالفلاتر الحالية)'}`, 'warning', 3200); inp.value = ''; inp.classList.remove('has-value'); inp.focus(); return; }
+  const dupShow = oid => { playBeep('dup'); const vis = bprFlash(oid); showToast(`${name} موجود في الجدول بالفعل${vis ? '' : ' (مخفي بالفلاتر الحالية)'}`, 'dup', 3200); inp.value = ''; inp.focus(); };
+  if (have) { if (BP_SHOW.has(have.state)) dupShow(have.orderId); else bprNotReady(name, have, inp); return; }
   BPR.adding = true; inp.disabled = true; btn.disabled = true; btn.textContent = '⏳ جاري الفحص…';
   let d = null, err = '';
   try { d = await apiPostLegacy('bostaPartialCheck', { orderRef: digits, manual: true }); } catch (e) { err = e.message || 'تعذّر الفحص'; }
   BPR.adding = false; inp.disabled = false; btn.disabled = false; btn.textContent = 'إضافة';
-  if (!d || !d.success) { bad(err || (d && d.error) || 'رد غير متوقع من الـ Worker'); return; }
+  if (!d || !d.success) { bad(name, err || (d && d.error) || 'رد غير متوقع من الـ Worker'); return; }
   const dup = bprFind(d.orderId);
-  if (dup) { playBeep('dup'); const vis = bprFlash(dup.orderId); showToast(`ℹ️ ${name} موجود بالفعل في الجدول${vis ? '' : ' (مخفي بالفلاتر الحالية)'}`, 'warning', 3200); inp.value = ''; inp.classList.remove('has-value'); inp.focus(); return; }
+  if (dup) { if (BP_SHOW.has(dup.state)) dupShow(dup.orderId); else bprNotReady(name, dup, inp); return; }
+  if (!BP_SHOW.has(d.state)) { bprNotReady(name, d, inp); return; }   // 🔴 مش جاهز = مش بيتضاف للجدول
   BPR.manual.unshift({ ...d, added: true });
-  inp.value = ''; inp.classList.remove('has-value');
+  inp.value = '';
   bprBadge(); bprFlash(d.orderId);
-  if (d.state === 'ready' || d.state === 'exists') { playBeep('success'); showToast(`✅ ${name} اتضاف — ${d.state === 'exists' ? 'الاسترداد على شوبيفاي ويتسجّل في السجل' : 'جاهز للتسجيل'}`, 'success', 2200); }
-  else { playBeep('warn'); showToast(`⚠ ${name} اتضاف بس ${d.state === 'done' ? 'اتسجّل قبل كده' : 'موقوف — شوف السبب في الجدول'}`, 'warning', 3200); }
+  playBeep('success'); showToast(`اتضاف ${name} — ${d.state === 'exists' ? 'الاسترداد على شوبيفاي ويتسجّل في السجل' : 'جاهز للتسجيل'}`, 'success', 2200);
   inp.focus();
 }
 // إعادة فحص المضاف يدويًا (بالتتابع — فحصه بمعاملات كاملة) — فشل واحد بيسيب الصف زي ما هو
@@ -8204,7 +8209,7 @@ async function bprGo() {
 (function bprInit() {
   bpMount(); bprRender();
   const ai = $('bprAddIn');
-  ai.addEventListener('input', () => { const v = btLatin(ai.value); if (v !== ai.value) ai.value = v; ai.classList.toggle('has-value', !!ai.value.trim()); if (!ai.value.trim()) bprFailHide(); });
+  ai.addEventListener('input', () => { const v = btLatin(ai.value); if (v !== ai.value) ai.value = v; if (!ai.value.trim()) bprFailHide(); });   // الأرقام العربي ← إنجليزي لحظيًا
   ai.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); bprAddSubmit(); } });
   $('bprAddBtn').addEventListener('click', bprAddSubmit);
   $('bprAddFailX').addEventListener('click', () => { bprFailHide(); ai.focus(); });
