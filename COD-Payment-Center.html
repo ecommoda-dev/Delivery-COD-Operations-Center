@@ -1100,7 +1100,6 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 #bprTable td.bpr-sttd { white-space:nowrap; }
 #bprTable td.bpr-sttd .bpr-st.info { white-space:normal; display:inline-block; line-height:1.4; max-width:130px; }
 #bprTable th[data-col="rec"] .bt-th-label { white-space:normal; line-height:1.35; max-width:96px; }
-#bprTable .bpr-go { padding:6px 10px; }
 #bprTable tbody tr:hover td { filter:brightness(.97); }
 #bprTable tr.st-blocked td { background:var(--red-light); }
 #bprTable tr.st-done td { background:var(--purple-light); }
@@ -1111,6 +1110,16 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 #bprTable th.flt-on .bp-flt { background:var(--accent-light); border-color:var(--accent-border); color:var(--accent); }
 .bpr-man { display:inline-block; margin-inline-start:6px; padding:1px 7px; border-radius:999px; font-size:10.5px; font-weight:800; background:var(--amber-light); border:1px solid var(--amber-border); color:var(--amber-dark); }
 .bpr-go { white-space:nowrap; }
+/* زرار الاسترداد الأحمر — نفس الثيم في الجدول والنافذة (طلب أحمد 18-11-2026) */
+.bpr-go, .bpr-main-btn { background:var(--red-dark); color:#fff; border:1px solid var(--red-dark); font-family:inherit; font-weight:800; cursor:pointer; transition:background .15s; }
+.bpr-go { padding:7px 12px; border-radius:var(--radius-sm); font-size:12.5px; }
+.bpr-go:hover, .bpr-main-btn:hover:not(:disabled) { background:var(--red-darker); border-color:var(--red-darker); }
+#bprOverlay .eco-modal-ftr { padding:0; border-top:none; }
+.bpr-main-btn { width:100%; padding:17px 12px; border-radius:0 0 var(--radius) var(--radius); font-size:16px; text-align:center; }
+.bpr-main-btn:disabled { background:var(--surface-2); color:var(--text-muted); border-color:var(--border); border-top-color:var(--border); cursor:not-allowed; }
+/* تنبيه اختلاف «الباقي علينا» عن «المسجّل وقت الرفع» */
+#bprTable td.bpr-diff { background:var(--red-light); box-shadow:inset 0 0 0 2px var(--red); color:var(--red-darker); }
+.bpr-diff-note { margin:4px 0 0; padding:6px 9px; border-radius:var(--radius-sm); background:var(--red-light); border:1.5px solid var(--red); color:var(--red-darker); font-size:12px; font-weight:800; line-height:1.5; }
 @keyframes bprFlash { 0%, 55% { box-shadow:inset 0 0 0 9999px var(--amber-light); } 100% { box-shadow:inset 0 0 0 9999px transparent; } }
 #bprTable tr.bpr-flash td { animation:bprFlash 1.8s ease; }
 @media (prefers-reduced-motion: reduce) { #bprTable tr.bpr-flash td { animation:none; box-shadow:inset 0 0 0 9999px var(--amber-light); } }
@@ -1618,7 +1627,19 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.4.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.5.0</span>
+          <span class="cl-ver-date">18-11-2026 · «استرداد جزئي بوسطة»: زرار نافذة واحد بعرض النافذة · أرقام بالسالب · تنبيه اختلاف الباقي عن المسجّل وقت الرفع · زرار «سجّل الاسترداد» أحمر · صفحة الهب بس (صفر تعديل Worker)</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نافذة التسجيل:</strong> اتشال زرار «إغلاق» السفلي (✕ فوق فضل)، وفضل زرار التسجيل الرئيسي بعرض النافذة كلها والنص في النص. رمادي (مقفول) لحد ما المبلغ يتدخّل كامل، وبعدها أحمر. الإغلاق بـ ✕ أو الضغط برّه النافذة أو Esc.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الجدول:</strong> المبالغ (المستحق · الباقي علينا · المسجّل وقت الرفع) بقت بالسالب، وعمود «المستحق» اتسمّى «المستحق للعميل».</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>تنبيه الفرق:</strong> لو «الباقي علينا» ≠ «المسجّل وقت الرفع» الخليتين بتتلوّن بالأحمر وبيظهر في «ملحوظات» سطر بالفرق (والتسجيل لسه بيطلب سبب).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>زرار الإجراء:</strong> «سجّل الاسترداد» بنفس الثيم الأحمر بتاع زرار النافذة.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v2.4.0</span>
           <span class="cl-ver-date">18-11-2026 · «استرداد جزئي بوسطة»: مربع إدخال موحّد · الجدول للجاهز للتسجيل بس · عمود «ملحوظات» · صفحة الهب بس (صفر تعديل Worker)</span>
         </div>
         <ul class="cl-items">
@@ -2371,8 +2392,7 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
     <div class="eco-modal-hdr"><span id="bprTitle">💸 استرداد جزئي بوسطة</span><button class="modal-close-x" onclick="bprClose()">✕</button></div>
     <div class="eco-modal-body" id="bprModalBody"></div>
     <div class="eco-modal-ftr">
-      <button class="btn-modal-cancel" onclick="bprClose()">إغلاق</button>
-      <button class="btn-modal-save" id="bprGo" disabled>💸 سجّل استرداد الباقي</button>
+      <button class="bpr-main-btn" id="bprGo" disabled>💸 سجّل استرداد الباقي</button>
     </div>
   </div>
 </div>
@@ -7673,7 +7693,7 @@ const BP_SEARCH_MIN = 10;
 const BP_COLS = [
   { k: 'order', l: 'الأوردر', t: 'q' }, { k: 'track', l: 'رقم التتبع', t: 'q' }, { k: 'kind', l: 'النوع', t: 'ms' },
   { k: 's1', l: 'S1', t: 'ms' }, { k: 's2', l: 'S2', t: 'ms' },
-  { k: 'owed', l: 'المستحق', t: 'num' }, { k: 'rem', l: 'الباقي علينا', t: 'num' }, { k: 'rec', l: 'المسجّل وقت الرفع', t: 'num' },
+  { k: 'owed', l: 'المستحق للعميل', t: 'num' }, { k: 'rem', l: 'الباقي علينا', t: 'num' }, { k: 'rec', l: 'المسجّل وقت الرفع', t: 'num' },
   { k: 'status', l: 'الحالة', t: 'ms' }, { k: 'notes', l: 'ملحوظات', t: 'none' }, { k: 'act', l: 'إجراء', t: 'none' },
 ];
 const BP_T = k => BP_COLS.find(c => c.k === k).t;
@@ -7707,7 +7727,7 @@ function bpItems(k) {
   const m = new Map();
   bprVisible().forEach(it => { const v = bpVal(it, k); if (v === null || v === '') return; const key = String(v); m.set(key, (m.get(key) || 0) + 1); });
   const num = BP_T(k) === 'num';
-  const a = [...m].map(([v, c]) => ({ v, c, t: num ? fmt(+v) : v }));
+  const a = [...m].map(([v, c]) => ({ v, c, t: num ? bprNeg(+v) : v }));
   if (num) a.sort((x, y) => (+x.v) - (+y.v));
   else if (k === 'status') { const ord = Object.values(BPR_ST).map(s => s[1]); a.sort((x, y) => ord.indexOf(x.v) - ord.indexOf(y.v)); }
   else a.sort((x, y) => x.v.localeCompare(y.v, 'ar'));
@@ -7777,7 +7797,7 @@ function bpRenderChips() {
   Object.keys(bp.ms).forEach(k => { if (bp.ms[k].size) rows.push(bpChipRow(BP_L(k), [...bp.ms[k]].map(v => bpChip(v, `ms:${k}:${v}`)))); });
   Object.keys(bp.num).forEach(k => {
     const a = bp.num[k];
-    if (a.mode === 'list' && a.sel.size) rows.push(bpChipRow(BP_L(k), [...a.sel].sort((x, y) => x - y).map(v => bpChip(fmt(+v), `num:${k}:${v}`))));
+    if (a.mode === 'list' && a.sel.size) rows.push(bpChipRow(BP_L(k), [...a.sel].sort((x, y) => x - y).map(v => bpChip(bprNeg(+v), `num:${k}:${v}`))));
     if (a.mode === 'range' && (a.from !== '' || a.to !== '')) rows.push(bpChipRow(BP_L(k), [bpChip(`من ${a.from || '—'} إلى ${a.to || '—'}`, `range:${k}:`)]));
   });
   ['order', 'track'].forEach(k => {
@@ -7801,14 +7821,23 @@ function bprRowHtml(it) {
   const [cls, label] = bprSt(it.state);
   const why = (it.blockers || []).length ? `<ul class="bpr-why">${it.blockers.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
   const warn = (it.warnings || []).length ? `<ul class="bpr-warn">${it.warnings.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
-  const act = (it.state === 'ready' || it.state === 'exists') ? `<button type="button" class="bx-sec bpr-go" data-bpro="${esc(it.orderId)}">${it.state === 'exists' ? 'سجّل في السجل' : '💸 سجّل'}</button>` : '';
-  const n = k => { const v = bpVal(it, k); return v === null ? '—' : fmt(v); };
+  const act = (it.state === 'ready' || it.state === 'exists') ? `<button type="button" class="bpr-go" data-bpro="${esc(it.orderId)}">${it.state === 'exists' ? 'سجّل في السجل' : 'سجّل الاسترداد'}</button>` : '';
+  const n = k => { const v = bpVal(it, k); return v === null ? '—' : bprNeg(v); };   // الأرقام بالسالب (الاسترداد) — القيمة المخزّنة/المفلترة موجبة
+  const diff = bprDiff(it);
+  const diffNote = diff === null ? '' : `<div class="bpr-diff-note">⚠ الباقي علينا (<b>${bprNeg(bpVal(it, 'rem'))}</b>) مختلف عن المسجّل وقت الرفع (<b>${bprNeg(bpVal(it, 'rec'))}</b>) — الفرق ${bprNeg(diff)} — هيطلب سبب وقت التسجيل.</div>`;
+  const dc = diff === null ? '' : ' bpr-diff';
   return `<tr class="st-${esc(it.state)}${String(BPR.flash) === String(it.orderId) ? ' bpr-flash' : ''}" data-oid="${esc(it.orderId)}">
     <td>${orderLink(it.orderName || '', it.orderId)}${it.added ? '<span class="bpr-man">يدوي</span>' : ''}</td>
     <td class="num">${bxTrk(it.tracking)}</td><td>${esc(bpVal(it, 'kind'))}</td>
     <td>${esc(bpVal(it, 's1'))}</td><td>${esc(bpVal(it, 's2'))}</td>
-    <td class="num">${n('owed')}</td><td class="num"><b>${n('rem')}</b></td><td class="num">${n('rec')}</td>
-    <td class="bpr-sttd"><span class="bpr-st ${cls}">${esc(label)}</span></td><td class="bpr-stc">${why || warn ? why + warn : '—'}</td><td>${act}</td></tr>`;
+    <td class="num">${n('owed')}</td><td class="num${dc}"><b>${diff === null ? '' : '⚠ '}${n('rem')}</b></td><td class="num${dc}">${n('rec')}</td>
+    <td class="bpr-sttd"><span class="bpr-st ${cls}">${esc(label)}</span></td><td class="bpr-stc">${diffNote}${why || warn ? why + warn : (diffNote ? '' : '—')}</td><td>${act}</td></tr>`;
+}
+// فرق «الباقي علينا» عن «المسجّل وقت الرفع» (للجاهز بس — الأوردر المضاف يدويًا مالوش مسجّل وقت الرفع) — null = مفيش فرق
+function bprDiff(it) {
+  if (it.state !== 'ready') return null;
+  const r = bpVal(it, 'rem'), c = bpVal(it, 'rec'); if (r === null || c === null) return null;
+  const d = Math.round(Math.abs(r - c) * 100) / 100; return d > 0 ? d : null;
 }
 function bpApply() {
   bpHideTip(); bpBuildQ();
@@ -8237,7 +8266,7 @@ async function bprGo() {
     else if (r) { BPR.reason = r.value; bprSync(); }
   });
   $('bprGo').addEventListener('click', bprGo);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('bprResOverlay').classList.contains('open')) bprResClose(); });
+  document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if ($('bprResOverlay').classList.contains('open')) bprResClose(); else if ($('bprOverlay').classList.contains('open')) bprClose(); });   // مفيش زرار إغلاق في النافذة: Esc أو الضغط برّه
   window.addEventListener('beforeunload', e => { if (BPR.busy) { e.preventDefault(); e.returnValue = ''; } });
 })();
 </script>
