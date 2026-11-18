@@ -42,12 +42,8 @@ if (!HUB_VERSION) { console.error('🔴 مقدرناش نقرا TOOL_VERSION م�
 
 // 🔴 **الأدوات والعقد المتوقّع لكل واحدة.** القايمة دي هي اللي البنود
 //    بتمشي عليها — إضافة أداة تالتة للمركز معناها سطر هنا، مش نسخ كتلة.
-// ⚠️ **`source` اختياري من v1.10.0.** `Order-Status-Updater` **بس** (من v1.89.0)
-//    ليه نسخة مستقلة شغّالة في ريبو تاني (`source`)، والصفحة هنا **متولّدة** منه —
-//    فيه بند تحت (⓪) بيشغّل `port-standalone.py` ويقارن البايتات، وده
-//    محتاج المصدر يكون موجود جنب الهب. `Partial-Delivery.html` و
-//    `COD-Payment-Center.html` **مش متولّدتين** (الريبو المستقل بتاعهم بقى
-//    Worker وبس، مفيش HTML يتولّد منه)، فبند البايتات ده بيتخطّاها — راجع الفلترة على `t.source` تحت.
+// ⚠️ **مفيش `source` لأي أداة من v2.6.0** — كل الصفحات النسخة الوحيدة وريبوهاتها المستقلة Worker وبس
+//    (آخر واحدة `Order-Status-Updater` اتحوّلت 18-11-2026)، فبند «الصفحة متولّدة» اتشال.
 const TOOLS = [
   {
     page:      'Order-Status-Updater.html',
@@ -56,7 +52,7 @@ const TOOLS = [
     host:      'order-status-updater-worker.ecommoda-dev.workers.dev',
     oldSecret: 'order_status_worker_secret',
     tabs:      2,
-    source:    'Order-Status-Updater',
+    // ⛔ صفر `source` من v2.6.0 (18-11-2026) — ريبو `Order-Status-Updater` بقى Worker وبس والصفحة هنا هي النسخة الوحيدة.
   },
   {
     page:      'COD-Payment-Center.html',
@@ -239,27 +235,8 @@ for (const t of TOOLS) {
      extra.join(' · '));
 }
 
-// الصفحة متولّدة — تشغيل المولّد تاني لازم يدّي **نفس البايتات**
-// ⚠️ بيتخطّى لو الريبوهات الأصلية مش جنب بعض (مش كل بيئة فيها التلاتة).
-// 🔴 **وبيمشي على الأدوات اللي ليها `source` بس** — `Partial-Delivery.html`
-//    مالهاش (مفيش HTML في ريبوها تتولّد منه)، فتضمينها هنا كان هيخلّي
-//    `sourcesPresent` ترجع `false` **دايمًا** ويتخطّى بند البايتات حتى
-//    للأداتين اللي فعلاً متولّدتين.
-const GENERATED_TOOLS = TOOLS.filter(t => t.source);
-const sourcesPresent = GENERATED_TOOLS.every(t => fs.existsSync(path.join(ROOT, '..', t.source, 'index.html')));
-if (!sourcesPresent) {
-  console.log('  ⏭️  الريبوهات الأصلية مش جنب الهب — بند «الصفحة متولّدة» اتخطّى');
-} else {
-  const before = GENERATED_TOOLS.map(t => read(t.page));
-  try {
-    execFileSync('python3', [path.join(ROOT, 'docs', 'port-standalone.py')], { stdio: 'pipe' });
-    const same = GENERATED_TOOLS.every((t, i) => read(t.page) === before[i]);
-    is(same, '🔴 الصفحة المتولّدة **متولّدة فعلاً** — تشغيل `docs/port-standalone.py` بيدّي نفس البايتات',
-       'فيه تعديل يدوي في الملف المتولّد — هيضيع مع أول تشغيل');
-  } catch (e) {
-    bad('المولّد `docs/port-standalone.py` بيشتغل من غير خطأ', String(e.stderr || e).slice(0, 300));
-  }
-}
+// ⛔ بند «الصفحة متولّدة» اتشال في v2.6.0 — مفيش صفحة متولّدة في الهب دلوقتي: `Order-Status-Updater` (آخر واحدة)
+//    ريبوها بقى Worker وبس، و`docs/port-standalone.py` اتحذف. التعديل على أي صفحة أداة بيتعمل هنا مباشرة.
 
 // ══════════════════════════════════════════════════════════════
 sec('① بوابة الجلسة — دخول واحد للمركز كله');

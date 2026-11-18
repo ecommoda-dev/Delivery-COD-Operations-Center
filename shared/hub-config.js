@@ -115,6 +115,10 @@ const ECO_WORKERS = {
   //    بتكتب حالة على شوبيفاي، و`pay`/`refund` بتسجّلوا فلوس. فالتدهور هنا
   //    **مش تجميلي**، وعشان كده `min` على النسخة اللي الواجهة معتمدة عليها
   //    فعلاً مش على `1.0.0`.
+  // 🔴 **v2.6.0: `orderStatus.min` بقى `4.8.0`** — تاب «سجل العمليات» بقى معتمد على فلاتر `orders`/`timeFrom`/`timeTo`/
+  //    `ok|warn|err*` و`get_log_suggest` و`get_log_num_values` و`batchStats` (كلها Worker 4.8.0). على Worker أقدم
+  //    الفلاتر دي **بتتجاهَل في صمت** (الجدول بيرجع بلا فلتر والموظف فاكره مفلتر) — فالحارس بيسمّي الأداة والنسخة.
+  //    انشر الـ Worker قبل الصفحة.
   // 🔴 **`orderStatus.min = '4.7.0'` بيمنع ضرر مش بيدّي تحذير** — Worker
   //    `4.6.0` بيرجّع **نفس اسم الحقل** (`cod` في `order_details`) بقيمة
   //    محسوبة بالصيغة القديمة الغلط، يعني ورقة المانفيست بتخرج من الطابعة
@@ -131,7 +135,7 @@ const ECO_WORKERS = {
   //    يكونوا **اتضمّوا للمجموعة** (`WORKER_SECRET` اتدوّر لقيمة المجموعة
   //    من داشبورد كلاودفلير). قبل الضم النداء بيرجّع **401** والرسالة
   //    بتسمّي الأداة. البند مفتوح في `CLAUDE.md`.
-  orderStatus: { url: 'https://order-status-updater-worker.ecommoda-dev.workers.dev', min: '4.7.0', label: 'تحديث حالة الأوردرات' },
+  orderStatus: { url: 'https://order-status-updater-worker.ecommoda-dev.workers.dev', min: '4.8.0', label: 'تحديث حالة الأوردرات' },
   // 🔴 `codPayment.min = '3.8.0'` (02-11-2026) — جدول السجل بقى بينادي فلاتر `orders` · `timeFrom/timeTo` ·
   //    `count|collect|refund` (From/To/In) + `get_log_suggest` + `get_log_num_values`. على Worker أقدم الفلاتر دي بتتجاهَل
   //    **في صمت** (الجدول بيرجع بلا فلتر والموظف فاكره مفلتر) — فالحارس بيسمّي الأداة والنسخة. **انشر الـ Worker قبل الصفحة.**
@@ -261,7 +265,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v2.5.0';                     // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v2.6.0';                     // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
