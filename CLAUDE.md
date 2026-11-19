@@ -77,6 +77,13 @@
 > 🔄 **أسماء قديمة في الملف ده (تاريخية):** قبل المرحلة ٣/٤ (هب المخزن v1.45.0 · هب الشحن v1.49.0) كان فيه `shared/shell.js` و`shared/shell.css` والبادئات `woc*`/`dco*`. دلوقتي:
 > `shell.js` ← **`core.js`** (المشترك) + **`hub-config.js`** (`ECO_WORKERS` · `TOOL_VERSION` · مفاتيح الجلسة والسر) + **`dco-rules.js`**، و`shell.css` ← **`core.css`** (المشترك) + **`hub.css`** (ألوان الهب)، والبادئات ← **`eco*`** / `eco-` (`wocApi`←`ecoApi` · `WOC_WORKERS`/`DCO_WORKERS`←`ECO_WORKERS` · `.woc-*`/`.dco-*`←`.eco-*`). **قيم مفاتيح التخزين ما اتغيّرتش** (`woc_session` · `dco_session` · `*_worker_secret`). أي نص تحت بيقول «في الـ shell» معناه الملف المناسب من دول.
 
+## 🚶 تمريرة v2.7.0 — «تحصيل الأوردرات COD»: «أجر مشوار فقط» + الشحن الأصلي مابقاش شرط على أجر المرتجع/الاستبدال (طلب أحمد 19-11-2026 · #65513)
+
+- الـ Worker `v3.28.0` (ريبو `COD-Payment-Center`) · `ECO_WORKERS.codPayment.min` → **`3.28.0`** (🔴 انشره **وانشر الخزنة `Treasury-Ledger` 1.10.0** قبل الصفحة) · `TOOL_VERSION` → `v2.7.0`. التفاصيل والقرارات في `CLAUDE.md` بتاع `COD-Payment-Center` (قسم v3.28.0).
+- **الصفحة (`COD-Payment-Center.html` · `addOrder` · `freeShipAck` · `freeShipNoteHTML` · `freeShipCellHTML` · حلقة الاسترداد في `doBulkPayAndRefund`):** أوردر `feeOnly` (استبدال بنفس السعر · رصيد صفر · رسوم مرتجع صفر · المرتجع اتقفل) بيدخل الجلسة كصف **`refund` بمبلغ 0** وبادج «أجر مشوار» وسطر تأكيد («0 − 75 = −75 · من غير أي تسجيل على شوبيفاي») — تحصيل المندوب −75 وطرق الدفع لازم = 75. التنفيذ بيبعت `refund` بـ`feeOnly:true` **بدون** `refundAmount`/`saleTransactions` والتأكيد فيه `feeOnly:true` + `leg:'return'`. `feeOnlyState ≠ ready` (`trip_pending` · `already_recorded` · `check_failed`) = متخطّي بسبب مكتوب (`FEE_ONLY_SKIP`) وبلا تأكيد. منع Worker (`blocked`) على الصف ده بيوقف الجلسة.
+- ⛔ **مش بيتجاب من «تحصيل المندوب»/تسليمات اليوم** (الرصيد صفر) — بيتضاف بالرقم أو السكان.
+- ✅ الفحص: `docs/cod-freeship-check.mjs` **74** (+§⑧: دخول الصف · −75 · السطر والبادج · طرق الدفع · التأكيد والزرار · نداء `refund` بـ`feeOnly` وبلا refundAmount · `batchExpected` −75 · الحالات المتخطّاة) · tools 210 + فشل واحد قديم (`Bosta-Webhook-Status-Receiver`). ⚠️ ما اتجرّبش على Worker/D1/شوبيفاي حقيقيين — أول تسجيل حقيقي = #65513 (يدوي بقرار أحمد).
+
 ## 🧾 تمريرة v2.6.0 — «تحديث حالة الأوردرات»: تاب «سجل العمليات» على html-builder v9.1.0 + ريبو الأداة بقى Worker وبس (طلب أحمد 18-11-2026)
 
 - **الواجهة المستقلة اتحذفت:** `Order-Status-Updater.html` هنا **النسخة الوحيدة**، وريبو `Order-Status-Updater` بقى Worker وبس (`index.html` اتشال، الرابط القديم 404 بلا تحويل). **`docs/port-standalone.py` اتحذف** (كان بيولّد الصفحة دي بس) وبند «الصفحة متولّدة» اتشال من `tools-check.mjs` — مفيش صفحة متولّدة في الهب. التعديل على الصفحة مباشرة هنا. ⚠️ يدوي خارج الكود: تقفيل GitHub Pages للريبو القديم. ⛔ الجداول `TRANSITION_*` لسه في مكانين (Worker + الصفحة) بلا فحص آلي.
@@ -1021,7 +1028,7 @@ tool في D1 : delivery_cod_ops_center   ← login · logout بس (ولسه مط
 | `Shipped-Orders.html` | **طابور المشحون** (اسم الملف اتغيّر v1.12.0) | `shipped-orders-worker` | **`1.2.0`** | L (1400) |
 | `In-Return-Orders.html` | 🟤 **في طريق الرجوع (In-Return)** (v1.65.0 · متولّدة · عرض بحت) | `in-return-orders-worker` | **`1.0.0`** | L (1400) |
 | `Order-Status-Updater.html` | 🔗 **تحديث حالة الأوردرات** (مدموجة · اسم الملف اتغيّر v1.11.0) | `order-status-updater-worker` | **`4.7.0`** | **M (1200)** |
-| `COD-Payment-Center.html` | 🔗 **تحصيل الأوردرات COD** (مدموجة · **النسخة الوحيدة من v1.89.0** — الريبو بقى Worker وبس) | `cod-payment-center-worker` | **`3.23.0`** | **M (1200)** |
+| `COD-Payment-Center.html` | 🔗 **تحصيل الأوردرات COD** (مدموجة · **النسخة الوحيدة من v1.89.0** — الريبو بقى Worker وبس) | `cod-payment-center-worker` | **`3.28.0`** | **M (1200)** |
 | `Partial-Delivery.html` | 🔗 **التسليم الجزئي** (مدموجة من v1.10.0 · بلا نسخة قديمة · اسم الملف اتغيّر v1.11.0 · S2 من v1.62.0) | `partial-delivery-worker` | **`1.3.0`** | **M (1200)** |
 | `Bosta-Orders-Upload.html` | 🔗 **رفع بوسطة** (مدموجة من v1.13.0 · من v1.18.0 هي النسخة الوحيدة — الرابط القديم اتشال بلا تحويل) | `bosta-orders-upload-worker` | **`2.20.0`** | **M (1200)** |
 | `Courier-Names.html` | 🛵 **أسماء المناديب** (v1.30.0 · قسم «أدوات أخرى» · Worker وبس في ريبو `Courier-Names`) | `courier-names-worker` | **`1.0.0`** | **M (1200)** |

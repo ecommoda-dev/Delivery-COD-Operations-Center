@@ -41,6 +41,10 @@ PREV['65621'] = ret('65621', 'Abo Selim', '-125.00', { ...refundX, returnShippin
 PREV['65622'] = ret('65622', 'Saif', '100.00', { orderKind: 'exchange' }, LEG);                                            // استبدال بفرق 100 يتحصّل
 PREV['65623'] = ret('65623', 'Showroom', '-200.00', refundX, { freeShipping: true, courierFee: 0, courierKind: 'showroom', feeLeg: 'return' });
 PREV['65624'] = ret('65624', null, '-200.00', refundX, { freeShipping: true, courierMissing: true, feeLeg: 'return' });
+// 🆕 Worker 3.28.0 — «أجر مشوار فقط» (#65513): استبدال بنفس السعر · رصيد صفر · رسوم مرتجع صفر · شحن أصلي 75 والمرتجع اتقفل
+PREV['65630'] = { ...ret('65630', 'Saif', '0.00', { canMarkAsPaid: false, skipReason: 'مدفوع بالكامل', financialStatus: 'PAID', orderKind: 'exchange', shippingAmount: '75.00' }, { ...LEG, feeOnly: true, feeReturnId: '37747065154' }) };
+PREV['65631'] = { ...ret('65631', 'Saif', '0.00', { canMarkAsPaid: false, skipReason: 'مدفوع بالكامل', financialStatus: 'PAID', orderKind: 'exchange', shippingAmount: '75.00', feeOnlyState: 'trip_pending', feeOnlyMsg: 'x' }, {}) };
+PREV['65632'] = { ...ret('65632', 'Saif', '0.00', { canMarkAsPaid: false, skipReason: 'مدفوع بالكامل', financialStatus: 'PAID', orderKind: 'exchange', shippingAmount: '75.00', feeOnlyState: 'already_recorded', feeOnlyMsg: 'x' }, {}) };
 const launchOpts = { args: ['--no-sandbox'] }; if (process.env.PW_CHROMIUM) launchOpts.executablePath = process.env.PW_CHROMIUM;
 const browser = await chromium.launch(launchOpts);
 const SESSION = { v: 1, username: 'Ahmed_Ibraheem', displayName: 'Ahmed Ibraheem', loginAt: '2026-11-14T08:00:00.000Z' };
@@ -267,6 +271,56 @@ await page.evaluate(() => addOrder('65624'));
 await page.waitForFunction(() => orders.length === 1 && orders[0].status === 'refund');
 const nm7 = await page.evaluate(() => ({ rows: document.querySelectorAll('tr.freeship-row').length, btns: document.querySelectorAll('.fs-btn').length, err: getFreeShipError(), btn: document.getElementById('payBtn').disabled }));
 is(nm7.rows === 1 && nm7.btns === 0 && /حدد المندوب/.test(nm7.err) && nm7.btn, 'مرتجع بلا مندوب: تنبيه أحمر بلا زرار + التنفيذ مقفول', JSON.stringify(nm7));
+is(errs.length === 0, 'صفر خطأ كونسول', errs.slice(0, 3).join(' || '));
+await page.context().close();
+
+console.log('\n══ ⑧ v2.7.0 — «أجر مشوار فقط» (#65513): استبدال بنفس السعر · رصيد صفر ══');
+({ page, calls, errs } = await open());
+await page.evaluate(() => addOrder('65630'));
+await page.waitForFunction(() => orders.length === 1 && orders[0].status === 'refund');
+const fo = await page.evaluate(() => ({
+  st: orders[0].status, fo: orders[0].feeOnly, ra: orders[0].refundAmount, collect: calcCourierCollect(orders[0]), net: getCourierCollectNet(),
+  note: (document.querySelector('tr.freeship-row')?.innerText || '').replace(/\s+/g, ' '), chip: (document.querySelector('.fs-cell')?.innerText || '').replace(/\s+/g, ' '),
+  badge: (document.querySelector('tr.order-row .badge')?.innerText || '').trim(), btn: document.getElementById('payBtn').disabled,
+  pay: (document.querySelector('tr.order-row')?.innerText || '').replace(/\s+/g, ' '),
+}));
+is(fo.st === 'refund' && fo.fo === true && fo.ra === 0, 'الأوردر دخل الجلسة كصف «أجر مشوار فقط» (refund بمبلغ 0)', JSON.stringify([fo.st, fo.fo, fo.ra]));
+is(fo.collect === -75 && fo.net === -75, 'تحصيل المندوب = −75 (من أول لحظة)', JSON.stringify([fo.collect, fo.net]));
+is(/مشوار المرتجع\/الاستبدال بلا تحصيل ولا استرداد/.test(fo.note) && /0 − 75 = −75/.test(fo.note) && /من غير أي تسجيل على شوبيفاي/.test(fo.note), 'سطر التنبيه: الأرقام (0 − 75 = −75) وإنه بلا تسجيل على شوبيفاي', fo.note);
+is(/أجر مشوار 75/.test(fo.chip) && /أجر مشوار/.test(fo.badge) && /أجر مشوار فقط/.test(fo.pay), 'خلية «شحن» وبادج الصف وحالة الدفع بيقولوا «أجر مشوار»', JSON.stringify([fo.chip, fo.badge]));
+is(fo.btn, 'زرار التنفيذ مقفول لحد التأكيد');
+await page.click('[data-ptog="cash"]'); await page.click('[data-prest="cash"]');
+const fo2 = await page.evaluate(() => ({ valid: isPayValid(), cash: document.getElementById('pmCash').value }));
+is(fo2.valid && Math.abs(parseFloat(fo2.cash)) === 75, 'طرق الدفع على 75 (نقدي — الخزنة بتدفع للمندوب)', JSON.stringify(fo2));
+await page.click('.fs-btn:not(.fs-undo)');
+const fo3 = await page.evaluate(() => ({ ok: !!document.querySelector('.fs-note.fs-ok'), btn: document.getElementById('payBtn').disabled, ack: freeShipAck(orders[0]) }));
+is(fo3.ok && !fo3.btn && fo3.ack && fo3.ack.feeOnly === true && fo3.ack.leg === 'return' && fo3.ack.courierFee === 75, 'بعد «أؤكد»: الزرار اتفتح والتأكيد فيه feeOnly + leg=return', JSON.stringify(fo3));
+await payClick(page);
+const dlgF = await txt(page, '#confirmBody');
+is(/75/.test(dlgF) && /أجر مرتجع 75/.test(dlgF), 'نافذة التأكيد: أجر 75 والإجمالي المستحق', dlgF.slice(0, 260));
+calls.length = 0;
+await page.click('#confirmOkBtn');
+await page.waitForFunction(() => !orders.length || orders.every(o => o.status !== 'loading'));
+await page.waitForTimeout(300);
+const rfF = calls.find(c => c.action === 'refund');
+is(!!rfF && rfF.body.feeOnly === true, 'اتبعت refund بـ feeOnly:true', JSON.stringify(rfF && Object.keys(rfF.body)));
+is(rfF && rfF.body.refundAmount === undefined && rfF.body.saleTransactions === undefined, 'من غير refundAmount ولا saleTransactions (مفيش استرداد على شوبيفاي)');
+is(rfF && rfF.body.orderMeta.courierCollect === -75 && JSON.stringify(rfF.body.orderMeta.freeShipping) === JSON.stringify({ confirmed: true, courierKind: 'courier', courierFee: 75, leg: 'return', feeOnly: true }), 'orderMeta: courierCollect −75 + تأكيد feeOnly/leg', JSON.stringify(rfF && rfF.body.orderMeta));
+is(rfF && rfF.body.sessionMeta.batchExpected.collect === '-75.00' && rfF.body.sessionMeta.batchExpected.net === '-75.00' && rfF.body.sessionMeta.batchExpected.refundOrders === 1, 'batchExpected: collect/net = −75.00 · refundOrders 1', JSON.stringify(rfF && rfF.body.sessionMeta.batchExpected));
+is(!calls.some(c => c.action === 'pay'), 'مفيش pay');
+const afterF = await page.evaluate(() => orders.length);
+is(afterF === 0, 'الصف اتشال بعد النجاح');
+is(errs.length === 0, 'صفر خطأ كونسول', errs.slice(0, 3).join(' || '));
+await page.context().close();
+
+console.log('\n══ ⑧-ب أجر المشوار مش متاح (المرتجع مفتوح · اتسجّل قبل كده) ══');
+({ page, calls, errs } = await open());
+await page.evaluate(() => addOrder('65631'));
+await page.waitForFunction(() => orders.length === 1 && orders[0].status === 'skipped');
+await page.evaluate(() => addOrder('65632'));
+await page.waitForFunction(() => orders.length === 2 && orders.every(o => o.status === 'skipped'));
+const sk = await page.evaluate(() => ({ r: orders.map(o => o.skipReason), rows: document.querySelectorAll('tr.freeship-row').length, btn: document.getElementById('payBtn').disabled }));
+is(/لسه ما خلصش/.test(sk.r[1]) && /اتسجّل قبل كده/.test(sk.r[0]) && sk.rows === 0, 'الاتنين متخطّيين بسبب مكتوب وبلا تنبيه تأكيد', JSON.stringify(sk));
 is(errs.length === 0, 'صفر خطأ كونسول', errs.slice(0, 3).join(' || '));
 await page.context().close();
 

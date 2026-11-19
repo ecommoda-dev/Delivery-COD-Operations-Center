@@ -1627,7 +1627,18 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.5.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.7.0</span>
+          <span class="cl-ver-date">19-11-2026 · «أجر مشوار فقط»: استبدال بنفس السعر (رصيد صفر) كان أجر المندوب بتاعه بيضيع (#65513) — دلوقتي بيتسجّل بصف −75 على الخزنة · الشحن الأصلي مابقاش بيمنع أجر المرتجع/الاستبدال</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>أجر مشوار فقط:</strong> أوردر عليه مرتجع/استبدال، رصيده صفر على شوبيفاي، ورسوم المرتجع صفر، والمرتجع اتقفل (أو S2 = Returned) ← بيدخل الجلسة كصف «أجر مشوار» بـ −75 مع زرار تأكيد. بيتسجّل في السجل بس — <strong>صفر تسجيل على شوبيفاي</strong>. بيتمنع لو الأجر اتسجّل قبل كده لنفس المرتجع أو مندوب الأوردر غير مندوب الجلسة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الشحن الأصلي:</strong> شرط «الشحن الأصلي = 0» اتشال من أجر المرتجع/الاستبدال (كان بيضيّع الأجر لو الأوردر شحنه 75). أجر المشوار بيتخصم من فرق الاستبدال أو بيتضاف على الاسترداد زي ما هو (−200 − 75 = −275).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>مطلوب Worker 3.28.0</strong> (<code>codPayment.min</code>) — وانشر <strong>الخزنة (Treasury-Ledger 1.10.0)</strong> قبل أول تسجيل عشان مقارنة شوبيفاي تحسب الأجر فوق الشحن.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v2.5.0</span>
           <span class="cl-ver-date">18-11-2026 · «استرداد جزئي بوسطة»: زرار نافذة واحد بعرض النافذة · أرقام بالسالب · تنبيه اختلاف الباقي عن المسجّل وقت الرفع · زرار «سجّل الاسترداد» أحمر · صفحة الهب بس (صفر تعديل Worker)</span>
         </div>
         <ul class="cl-items">
@@ -2861,6 +2872,8 @@ $('entryAddBtn').addEventListener('click', entryFire);
 $('entryChips').addEventListener('click', e => { const ch = e.target.closest('.entry-chip'); if (ch) entrySelectChip(ch.dataset.m); });
 entryRenderBar();
 
+// 🆕 v2.7.0 — أسباب عدم إتاحة «أجر مشوار فقط» (الـ Worker ≥ 3.28.0 هو اللي بيحدد الحالة)
+const FEE_ONLY_SKIP = { trip_pending: 'مشوار المرتجع لسه ما خلصش — الأجر بعد قفل المرتجع', already_recorded: 'أجر المشوار اتسجّل قبل كده', check_failed: 'تعذّر التأكد من أجر المشوار — أعد الإضافة' };
 async function addOrder(numericId) {
   const order = {
     id: numericId, orderName: null, amount: null, subtotal: null, shippingAmount: null,
@@ -2873,6 +2886,7 @@ async function addOrder(numericId) {
     s1: null, s2: null, statusError: null,
     s2Due: null, preRegBlock: null,
     freeShipping: false, courierFee: null, courierKind: null, courierMissing: false, freeShipConfirmed: false, feeLeg: null,
+    feeOnly: false,   // 🆕 Worker ≥ 3.28.0 — «أجر مشوار فقط»: استبدال بنفس السعر (رصيد صفر) والمندوب راح المشوار
   };
   orders.unshift(order);
   showTable(); updateStats(); renderTable();
@@ -2909,6 +2923,7 @@ async function addOrder(numericId) {
         order.courierFee      = d.courierFee != null ? Number(d.courierFee) : null;
         order.courierKind     = d.courierKind || null;
         order.courierMissing  = d.courierMissing === true;
+        order.feeOnly         = d.feeOnly === true;   // Worker ≥ 3.28.0 — صف أجر بلا تحصيل ولا استرداد (courierCollect = −الأجر)
         order.feeLeg          = d.feeLeg || null;   // Worker ≥ 3.15.0 — 'return' = أجر المندوب على مرتجع/استبدال بلا رسوم مرتجع على شوبيفاي
         order.freeShipConfirmed = false;
         // 🔴 v3.6.0 — أوردر مسجّل مسبقًا عليه متبقي مالوش تفسير (مفيش S2 ولا
@@ -2919,7 +2934,9 @@ async function addOrder(numericId) {
         order.preRegBlock     = d.preRegBlock || null;
         order.statusError     = order.preRegBlock || calcStatusError(order, false);
         if (order.preRegBlock) { playBeep('error'); showToast('⛔ أوردر مسجّل مسبقًا محتاج مراجعة — الجلسة متوقفة', 'error'); }
-        if (d.skipReason === 'مستحق استرداد') { order.status = 'refund'; order.refundAmount = Math.abs(order.amount); }
+        if (d.feeOnly === true) { order.status = 'refund'; order.refundAmount = 0; }   // 🆕 v2.7.0 — «أجر مشوار فقط» بيدخل الجلسة كصف سالب (−الأجر) من غير استرداد على شوبيفاي
+        else if (d.feeOnlyState && d.feeOnlyState !== 'ready') { order.status = 'skipped'; order.skipReason = FEE_ONLY_SKIP[d.feeOnlyState] || 'مدفوع بالكامل'; }
+        else if (d.skipReason === 'مستحق استرداد') { order.status = 'refund'; order.refundAmount = Math.abs(order.amount); }
         else { order.status = d.canMarkAsPaid ? 'ready' : 'skipped'; }
       }
     } else if (d.notFound) { order.status = 'notfound'; }
@@ -3199,14 +3216,14 @@ function confirmFreeShip(idx, on) {
 }
 // اللي بيتبعت للـ Worker مع `pay` — بيقارنه بحسابه هو (النوع والأجر لازم يطابقوا) وإلا بيوقف قبل أي كتابة
 function freeShipAck(o) {
-  return (o.freeShipping && !o.courierMissing && o.freeShipConfirmed) ? { confirmed: true, courierKind: o.courierKind, courierFee: o.courierFee, ...(o.feeLeg ? { leg: o.feeLeg } : {}) } : null;
+  return (o.freeShipping && !o.courierMissing && o.freeShipConfirmed) ? { confirmed: true, courierKind: o.courierKind, courierFee: o.courierFee, ...(o.feeLeg ? { leg: o.feeLeg } : {}), ...(o.feeOnly ? { feeOnly: true } : {}) } : null;
 }
 // سطر التنبيه + التأكيد تحت صف الأوردر
 function freeShipNoteHTML(o, i) {
   if (!(o.freeShipping && fsActive(o))) return '';
   const name = esc(o.orderName || ('#' + o.id));
   const ret = fsRetLeg(o);   // مرتجع/استبدال بلا رسوم مرتجع على شوبيفاي (Worker ≥ 3.15.0)
-  const what = ret ? 'شحن المرتجع/الاستبدال مجاني (مفيش رسوم مرتجع على شوبيفاي)' : 'شحن مجاني';
+  const what = o.feeOnly ? 'مشوار المرتجع/الاستبدال بلا تحصيل ولا استرداد (مفيش رسوم مرتجع على شوبيفاي)' : ret ? 'شحن المرتجع/الاستبدال مجاني (مفيش رسوم مرتجع على شوبيفاي)' : 'شحن مجاني';
   if (o.courierMissing) {
     return `<tr class="freeship-row" data-type="freeship" data-idx="${i}"><td colspan="11"><div class="fs-note fs-err">
       <span class="fs-ico">⛔</span>
@@ -3219,7 +3236,9 @@ function freeShipNoteHTML(o, i) {
   const calc = isShow
     ? `<span class="fs-calc">${fmtSigned(base)}</span> كما هو`
     : `<span class="fs-calc">${fmtSigned(base)} − ${fmt(o.courierFee)} = ${fmtSigned(net)}</span>`;
-  const text = isShow
+  const text = o.feeOnly
+    ? `<strong>${what} في الأوردر ${name}</strong> — هيتحسب للمندوب <strong>${fmt(o.courierFee)} ج</strong> أجر المشوار على الخزنة (<span class="fs-calc">0 − ${fmt(o.courierFee)} = ${fmtSigned(net)}</span>) من غير أي تسجيل على شوبيفاي.`
+    : isShow
     ? (ret
       ? `<strong>${what} في الأوردر ${name}</strong> — مندوب Showroom: <strong>مفيش أجر</strong> على الخزنة (${calc}).`
       : `<strong>شحن مجاني في الأوردر ${name}</strong> — مندوب Showroom: <strong>مفيش خصم</strong> مصاريف شحن من التحصيل (${calc}).`)
@@ -3236,7 +3255,7 @@ function freeShipNoteHTML(o, i) {
   return `<tr class="freeship-row" data-type="freeship" data-idx="${i}"><td colspan="11"><div class="fs-note">
       <span class="fs-ico">🆓</span>
       <div class="fs-text">${text}</div>
-      <button class="fs-btn" onclick="confirmFreeShip(${i})">${isShow ? (ret ? 'أؤكد: شحن مرتجع مجاني — بدون أجر' : 'أؤكد: شحن مجاني — بدون خصم') : (ret ? `أؤكد: شحن مرتجع مجاني — أجر ${fmt(o.courierFee)} ج` : `أؤكد: شحن مجاني — خصم ${fmt(o.courierFee)} ج`)}</button>
+      <button class="fs-btn" onclick="confirmFreeShip(${i})">${o.feeOnly ? `أؤكد: أجر مشوار ${fmt(o.courierFee)} ج بلا تحصيل` : isShow ? (ret ? 'أؤكد: شحن مرتجع مجاني — بدون أجر' : 'أؤكد: شحن مجاني — بدون خصم') : (ret ? `أؤكد: شحن مرتجع مجاني — أجر ${fmt(o.courierFee)} ج` : `أؤكد: شحن مجاني — خصم ${fmt(o.courierFee)} ج`)}</button>
     </div></td></tr>`;
 }
 // خلية «شحن» للأوردر المجاني
@@ -3245,7 +3264,7 @@ function freeShipCellHTML(o) {
   if (o.courierMissing) return `<span class="fs-chip fs-err">⛔ مجاني</span><span class="fs-sub">بلا مندوب</span>`;
   const ok = o.freeShipConfirmed || o.status === 'done' || o.status === 'refund-done';
   const ret = fsRetLeg(o);
-  const sub = o.courierKind === 'showroom' ? (ret ? 'مرتجع · بلا أجر' : 'بلا خصم') : (ret ? `أجر مرتجع ${fmt(o.courierFee)}` : `خصم ${fmt(o.courierFee)}`);
+  const sub = o.feeOnly ? `أجر مشوار ${fmt(o.courierFee)}` : o.courierKind === 'showroom' ? (ret ? 'مرتجع · بلا أجر' : 'بلا خصم') : (ret ? `أجر مرتجع ${fmt(o.courierFee)}` : `خصم ${fmt(o.courierFee)}`);
   return `<span class="fs-chip${ok ? ' fs-ok' : ''}">🆓 مجاني</span><span class="fs-sub">${sub}</span>`;
 }
 function financialLabel(s) {
@@ -3301,6 +3320,7 @@ function renderTable() {
 
     let paymentStatusDisplay;
     if (isCancelled) paymentStatusDisplay = `<span style="color:var(--red);font-size:11px">Cancelled</span>`;
+    else if (o.feeOnly && o.status === 'refund') paymentStatusDisplay = `<span style="color:var(--red);font-size:11px;font-weight:700">أجر مشوار فقط</span>`;
     else if (isRefundStatus && o.status === 'refund') paymentStatusDisplay = `<span style="color:var(--red);font-size:11px;font-weight:700">Refund owed</span>`;
     else paymentStatusDisplay = `<span style="font-size:11px">${financialLabel(o.financialStatus)}</span>`;
 
@@ -3308,9 +3328,9 @@ function renderTable() {
     if (o.status === 'scanning')      badge = `<span class="badge badge-scanning"><span class="spinner"></span> مسح...</span>`;
     else if (o.status === 'loading')  badge = `<span class="badge badge-loading"><span class="spinner"></span> جاري...</span>`;
     else if (o.status === 'cancelled')badge = `<span class="badge badge-cancelled">ملغي</span>`;
-    else if (o.status === 'refund')   badge = `<span class="badge badge-refund">استرداد</span>`;
-    else if (o.status === 'refund-done') badge = `<span class="badge badge-refund-done">✓ تم الاسترداد</span>`;
-    else if (o.status === 'refund-error') badge = `<span class="badge badge-error" title="${esc(o.error)}">خطأ استرداد</span>`;
+    else if (o.status === 'refund')   badge = o.feeOnly ? `<span class="badge badge-refund">أجر مشوار</span>` : `<span class="badge badge-refund">استرداد</span>`;
+    else if (o.status === 'refund-done') badge = o.feeOnly ? `<span class="badge badge-refund-done">✓ تم تسجيل الأجر</span>` : `<span class="badge badge-refund-done">✓ تم الاسترداد</span>`;
+    else if (o.status === 'refund-error') badge = `<span class="badge badge-error" title="${esc(o.error)}">${o.feeOnly ? 'خطأ تسجيل الأجر' : 'خطأ استرداد'}</span>`;
     else if (o.status === 'ready')    badge = o.preRegistered ? `<span class="badge badge-prereg">📋 مسجل مسبقاً</span>` : `<span class="badge badge-collect">تحصيل</span>`;
     else if (o.status === 'done')     badge = `<span class="badge badge-done">✓ تم التحصيل</span>`;
     else if (o.status === 'skipped') {
@@ -4045,15 +4065,23 @@ async function doBulkPayAndRefund() {
   for (const order of (blockedStop ? [] : refundOrders)) {
     order.status = 'loading'; renderTable();
     try {
-      if (!order.saleTransactions || !order.saleTransactions.length) { order.status = 'refund-error'; order.error = 'لا يوجد transaction صالح'; failRefund++; }
+      if (order.feeOnly) {
+        // 🆕 v2.7.0 — «أجر مشوار فقط»: صف D1 بس بـ courierCollect = −الأجر · صفر استرداد على شوبيفاي (الـ Worker ≥ 3.28.0 بيعيد كل الشروط ويحسب الأجر)
+        const orderMeta = { hasReturn:order.hasReturn, returnShipping:order.returnShipping, courierCollect:calcCourierCollect(order), freeShipping:freeShipAck(order), paymentSplit:splitOf.get(order), paymentAccounts:acctOf.get(order)||null, orderKind:order.orderKind, multiCycle:order.multiCycle };
+        const d = await apiPostLegacy('refund', { orderId:order.id, feeOnly:true, orderName:order.orderName, batchId, sessionMeta, orderMeta, employee: sessionMeta.employee });
+        if (d.success) { order.status = 'refund-done'; successRefund++; absorbResult(order, d); }
+        else { order.status = 'refund-error'; order.result = 'error'; order.error = d.error||'فشل'; failRefund++; if (d.blocked) blockedStop = `${order.orderName || '#'+order.id}: ${d.error||''}`; }
+      }
+      else if (!order.saleTransactions || !order.saleTransactions.length) { order.status = 'refund-error'; order.error = 'لا يوجد transaction صالح'; failRefund++; }
       else {
         const orderMeta = { lineItems:order.lineItems, returnedItems:order.returnedItems, orderDiscount:order.orderDiscount, preRegistered:order.preRegistered, hasReturn:order.hasReturn, returnShipping:order.returnShipping, courierCollect:calcCourierCollect(order), freeShipping:freeShipAck(order), paymentSplit:splitOf.get(order), paymentAccounts:acctOf.get(order)||null, orderKind:order.orderKind, multiCycle:order.multiCycle };
         const d = await apiPostLegacy('refund', { orderId:order.id, refundAmount:order.refundAmount.toFixed(2), saleTransactions:order.saleTransactions, currency:'EGP', orderName:order.orderName, batchId, sessionMeta, orderMeta, employee: sessionMeta.employee });
         if (d.success) { order.status = 'refund-done'; order.financialStatus = 'REFUNDED'; successRefund++; absorbResult(order, d); }
         else { order.status = 'refund-error'; order.result = 'error'; order.error = d.error||'فشل'; failRefund++; }
       }
-    } catch (e) { order.status = 'refund-error'; order.error = 'ما اتأكدناش إن الاسترداد اتسجّل (انقطع الاتصال) — راجع تاب سجل العمليات قبل ما تعيد المحاولة'; failRefund++; }
+    } catch (e) { order.status = 'refund-error'; order.error = order.feeOnly ? 'ما اتأكدناش إن الأجر اتسجّل (انقطع الاتصال) — راجع تاب سجل العمليات قبل ما تعيد المحاولة' : 'ما اتأكدناش إن الاسترداد اتسجّل (انقطع الاتصال) — راجع تاب سجل العمليات قبل ما تعيد المحاولة'; failRefund++; }
     done++; setProgress(done/total*100); updateStats(); renderTable();
+    if (blockedStop) break;   // 🆕 v2.7.0 — «أجر مشوار فقط» اتمنع من الـ Worker (حالة مش متوقعة) = الجلسة بتقف
   }
 
   isProcessing = false; syncEntryLock(); updatePayBtn(); updatePayMethodsCard();
