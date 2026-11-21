@@ -1956,7 +1956,7 @@ function qRender0() {
       <td class="date-cell">${since
             ? `<span class="cell-date">${esc(formatDate(o.packedAt))}</span><span class="time-badge ${since.cls}" data-q-pack="${esc(o.packedAt)}">${esc(since.text)}</span>`
             : '<span class="flag-ok">—</span>'}</td>
-      <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(isS2 ? 'استبدال/استرجاع' : 'عادي')}</span></td>
+      <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(o.machineLabel || (isS2 ? 'استبدال/استرجاع' : 'عادي'))}</span></td>
       <td>${o.flags.length
             ? `<button type="button" class="flag-btn" data-flag-idx="${i}">⚠️ ${o.flags.length}</button>`
             : '<span class="flag-ok">—</span>'}</td>

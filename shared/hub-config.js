@@ -97,7 +97,7 @@ const ECO_WORKERS = {
   //    هنا بيمسك الحالة الوحيدة الممكنة: الـ Worker ما اتنشرش أو الـ Promote ناقص (`get_config` بيرجّع 404/401)،
   //    وبيسمّي الأداة بدل ما الموظف يدوّر. 🔴 **والسر سر الهب** (`delivery_cod_ops`) — الـ Worker لازم يتضم للمجموعة
   //    (`WORKER_SECRET` يتدوّر من الداشبورد) وإلا كل نداء `401`. نفس الأرضية `01/04/2026` بالحرف.
-  inReturn: { url: 'https://in-return-orders-worker.ecommoda-dev.workers.dev', min: '1.0.0', label: 'في طريق الرجوع' },
+  inReturn: { url: 'https://in-return-orders-worker.ecommoda-dev.workers.dev', min: '1.2.0', label: 'في طريق الرجوع' },
   // 🔴 **Worker الدخول — بتاع الهب نفسه، وعايش في **نفس الريبو**.**
   //    الهب واجهة + Worker دخول = الشكل القياسي (قرار ٨ في
   //    `ecommoda-tool-migration-playbook`). بيخدم: `get_employees` ·
@@ -266,7 +266,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v2.7.0';                     // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v2.8.0';                     // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +

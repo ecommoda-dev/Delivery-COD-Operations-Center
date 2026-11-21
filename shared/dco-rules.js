@@ -210,6 +210,19 @@ function ecoFlags(o, status, queue) {
 //    معناه **بيانات شحنة تانية** على نفس الأوردر: رقم غلط شكله سليم.
 //    (نفس الفخ المقيس في `package-transfer-to-office`: ٦ من ٦ صفوف S2
 //    كانت هتعدّي بفحص S1، والصح ٢.)
+// ── تسمية نوع صف S2 — استبدال ولا استرجاع؟ ───────────────────
+//
+// 🔴 `order-lifecycle` قاعدة 8: النوع من `return.exchangeLineItems` (بيرجع من الـ Worker
+//    كـ`returnKind`) — مش من حالة الماكينة. ⚠️ **والفاضية مش استرجاع**: تعديل الأوردر بعد
+//    تسجيل الاستبدال بيفضّيها، فبنقول «غير مؤكد» بدل ما ندّعي استرجاع.
+// ⚠️ **اختياري بالتصميم:** Worker مابيرجّعش `returnKind` (الجاهز · المشحون · نسخة قديمة من
+//    «في طريق الرجوع») = التسمية العامة القديمة بالظبط، فمفيش طابور تاني بيتغيّر.
+function ecoS2Label(o) {
+  if (o.returnKind === 'exchange') return 'استبدال';
+  if (o.returnKind === 'return_unconfirmed') return 'استرجاع (غير مؤكد)';
+  return 'استبدال/استرجاع';
+}
+
 function ecoShapeRow(o, status, queue, now = new Date()) {
   const machine = ecoMachineByStatus(o, status);
   const isS2 = machine === 's2';
@@ -217,7 +230,7 @@ function ecoShapeRow(o, status, queue, now = new Date()) {
   return {
     ...o,
     machine,
-    machineLabel: isS2 ? 'استبدال/استرجاع' : 'عادي',
+    machineLabel: isS2 ? ecoS2Label(o) : 'عادي',
     packedAt: isS2 ? o.packedAtS2 : o.packedAtS1,
     packedBy: isS2 ? o.packedByS2 : o.packedByS1,
     whereabouts: isS2 ? o.whereaboutsS2 : o.whereaboutsS1,
