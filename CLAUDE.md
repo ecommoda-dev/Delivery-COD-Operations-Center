@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center (`Delivery-COD-Operations-Center`)
 
-![version](https://img.shields.io/badge/version-v2.4.0-blue)
+![version](https://img.shields.io/badge/version-v2.8.0-blue)
 
 **بتعمل إيه:** هب واحد لمحطة الشحن والتحصيل. الموظف بيدخل **مرة واحدة**،
 وبيشوف طوابير الشحن: اللي **جاهز يخرج**، واللي **خرج ولسه بلا نتيجة** —
@@ -76,6 +76,14 @@
 
 > 🔄 **أسماء قديمة في الملف ده (تاريخية):** قبل المرحلة ٣/٤ (هب المخزن v1.45.0 · هب الشحن v1.49.0) كان فيه `shared/shell.js` و`shared/shell.css` والبادئات `woc*`/`dco*`. دلوقتي:
 > `shell.js` ← **`core.js`** (المشترك) + **`hub-config.js`** (`ECO_WORKERS` · `TOOL_VERSION` · مفاتيح الجلسة والسر) + **`dco-rules.js`**، و`shell.css` ← **`core.css`** (المشترك) + **`hub.css`** (ألوان الهب)، والبادئات ← **`eco*`** / `eco-` (`wocApi`←`ecoApi` · `WOC_WORKERS`/`DCO_WORKERS`←`ECO_WORKERS` · `.woc-*`/`.dco-*`←`.eco-*`). **قيم مفاتيح التخزين ما اتغيّرتش** (`woc_session` · `dco_session` · `*_worker_secret`). أي نص تحت بيقول «في الـ shell» معناه الملف المناسب من دول.
+
+## 📅 تمريرة v2.8.0 — «في طريق الرجوع»: عمود «تاريخ الطلب» + «نوع الأوردر» من `exchangeLineItems` (طلب أحمد 21-11-2026)
+
+- الـ Worker `in-return-orders-worker` **1.2.0** (ريبو `In-Return-Orders`) · `ECO_WORKERS.inReturn.min` → **`1.2.0`** (🔴 **انشره قبل الصفحة**، وعلى الـ Custom App صلاحية **`read_returns`** وإلا الطابور كله بيقع) · `TOOL_VERSION` → `v2.8.0`.
+- **عمود «تاريخ الطلب»** بعد رقم التتبع: `returnRequestedAt` = `Return.createdAt` لأحدث دورة غير ملغية (مرتّبة بـ`createdAt` — order-lifecycle Rule 15). أوردر بأكتر من دورة بيظهر تحت تاريخه اسم الدورة وعددهم. `—` = مفيش Return (RTO). قابل للترتيب وبيتصدّر في الإكسيل. **المصدر `docs/build-pages.py` (`REQ_FN` · `extraHead`/`extraCell`/`sortExtra`) — الصفحة متولّدة، متعدّلش `In-Return-Orders.html` بالإيد.**
+- **«نوع الأوردر» لصفوف S2** (`ecoS2Label` في `shared/dco-rules.js`): `returnKind = exchange` ← «استبدال» · `return_unconfirmed` ← «استرجاع (غير مؤكد)» · بلا `returnKind` ← «استبدال/استرجاع» (التسمية القديمة). 🔴 **«غير مؤكد» مقصود:** `exchangeLineItems` الفاضية مش دليل استرجاع (قاعدة 8 — #53531 · #53701). صفوف S1 لسه «عادي». **اختياري بالتصميم** فالجاهز والمشحون ما اتغيّروش في الأرقام ولا التسمية.
+- ⚠️ **لسه مفتوح (اتناقش):** اسم «عادي» لصف S1 في طابور المرتجعات مضلّل (هو RTO مش أوردر عادي) · وصف الصف لما S1 و S2 الاتنين `In-Return` بيطلع «عادي» مع إن S2 ممكن يكون هو اللي في الطريق — **ما اتغيّرش**، مستني قرار أحمد.
+- ⚠️ **ما اتجرّبش على Worker منشور/شوبيفاي حقيقية** — الفحص على Worker وهمي (`queues-check` **596** · `rules-check` 90 · tools 210 + فشل واحد قديم `Bosta-Webhook-Status-Receiver` «تابات الأداة»). تكلفة الاستعلام بعد الإضافة مش مقيسة — راجع `queryCost`.
 
 ## 🚶 تمريرة v2.7.0 — «تحصيل الأوردرات COD»: «أجر مشوار فقط» + الشحن الأصلي مابقاش شرط على أجر المرتجع/الاستبدال (طلب أحمد 19-11-2026 · #65513)
 

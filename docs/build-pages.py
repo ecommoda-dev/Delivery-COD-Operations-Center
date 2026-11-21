@@ -1401,17 +1401,52 @@ SHIPPED_ABOUT_COLS = '''            <li><b>العنوان</b> — <code>address1
 #    (`In-Return-Orders-…`) — فمفيش نسخة تانية بتفترق (درس R1).
 # ⛔ بلا جرد ولا مربعات «موقع الشحنة» ولا عمود ملحوظات — نفس أسباب «المشحون»
 #    بالحرف (الشرح عند معاملات صفحة المشحون).
+REQ_FN = '''// 🟢 «تاريخ الطلب» (طابور «في طريق الرجوع» بس · in-return-orders-worker 1.1.0) — تاريخ إنشاء
+//    **آخر** Return request على الأوردر (`returnRequestedAt`). الأوردر ممكن يفتح أكتر من دورة —
+//    الـ Worker هو اللي بيختار أحدث دورة غير ملغية (order-lifecycle Rule 15)، والصفحة بتعرض بس.
+//    ⚠️ `—` معناها «مفيش Return على الأوردر ده» (RTO عادةً) — مش خطأ ولا علامة مراجعة.
+//    ⚠️ ولو فيه أكتر من دورة بيظهر سطر صغير باسم آخر دورة وعددهم، عشان التاريخ ما يتقريش على إنه
+//       تاريخ الدورة الوحيدة.
+function returnRequestCell(o) {
+  if (!o.returnRequestedAt) return '<span class="flag-ok">—</span>';
+  const a = ecoOrderAge(o.returnRequestedAt, new Date());
+  const multi = (o.returnCycles || 0) > 1
+    ? `<span class="cell-sub" title="أكتر من دورة استبدال/استرجاع على الأوردر — المعروض تاريخ الأحدث">${esc(o.returnName || '')} · ${o.returnCycles} دورات</span>`
+    : '';
+  return `<span class="cell-date">${esc(formatDate(o.returnRequestedAt))}</span><span class="time-badge age-badge ${a.cls}" data-q-age="${esc(o.returnRequestedAt)}">${esc(a.text)}</span>${multi}`;
+}
+'''
 EXPORT_JS_INRETURN = EXPORT_JS.replace('Shipped-Orders', 'In-Return-Orders')
 assert 'Shipped-Orders' not in EXPORT_JS_INRETURN
+# 🟢 «تاريخ الطلب» في التصدير — بعد «تاريخ الأوردر» (نفس ترتيب الجدول) · لصفحة «في طريق الرجوع» بس
+_a = "      { header: 'تاريخ الأوردر',  key: 'created',  width: 20 },\n"
+assert EXPORT_JS_INRETURN.count(_a) == 1
+EXPORT_JS_INRETURN = EXPORT_JS_INRETURN.replace(_a, _a + "      { header: 'تاريخ الطلب',    key: 'reqDate',  width: 20 },\n")
+_b = "        created:  dt(o.createdAt),\n"
+assert EXPORT_JS_INRETURN.count(_b) == 1
+EXPORT_JS_INRETURN = EXPORT_JS_INRETURN.replace(_b, _b + "        reqDate:  dt(o.returnRequestedAt),\n")
 
-INRETURN_ABOUT_COLS = SHIPPED_ABOUT_COLS.replace('shipped-orders-worker', 'in-return-orders-worker').replace('<b>1.2.0</b>', '<b>1.0.0</b>')
+INRETURN_ABOUT_COLS = SHIPPED_ABOUT_COLS.replace('shipped-orders-worker', 'in-return-orders-worker').replace('<b>1.2.0</b>', '<b>1.2.0</b>')
 INRETURN_ABOUT_COLS += '''
             <li><b>الصف ممكن يبقى «شحنة أصلية» أو «استبدال/استرجاع»</b> — حسب أنهي حقل
                 قيمته <code>In-Return</code>: <code>custom.manual_status</code> (حدث RTO
                 من بوسطة بيكتبه) أو <code>custom.status_2_r_e</code> (دورة R/E).
                 ⚠️ والأوردر اللي الحقلين الاتنين عليهم <code>In-Return</code> بيتعدّ
-                <b>مرة واحدة على S1</b> وبياخد علامة مراجعة.</li>'''
+                <b>مرة واحدة على S1</b> وبياخد علامة مراجعة.</li>
+            <li><b>نوع الأوردر</b> — «عادي» = الشحنة الأصلية (S1). وصف S2 بييجي من
+                <code>return.exchangeLineItems</code> على <b>أحدث</b> دورة (مش من حالة
+                الماكينة): <b>«استبدال»</b> لو فيها قطع استبدال مسجّلة، و<b>«استرجاع (غير مؤكد)»</b>
+                لو فاضية — ⚠️ الفاضية <b>مش دليل استرجاع</b>: تعديل الأوردر بعد تسجيل الاستبدال
+                بيفضّيها للأبد. ولو الـ Worker ما رجّعش النوع بتتعرض «استبدال/استرجاع» العامة.</li>
+            <li><b>تاريخ الطلب</b> — تاريخ إنشاء <b>آخر</b> Return request على شوبيفاي
+                (<code>Return.createdAt</code> لأحدث دورة غير ملغية). الأوردر اللي اتفتح عليه أكتر
+                من دورة بيظهر تحت تاريخه اسم الدورة وعددهم. <code>—</code> = مفيش Return على
+                الأوردر (RTO عادةً). ⚠️ محتاج <code>read_returns</code> على الـ Custom App.</li>'''
 
+CL_V280_INRETURN = r'''          <li class="cl-item"><span class="cl-tag new">جديد</span><span>📅 <b>عمود «تاريخ الطلب»</b> — تاريخ آخر Return request على الأوردر على شوبيفاي (بيتختار من <b>أحدث</b> دورة غير ملغية لو الأوردر فتح أكتر من دورة)، قابل للترتيب وبيتصدّر في الإكسيل.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔀 <b>«نوع الأوردر» على صفوف S2</b> بقى «استبدال» أو «استرجاع (غير مؤكد)» من <code>exchangeLineItems</code> بدل التسمية العامة. الفاضية «غير مؤكد» لأنها مش دليل استرجاع (قاعدة 8). الطوابير التانية ما اتغيّرتش.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تنبيه</span><span>⛔ محتاج <code>in-return-orders-worker</code> <b>1.2.0</b> (وصلاحية <code>read_returns</code>) — <b>انشره قبل الصفحة</b>. ⚠️ التكلفة بعد الإضافة مش مقيسة: راجع <code>queryCost</code>.</span></li>
+'''
 CL_V165_INRETURN = r'''          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🟤 <b>أول إصدار</b> — طابور <b>«في طريق الرجوع (In-Return)»</b>: الأوردرات اللي حالتها <code>In-Return</code> في الشحنة الأصلية أو دورة الاستبدال/الاسترجاع. كانت <b>برّه أي طابور</b> في الهب (طابور «المشحون» بيقول <code>Shipped</code> بالحرف). ⛔ ومحتاج <code>in-return-orders-worker</code> <b>1.0.0</b>.</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>⬇ <b>زرار «تصدير XLSX»</b> بعد الفلاتر الحالية — اسم الملف <code>In-Return-Orders-{المندوب}-{العدد}.xlsx</code> · 🔗 رقم التتبع لينك بوسطة · 🔴 الفلاتر في رؤوس الأعمدة · الأرضية <code>01/04/2026</code> بالحرف زي الطابورين التانيين.</span></li>
 '''
@@ -1530,10 +1565,12 @@ PAGES = [
     packCol='تاريخ التغليف',
     # 🟤 نفس معاملات «المشحون» بالحرف: رقم التتبع كعمود زيادة · العنوان بعد المندوب ·
     #    بلا موقع الشحنة/ملحوظات/جرد. (الأسباب مكتوبة عند معاملات صفحة المشحون فوق.)
-    extraHead='<th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort(\'tracking\')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th>',
+    extraHead='<th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort(\'tracking\')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th>'
+              '<th class="sortable-th col-date" data-q-sort="returnRequestedAt" onclick="qToggleSort(\'returnRequestedAt\')">تاريخ الطلب<span class="sort-icon" data-q-sort="returnRequestedAt"></span></th>',
+    sortExtra=" returnRequestedAt:{ type:'date' },",
     extraFilter='',
-    extraCell="""      <td>${trackingCell(o)}</td>\n""",
-    extraFn=TR_FN,
+    extraCell="""      <td>${trackingCell(o)}</td>\n      <td class="date-cell">${returnRequestCell(o)}</td>\n""",
+    extraFn=TR_FN + '\n' + REQ_FN,
     waChipsBox='', waChipsCall='', waChipsJs='',
     addrHead='', addrCell='', addrFn=ADDR_FN,
     addrAfterHead='<th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort(\'address\')">العنوان<span class="sort-icon" data-q-sort="address"></span></th>',
@@ -1541,7 +1578,7 @@ PAGES = [
     noteHead='', noteCell='', noteFn='',
     exportLib=EXPORT_LIB, exportBtn=EXPORT_BTN, exportJs=EXPORT_JS_INRETURN,
     aboutCols=INRETURN_ABOUT_COLS,
-    cols=9,
+    cols=10,
     auditCss='', auditTabs='', auditLib='', auditView='', auditJs='', auditAbout='',
     apiFns='apiGet',
     # 🔴 صفحة جديدة بنسخة واحدة في السجل — `clSingle` بيستبدل كتل السجل التاريخية
@@ -1551,7 +1588,7 @@ PAGES = [
     #    وبنود v8.6.0 (فلتر نص بتوكنز · نافذة أرقام · قايمة تاريخ بأقسام · فلتر وقت · عرض أعمدة متماثل) 🟡 مُستحسن **ما اتطبّقتش** — بتتطبّق على الثلاث
     #    صفحات مع بعض (درس R1)، مش على الصفحة الجديدة لوحدها.
     skills='html-builder v8.5.0 (جدول الطابور المشترك) · worker-builder v3.10.0 · constants v4.4.0 · order-lifecycle v1.9.0 — 01-11-2026',
-    clSingle=True, clItems=CL_V165_INRETURN, clV133='', clPrev='',
+    clSingle=True, clItems=CL_V280_INRETURN + CL_V165_INRETURN, clV133='', clPrev='',
     aboutWhat='''الأوردرات اللي حالتها <code>In-Return</code> — مرتجعة وفي طريقها
              للمخزن و<b>محدش سجّل لها <code>Returned</code></b> لسه. 🔴 <b>مفيهاش
              أوردرات <code>Shipped</code></b> — دي في طابور «تحت التوصيل (Shipped)»،
@@ -3107,7 +3144,7 @@ function qRenderSpecialChips() {
 const Q_SORT_CONFIG = {
   orderName:{ type:'string' }, customer:{ type:'string' }, address:{ type:'string' },
   note:{ type:'string' },      courier:{ type:'string' },     whereabouts:{ type:'string' },
-  tracking:{ type:'string' },
+  tracking:{ type:'string' },__SORT_EXTRA__
   createdAt:{ type:'date' },   packedAt:{ type:'date' },
   machineLabel:{ type:'string' }, flagCount:{ type:'number' },
 };
@@ -3383,7 +3420,7 @@ __ADDR_AFTER_CELL____EXTRA_CELL__      <td class="date-cell"><span class="cell-d
       <td class="date-cell">${since
             ? `<span class="cell-date">${esc(formatDate(o.packedAt))}</span><span class="time-badge ${since.cls}" data-q-pack="${esc(o.packedAt)}">${esc(since.text)}</span>`
             : '<span class="flag-ok">—</span>'}</td>
-      <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(isS2 ? 'استبدال/استرجاع' : 'عادي')}</span></td>
+      <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(o.machineLabel || (isS2 ? 'استبدال/استرجاع' : 'عادي'))}</span></td>
       <td>${o.flags.length
             ? `<button type="button" class="flag-btn" data-flag-idx="${i}">⚠️ ${o.flags.length}</button>`
             : '<span class="flag-ok">—</span>'}</td>
@@ -3589,6 +3626,7 @@ for p in PAGES:
     out = out.replace('__ICON__', p['icon'])
     out = out.replace('__EMPTY_OK__', p['emptyOk'])
     out = out.replace('__PACK_COL__', p['packCol'])
+    out = out.replace('__SORT_EXTRA__', p.get('sortExtra', ''))
     out = out.replace('__EXTRA_HEAD__', p['extraHead'])
     out = out.replace('__EXTRA_CELL__', p['extraCell'])
     out = out.replace('__EXTRA_FN__', p['extraFn'])

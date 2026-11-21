@@ -197,7 +197,9 @@ const INRETURN_RAW = [
     itemsQty:2, total:'1200.00', currency:'EGP', zone:'Cairo+Giza', courier:'Saif',
     s1:'Delivered', s2:'In-Return', packedAtS1:'2026-09-01T09:00:00Z', packedAtS2:'2026-09-10T09:00:00Z',
     packedByS1:'Abo Selim', packedByS2:'Marwan Mohammed', whereaboutsS1:null, whereaboutsS2:null,
-    trackingS1:'4440001', trackingS2:'4440002', trackingLegacy:null },
+    trackingS1:'4440001', trackingS2:'4440002', trackingLegacy:null,
+    // 🟢 v1.2.0 — آخر دورة R/E (دورتين) ونوعها من exchangeLineItems
+    returnRequestedAt:'2026-09-09T08:00:00Z', returnName:'#57002-R2', returnStatus:'OPEN', returnCycles:2, returnKind:'exchange' },
   // ⚠️ شاذ — ملغي وهو لسه In-Return
   { orderId:'7213000000013', orderName:'#57003', createdAt:'2026-09-07T08:00:00Z', cancelledAt:'2026-09-08T10:00:00Z',
     fulfillment:'FULFILLED', financial:'PENDING', customer:'نبيل حامد', address1:null, address2:null, province:'Giza',
@@ -1256,8 +1258,20 @@ console.log('\n══ ⑤-ب In-Return-Orders.html ══');
     const o2 = await newPage();
     await o2.page.goto(`${BASE}/Shipped-Orders.html`); await o2.page.waitForSelector('#qBody tr');
     const h = await o2.page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim())); await o2.ctx.close(); return h; })();
-  is(JSON.stringify(heads) === JSON.stringify(shHeads),
-     '🔴 أعمدة «في طريق الرجوع» == أعمدة «المشحون» بالحرف وبالترتيب', JSON.stringify(heads));
+  // 🟢 v1.2.0: نفس أعمدة «المشحون» + «تاريخ الطلب» بعد «رقم التتبع» مباشرةً (الفرق الوحيد)
+  const expHeads = [...shHeads]; expHeads.splice(expHeads.indexOf('رقم التتبع') + 1, 0, 'تاريخ الطلب');
+  is(JSON.stringify(heads) === JSON.stringify(expHeads),
+     '🔴 أعمدة «في طريق الرجوع» == أعمدة «المشحون» بالحرف + «تاريخ الطلب» بعد رقم التتبع', JSON.stringify(heads));
+  // 🟢 «تاريخ الطلب» + «نوع الأوردر» من رد الـ Worker
+  const reqRows = await page.$$eval('#qBody tr', trs => trs.map(tr => ({
+    name: tr.children[0].textContent.trim(), cells: [...tr.children].map(c => c.textContent.trim()) })));
+  const iReq = heads.indexOf('تاريخ الطلب'), iType = heads.indexOf('نوع الأوردر');
+  const r2 = reqRows.find(r => r.name === '#57002'), r1 = reqRows.find(r => r.name === '#57001');
+  is(r2 && /09\/09\/2026/.test(r2.cells[iReq]) && /#57002-R2/.test(r2.cells[iReq]) && /2 دورات/.test(r2.cells[iReq]),
+     '📅 «تاريخ الطلب» بيعرض تاريخ آخر دورة + اسمها + عدد الدورات', r2 && r2.cells[iReq]);
+  is(r1 && r1.cells[iReq] === '—', '📅 أوردر RTO بلا Return = `—` (مش خطأ)', r1 && r1.cells[iReq]);
+  is(r2 && r2.cells[iType] === 'استبدال' && r1 && r1.cells[iType] === 'عادي',
+     '🔀 «نوع الأوردر»: S2 + returnKind=exchange ← «استبدال» · S1 ← «عادي»', JSON.stringify([r2 && r2.cells[iType], r1 && r1.cells[iType]]));
   is(!heads.includes('ملحوظات') && !heads.includes('موقع الشحنة') && await page.$('#qWaChips') === null,
      '⛔ بلا ملحوظات ولا موقع الشحنة ولا مربعات «موقع الشحنة» (نفس أسباب المشحون)');
   is(await page.$('#viewAudit, #tabAudit, #audStart') === null, '⛔ بلا تاب جرد (مرتجع في الطريق مش مكانه المكتب)');
