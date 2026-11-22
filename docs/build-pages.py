@@ -181,6 +181,19 @@ function addressCell(o) {
   return street ? esc(street) : '<span class="flag-ok">بلا عنوان</span>';
 }'''
 
+ADDR_FN_INRETURN = '''// 🟤 «في طريق الرجوع» — شكل عرض العنوان نفس عمود «العنوان بالكامل (شوبيفاي)» في «رفع بوسطة»:
+//    سطر أول **المحافظة ◀ المدينة** (`province`/`city` من الـ Worker) وسطر تاني باقي العنوان
+//    (`address1` — `address2`). كل قطعة في <bdi> عشان الإنجليزي ما يقلبش الترتيب بصريًا (Bidi).
+//    ⚠️ اسم العمود وبحثه وترتيبه وتصديره ما اتغيّروش — عرض بس.
+function addressCell(o) {
+  const head = [o.province, o.city].filter(Boolean)
+    .map(x => `<bdi>${esc(x)}</bdi>`).join(' ◀ ');
+  const rest = [o.address1, o.address2].filter(Boolean).join(' — ');
+  if (!head && !rest) return '<span class="flag-ok">بلا عنوان</span>';
+  return `<div style="font-weight:700;">${head || '—'}</div>`
+       + (rest ? `<div style="margin-top:2px;font-size:12.5px;font-weight:400;">${esc(rest)}</div>` : '');
+}'''
+
 NOTE_FN = '''// 🔴 **عمود «ملحوظات»** (v1.6.0 · طلب أحمد 17-09-2026) — مصدره حقل
 //    **Notes** على الأوردر في شوبيفاي (`note` في رد الـ Worker، من
 //    `ready-orders-worker` **v1.3.0**).
@@ -1466,6 +1479,9 @@ INRETURN_ABOUT_COLS += '''
                 من دورة بيظهر تحت تاريخه اسم الدورة وعددهم. <code>—</code> = مفيش Return على
                 الأوردر (RTO عادةً). ⚠️ محتاج <code>read_returns</code> على الـ Custom App.</li>'''
 
+CL_V2101_INRETURN = r'''          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>📍 <b>عمود «العنوان» بنفس شكل «العنوان بالكامل (شوبيفاي)» في «رفع بوسطة»</b> — سطر أول <b>المحافظة ◀ المدينة</b> (<code>province</code>/<code>city</code>) بخط غامق، وسطر تاني باقي العنوان (<code>address1</code> — <code>address2</code>). اسم العمود وبحثه وترتيبه وتصديره ما اتغيّروا — عرض بس. صفر تعديل Worker ولا <code>min</code>.</span></li>
+'''
+
 CL_V290_INRETURN = r'''          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔀 <b>«نوع الأوردر» على صفوف S2 بقى من دفتر مبيعات الأوردر</b> (<code>order.agreements</code> — <code>order-lifecycle</code> v1.11.1 قاعدة 8) مش من <code>exchangeLineItems</code>: <b>«استبدال»</b> أو <b>«استرجاع»</b> (مؤكَّد، بلون بني-أحمر) حسب النوع <b>النهائي</b> بعد أي تعديل على الأوردر. نوع الدورة اللي اتغيّر بعد الإنشاء أو اتعدّل بعد قفلها بياخد <b>علامة مراجعة</b> (مابيتنقلش).</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔎 <b>فلتر في رأس «رقم التتبع»</b> (بحث) <b>و«تاريخ الطلب»</b> (فترة سريعة أو من/إلى بتوقيت القاهرة) — chips وtooltip و«مسح كل الفلاتر» زي باقي الأعمدة.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>↕️ <b>الترتيب الافتراضي عند الفتح: «تاريخ الطلب» من الأقدم للأحدث</b> (الأوردر بلا Return في الآخر) — والضغطة التالتة على أي عمود بترجّعه. و<b>«تاريخ الأوردر» بقى بعد «نوع الأوردر»</b> (في الجدول والتصدير).</span></li>
@@ -1609,7 +1625,7 @@ PAGES = [
     extraCell="""__TYPE_TD__      <td>${trackingCell(o)}</td>\n__CREATED_TD__      <td class="date-cell">${returnRequestCell(o)}</td>\n""",
     extraFn=TR_FN + '\n' + REQ_FN + '\n' + COURIER_FN,
     waChipsBox='', waChipsCall='', waChipsJs='',
-    addrHead='', addrCell='', addrFn=ADDR_FN,
+    addrHead='', addrCell='', addrFn=ADDR_FN_INRETURN,
     addrAfterHead='<th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort(\'address\')">العنوان<span class="sort-icon" data-q-sort="address"></span></th>',
     addrAfterCell="""      <td class="addr-cell">${addressCell(o)}</td>\n""",
     noteHead='', noteCell='', noteFn='',
@@ -1625,7 +1641,7 @@ PAGES = [
     #    وبنود v8.6.0 (فلتر نص بتوكنز · نافذة أرقام · قايمة تاريخ بأقسام · فلتر وقت · عرض أعمدة متماثل) 🟡 مُستحسن **ما اتطبّقتش** — بتتطبّق على الثلاث
     #    صفحات مع بعض (درس R1)، مش على الصفحة الجديدة لوحدها.
     skills='html-builder v8.5.0 (جدول الطابور المشترك) · worker-builder v3.10.0 · constants v4.4.0 · order-lifecycle v1.11.1 — 22-11-2026',
-    clSingle=True, clItems=CL_V290_INRETURN + CL_V280_INRETURN + CL_V165_INRETURN, clV133='', clPrev='',
+    clSingle=True, clItems=CL_V2101_INRETURN + CL_V290_INRETURN + CL_V280_INRETURN + CL_V165_INRETURN, clV133='', clPrev='',
     aboutWhat='''الأوردرات اللي حالتها <code>In-Return</code> — مرتجعة وفي طريقها
              للمخزن و<b>محدش سجّل لها <code>Returned</code></b> لسه. 🔴 <b>مفيهاش
              أوردرات <code>Shipped</code></b> — دي في طابور «تحت التوصيل (Shipped)»،

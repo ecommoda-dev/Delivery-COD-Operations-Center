@@ -782,6 +782,7 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
           <span class="cl-ver-date">01-11-2026</span>
         </div>
         <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>📍 <b>عمود «العنوان» بنفس شكل «العنوان بالكامل (شوبيفاي)» في «رفع بوسطة»</b> — سطر أول <b>المحافظة ◀ المدينة</b> (<code>province</code>/<code>city</code>) بخط غامق، وسطر تاني باقي العنوان (<code>address1</code> — <code>address2</code>). اسم العمود وبحثه وترتيبه وتصديره ما اتغيّروا — عرض بس. صفر تعديل Worker ولا <code>min</code>.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔀 <b>«نوع الأوردر» على صفوف S2 بقى من دفتر مبيعات الأوردر</b> (<code>order.agreements</code> — <code>order-lifecycle</code> v1.11.1 قاعدة 8) مش من <code>exchangeLineItems</code>: <b>«استبدال»</b> أو <b>«استرجاع»</b> (مؤكَّد، بلون بني-أحمر) حسب النوع <b>النهائي</b> بعد أي تعديل على الأوردر. نوع الدورة اللي اتغيّر بعد الإنشاء أو اتعدّل بعد قفلها بياخد <b>علامة مراجعة</b> (مابيتنقلش).</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔎 <b>فلتر في رأس «رقم التتبع»</b> (بحث) <b>و«تاريخ الطلب»</b> (فترة سريعة أو من/إلى بتوقيت القاهرة) — chips وtooltip و«مسح كل الفلاتر» زي باقي الأعمدة.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>↕️ <b>الترتيب الافتراضي عند الفتح: «تاريخ الطلب» من الأقدم للأحدث</b> (الأوردر بلا Return في الآخر) — والضغطة التالتة على أي عمود بترجّعه. و<b>«تاريخ الأوردر» بقى بعد «نوع الأوردر»</b> (في الجدول والتصدير).</span></li>
@@ -1843,21 +1844,17 @@ function customerCell(o) {
   return t ? `<span class="cust-txt" title="${esc(t)}">${esc(t)}</span>`
            : '<span class="flag-ok">—</span>';
 }
-// 🔴 **العنوان الكامل في خلية واحدة** (طلب أحمد 16-09-2026).
-//    `address1` + `address2` — الشارع هو اللي بيفرّق بين عنوانين، وهو
-//    اللي الموظف بيرتّب بيه الدفعة.
-// 🔴 **وسطر المدينة/المحافظة اتشال** (طلب أحمد 16-09-2026). القيمة كانت
-//    بتتكرّر جوّه نص العنوان نفسه في أغلب الصفوف («… المطرية، القاهرة»
-//    وتحتها «Cairo · القاهرة»)، والسطر الرمادي التاني كان بيطوّل كل صف
-//    في الجدول **من غير ما يضيف حاجة**.
-//    ⚠️ والمعلومة **ما ضاعتش**: `city`/`province` لسه بيرجعوا من الـ Worker
-//       ولسه في الكاش الخام، فرجوع السطر تعديل عرض بحت.
-// 🔴 **و«بلا عنوان» بتتقال صراحةً** — خانة فاضية بتتقري «الشاشة بايظة»،
-//    والحقيقة إن الأوردر ده **فعلاً مالوش عنوان** على شوبيفاي وده شغل
-//    محتاج تدخّل (⚠️ مش علامة مراجعة: قايمة العلامات قرار منفصل).
+// 🟤 «في طريق الرجوع» — شكل عرض العنوان نفس عمود «العنوان بالكامل (شوبيفاي)» في «رفع بوسطة»:
+//    سطر أول **المحافظة ◀ المدينة** (`province`/`city` من الـ Worker) وسطر تاني باقي العنوان
+//    (`address1` — `address2`). كل قطعة في <bdi> عشان الإنجليزي ما يقلبش الترتيب بصريًا (Bidi).
+//    ⚠️ اسم العمود وبحثه وترتيبه وتصديره ما اتغيّروش — عرض بس.
 function addressCell(o) {
-  const street = [o.address1, o.address2].filter(Boolean).join(' — ').trim();
-  return street ? esc(street) : '<span class="flag-ok">بلا عنوان</span>';
+  const head = [o.province, o.city].filter(Boolean)
+    .map(x => `<bdi>${esc(x)}</bdi>`).join(' ◀ ');
+  const rest = [o.address1, o.address2].filter(Boolean).join(' — ');
+  if (!head && !rest) return '<span class="flag-ok">بلا عنوان</span>';
+  return `<div style="font-weight:700;">${head || '—'}</div>`
+       + (rest ? `<div style="margin-top:2px;font-size:12.5px;font-weight:400;">${esc(rest)}</div>` : '');
 }
 
 // 🔴 رقم التتبع: الجديد أولاً، والقديم بعلامة صريحة. «الرقم ده من حقل
