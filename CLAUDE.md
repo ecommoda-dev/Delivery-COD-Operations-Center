@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center (`Delivery-COD-Operations-Center`)
 
-![version](https://img.shields.io/badge/version-v2.10.0-blue)
+![version](https://img.shields.io/badge/version-v2.10.1-blue)
 
 **بتعمل إيه:** هب واحد لمحطة الشحن والتحصيل. الموظف بيدخل **مرة واحدة**،
 وبيشوف طوابير الشحن: اللي **جاهز يخرج**، واللي **خرج ولسه بلا نتيجة** —
@@ -76,6 +76,10 @@
 
 > 🔄 **أسماء قديمة في الملف ده (تاريخية):** قبل المرحلة ٣/٤ (هب المخزن v1.45.0 · هب الشحن v1.49.0) كان فيه `shared/shell.js` و`shared/shell.css` والبادئات `woc*`/`dco*`. دلوقتي:
 > `shell.js` ← **`core.js`** (المشترك) + **`hub-config.js`** (`ECO_WORKERS` · `TOOL_VERSION` · مفاتيح الجلسة والسر) + **`dco-rules.js`**، و`shell.css` ← **`core.css`** (المشترك) + **`hub.css`** (ألوان الهب)، والبادئات ← **`eco*`** / `eco-` (`wocApi`←`ecoApi` · `WOC_WORKERS`/`DCO_WORKERS`←`ECO_WORKERS` · `.woc-*`/`.dco-*`←`.eco-*`). **قيم مفاتيح التخزين ما اتغيّرتش** (`woc_session` · `dco_session` · `*_worker_secret`). أي نص تحت بيقول «في الـ shell» معناه الملف المناسب من دول.
+
+## 📍 تمريرة v2.10.1 — «في طريق الرجوع»: عمود «العنوان» بشكل «العنوان بالكامل (شوبيفاي)» (طلب أحمد 22-11-2026)
+
+- سطر أول **المحافظة ◀ المدينة** (`province`/`city`) وسطر تاني `address1` — `address2`، بـ`<bdi>` زي «رفع بوسطة». عرض بس: الاسم والبحث والترتيب والتصدير ما اتغيّروا · صفر تعديل Worker ولا `min` · `ADDR_FN_INRETURN` في `docs/build-pages.py` · `TOOL_VERSION` → `v2.10.1`. ⚠️ ما اتجرّبش في متصفح فعلي.
 
 ## 🔀 تمريرة v2.10.0 — «في طريق الرجوع»: إعادة ترتيب الأعمدة + ترتيب افتراضي بتاريخ الأوردر (طلب أحمد 22-11-2026)
 

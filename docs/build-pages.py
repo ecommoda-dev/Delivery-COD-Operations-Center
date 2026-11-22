@@ -1479,6 +1479,9 @@ INRETURN_ABOUT_COLS += '''
                 من دورة بيظهر تحت تاريخه اسم الدورة وعددهم. <code>—</code> = مفيش Return على
                 الأوردر (RTO عادةً). ⚠️ محتاج <code>read_returns</code> على الـ Custom App.</li>'''
 
+CL_V2101_INRETURN = r'''          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>📍 <b>عمود «العنوان» بنفس شكل «العنوان بالكامل (شوبيفاي)» في «رفع بوسطة»</b> — سطر أول <b>المحافظة ◀ المدينة</b> (<code>province</code>/<code>city</code>) بخط غامق، وسطر تاني باقي العنوان (<code>address1</code> — <code>address2</code>). اسم العمود وبحثه وترتيبه وتصديره ما اتغيّروا — عرض بس. صفر تعديل Worker ولا <code>min</code>.</span></li>
+'''
+
 CL_V290_INRETURN = r'''          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔀 <b>«نوع الأوردر» على صفوف S2 بقى من دفتر مبيعات الأوردر</b> (<code>order.agreements</code> — <code>order-lifecycle</code> v1.11.1 قاعدة 8) مش من <code>exchangeLineItems</code>: <b>«استبدال»</b> أو <b>«استرجاع»</b> (مؤكَّد، بلون بني-أحمر) حسب النوع <b>النهائي</b> بعد أي تعديل على الأوردر. نوع الدورة اللي اتغيّر بعد الإنشاء أو اتعدّل بعد قفلها بياخد <b>علامة مراجعة</b> (مابيتنقلش).</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔎 <b>فلتر في رأس «رقم التتبع»</b> (بحث) <b>و«تاريخ الطلب»</b> (فترة سريعة أو من/إلى بتوقيت القاهرة) — chips وtooltip و«مسح كل الفلاتر» زي باقي الأعمدة.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>↕️ <b>الترتيب الافتراضي عند الفتح: «تاريخ الطلب» من الأقدم للأحدث</b> (الأوردر بلا Return في الآخر) — والضغطة التالتة على أي عمود بترجّعه. و<b>«تاريخ الأوردر» بقى بعد «نوع الأوردر»</b> (في الجدول والتصدير).</span></li>
@@ -1638,7 +1641,7 @@ PAGES = [
     #    وبنود v8.6.0 (فلتر نص بتوكنز · نافذة أرقام · قايمة تاريخ بأقسام · فلتر وقت · عرض أعمدة متماثل) 🟡 مُستحسن **ما اتطبّقتش** — بتتطبّق على الثلاث
     #    صفحات مع بعض (درس R1)، مش على الصفحة الجديدة لوحدها.
     skills='html-builder v8.5.0 (جدول الطابور المشترك) · worker-builder v3.10.0 · constants v4.4.0 · order-lifecycle v1.11.1 — 22-11-2026',
-    clSingle=True, clItems=CL_V290_INRETURN + CL_V280_INRETURN + CL_V165_INRETURN, clV133='', clPrev='',
+    clSingle=True, clItems=CL_V2101_INRETURN + CL_V290_INRETURN + CL_V280_INRETURN + CL_V165_INRETURN, clV133='', clPrev='',
     aboutWhat='''الأوردرات اللي حالتها <code>In-Return</code> — مرتجعة وفي طريقها
              للمخزن و<b>محدش سجّل لها <code>Returned</code></b> لسه. 🔴 <b>مفيهاش
              أوردرات <code>Shipped</code></b> — دي في طابور «تحت التوصيل (Shipped)»،
