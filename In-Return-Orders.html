@@ -625,7 +625,7 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
               <th class="sortable-th" data-q-sort="orderName" onclick="qToggleSort('orderName')">رقم الأوردر<span class="sort-icon" data-q-sort="orderName"></span></th>
               <th class="sortable-th col-cust" data-q-sort="customer"  onclick="qToggleSort('customer')">العميل<span class="sort-icon" data-q-sort="customer"></span></th>
               <th class="sortable-th" data-q-sort="courier" onclick="qToggleSort('courier')">المندوب<span class="sort-icon" data-q-sort="courier"></span></th>
-              <th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort('address')">العنوان<span class="sort-icon" data-q-sort="address"></span></th><th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort('tracking')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th><th class="sortable-th col-date" data-q-sort="returnRequestedAt" onclick="qToggleSort('returnRequestedAt')">تاريخ الطلب<span class="sort-icon" data-q-sort="returnRequestedAt"></span></th>
+              <th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort('address')">العنوان<span class="sort-icon" data-q-sort="address"></span></th><th class="sortable-th" data-q-sort="machineLabel" onclick="qToggleSort('machineLabel')">نوع الأوردر<span class="sort-icon" data-q-sort="machineLabel"></span></th><th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort('tracking')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th><th class="sortable-th col-date" data-q-sort="createdAt" onclick="qToggleSort('createdAt')">تاريخ الأوردر<span class="sort-icon" data-q-sort="createdAt"></span></th><th class="sortable-th col-date" data-q-sort="returnRequestedAt" onclick="qToggleSort('returnRequestedAt')">تاريخ الطلب<span class="sort-icon" data-q-sort="returnRequestedAt"></span></th>
               <!-- ⚠️ الاسم **«تاريخ التغليف»** مش «الوقت منذ التغليف» — الخلية
                    فيها التاريخ **والبادج** مع بعض، بالظبط زي عمود «تاريخ
                    الأوردر» اللي جنبه. اسم العمود لازم يوصف اللي جوّاه، والبادج
@@ -636,8 +636,6 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
                    بقت مجمّعة في أول الجدول، والنوع صفة بيتأكد منها **بعد** ما
                    يلاقي الصف. ⚠️ ولسه **قبل** «مراجعة» عن قصد: العلامة آخر
                    حاجة تتقرا لأنها هي اللي بتوقف الشغل. -->
-              <th class="sortable-th" data-q-sort="machineLabel" onclick="qToggleSort('machineLabel')">نوع الأوردر<span class="sort-icon" data-q-sort="machineLabel"></span></th>
-              <th class="sortable-th col-date" data-q-sort="createdAt" onclick="qToggleSort('createdAt')">تاريخ الأوردر<span class="sort-icon" data-q-sort="createdAt"></span></th>
               <th class="sortable-th" data-q-sort="flagCount" onclick="qToggleSort('flagCount')">مراجعة<span class="sort-icon" data-q-sort="flagCount"></span></th>
             </tr>
           </thead>
@@ -1672,7 +1670,7 @@ const Q_SORT_CONFIG = {
 // 🔴 **ترتيب افتراضي اختياري** (v2.9.0 · «في طريق الرجوع»: تاريخ الطلب من الأقدم للأحدث). بيتطبّق
 //    عند الفتح، **وبيرجع له** لما دورة الترتيب توصل «بلا ترتيب» (التالتة). في «الجاهز» و«المشحون»
 //    `null` فالسلوك القديم (الأقدم فوق بتاريخ الأوردر من `ecoQueueRows`) زي ما هو.
-const Q_DEFAULT_SORT = { key: 'returnRequestedAt', dir: 'asc' };
+const Q_DEFAULT_SORT = { key: 'createdAt', dir: 'asc' };
 let qSortState = Q_DEFAULT_SORT ? { ...Q_DEFAULT_SORT } : { key: null, dir: null };
 
 // 🔴 دورة تلات حالات: تصاعدي ▲ → تنازلي ▼ → **بلا ترتيب**.
@@ -1930,12 +1928,12 @@ async function qExport() {
       { header: 'العميل',         key: 'customer', width: 24 },
       { header: 'المندوب',        key: 'courier',  width: 16 },
       { header: 'العنوان',        key: 'address',  width: 50 },
+      { header: 'نوع الأوردر',    key: 'type',     width: 16 },
       { header: 'رقم التتبع',     key: 'tracking', width: 16 },
       { header: 'مصدر رقم التتبع', key: 'trkSrc',   width: 16 },
+      { header: 'تاريخ الأوردر',  key: 'created',  width: 20 },
       { header: 'تاريخ الطلب',    key: 'reqDate',  width: 20 },
       { header: 'تاريخ التغليف',  key: 'packed',   width: 20 },
-      { header: 'نوع الأوردر',    key: 'type',     width: 16 },
-      { header: 'تاريخ الأوردر',  key: 'created',  width: 20 },
       { header: 'المراجعة',       key: 'flags',    width: 30 },
     ];
     ws.getRow(1).font = { bold: true };
@@ -2072,13 +2070,13 @@ function qRender0() {
       <td class="cust-cell">${customerCell(o)}</td>
       <td>${courierCell(o)}</td>
       <td class="addr-cell">${addressCell(o)}</td>
+      <td><span class="type-text ${isS2 ? (/^استرجاع/.test(o.machineLabel || '') ? 'type-return' : 'type-s2') : 'type-s1'}">${esc(o.machineLabel || (isS2 ? 'استبدال/استرجاع' : 'عادي'))}</span></td>
       <td>${trackingCell(o)}</td>
+      <td class="date-cell"><span class="cell-date">${esc(formatDate(o.createdAt))}</span><span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
       <td class="date-cell">${returnRequestCell(o)}</td>
       <td class="date-cell">${since
             ? `<span class="cell-date">${esc(formatDate(o.packedAt))}</span><span class="time-badge ${since.cls}" data-q-pack="${esc(o.packedAt)}">${esc(since.text)}</span>`
             : '<span class="flag-ok">—</span>'}</td>
-      <td><span class="type-text ${isS2 ? (/^استرجاع/.test(o.machineLabel || '') ? 'type-return' : 'type-s2') : 'type-s1'}">${esc(o.machineLabel || (isS2 ? 'استبدال/استرجاع' : 'عادي'))}</span></td>
-      <td class="date-cell"><span class="cell-date">${esc(formatDate(o.createdAt))}</span><span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
       <td>${o.flags.length
             ? `<button type="button" class="flag-btn" data-flag-idx="${i}">⚠️ ${o.flags.length}</button>`
             : '<span class="flag-ok">—</span>'}</td>

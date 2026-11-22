@@ -1260,11 +1260,12 @@ console.log('\n══ ⑤-ب In-Return-Orders.html ══');
     await o2.page.goto(`${BASE}/Shipped-Orders.html`); await o2.page.waitForSelector('#qBody tr');
     const h = await o2.page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim())); await o2.ctx.close(); return h; })();
   // 🟢 v1.2.0: نفس أعمدة «المشحون» + «تاريخ الطلب» بعد «رقم التتبع» مباشرةً (الفرق الوحيد)
-  // 🟤 v2.9.0: و«تاريخ الأوردر» اتنقل بعد «نوع الأوردر» (طلب أحمد 22-11-2026)
-  const expHeads = [...shHeads]; expHeads.splice(expHeads.indexOf('رقم التتبع') + 1, 0, 'تاريخ الطلب');
-  expHeads.splice(expHeads.indexOf('تاريخ الأوردر'), 1); expHeads.splice(expHeads.indexOf('نوع الأوردر') + 1, 0, 'تاريخ الأوردر');
+  // 🟤 v2.10.0: «نوع الأوردر» بعد «العنوان» مباشرةً، و«تاريخ الأوردر» بعد «رقم التتبع» مباشرةً (طلب أحمد 22-11-2026)
+  const expHeads = shHeads.filter(h => h !== 'نوع الأوردر' && h !== 'تاريخ الأوردر');
+  expHeads.splice(expHeads.indexOf('العنوان') + 1, 0, 'نوع الأوردر');
+  expHeads.splice(expHeads.indexOf('رقم التتبع') + 1, 0, 'تاريخ الأوردر', 'تاريخ الطلب');
   is(JSON.stringify(heads) === JSON.stringify(expHeads),
-     '🔴 أعمدة «في طريق الرجوع» == أعمدة «المشحون» + «تاريخ الطلب» بعد التتبع + «تاريخ الأوردر» بعد «نوع الأوردر»', JSON.stringify(heads));
+     '🔴 أعمدة «في طريق الرجوع»: النوع بعد العنوان · تاريخ الأوردر ثم تاريخ الطلب بعد رقم التتبع', JSON.stringify(heads));
   // 🟢 «تاريخ الطلب» + «نوع الأوردر» من رد الـ Worker
   const reqRows = await page.$$eval('#qBody tr', trs => trs.map(tr => ({
     name: tr.children[0].textContent.trim(), cells: [...tr.children].map(c => c.textContent.trim()) })));
@@ -1336,17 +1337,21 @@ console.log('\n══ ⑤-ج In-Return-Orders.html — v2.9.0 ══');
   await page.waitForSelector('#qBody tr');
   const names = () => page.$$eval('#qBody tr', r => r.map(x => (x.textContent.match(/#\d{5}/) || [])[0]).filter(Boolean));
 
-  // ① الترتيب الافتراضي = تاريخ الطلب تصاعدي (السهم ظاهر · الأوردر بلا Return في الآخر)
-  is(await page.evaluate(() => qSortState.key === 'returnRequestedAt' && qSortState.dir === 'asc'), '↕️ الترتيب الافتراضي عند الفتح: تاريخ الطلب تصاعدي');
-  is((await page.textContent('th[data-q-sort="returnRequestedAt"] .sort-icon')).trim() === '▲', 'السهم ▲ ظاهر على «تاريخ الطلب»');
-  is((await names())[0] === '#57002', 'أول صف = أقدم تاريخ طلب (والصفوف بلا Return بعده)', (await names()).join());
-  // الضغطة التالتة بترجّع للافتراضي (مش لـ createdAt)
-  await page.click('th[data-q-sort="returnRequestedAt"]'); await page.click('th[data-q-sort="returnRequestedAt"]');
+  // ① الترتيب الافتراضي = تاريخ الأوردر تصاعدي (v2.10.0 — السهم ظاهر عليه)
+  const oldestName = await page.evaluate(() => [...qState.rows].filter(r => r.createdAt).sort((x, y) => new Date(x.createdAt) - new Date(y.createdAt))[0].orderName);
+  is(await page.evaluate(() => qSortState.key === 'createdAt' && qSortState.dir === 'asc'), '↕️ الترتيب الافتراضي عند الفتح: تاريخ الأوردر تصاعدي (الأقدم أولًا)');
+  is((await page.textContent('th[data-q-sort="createdAt"] .sort-icon')).trim() === '▲', 'السهم ▲ ظاهر على «تاريخ الأوردر»');
+  is((await page.textContent('th[data-q-sort="returnRequestedAt"] .sort-icon')).trim() === '', 'ولا سهم على «تاريخ الطلب» (مابقاش الافتراضي)');
+  is((await names())[0] === oldestName, 'أول صف = أقدم تاريخ أوردر', (await names()).join());
+  // الضغطة التالتة بترجّع للافتراضي (تاريخ الأوردر)
+  await page.click('th[data-q-sort="createdAt"]'); await page.click('th[data-q-sort="createdAt"]');
   is(await page.evaluate(() => qSortState.key === null), 'دورة الترتيب: ▲ ← ▼ ← بلا ترتيب');
-  is((await names())[0] === '#57002', '«بلا ترتيب» بيرجّع للافتراضي (تاريخ الطلب) مش لترتيب الـ Worker');
-  // تنازلي: الأوردر الوحيد بتاريخ طلب يفضل ظاهر والباقي (بلا تاريخ) بعده في الاتجاهين
-  await page.click('th[data-q-sort="returnRequestedAt"]'); await page.click('th[data-q-sort="returnRequestedAt"]');
-  is((await names())[0] === '#57002', 'الصف بلا تاريخ طلب في الآخر في الاتجاهين', (await names()).join());
+  is((await names())[0] === oldestName, '«بلا ترتيب» بيرجّع للافتراضي (تاريخ الأوردر) مش لترتيب الـ Worker');
+  // ترتيب «تاريخ الطلب» لسه شغّال: الصف بلا تاريخ طلب في الآخر في الاتجاهين
+  await page.click('th[data-q-sort="returnRequestedAt"]');
+  is((await names())[0] === '#57002', 'ترتيب «تاريخ الطلب» تصاعدي: الصف بلا تاريخ في الآخر', (await names()).join());
+  await page.click('th[data-q-sort="returnRequestedAt"]');
+  is((await names())[0] === '#57002', 'ترتيب «تاريخ الطلب» تنازلي: الصف بلا تاريخ في الآخر', (await names()).join());
   await page.evaluate(() => { qSortState = { ...Q_DEFAULT_SORT }; qUpdateSortHeaderUI(); qRender(); });
 
   // ② فلتر «رقم التتبع» (نص) في الرأس
@@ -1434,8 +1439,8 @@ console.log('\n══ ⑤-ج In-Return-Orders.html — v2.9.0 ══');
   is(fl.s1row.length === 0 && fl.shipped.length === 0, 'الأعلام على صفوف S2 في «في طريق الرجوع» بس', JSON.stringify([fl.s1row, fl.shipped]));
 
   // ⑥ التصدير بنفس ترتيب الجدول
-  is(await page.evaluate(() => { const t = qExport.toString(); const i = k => t.indexOf(`key: '${k}'`); return i('tracking') < i('reqDate') && i('reqDate') < i('packed') && i('packed') < i('type') && i('type') < i('created') && i('created') < i('flags'); }),
-     '⬇ أعمدة التصدير بنفس ترتيب الجدول (… طلب · تغليف · نوع · أوردر · مراجعة)');
+  is(await page.evaluate(() => { const t = qExport.toString(); const i = k => t.indexOf(`key: '${k}'`); return i('address') < i('type') && i('type') < i('tracking') && i('tracking') < i('created') && i('created') < i('reqDate') && i('reqDate') < i('packed') && i('packed') < i('flags'); }),
+     '⬇ أعمدة التصدير بنفس ترتيب الجدول (… عنوان · نوع · تتبع · أوردر · طلب · تغليف · مراجعة)');
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | ').slice(0, 300));
   await ctx.close();
 }

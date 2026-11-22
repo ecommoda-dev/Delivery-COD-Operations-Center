@@ -1428,14 +1428,16 @@ COURIER_FN = '''function courierCell(o) {
 '''
 EXPORT_JS_INRETURN = EXPORT_JS.replace('Shipped-Orders', 'In-Return-Orders')
 assert 'Shipped-Orders' not in EXPORT_JS_INRETURN
-# 🟢 «تاريخ الطلب» في التصدير — بعد «تاريخ الأوردر» (نفس ترتيب الجدول) · لصفحة «في طريق الرجوع» بس
-# (v2.9.0: ترتيب أعمدة التصدير = ترتيب الجدول: … رقم التتبع · تاريخ الطلب · تاريخ التغليف · نوع الأوردر · تاريخ الأوردر · المراجعة)
+# 🟢 التصدير لصفحة «في طريق الرجوع» بس — نفس ترتيب الجدول (v2.10.0):
+# … العنوان · نوع الأوردر · رقم التتبع · مصدر التتبع · تاريخ الأوردر · تاريخ الطلب · تاريخ التغليف · المراجعة
+_tr = "      { header: 'رقم التتبع',     key: 'tracking', width: 16 },\n"
+_src = "      { header: 'مصدر رقم التتبع', key: 'trkSrc',   width: 16 },\n"
 _a = "      { header: 'تاريخ الأوردر',  key: 'created',  width: 20 },\n"
 _p = "      { header: 'تاريخ التغليف',  key: 'packed',   width: 20 },\n"
 _t = "      { header: 'نوع الأوردر',    key: 'type',     width: 16 },\n"
-assert EXPORT_JS_INRETURN.count(_a + _p + _t) == 1
-EXPORT_JS_INRETURN = EXPORT_JS_INRETURN.replace(_a + _p + _t,
-    "      { header: 'تاريخ الطلب',    key: 'reqDate',  width: 20 },\n" + _p + _t + _a)
+assert EXPORT_JS_INRETURN.count(_tr + _src + _a + _p + _t) == 1
+EXPORT_JS_INRETURN = EXPORT_JS_INRETURN.replace(_tr + _src + _a + _p + _t,
+    _t + _tr + _src + _a + "      { header: 'تاريخ الطلب',    key: 'reqDate',  width: 20 },\n" + _p)
 _b = "        created:  dt(o.createdAt),\n"
 assert EXPORT_JS_INRETURN.count(_b) == 1
 EXPORT_JS_INRETURN = EXPORT_JS_INRETURN.replace(_b, _b + "        reqDate:  dt(o.returnRequestedAt),\n")
@@ -1592,18 +1594,19 @@ PAGES = [
     packCol='تاريخ التغليف',
     # 🟤 نفس معاملات «المشحون» بالحرف: رقم التتبع كعمود زيادة · العنوان بعد المندوب ·
     #    بلا موقع الشحنة/ملحوظات/جرد. (الأسباب مكتوبة عند معاملات صفحة المشحون فوق.)
-    extraHead='<th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort(\'tracking\')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th>'
+    # 🟤 v2.10.0 — ترتيب الأعمدة: … العنوان · نوع الأوردر · رقم التتبع · تاريخ الأوردر · تاريخ الطلب · تاريخ التغليف · مراجعة
+    extraHead='__TYPE_TH__<th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort(\'tracking\')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th>__CREATED_TH__'
               '<th class="sortable-th col-date" data-q-sort="returnRequestedAt" onclick="qToggleSort(\'returnRequestedAt\')">تاريخ الطلب<span class="sort-icon" data-q-sort="returnRequestedAt"></span></th>',
     sortExtra=" returnRequestedAt:{ type:'date' },",
     # 🟤 v2.9.0 — فلاتر في رأس «رقم التتبع» (نص) و«تاريخ الطلب» (تاريخ) · ترتيب افتراضي بتاريخ الطلب
     #    من الأقدم للأحدث · «تاريخ الأوردر» بعد «نوع الأوردر» · اسم المندوب بلون مجموعته.
     xf=("{ key: 'tracking', sort: 'tracking', kind: 'text', label: 'رقم التتبع', get: o => o.tracking },"
         " { key: 'reqDate', sort: 'returnRequestedAt', kind: 'date', label: 'تاريخ الطلب', get: o => o.returnRequestedAt }"),
-    defaultSort="{ key: 'returnRequestedAt', dir: 'asc' }",
-    createdAfterType=True,
+    defaultSort="{ key: 'createdAt', dir: 'asc' }",
+    inReturnOrder=True,
     courierCell='<td>${courierCell(o)}</td>',
     extraFilter='',
-    extraCell="""      <td>${trackingCell(o)}</td>\n      <td class="date-cell">${returnRequestCell(o)}</td>\n""",
+    extraCell="""__TYPE_TD__      <td>${trackingCell(o)}</td>\n__CREATED_TD__      <td class="date-cell">${returnRequestCell(o)}</td>\n""",
     extraFn=TR_FN + '\n' + REQ_FN + '\n' + COURIER_FN,
     waChipsBox='', waChipsCall='', waChipsJs='',
     addrHead='', addrCell='', addrFn=ADDR_FN,
@@ -3770,17 +3773,23 @@ for p in PAGES:
     out = out.replace('__PACK_COL__', p['packCol'])
     # 🔴 «في طريق الرجوع»: عمود «تاريخ الأوردر» بعد «نوع الأوردر» (v2.9.0) — النقل في الماركب
     #    (الرأس والخلية) بنفس النص بالحرف، مش إعادة كتابة.
-    if p.get('createdAfterType'):
+    if p.get('inReturnOrder'):
+        # v2.10.0: «نوع الأوردر» بعد «العنوان» و«تاريخ الأوردر» بعد «رقم التتبع» — النقل في الماركب
+        #    (الرأس والخلية) بنفس النص بالحرف، والمواضع معلّمة في extraHead/extraCell.
         m = re.search(r'^ *<th class="sortable-th col-date" data-q-sort="createdAt"[^\n]*\n', out, re.M)
         assert m and out.count('data-q-sort="createdAt" onclick') == 1
-        th_c = m.group(0); out = out.replace(th_c, '', 1)
+        th_c = m.group(0).strip(); out = out.replace(m.group(0), '', 1)
         mt = re.search(r'^ *<th class="sortable-th" data-q-sort="machineLabel"[^\n]*\n', out, re.M)
         assert mt
-        out = out.replace(mt.group(0), mt.group(0) + th_c, 1)
+        th_t = mt.group(0).strip(); out = out.replace(mt.group(0), '', 1)
         m2 = re.search(r'      <td class="date-cell"><span class="cell-date">\$\{esc\(formatDate\(o\.createdAt\)\)\}</span>[^\n]*</td>\n', out)
         assert m2
         td_c = m2.group(0); out = out.replace(td_c, '', 1)
-        out = out.replace('__CREATED_CELL_AFTER_TYPE__', td_c, 1)
+        m3 = re.search(r'      <td><span class="type-text [^\n]*</td>\n', out)
+        assert m3
+        td_t = m3.group(0); out = out.replace(td_t, '', 1)
+        p = dict(p, extraHead=p['extraHead'].replace('__TYPE_TH__', th_t).replace('__CREATED_TH__', th_c),
+                 extraCell=p['extraCell'].replace('__TYPE_TD__', td_t).replace('__CREATED_TD__', td_c))
     out = out.replace('__CREATED_CELL_AFTER_TYPE__', '')
     out = out.replace('__COURIER_CELL__', p.get('courierCell', '<td>${esc(o.courier || \'—\')}</td>'))
     out = out.replace('__XF__', p.get('xf', ''))
@@ -3823,7 +3832,7 @@ for p in PAGES:
     # 🔴 الحارس ده بيمسك **معامل اتضاف في المولّد وما اتسبدلش** — القالب
     #    بيتكتب في الحالة دي بنص `__ADDR_CELL__` حرفي جوّه الصفحة، وهي
     #    بتفتح عادي والكونسول نضيف.
-    left = [t for t in ['__COURIER_CELL__','__XF__','__DEFAULT_SORT__','__CREATED_CELL_AFTER_TYPE__','__TITLE__','__ICON__','__ACTION__','__CACHE__','__EXTRA_CELL__',
+    left = [t for t in ['__COURIER_CELL__','__XF__','__DEFAULT_SORT__','__CREATED_CELL_AFTER_TYPE__','__TYPE_TH__','__CREATED_TH__','__TYPE_TD__','__CREATED_TD__','__TITLE__','__ICON__','__ACTION__','__CACHE__','__EXTRA_CELL__',
                         '__EXTRA_FN__','__ADDR_HEAD__','__ADDR_CELL__','__ADDR_FN__',
                         '__ADDR_AFTER_HEAD__','__ADDR_AFTER_CELL__',
                         '__NOTE_HEAD__','__NOTE_CELL__','__NOTE_FN__',
