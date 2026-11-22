@@ -197,6 +197,7 @@ function noteCell(o) {
 }'''
 
 import os
+import re
 # ══════════════════════════════════════════════════════════════
 # §AUDIT — كتل تاب «جرد المكتب» (v1.3.0 · طلب أحمد 16-09-2026)
 # ══════════════════════════════════════════════════════════════
@@ -1416,12 +1417,25 @@ function returnRequestCell(o) {
   return `<span class="cell-date">${esc(formatDate(o.returnRequestedAt))}</span><span class="time-badge age-badge ${a.cls}" data-q-age="${esc(o.returnRequestedAt)}">${esc(a.text)}</span>${multi}`;
 }
 '''
+# 🎨 اسم المندوب بلون مجموعته (نص بس — بلا خلفية ولا بادج) — نفس ألوان مربعات المندوب فوق الجدول
+#    (بوسطة أحمر · شو روم تركواز · مناديب أزرق). المجموعة من `o.courierGroup` (`ecoCourierGroup`) —
+#    مصدر واحد مع المربعات والفلتر، فمستحيل الاسم يتلوّن بمجموعة والمربع بتانية. بلا مندوب = `—` بلا لون.
+COURIER_FN = '''function courierCell(o) {
+  if (!o.courier) return '<span class="flag-ok">—</span>';
+  const g = ECO_COURIER_GROUPS.find(x => x.key === o.courierGroup);
+  return `<span class="cou-txt ${g ? esc(g.cls) : ''}">${esc(o.courier)}</span>`;
+}
+'''
 EXPORT_JS_INRETURN = EXPORT_JS.replace('Shipped-Orders', 'In-Return-Orders')
 assert 'Shipped-Orders' not in EXPORT_JS_INRETURN
 # 🟢 «تاريخ الطلب» في التصدير — بعد «تاريخ الأوردر» (نفس ترتيب الجدول) · لصفحة «في طريق الرجوع» بس
+# (v2.9.0: ترتيب أعمدة التصدير = ترتيب الجدول: … رقم التتبع · تاريخ الطلب · تاريخ التغليف · نوع الأوردر · تاريخ الأوردر · المراجعة)
 _a = "      { header: 'تاريخ الأوردر',  key: 'created',  width: 20 },\n"
-assert EXPORT_JS_INRETURN.count(_a) == 1
-EXPORT_JS_INRETURN = EXPORT_JS_INRETURN.replace(_a, _a + "      { header: 'تاريخ الطلب',    key: 'reqDate',  width: 20 },\n")
+_p = "      { header: 'تاريخ التغليف',  key: 'packed',   width: 20 },\n"
+_t = "      { header: 'نوع الأوردر',    key: 'type',     width: 16 },\n"
+assert EXPORT_JS_INRETURN.count(_a + _p + _t) == 1
+EXPORT_JS_INRETURN = EXPORT_JS_INRETURN.replace(_a + _p + _t,
+    "      { header: 'تاريخ الطلب',    key: 'reqDate',  width: 20 },\n" + _p + _t + _a)
 _b = "        created:  dt(o.createdAt),\n"
 assert EXPORT_JS_INRETURN.count(_b) == 1
 EXPORT_JS_INRETURN = EXPORT_JS_INRETURN.replace(_b, _b + "        reqDate:  dt(o.returnRequestedAt),\n")
@@ -1433,16 +1447,29 @@ INRETURN_ABOUT_COLS += '''
                 من بوسطة بيكتبه) أو <code>custom.status_2_r_e</code> (دورة R/E).
                 ⚠️ والأوردر اللي الحقلين الاتنين عليهم <code>In-Return</code> بيتعدّ
                 <b>مرة واحدة على S1</b> وبياخد علامة مراجعة.</li>
-            <li><b>نوع الأوردر</b> — «عادي» = الشحنة الأصلية (S1). وصف S2 بييجي من
-                <code>return.exchangeLineItems</code> على <b>أحدث</b> دورة (مش من حالة
-                الماكينة): <b>«استبدال»</b> لو فيها قطع استبدال مسجّلة، و<b>«استرجاع (غير مؤكد)»</b>
-                لو فاضية — ⚠️ الفاضية <b>مش دليل استرجاع</b>: تعديل الأوردر بعد تسجيل الاستبدال
-                بيفضّيها للأبد. ولو الـ Worker ما رجّعش النوع بتتعرض «استبدال/استرجاع» العامة.</li>
+            <li><b>نوع الأوردر</b> — «عادي» = الشحنة الأصلية (S1). وصف S2 بييجي من <b>دفتر
+                مبيعات الأوردر</b> (<code>order.agreements</code> — قاعدة 8 في
+                <code>order-lifecycle</code> v1.11.1) على <b>أحدث</b> دورة: <b>«استبدال»</b> أو
+                <b>«استرجاع»</b> (بلون بني-أحمر) حسب <b>النوع النهائي</b> بعد أي تعديل على الأوردر.
+                ⚠️ مش من <code>exchangeLineItems</code> ولا من حالة S2 — تعديل الأوردر بعد تسجيل
+                الدورة بيغيّر النوع من غير ما يلمس الـ Return. لو النوع اتغيّر بعد الإنشاء أو الدورة
+                لسه ما اتعالجتش بتظهر <b>علامة مراجعة</b> (مابتتنقلش). ولو الـ Worker ما رجّعش النوع
+                بتتعرض «استبدال/استرجاع» العامة.</li>
+            <li><b>الفلاتر والترتيب</b> — قمع في رأس <b>رقم التتبع</b> (بحث) و<b>تاريخ الطلب</b>
+                (فترة سريعة أو من/إلى بتوقيت القاهرة). الترتيب الافتراضي عند الفتح: <b>تاريخ الطلب
+                من الأقدم للأحدث</b> (الأوردر بلا Return في الآخر)، والضغطة التالتة على أي عمود
+                بترجّعه. <b>اسم المندوب</b> بلون مجموعته (بوسطة أحمر · شو روم تركواز · مناديب أزرق).</li>
             <li><b>تاريخ الطلب</b> — تاريخ إنشاء <b>آخر</b> Return request على شوبيفاي
                 (<code>Return.createdAt</code> لأحدث دورة غير ملغية). الأوردر اللي اتفتح عليه أكتر
                 من دورة بيظهر تحت تاريخه اسم الدورة وعددهم. <code>—</code> = مفيش Return على
                 الأوردر (RTO عادةً). ⚠️ محتاج <code>read_returns</code> على الـ Custom App.</li>'''
 
+CL_V290_INRETURN = r'''          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔀 <b>«نوع الأوردر» على صفوف S2 بقى من دفتر مبيعات الأوردر</b> (<code>order.agreements</code> — <code>order-lifecycle</code> v1.11.1 قاعدة 8) مش من <code>exchangeLineItems</code>: <b>«استبدال»</b> أو <b>«استرجاع»</b> (مؤكَّد، بلون بني-أحمر) حسب النوع <b>النهائي</b> بعد أي تعديل على الأوردر. نوع الدورة اللي اتغيّر بعد الإنشاء أو اتعدّل بعد قفلها بياخد <b>علامة مراجعة</b> (مابيتنقلش).</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔎 <b>فلتر في رأس «رقم التتبع»</b> (بحث) <b>و«تاريخ الطلب»</b> (فترة سريعة أو من/إلى بتوقيت القاهرة) — chips وtooltip و«مسح كل الفلاتر» زي باقي الأعمدة.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>↕️ <b>الترتيب الافتراضي عند الفتح: «تاريخ الطلب» من الأقدم للأحدث</b> (الأوردر بلا Return في الآخر) — والضغطة التالتة على أي عمود بترجّعه. و<b>«تاريخ الأوردر» بقى بعد «نوع الأوردر»</b> (في الجدول والتصدير).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🎨 <b>اسم المندوب بلون مجموعته</b> (نص بس): بوسطة أحمر · شو روم تركواز · مناديب أزرق — نفس مربعات المندوب فوق.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تنبيه</span><span>⛔ محتاج <code>in-return-orders-worker</code> <b>1.3.0</b> — <b>انشره قبل الصفحة</b> (على 1.2.0 النوع بيفضل «استرجاع (غير مؤكد)» ومفيش علامات). ⚠️ تكلفة تمريرة الدفتر مش مقيسة: راجع <code>queryCost</code> (<code>op: 'cycleTypes'</code>).</span></li>
+'''
 CL_V280_INRETURN = r'''          <li class="cl-item"><span class="cl-tag new">جديد</span><span>📅 <b>عمود «تاريخ الطلب»</b> — تاريخ آخر Return request على الأوردر على شوبيفاي (بيتختار من <b>أحدث</b> دورة غير ملغية لو الأوردر فتح أكتر من دورة)، قابل للترتيب وبيتصدّر في الإكسيل.</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔀 <b>«نوع الأوردر» على صفوف S2</b> بقى «استبدال» أو «استرجاع (غير مؤكد)» من <code>exchangeLineItems</code> بدل التسمية العامة. الفاضية «غير مؤكد» لأنها مش دليل استرجاع (قاعدة 8). الطوابير التانية ما اتغيّرتش.</span></li>
           <li class="cl-item"><span class="cl-tag change">تنبيه</span><span>⛔ محتاج <code>in-return-orders-worker</code> <b>1.2.0</b> (وصلاحية <code>read_returns</code>) — <b>انشره قبل الصفحة</b>. ⚠️ التكلفة بعد الإضافة مش مقيسة: راجع <code>queryCost</code>.</span></li>
@@ -1568,9 +1595,16 @@ PAGES = [
     extraHead='<th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort(\'tracking\')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th>'
               '<th class="sortable-th col-date" data-q-sort="returnRequestedAt" onclick="qToggleSort(\'returnRequestedAt\')">تاريخ الطلب<span class="sort-icon" data-q-sort="returnRequestedAt"></span></th>',
     sortExtra=" returnRequestedAt:{ type:'date' },",
+    # 🟤 v2.9.0 — فلاتر في رأس «رقم التتبع» (نص) و«تاريخ الطلب» (تاريخ) · ترتيب افتراضي بتاريخ الطلب
+    #    من الأقدم للأحدث · «تاريخ الأوردر» بعد «نوع الأوردر» · اسم المندوب بلون مجموعته.
+    xf=("{ key: 'tracking', sort: 'tracking', kind: 'text', label: 'رقم التتبع', get: o => o.tracking },"
+        " { key: 'reqDate', sort: 'returnRequestedAt', kind: 'date', label: 'تاريخ الطلب', get: o => o.returnRequestedAt }"),
+    defaultSort="{ key: 'returnRequestedAt', dir: 'asc' }",
+    createdAfterType=True,
+    courierCell='<td>${courierCell(o)}</td>',
     extraFilter='',
     extraCell="""      <td>${trackingCell(o)}</td>\n      <td class="date-cell">${returnRequestCell(o)}</td>\n""",
-    extraFn=TR_FN + '\n' + REQ_FN,
+    extraFn=TR_FN + '\n' + REQ_FN + '\n' + COURIER_FN,
     waChipsBox='', waChipsCall='', waChipsJs='',
     addrHead='', addrCell='', addrFn=ADDR_FN,
     addrAfterHead='<th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort(\'address\')">العنوان<span class="sort-icon" data-q-sort="address"></span></th>',
@@ -1587,8 +1621,8 @@ PAGES = [
     # ⚠️ html-builder v8.5.0 مش v8.6.0 عن قصد: جدول الطابور المشترك اتراجع على v8.5.0 (فلاتر رأس العمود · عناوين ثابتة · سحب العرض)،
     #    وبنود v8.6.0 (فلتر نص بتوكنز · نافذة أرقام · قايمة تاريخ بأقسام · فلتر وقت · عرض أعمدة متماثل) 🟡 مُستحسن **ما اتطبّقتش** — بتتطبّق على الثلاث
     #    صفحات مع بعض (درس R1)، مش على الصفحة الجديدة لوحدها.
-    skills='html-builder v8.5.0 (جدول الطابور المشترك) · worker-builder v3.10.0 · constants v4.4.0 · order-lifecycle v1.9.0 — 01-11-2026',
-    clSingle=True, clItems=CL_V280_INRETURN + CL_V165_INRETURN, clV133='', clPrev='',
+    skills='html-builder v8.5.0 (جدول الطابور المشترك) · worker-builder v3.10.0 · constants v4.4.0 · order-lifecycle v1.11.1 — 22-11-2026',
+    clSingle=True, clItems=CL_V290_INRETURN + CL_V280_INRETURN + CL_V165_INRETURN, clV133='', clPrev='',
     aboutWhat='''الأوردرات اللي حالتها <code>In-Return</code> — مرتجعة وفي طريقها
              للمخزن و<b>محدش سجّل لها <code>Returned</code></b> لسه. 🔴 <b>مفيهاش
              أوردرات <code>Shipped</code></b> — دي في طابور «تحت التوصيل (Shipped)»،
@@ -1956,6 +1990,13 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
 .type-text { font-weight: 800; white-space: nowrap; }
 .type-text.type-s1 { color: var(--accent-dark); }
 .type-text.type-s2 { color: var(--purple-dark); }
+/* 🟤 «استرجاع» (و«استرجاع (غير مؤكد)») بلون عيلة المرتجعات (بني-أحمر) — الاستبدال فضل بنفسجي */
+.type-text.type-return { color: var(--id-return); }
+/* 🎨 اسم المندوب بلون مجموعته (نص بس — بلا خلفية ولا بادج) — نفس ألوان مربعات المندوب فوق الجدول بالحرف */
+.cou-txt { font-weight: 800; }
+.cou-txt.qc-bosta    { color: var(--red-dark); }
+.cou-txt.qc-showroom { color: var(--teal-dark); }
+.cou-txt.qc-courier  { color: var(--accent-dark); }
 
 /* بادج الوقت — الدرجة بتيجي من `ecoDayLevel` في الـ shell فمستحيل تفترق
    بين الصفحتين؛ **اللون هو اللي مكرّر** هنا. */
@@ -2684,6 +2725,86 @@ const qMsState = msInit('q', Q_FILTERS,
 let qSearchTerm = '';
 let qDateFrom = null, qDateTo = null, qDateFilterActive = false, qActivePreset = '';
 
+// ══════════════════════════════════════════════════════════════
+// §XF — فلاتر إضافية في رأس العمود (v2.9.0 · «في طريق الرجوع» بس)
+// ══════════════════════════════════════════════════════════════
+//
+// 🔴 **نفس قاعدة القمع الأصلي:** الحالة هنا هي المصدر الوحيد، والقمع والـ chip والـ tooltip وزرار
+//    «مسح كل الفلاتر» كلهم بيقروا منها — مستحيل يفترقوا. `Q_XF` فاضية في «الجاهز» و«المشحون»،
+//    فمفيش أي أثر عليهم (الكود موجود، مفيش مفتاح يشغّله).
+// ⚠️ نوعين بس: `text` (رقم التتبع — بحث بـ`includes`) و`date` (تاريخ الطلب — على **يوم القاهرة**
+//    زي فلتر «تاريخ الأوردر» بالظبط، وصف بلا تاريخ **مابيظهرش** لما الفلتر شغّال).
+// ⚠️ مفيش فلتر على الأعمدة اللي مالهاش `Q_XF` ولا `Q_HDR_FLT` — القمع بيتبني من المفتاحين بس.
+const Q_XF = [__XF__];
+const qXf = {};
+const xfInit = x => x.kind === 'date' ? { from: null, to: null, preset: '' } : { term: '' };
+Q_XF.forEach(x => { qXf[x.key] = xfInit(x); });
+const xfFind   = k  => Q_XF.find(x => x.key === k)  || null;
+const xfBySort = sk => Q_XF.find(x => x.sort === sk) || null;
+function xfActiveOf(x) { const st = qXf[x.key]; return x.kind === 'date' ? !!(st.from || st.to) : st.term.trim().length > 0; }
+function xfAnyActive() { return Q_XF.some(xfActiveOf); }
+function xfResetAll()  { Q_XF.forEach(x => { qXf[x.key] = xfInit(x); }); }
+function xfText(x) {
+  const st = qXf[x.key];
+  if (x.kind === 'date') return st.preset ? Q_PRESET_LABELS[st.preset] : `من 📅 ${qDayLabel(st.from)} إلى 📅 ${qDayLabel(st.to)}`;
+  return st.term.trim();
+}
+function xfMatch(o) {
+  for (const x of Q_XF) {
+    const st = qXf[x.key];
+    if (x.kind === 'date') {
+      if (!st.from && !st.to) continue;
+      const v = x.get(o), d = v ? cairoDayStr(v) : null;
+      if (!d) return false;
+      if (st.from && d < st.from) return false;
+      if (st.to   && d > st.to)   return false;
+    } else if (st.term.trim()) {
+      if (!String(x.get(o) ?? '').toLowerCase().includes(st.term.trim().toLowerCase())) return false;
+    }
+  }
+  return true;
+}
+function xfClear(k) {
+  const x = xfFind(k); if (!x) return;
+  qXf[k] = xfInit(x);
+  if (hPop && hKey === k) hdrRender();
+  qRender();
+}
+function xfApplyPreset(k, preset) {
+  const r = qPresetRange(preset);
+  qXf[k] = { from: r.from, to: r.to, preset };
+  if (hPop && hKey === k) hdrRender();
+  qRender();
+}
+function xfDateInput(el) {
+  const [k, side] = el.dataset.xfdate.split('|'), st = qXf[k]; if (!st) return;
+  st[side] = el.value || null; st.preset = '';
+  if (hPop) hPop.querySelectorAll('[data-xfpreset]').forEach(b => b.classList.remove('on'));
+  qRender();
+}
+function xfTextInput(el) {
+  const k = el.dataset.xf; if (!qXf[k]) return;
+  el.classList.toggle('has-value', el.value.trim().length > 0);
+  qXf[k].term = el.value;
+  qRender();
+}
+function hdrRenderXf() {
+  const x = xfFind(hKey), st = qXf[x.key];
+  hPop.classList.toggle('wide', x.kind === 'date');
+  if (x.kind === 'text') {
+    hPop.innerHTML = `<div class="hpop-hd">${esc(x.label)}</div>
+      <div class="hpop-body"><input type="text" class="hpop-inp ${st.term.trim() ? 'has-value' : ''}" data-xf="${esc(x.key)}" autocomplete="off" aria-label="${esc(x.label)}" value="${esc(st.term)}">
+      <button type="button" class="clear-btn" data-hact="xclear" data-xk="${esc(x.key)}" style="align-self:flex-start">✕ مسح الاختيار</button></div>`;
+    const i = hPop.querySelector('[data-xf]'); if (i) i.focus();
+  } else {
+    hPop.innerHTML = `<div class="hpop-hd">${esc(x.label)}</div>
+      <div class="hpop-body"><button type="button" class="clear-btn" data-hact="xclear" data-xk="${esc(x.key)}" style="align-self:flex-start">✕ مسح الاختيار</button>
+      <div class="hpop-presets">${Object.keys(Q_PRESET_LABELS).map(k => `<button type="button" data-xfpreset="${k}" class="${st.preset === k ? 'on' : ''}">${Q_PRESET_LABELS[k]}</button>`).join('')}</div>
+      <div class="hpop-rng"><div><label>من تاريخ</label><input type="date" class="hpop-inp" data-xfdate="${esc(x.key)}|from" value="${esc(st.from || '')}" onclick="this.showPicker&&this.showPicker();"></div>
+      <div><label>إلى تاريخ</label><input type="date" class="hpop-inp" data-xfdate="${esc(x.key)}|to" value="${esc(st.to || '')}" onclick="this.showPicker&&this.showPicker();"></div></div></div>`;
+  }
+}
+
 let qTblOpen = true;
 function qToggleTable() {
   qTblOpen = !qTblOpen;
@@ -2694,7 +2815,7 @@ function qToggleTable() {
 }
 
 function qAnyFilterActive() {
-  return msAnyActive('q') || qSearchTerm.trim().length > 0 || qDateFilterActive;
+  return msAnyActive('q') || qSearchTerm.trim().length > 0 || qDateFilterActive || xfAnyActive();
 }
 function qUpdateFilterIconState() {
   // ⚠️ أيقونة لوحة الفلاتر (`qFltIcon`) اتشالت مع اللوحة (v1.33.0) — الحالة
@@ -2720,12 +2841,13 @@ const Q_HDR_SPECIAL = new Set(['search', 'date']);
 let hPop = null, hKey = null, hAnchor = null;
 function hdrBuild() {
   document.querySelectorAll('#qTableWrap th[data-q-sort]').forEach(th => {
-    const fk = Q_HDR_FLT[th.dataset.qSort];
-    if (!fk || (!MS.q.state[fk] && !Q_HDR_SPECIAL.has(fk)) || th.querySelector('.th-flt')) return;
+    const xf = xfBySort(th.dataset.qSort);
+    const fk = xf ? xf.key : Q_HDR_FLT[th.dataset.qSort];
+    if (!fk || (!xf && !MS.q.state[fk] && !Q_HDR_SPECIAL.has(fk)) || th.querySelector('.th-flt')) return;
     th.dataset.fk = fk;
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'th-flt'; b.dataset.hflt = fk;
-    b.setAttribute('aria-label', 'فلتر ' + ((MS.q.filters.find(f => f.key === fk) || {}).label || (fk === 'search' ? 'بحث' : 'تاريخ الأوردر')));
+    b.setAttribute('aria-label', 'فلتر ' + (xf ? xf.label : ((MS.q.filters.find(f => f.key === fk) || {}).label || (fk === 'search' ? 'بحث' : 'تاريخ الأوردر'))));
     b.innerHTML = FUNNEL_SVG + '<b class="th-cnt"></b>';
     b.addEventListener('click', e => { e.stopPropagation(); hdrOpen(fk, b); });
     th.appendChild(b);
@@ -2754,6 +2876,7 @@ function hdrOpen(key, anchor) {
 }
 function hdrRender() {
   if (!hPop) return;
+  if (xfFind(hKey)) { hdrRenderXf(); return; }
   if (hKey === 'search' || hKey === 'date') { hdrRenderSpecial(); return; }
   const f = MS.q.filters.find(x => x.key === hKey), st = MS.q.state[hKey];
   hPop.innerHTML = `<div class="hpop-hd">${esc(f.label)}</div>
@@ -2795,7 +2918,8 @@ function hdrRefresh(ns, key) { if (ns === 'q' && hPop && hKey === key) hdrRender
 function hdrUpdateStates() {
   document.querySelectorAll('#qTableWrap th[data-fk]').forEach(th => {
     const fk = th.dataset.fk;
-    const n = fk === 'search' ? (qSearchTerm.trim() ? 1 : 0) : fk === 'date' ? (qDateFilterActive ? 1 : 0) : MS.q.state[fk].selected.size;
+    const xf = xfFind(fk);
+    const n = xf ? (xfActiveOf(xf) ? 1 : 0) : fk === 'search' ? (qSearchTerm.trim() ? 1 : 0) : fk === 'date' ? (qDateFilterActive ? 1 : 0) : MS.q.state[fk].selected.size;
     th.classList.toggle('flt-on', n > 0);
     const c = th.querySelector('.th-cnt'); if (c) c.textContent = n > 1 ? n : (n ? '●' : '');
   });
@@ -2805,6 +2929,8 @@ function hdrUpdateStates() {
 //    الليبل بيتقرا من `labelOf` اللي القايمة بتعرضه (مش القيمة الخام) والتاريخ
 //    بنفس نص الـ chip — فالتلاتة (القايمة · الـ chip · الـ tooltip) مستحيل يفترقوا.
 function hdrTipText(fk) {
+  const xf = xfFind(fk);
+  if (xf) return xfActiveOf(xf) ? xfText(xf) : '';
   if (fk === 'search') return qSearchTerm.trim();
   if (fk === 'date') {
     if (!qDateFilterActive) return '';
@@ -2836,6 +2962,8 @@ document.addEventListener('click', e => {
   if (hPop.contains(e.target)) {
     const it = e.target.closest('[data-hval]');
     if (it) { msToggleItem('q', hKey, it.dataset.hval); return; }
+    const xp = e.target.closest('[data-xfpreset]');
+    if (xp) { xfApplyPreset(hKey, xp.dataset.xfpreset); return; }
     const pr = e.target.closest('[data-hpreset]');
     if (pr) { qApplyPreset(pr.dataset.hpreset); hdrSyncDatePop(); return; }
     const a = e.target.closest('[data-hact]');
@@ -2843,6 +2971,7 @@ document.addEventListener('click', e => {
       const act = a.dataset.hact;
       if (act === 'sclear') { qClearSearch(); const i = hPop.querySelector('#hSearchInput'); if (i) { i.value = ''; i.classList.remove('has-value'); i.focus(); } }
       else if (act === 'dclear') { qClearRangePreset(); hdrSyncDatePop(); }
+      else if (act === 'xclear') xfClear(a.dataset.xk);
       else if (act === 'clear') msClear('q', hKey);
       else if (act === 'all') msToggleSelectAll('q', hKey, true);
     }
@@ -2852,6 +2981,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('input', e => {
   if (!hPop || !hPop.contains(e.target)) return;
+  if (e.target.dataset && e.target.dataset.xf) { xfTextInput(e.target); return; }
   if (e.target.id === 'hSearchInput') {
     const el = e.target;
     el.classList.toggle('has-value', el.value.trim().length > 0);
@@ -2860,12 +2990,13 @@ document.addEventListener('input', e => {
   }
 });
 document.addEventListener('change', e => {
+  if (hPop && hPop.contains(e.target) && e.target.dataset.xfdate) { xfDateInput(e.target); return; }
   if (!hPop || !hPop.contains(e.target) || !e.target.dataset.hdate) return;
   const orig = document.getElementById(e.target.dataset.hdate);
   orig.value = e.target.value; qOnDateInputChange(orig); hdrSyncDatePop();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && hPop && hPop.contains(e.target) && e.target.matches('#hSearchInput,[data-hdate]')) { e.preventDefault(); e.target.blur(); hdrClose(); }
+  if (e.key === 'Enter' && hPop && hPop.contains(e.target) && e.target.matches('#hSearchInput,[data-hdate],[data-xf],[data-xfdate]')) { e.preventDefault(); e.target.blur(); hdrClose(); }
 });
 document.addEventListener('scroll', hdrPlace, true);
 window.addEventListener('resize', hdrPlace);
@@ -3104,6 +3235,7 @@ function qClearAllFilters() {
   msClearAll('q');
   qResetSearch();
   qResetDateFilter();
+  xfResetAll();
   qRender();
 }
 
@@ -3128,6 +3260,10 @@ function qRenderSpecialChips() {
     rows.push(`<div class="ms-chips-row"><span class="chips-label">تاريخ الأوردر:</span><span class="ms-chip">${esc(txt)}`
             + `<button type="button" aria-label="مسح فلتر التاريخ" onclick="qClearRangePreset()">✕</button></span></div>`);
   }
+  Q_XF.filter(xfActiveOf).forEach(x => {
+    rows.push(`<div class="ms-chips-row"><span class="chips-label">${esc(x.label)}:</span><span class="ms-chip">${esc(xfText(x))}`
+            + `<button type="button" aria-label="مسح فلتر ${esc(x.label)}" onclick="xfClear('${esc(x.key)}')">✕</button></span></div>`);
+  });
   box.innerHTML = rows.join('');
 }
 
@@ -3148,10 +3284,14 @@ const Q_SORT_CONFIG = {
   createdAt:{ type:'date' },   packedAt:{ type:'date' },
   machineLabel:{ type:'string' }, flagCount:{ type:'number' },
 };
-let qSortState = { key: null, dir: null };
+// 🔴 **ترتيب افتراضي اختياري** (v2.9.0 · «في طريق الرجوع»: تاريخ الطلب من الأقدم للأحدث). بيتطبّق
+//    عند الفتح، **وبيرجع له** لما دورة الترتيب توصل «بلا ترتيب» (التالتة). في «الجاهز» و«المشحون»
+//    `null` فالسلوك القديم (الأقدم فوق بتاريخ الأوردر من `ecoQueueRows`) زي ما هو.
+const Q_DEFAULT_SORT = __DEFAULT_SORT__;
+let qSortState = Q_DEFAULT_SORT ? { ...Q_DEFAULT_SORT } : { key: null, dir: null };
 
 // 🔴 دورة تلات حالات: تصاعدي ▲ → تنازلي ▼ → **بلا ترتيب**.
-//    والتالتة بترجّع للترتيب الافتراضي (الأقدم فوق) مش لترتيب الـ Worker.
+//    والتالتة بترجّع للترتيب الافتراضي (`Q_DEFAULT_SORT` لو متعرّف، وإلا الأقدم فوق) مش لترتيب الـ Worker.
 function qToggleSort(key) {
   if (qSortState.key !== key)        { qSortState.key = key; qSortState.dir = 'asc'; }
   else if (qSortState.dir === 'asc') { qSortState.dir = 'desc'; }
@@ -3179,11 +3319,12 @@ function qSortValue(o, key) {
 // 🔴 `[...rows].sort()` مش `rows.sort()` — التانية بتعدّل المصفوفة الأصلية،
 //    فحالة «بلا ترتيب» ماكانتش هترجع للترتيب الافتراضي أبدًا.
 function qApplySort(rows) {
-  if (!qSortState.key) return rows;   // الافتراضي: الأقدم فوق — من `ecoQueueRows`
-  const cfg = Q_SORT_CONFIG[qSortState.key];
-  const dir = qSortState.dir === 'asc' ? 1 : -1;
+  const st = qSortState.key ? qSortState : Q_DEFAULT_SORT;
+  if (!st) return rows;   // الافتراضي: الأقدم فوق — من `ecoQueueRows`
+  const cfg = Q_SORT_CONFIG[st.key];
+  const dir = st.dir === 'asc' ? 1 : -1;
   return [...rows].sort((a, b) => {
-    const av = qSortValue(a, qSortState.key), bv = qSortValue(b, qSortState.key);
+    const av = qSortValue(a, st.key), bv = qSortValue(b, st.key);
     if (cfg.type === 'date') {
       // ⚠️ الصف اللي مالوش تاريخ بيروح **الآخر في الاتجاهين** — `-Infinity`
       //    كان بيحطّه فوق في التصاعدي وكأنه أقدم صف في الطابور.
@@ -3255,6 +3396,7 @@ function qVisible() {
       if (qDateFrom && d < qDateFrom) return false;
       if (qDateTo   && d > qDateTo)   return false;
     }
+    if (!xfMatch(o)) return false;
     if (!term) return true;
     return String(o.orderName || '').toLowerCase().replace(/^#/, '').includes(term)
         || String(o.customer  || '').toLowerCase().includes(term)
@@ -3415,13 +3557,13 @@ function qRender0() {
     return `<tr class="${o.flags.length ? 'flagged' : ''}">
       <td>${orderLink(o.orderName, o.orderId)}</td>
       <td class="cust-cell">${customerCell(o)}</td>
-__ADDR_CELL____NOTE_CELL__      <td>${esc(o.courier || '—')}</td>
+__ADDR_CELL____NOTE_CELL__      __COURIER_CELL__
 __ADDR_AFTER_CELL____EXTRA_CELL__      <td class="date-cell"><span class="cell-date">${esc(formatDate(o.createdAt))}</span><span class="time-badge age-badge ${o.age.cls}" data-q-age="${esc(o.createdAt || '')}">${esc(o.age.text)}</span></td>
       <td class="date-cell">${since
             ? `<span class="cell-date">${esc(formatDate(o.packedAt))}</span><span class="time-badge ${since.cls}" data-q-pack="${esc(o.packedAt)}">${esc(since.text)}</span>`
             : '<span class="flag-ok">—</span>'}</td>
-      <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(o.machineLabel || (isS2 ? 'استبدال/استرجاع' : 'عادي'))}</span></td>
-      <td>${o.flags.length
+      <td><span class="type-text ${isS2 ? (/^استرجاع/.test(o.machineLabel || '') ? 'type-return' : 'type-s2') : 'type-s1'}">${esc(o.machineLabel || (isS2 ? 'استبدال/استرجاع' : 'عادي'))}</span></td>
+__CREATED_CELL_AFTER_TYPE__      <td>${o.flags.length
             ? `<button type="button" class="flag-btn" data-flag-idx="${i}">⚠️ ${o.flags.length}</button>`
             : '<span class="flag-ok">—</span>'}</td>
     </tr>`;
@@ -3626,6 +3768,23 @@ for p in PAGES:
     out = out.replace('__ICON__', p['icon'])
     out = out.replace('__EMPTY_OK__', p['emptyOk'])
     out = out.replace('__PACK_COL__', p['packCol'])
+    # 🔴 «في طريق الرجوع»: عمود «تاريخ الأوردر» بعد «نوع الأوردر» (v2.9.0) — النقل في الماركب
+    #    (الرأس والخلية) بنفس النص بالحرف، مش إعادة كتابة.
+    if p.get('createdAfterType'):
+        m = re.search(r'^ *<th class="sortable-th col-date" data-q-sort="createdAt"[^\n]*\n', out, re.M)
+        assert m and out.count('data-q-sort="createdAt" onclick') == 1
+        th_c = m.group(0); out = out.replace(th_c, '', 1)
+        mt = re.search(r'^ *<th class="sortable-th" data-q-sort="machineLabel"[^\n]*\n', out, re.M)
+        assert mt
+        out = out.replace(mt.group(0), mt.group(0) + th_c, 1)
+        m2 = re.search(r'      <td class="date-cell"><span class="cell-date">\$\{esc\(formatDate\(o\.createdAt\)\)\}</span>[^\n]*</td>\n', out)
+        assert m2
+        td_c = m2.group(0); out = out.replace(td_c, '', 1)
+        out = out.replace('__CREATED_CELL_AFTER_TYPE__', td_c, 1)
+    out = out.replace('__CREATED_CELL_AFTER_TYPE__', '')
+    out = out.replace('__COURIER_CELL__', p.get('courierCell', '<td>${esc(o.courier || \'—\')}</td>'))
+    out = out.replace('__XF__', p.get('xf', ''))
+    out = out.replace('__DEFAULT_SORT__', p.get('defaultSort', 'null'))
     out = out.replace('__SORT_EXTRA__', p.get('sortExtra', ''))
     out = out.replace('__EXTRA_HEAD__', p['extraHead'])
     out = out.replace('__EXTRA_CELL__', p['extraCell'])
@@ -3664,7 +3823,7 @@ for p in PAGES:
     # 🔴 الحارس ده بيمسك **معامل اتضاف في المولّد وما اتسبدلش** — القالب
     #    بيتكتب في الحالة دي بنص `__ADDR_CELL__` حرفي جوّه الصفحة، وهي
     #    بتفتح عادي والكونسول نضيف.
-    left = [t for t in ['__TITLE__','__ICON__','__ACTION__','__CACHE__','__EXTRA_CELL__',
+    left = [t for t in ['__COURIER_CELL__','__XF__','__DEFAULT_SORT__','__CREATED_CELL_AFTER_TYPE__','__TITLE__','__ICON__','__ACTION__','__CACHE__','__EXTRA_CELL__',
                         '__EXTRA_FN__','__ADDR_HEAD__','__ADDR_CELL__','__ADDR_FN__',
                         '__ADDR_AFTER_HEAD__','__ADDR_AFTER_CELL__',
                         '__NOTE_HEAD__','__NOTE_CELL__','__NOTE_FN__',

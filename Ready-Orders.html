@@ -365,6 +365,13 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
 .type-text { font-weight: 800; white-space: nowrap; }
 .type-text.type-s1 { color: var(--accent-dark); }
 .type-text.type-s2 { color: var(--purple-dark); }
+/* 🟤 «استرجاع» (و«استرجاع (غير مؤكد)») بلون عيلة المرتجعات (بني-أحمر) — الاستبدال فضل بنفسجي */
+.type-text.type-return { color: var(--id-return); }
+/* 🎨 اسم المندوب بلون مجموعته (نص بس — بلا خلفية ولا بادج) — نفس ألوان مربعات المندوب فوق الجدول بالحرف */
+.cou-txt { font-weight: 800; }
+.cou-txt.qc-bosta    { color: var(--red-dark); }
+.cou-txt.qc-showroom { color: var(--teal-dark); }
+.cou-txt.qc-courier  { color: var(--accent-dark); }
 
 /* بادج الوقت — الدرجة بتيجي من `ecoDayLevel` في الـ shell فمستحيل تفترق
    بين الصفحتين؛ **اللون هو اللي مكرّر** هنا. */
@@ -1455,6 +1462,86 @@ const qMsState = msInit('q', Q_FILTERS,
 let qSearchTerm = '';
 let qDateFrom = null, qDateTo = null, qDateFilterActive = false, qActivePreset = '';
 
+// ══════════════════════════════════════════════════════════════
+// §XF — فلاتر إضافية في رأس العمود (v2.9.0 · «في طريق الرجوع» بس)
+// ══════════════════════════════════════════════════════════════
+//
+// 🔴 **نفس قاعدة القمع الأصلي:** الحالة هنا هي المصدر الوحيد، والقمع والـ chip والـ tooltip وزرار
+//    «مسح كل الفلاتر» كلهم بيقروا منها — مستحيل يفترقوا. `Q_XF` فاضية في «الجاهز» و«المشحون»،
+//    فمفيش أي أثر عليهم (الكود موجود، مفيش مفتاح يشغّله).
+// ⚠️ نوعين بس: `text` (رقم التتبع — بحث بـ`includes`) و`date` (تاريخ الطلب — على **يوم القاهرة**
+//    زي فلتر «تاريخ الأوردر» بالظبط، وصف بلا تاريخ **مابيظهرش** لما الفلتر شغّال).
+// ⚠️ مفيش فلتر على الأعمدة اللي مالهاش `Q_XF` ولا `Q_HDR_FLT` — القمع بيتبني من المفتاحين بس.
+const Q_XF = [];
+const qXf = {};
+const xfInit = x => x.kind === 'date' ? { from: null, to: null, preset: '' } : { term: '' };
+Q_XF.forEach(x => { qXf[x.key] = xfInit(x); });
+const xfFind   = k  => Q_XF.find(x => x.key === k)  || null;
+const xfBySort = sk => Q_XF.find(x => x.sort === sk) || null;
+function xfActiveOf(x) { const st = qXf[x.key]; return x.kind === 'date' ? !!(st.from || st.to) : st.term.trim().length > 0; }
+function xfAnyActive() { return Q_XF.some(xfActiveOf); }
+function xfResetAll()  { Q_XF.forEach(x => { qXf[x.key] = xfInit(x); }); }
+function xfText(x) {
+  const st = qXf[x.key];
+  if (x.kind === 'date') return st.preset ? Q_PRESET_LABELS[st.preset] : `من 📅 ${qDayLabel(st.from)} إلى 📅 ${qDayLabel(st.to)}`;
+  return st.term.trim();
+}
+function xfMatch(o) {
+  for (const x of Q_XF) {
+    const st = qXf[x.key];
+    if (x.kind === 'date') {
+      if (!st.from && !st.to) continue;
+      const v = x.get(o), d = v ? cairoDayStr(v) : null;
+      if (!d) return false;
+      if (st.from && d < st.from) return false;
+      if (st.to   && d > st.to)   return false;
+    } else if (st.term.trim()) {
+      if (!String(x.get(o) ?? '').toLowerCase().includes(st.term.trim().toLowerCase())) return false;
+    }
+  }
+  return true;
+}
+function xfClear(k) {
+  const x = xfFind(k); if (!x) return;
+  qXf[k] = xfInit(x);
+  if (hPop && hKey === k) hdrRender();
+  qRender();
+}
+function xfApplyPreset(k, preset) {
+  const r = qPresetRange(preset);
+  qXf[k] = { from: r.from, to: r.to, preset };
+  if (hPop && hKey === k) hdrRender();
+  qRender();
+}
+function xfDateInput(el) {
+  const [k, side] = el.dataset.xfdate.split('|'), st = qXf[k]; if (!st) return;
+  st[side] = el.value || null; st.preset = '';
+  if (hPop) hPop.querySelectorAll('[data-xfpreset]').forEach(b => b.classList.remove('on'));
+  qRender();
+}
+function xfTextInput(el) {
+  const k = el.dataset.xf; if (!qXf[k]) return;
+  el.classList.toggle('has-value', el.value.trim().length > 0);
+  qXf[k].term = el.value;
+  qRender();
+}
+function hdrRenderXf() {
+  const x = xfFind(hKey), st = qXf[x.key];
+  hPop.classList.toggle('wide', x.kind === 'date');
+  if (x.kind === 'text') {
+    hPop.innerHTML = `<div class="hpop-hd">${esc(x.label)}</div>
+      <div class="hpop-body"><input type="text" class="hpop-inp ${st.term.trim() ? 'has-value' : ''}" data-xf="${esc(x.key)}" autocomplete="off" aria-label="${esc(x.label)}" value="${esc(st.term)}">
+      <button type="button" class="clear-btn" data-hact="xclear" data-xk="${esc(x.key)}" style="align-self:flex-start">✕ مسح الاختيار</button></div>`;
+    const i = hPop.querySelector('[data-xf]'); if (i) i.focus();
+  } else {
+    hPop.innerHTML = `<div class="hpop-hd">${esc(x.label)}</div>
+      <div class="hpop-body"><button type="button" class="clear-btn" data-hact="xclear" data-xk="${esc(x.key)}" style="align-self:flex-start">✕ مسح الاختيار</button>
+      <div class="hpop-presets">${Object.keys(Q_PRESET_LABELS).map(k => `<button type="button" data-xfpreset="${k}" class="${st.preset === k ? 'on' : ''}">${Q_PRESET_LABELS[k]}</button>`).join('')}</div>
+      <div class="hpop-rng"><div><label>من تاريخ</label><input type="date" class="hpop-inp" data-xfdate="${esc(x.key)}|from" value="${esc(st.from || '')}" onclick="this.showPicker&&this.showPicker();"></div>
+      <div><label>إلى تاريخ</label><input type="date" class="hpop-inp" data-xfdate="${esc(x.key)}|to" value="${esc(st.to || '')}" onclick="this.showPicker&&this.showPicker();"></div></div></div>`;
+  }
+}
+
 let qTblOpen = true;
 function qToggleTable() {
   qTblOpen = !qTblOpen;
@@ -1465,7 +1552,7 @@ function qToggleTable() {
 }
 
 function qAnyFilterActive() {
-  return msAnyActive('q') || qSearchTerm.trim().length > 0 || qDateFilterActive;
+  return msAnyActive('q') || qSearchTerm.trim().length > 0 || qDateFilterActive || xfAnyActive();
 }
 function qUpdateFilterIconState() {
   // ⚠️ أيقونة لوحة الفلاتر (`qFltIcon`) اتشالت مع اللوحة (v1.33.0) — الحالة
@@ -1491,12 +1578,13 @@ const Q_HDR_SPECIAL = new Set(['search', 'date']);
 let hPop = null, hKey = null, hAnchor = null;
 function hdrBuild() {
   document.querySelectorAll('#qTableWrap th[data-q-sort]').forEach(th => {
-    const fk = Q_HDR_FLT[th.dataset.qSort];
-    if (!fk || (!MS.q.state[fk] && !Q_HDR_SPECIAL.has(fk)) || th.querySelector('.th-flt')) return;
+    const xf = xfBySort(th.dataset.qSort);
+    const fk = xf ? xf.key : Q_HDR_FLT[th.dataset.qSort];
+    if (!fk || (!xf && !MS.q.state[fk] && !Q_HDR_SPECIAL.has(fk)) || th.querySelector('.th-flt')) return;
     th.dataset.fk = fk;
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'th-flt'; b.dataset.hflt = fk;
-    b.setAttribute('aria-label', 'فلتر ' + ((MS.q.filters.find(f => f.key === fk) || {}).label || (fk === 'search' ? 'بحث' : 'تاريخ الأوردر')));
+    b.setAttribute('aria-label', 'فلتر ' + (xf ? xf.label : ((MS.q.filters.find(f => f.key === fk) || {}).label || (fk === 'search' ? 'بحث' : 'تاريخ الأوردر'))));
     b.innerHTML = FUNNEL_SVG + '<b class="th-cnt"></b>';
     b.addEventListener('click', e => { e.stopPropagation(); hdrOpen(fk, b); });
     th.appendChild(b);
@@ -1525,6 +1613,7 @@ function hdrOpen(key, anchor) {
 }
 function hdrRender() {
   if (!hPop) return;
+  if (xfFind(hKey)) { hdrRenderXf(); return; }
   if (hKey === 'search' || hKey === 'date') { hdrRenderSpecial(); return; }
   const f = MS.q.filters.find(x => x.key === hKey), st = MS.q.state[hKey];
   hPop.innerHTML = `<div class="hpop-hd">${esc(f.label)}</div>
@@ -1566,7 +1655,8 @@ function hdrRefresh(ns, key) { if (ns === 'q' && hPop && hKey === key) hdrRender
 function hdrUpdateStates() {
   document.querySelectorAll('#qTableWrap th[data-fk]').forEach(th => {
     const fk = th.dataset.fk;
-    const n = fk === 'search' ? (qSearchTerm.trim() ? 1 : 0) : fk === 'date' ? (qDateFilterActive ? 1 : 0) : MS.q.state[fk].selected.size;
+    const xf = xfFind(fk);
+    const n = xf ? (xfActiveOf(xf) ? 1 : 0) : fk === 'search' ? (qSearchTerm.trim() ? 1 : 0) : fk === 'date' ? (qDateFilterActive ? 1 : 0) : MS.q.state[fk].selected.size;
     th.classList.toggle('flt-on', n > 0);
     const c = th.querySelector('.th-cnt'); if (c) c.textContent = n > 1 ? n : (n ? '●' : '');
   });
@@ -1576,6 +1666,8 @@ function hdrUpdateStates() {
 //    الليبل بيتقرا من `labelOf` اللي القايمة بتعرضه (مش القيمة الخام) والتاريخ
 //    بنفس نص الـ chip — فالتلاتة (القايمة · الـ chip · الـ tooltip) مستحيل يفترقوا.
 function hdrTipText(fk) {
+  const xf = xfFind(fk);
+  if (xf) return xfActiveOf(xf) ? xfText(xf) : '';
   if (fk === 'search') return qSearchTerm.trim();
   if (fk === 'date') {
     if (!qDateFilterActive) return '';
@@ -1607,6 +1699,8 @@ document.addEventListener('click', e => {
   if (hPop.contains(e.target)) {
     const it = e.target.closest('[data-hval]');
     if (it) { msToggleItem('q', hKey, it.dataset.hval); return; }
+    const xp = e.target.closest('[data-xfpreset]');
+    if (xp) { xfApplyPreset(hKey, xp.dataset.xfpreset); return; }
     const pr = e.target.closest('[data-hpreset]');
     if (pr) { qApplyPreset(pr.dataset.hpreset); hdrSyncDatePop(); return; }
     const a = e.target.closest('[data-hact]');
@@ -1614,6 +1708,7 @@ document.addEventListener('click', e => {
       const act = a.dataset.hact;
       if (act === 'sclear') { qClearSearch(); const i = hPop.querySelector('#hSearchInput'); if (i) { i.value = ''; i.classList.remove('has-value'); i.focus(); } }
       else if (act === 'dclear') { qClearRangePreset(); hdrSyncDatePop(); }
+      else if (act === 'xclear') xfClear(a.dataset.xk);
       else if (act === 'clear') msClear('q', hKey);
       else if (act === 'all') msToggleSelectAll('q', hKey, true);
     }
@@ -1623,6 +1718,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('input', e => {
   if (!hPop || !hPop.contains(e.target)) return;
+  if (e.target.dataset && e.target.dataset.xf) { xfTextInput(e.target); return; }
   if (e.target.id === 'hSearchInput') {
     const el = e.target;
     el.classList.toggle('has-value', el.value.trim().length > 0);
@@ -1631,12 +1727,13 @@ document.addEventListener('input', e => {
   }
 });
 document.addEventListener('change', e => {
+  if (hPop && hPop.contains(e.target) && e.target.dataset.xfdate) { xfDateInput(e.target); return; }
   if (!hPop || !hPop.contains(e.target) || !e.target.dataset.hdate) return;
   const orig = document.getElementById(e.target.dataset.hdate);
   orig.value = e.target.value; qOnDateInputChange(orig); hdrSyncDatePop();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && hPop && hPop.contains(e.target) && e.target.matches('#hSearchInput,[data-hdate]')) { e.preventDefault(); e.target.blur(); hdrClose(); }
+  if (e.key === 'Enter' && hPop && hPop.contains(e.target) && e.target.matches('#hSearchInput,[data-hdate],[data-xf],[data-xfdate]')) { e.preventDefault(); e.target.blur(); hdrClose(); }
 });
 document.addEventListener('scroll', hdrPlace, true);
 window.addEventListener('resize', hdrPlace);
@@ -1875,6 +1972,7 @@ function qClearAllFilters() {
   msClearAll('q');
   qResetSearch();
   qResetDateFilter();
+  xfResetAll();
   qRender();
 }
 
@@ -1899,6 +1997,10 @@ function qRenderSpecialChips() {
     rows.push(`<div class="ms-chips-row"><span class="chips-label">تاريخ الأوردر:</span><span class="ms-chip">${esc(txt)}`
             + `<button type="button" aria-label="مسح فلتر التاريخ" onclick="qClearRangePreset()">✕</button></span></div>`);
   }
+  Q_XF.filter(xfActiveOf).forEach(x => {
+    rows.push(`<div class="ms-chips-row"><span class="chips-label">${esc(x.label)}:</span><span class="ms-chip">${esc(xfText(x))}`
+            + `<button type="button" aria-label="مسح فلتر ${esc(x.label)}" onclick="xfClear('${esc(x.key)}')">✕</button></span></div>`);
+  });
   box.innerHTML = rows.join('');
 }
 
@@ -1919,10 +2021,14 @@ const Q_SORT_CONFIG = {
   createdAt:{ type:'date' },   packedAt:{ type:'date' },
   machineLabel:{ type:'string' }, flagCount:{ type:'number' },
 };
-let qSortState = { key: null, dir: null };
+// 🔴 **ترتيب افتراضي اختياري** (v2.9.0 · «في طريق الرجوع»: تاريخ الطلب من الأقدم للأحدث). بيتطبّق
+//    عند الفتح، **وبيرجع له** لما دورة الترتيب توصل «بلا ترتيب» (التالتة). في «الجاهز» و«المشحون»
+//    `null` فالسلوك القديم (الأقدم فوق بتاريخ الأوردر من `ecoQueueRows`) زي ما هو.
+const Q_DEFAULT_SORT = null;
+let qSortState = Q_DEFAULT_SORT ? { ...Q_DEFAULT_SORT } : { key: null, dir: null };
 
 // 🔴 دورة تلات حالات: تصاعدي ▲ → تنازلي ▼ → **بلا ترتيب**.
-//    والتالتة بترجّع للترتيب الافتراضي (الأقدم فوق) مش لترتيب الـ Worker.
+//    والتالتة بترجّع للترتيب الافتراضي (`Q_DEFAULT_SORT` لو متعرّف، وإلا الأقدم فوق) مش لترتيب الـ Worker.
 function qToggleSort(key) {
   if (qSortState.key !== key)        { qSortState.key = key; qSortState.dir = 'asc'; }
   else if (qSortState.dir === 'asc') { qSortState.dir = 'desc'; }
@@ -1950,11 +2056,12 @@ function qSortValue(o, key) {
 // 🔴 `[...rows].sort()` مش `rows.sort()` — التانية بتعدّل المصفوفة الأصلية،
 //    فحالة «بلا ترتيب» ماكانتش هترجع للترتيب الافتراضي أبدًا.
 function qApplySort(rows) {
-  if (!qSortState.key) return rows;   // الافتراضي: الأقدم فوق — من `ecoQueueRows`
-  const cfg = Q_SORT_CONFIG[qSortState.key];
-  const dir = qSortState.dir === 'asc' ? 1 : -1;
+  const st = qSortState.key ? qSortState : Q_DEFAULT_SORT;
+  if (!st) return rows;   // الافتراضي: الأقدم فوق — من `ecoQueueRows`
+  const cfg = Q_SORT_CONFIG[st.key];
+  const dir = st.dir === 'asc' ? 1 : -1;
   return [...rows].sort((a, b) => {
-    const av = qSortValue(a, qSortState.key), bv = qSortValue(b, qSortState.key);
+    const av = qSortValue(a, st.key), bv = qSortValue(b, st.key);
     if (cfg.type === 'date') {
       // ⚠️ الصف اللي مالوش تاريخ بيروح **الآخر في الاتجاهين** — `-Infinity`
       //    كان بيحطّه فوق في التصاعدي وكأنه أقدم صف في الطابور.
@@ -2027,6 +2134,7 @@ function qVisible() {
       if (qDateFrom && d < qDateFrom) return false;
       if (qDateTo   && d > qDateTo)   return false;
     }
+    if (!xfMatch(o)) return false;
     if (!term) return true;
     return String(o.orderName || '').toLowerCase().replace(/^#/, '').includes(term)
         || String(o.customer  || '').toLowerCase().includes(term)
@@ -2345,7 +2453,7 @@ function qRender0() {
       <td class="date-cell">${since
             ? `<span class="cell-date">${esc(formatDate(o.packedAt))}</span><span class="time-badge ${since.cls}" data-q-pack="${esc(o.packedAt)}">${esc(since.text)}</span>`
             : '<span class="flag-ok">—</span>'}</td>
-      <td><span class="type-text ${isS2 ? 'type-s2' : 'type-s1'}">${esc(o.machineLabel || (isS2 ? 'استبدال/استرجاع' : 'عادي'))}</span></td>
+      <td><span class="type-text ${isS2 ? (/^استرجاع/.test(o.machineLabel || '') ? 'type-return' : 'type-s2') : 'type-s1'}">${esc(o.machineLabel || (isS2 ? 'استبدال/استرجاع' : 'عادي'))}</span></td>
       <td>${o.flags.length
             ? `<button type="button" class="flag-btn" data-flag-idx="${i}">⚠️ ${o.flags.length}</button>`
             : '<span class="flag-ok">—</span>'}</td>
