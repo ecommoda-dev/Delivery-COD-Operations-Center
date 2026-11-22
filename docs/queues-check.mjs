@@ -1253,15 +1253,18 @@ console.log('\n══ ⑤-ب In-Return-Orders.html ══');
   is(th === td, `خلايا الصف == أعمدة الهيدر (${th})`, `th=${th} td=${td}`);
 
   // نفس أعمدة «المشحون» بالحرف: العنوان بعد المندوب، ورقم التتبع بعده، وبلا ملحوظات ولا موقع شحنة
-  const heads = await page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim()));
+  // ⚠️ v2.9.0: السهم ▲▼ على العمود المرتَّب (الافتراضي: تاريخ الطلب) جزء من نص `th` — بنشيله للمقارنة
+  const heads = await page.$$eval('#qTable thead th', e => e.map(x => x.textContent.replace(/[▲▼]/g, '').trim()));
   const shHeads = await (async () => {
     const o2 = await newPage();
     await o2.page.goto(`${BASE}/Shipped-Orders.html`); await o2.page.waitForSelector('#qBody tr');
     const h = await o2.page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim())); await o2.ctx.close(); return h; })();
   // 🟢 v1.2.0: نفس أعمدة «المشحون» + «تاريخ الطلب» بعد «رقم التتبع» مباشرةً (الفرق الوحيد)
+  // 🟤 v2.9.0: و«تاريخ الأوردر» اتنقل بعد «نوع الأوردر» (طلب أحمد 22-11-2026)
   const expHeads = [...shHeads]; expHeads.splice(expHeads.indexOf('رقم التتبع') + 1, 0, 'تاريخ الطلب');
+  expHeads.splice(expHeads.indexOf('تاريخ الأوردر'), 1); expHeads.splice(expHeads.indexOf('نوع الأوردر') + 1, 0, 'تاريخ الأوردر');
   is(JSON.stringify(heads) === JSON.stringify(expHeads),
-     '🔴 أعمدة «في طريق الرجوع» == أعمدة «المشحون» بالحرف + «تاريخ الطلب» بعد رقم التتبع', JSON.stringify(heads));
+     '🔴 أعمدة «في طريق الرجوع» == أعمدة «المشحون» + «تاريخ الطلب» بعد التتبع + «تاريخ الأوردر» بعد «نوع الأوردر»', JSON.stringify(heads));
   // 🟢 «تاريخ الطلب» + «نوع الأوردر» من رد الـ Worker
   const reqRows = await page.$$eval('#qBody tr', trs => trs.map(tr => ({
     name: tr.children[0].textContent.trim(), cells: [...tr.children].map(c => c.textContent.trim()) })));
@@ -1319,6 +1322,121 @@ console.log('\n══ ⑤-ب In-Return-Orders.html ══');
   // حارس النسخة بيسمّي الأداة
   is(await page.evaluate(() => typeof ECO_WORKERS.inReturn === 'object' && ECO_WORKERS.inReturn.label === 'في طريق الرجوع'), 'حارس النسخة بيسمّي «في طريق الرجوع»');
   is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | ').slice(0, 200));
+  await ctx.close();
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// ⑤-ج 🟤 «في طريق الرجوع» v2.9.0 — فلاتر التتبع/تاريخ الطلب · الترتيب الافتراضي · الألوان · النوع من الدفتر
+// ══════════════════════════════════════════════════════════════
+console.log('\n══ ⑤-ج In-Return-Orders.html — v2.9.0 ══');
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/In-Return-Orders.html`);
+  await page.waitForSelector('#qBody tr');
+  const names = () => page.$$eval('#qBody tr', r => r.map(x => (x.textContent.match(/#\d{5}/) || [])[0]).filter(Boolean));
+
+  // ① الترتيب الافتراضي = تاريخ الطلب تصاعدي (السهم ظاهر · الأوردر بلا Return في الآخر)
+  is(await page.evaluate(() => qSortState.key === 'returnRequestedAt' && qSortState.dir === 'asc'), '↕️ الترتيب الافتراضي عند الفتح: تاريخ الطلب تصاعدي');
+  is((await page.textContent('th[data-q-sort="returnRequestedAt"] .sort-icon')).trim() === '▲', 'السهم ▲ ظاهر على «تاريخ الطلب»');
+  is((await names())[0] === '#57002', 'أول صف = أقدم تاريخ طلب (والصفوف بلا Return بعده)', (await names()).join());
+  // الضغطة التالتة بترجّع للافتراضي (مش لـ createdAt)
+  await page.click('th[data-q-sort="returnRequestedAt"]'); await page.click('th[data-q-sort="returnRequestedAt"]');
+  is(await page.evaluate(() => qSortState.key === null), 'دورة الترتيب: ▲ ← ▼ ← بلا ترتيب');
+  is((await names())[0] === '#57002', '«بلا ترتيب» بيرجّع للافتراضي (تاريخ الطلب) مش لترتيب الـ Worker');
+  // تنازلي: الأوردر الوحيد بتاريخ طلب يفضل ظاهر والباقي (بلا تاريخ) بعده في الاتجاهين
+  await page.click('th[data-q-sort="returnRequestedAt"]'); await page.click('th[data-q-sort="returnRequestedAt"]');
+  is((await names())[0] === '#57002', 'الصف بلا تاريخ طلب في الآخر في الاتجاهين', (await names()).join());
+  await page.evaluate(() => { qSortState = { ...Q_DEFAULT_SORT }; qUpdateSortHeaderUI(); qRender(); });
+
+  // ② فلتر «رقم التتبع» (نص) في الرأس
+  is(await page.$('th[data-q-sort="tracking"] .th-flt') !== null && await page.$('th[data-q-sort="returnRequestedAt"] .th-flt') !== null,
+     '🔎 قمع في رأس «رقم التتبع» و«تاريخ الطلب»');
+  await page.click('th[data-q-sort="tracking"] .th-flt');
+  await page.fill('.hpop [data-xf="tracking"]', '4440002');
+  await page.waitForTimeout(100);
+  is((await names()).join() === '#57002', 'بحث رقم التتبع «4440002» بيطلّع #57002 بس', (await names()).join());
+  is((await page.textContent('#qChipsSpecial')).includes('رقم التتبع') && (await page.textContent('#qChipsSpecial')).includes('4440002'), 'chip الفلتر ظاهر بالاسم والقيمة');
+  is(await page.evaluate(() => document.querySelector('th[data-q-sort="tracking"]').classList.contains('flt-on')), 'القمع بيتلوّن لما الفلتر شغّال');
+  is(await page.evaluate(() => qAnyFilterActive()) && !(await page.$eval('#qClearAllBtn', b => b.classList.contains('inactive'))), 'زرار «مسح كل الفلاتر» بقى فعّال');
+  await page.keyboard.press('Enter');
+  is(await page.$('.hpop') === null, 'Enter بيقفل القايمة والفلتر بيفضل');
+  is((await names()).join() === '#57002', 'والفلتر لسه شغّال بعد القفل');
+  await page.click('#qClearAllBtn');
+  is((await names()).length === 3 && !(await page.textContent('#qChipsSpecial')).includes('رقم التتبع'), '«مسح كل الفلاتر» بيمسح فلتر التتبع');
+  await page.click('th[data-q-sort="tracking"] .th-flt');
+  await page.fill('.hpop [data-xf="tracking"]', 'مش موجود');
+  is((await page.textContent('#qBody')).includes('مفيش صفوف مطابقة'), 'بحث بلا نتيجة = رسالة جوّه الجدول (مش جدول مختفي)');
+  await page.click('.hpop [data-hact="xclear"]');
+  is((await names()).length === 3, '«✕ مسح الاختيار» جوّه القايمة بيرجّع الصفوف');
+  await page.keyboard.press('Escape');
+
+  // ③ فلتر «تاريخ الطلب» (تاريخ) — يوم القاهرة، والصف بلا تاريخ مابيظهرش لما الفلتر شغّال
+  await page.click('th[data-q-sort="returnRequestedAt"] .th-flt');
+  is(await page.$$eval('.hpop [data-xfpreset]', e => e.length) === 5 && await page.$$eval('.hpop [data-xfdate]', e => e.length) === 2, 'قايمة التاريخ: 5 فترات سريعة + من/إلى');
+  await page.fill('.hpop [data-xfdate="reqDate|from"]', '2026-09-09');
+  await page.fill('.hpop [data-xfdate="reqDate|to"]', '2026-09-09');
+  is((await names()).join() === '#57002', 'من 09/09 إلى 09/09 بيطلّع #57002 بس (الباقي بلا تاريخ طلب)', (await names()).join());
+  is((await page.textContent('#qChipsSpecial')).includes('تاريخ الطلب'), 'chip «تاريخ الطلب» ظاهر');
+  await page.fill('.hpop [data-xfdate="reqDate|from"]', '2026-09-10');
+  await page.fill('.hpop [data-xfdate="reqDate|to"]', '2026-09-12');
+  is((await names()).length === 0, 'نطاق مالوش أوردرات = صفر صفوف');
+  await page.click('.hpop [data-xfpreset="today"]');
+  is(await page.evaluate(() => qXf.reqDate.preset === 'today' && !!qXf.reqDate.from), 'الفترة السريعة بتتطبّق');
+  await page.click('.hpop [data-hact="xclear"]');
+  is((await names()).length === 3 && !(await page.evaluate(() => xfAnyActive())), '«✕ مسح الاختيار» بيمسح فلتر التاريخ');
+  await page.keyboard.press('Escape');
+  // فلتر «تاريخ الأوردر» الأصلي لسه شغّال ومستقل
+  await page.click('th[data-q-sort="createdAt"] .th-flt');
+  is(await page.$('.hpop [data-hpreset]') !== null && await page.$('.hpop [data-xfdate]') === null, 'فلتر «تاريخ الأوردر» الأصلي ما اتلمسش ومستقل عن فلتر «تاريخ الطلب»');
+  await page.keyboard.press('Escape');
+
+  // ④ الألوان — اسم المندوب بلون مربع مجموعته (نص بس)، و«استرجاع» بلون المرتجعات
+  const col = (sel) => page.evaluate(s => { const e = document.querySelector(s); return e ? getComputedStyle(e).color : null; }, sel);
+  const bostaChip = await col('.zchip.qc-bosta'), couChip = await col('.zchip.qc-courier');
+  const bostaTxt = await page.evaluate(() => { const e = [...document.querySelectorAll('#qBody .cou-txt')].find(x => x.textContent.trim() === 'Bosta'); return e ? getComputedStyle(e).color : null; });
+  const sifTxt = await page.evaluate(() => { const e = [...document.querySelectorAll('#qBody .cou-txt')].find(x => x.textContent.trim() === 'Saif'); return e ? getComputedStyle(e).color : null; });
+  is(bostaTxt && bostaTxt === bostaChip, '🎨 «Bosta» بنفس لون مربع «بوسطة» (أحمر)', `${bostaTxt} ≠ ${bostaChip}`);
+  is(sifTxt && sifTxt === couChip, '🎨 مندوب عادي بنفس لون مربع «مناديب»', `${sifTxt} ≠ ${couChip}`);
+  is(await page.evaluate(() => { const e = document.querySelector('#qBody .cou-txt'); const cs = getComputedStyle(e); return cs.backgroundColor === 'rgba(0, 0, 0, 0)' && cs.borderTopWidth === '0px' && !e.closest('td').querySelector('.time-badge'); }),
+     '🎨 اللون على الخط بس — بلا خلفية ولا حدود ولا بادج');
+  // النوع «استرجاع»
+  await page.evaluate(() => { const r = qState.rows.find(x => x.orderName === '#57002'); r.returnKind = 'return'; r.machineLabel = ecoS2Label(r); qRender(); });
+  const retColor = await page.evaluate(() => { const e = [...document.querySelectorAll('#qBody .type-text')].find(x => x.textContent.trim() === 'استرجاع'); return e ? [getComputedStyle(e).color, e.className, getComputedStyle(document.documentElement).getPropertyValue('--id-return').trim()] : null; });
+  is(retColor && retColor[1].includes('type-return') && retColor[0] === 'rgb(156, 58, 34)' && retColor[2] === '#9c3a22', '🟤 «استرجاع» بلون بني-أحمر (`--id-return`)', JSON.stringify(retColor));
+  await page.evaluate(() => { const r = qState.rows.find(x => x.orderName === '#57002'); r.returnKind = 'exchange'; r.machineLabel = ecoS2Label(r); qRender(); });
+  is(await page.evaluate(() => { const e = [...document.querySelectorAll('#qBody .type-text')].find(x => x.textContent.trim() === 'استبدال'); return !!e && e.classList.contains('type-s2') && !e.classList.contains('type-return'); }), 'والاستبدال فضل بنفسجي');
+  is(await page.evaluate(() => { const e = [...document.querySelectorAll('#qBody .type-text')].find(x => x.textContent.trim() === 'عادي'); return !!e && e.classList.contains('type-s1'); }), 'و«عادي» (S1) ما اتغيّرش');
+
+  // ⑤ النوع من الدفتر (order-lifecycle v1.11.1) — التسميات والأعلام
+  const lab = await page.evaluate(() => [ecoS2Label({ returnKind: 'exchange' }), ecoS2Label({ returnKind: 'return' }), ecoS2Label({ returnKind: 'return_unconfirmed' }), ecoS2Label({})]);
+  is(JSON.stringify(lab) === JSON.stringify(['استبدال', 'استرجاع', 'استرجاع (غير مؤكد)', 'استبدال/استرجاع']), '🔀 تسميات النوع: exchange · return (مؤكَّد) · return_unconfirmed (Worker قديم) · بلا نوع', JSON.stringify(lab));
+  const fl = await page.evaluate(() => {
+    const base = { s1: 'Delivered', s2: 'In-Return', returnKind: 'return', zone: 'Cairo+Giza' };
+    const codes = (o, q = 'inreturn') => ecoFlags(o, 'In-Return', q).map(f => f.code);
+    return {
+      none:     codes({ ...base, returnFlags: ['EDITED_AFTER_RETURN'] }),
+      conflict: codes({ ...base, returnFlags: ['EDITED_AFTER_RETURN', 'TYPE_CONFLICT'] }),
+      between:  codes({ ...base, returnFlags: ['EDIT_AFTER_CLOSE', 'EDIT_BETWEEN_CYCLES'] }),
+      after:    codes({ ...base, returnFlags: ['EDIT_AFTER_CLOSE'] }),
+      noag:     codes({ ...base, returnFlags: ['NO_AGREEMENT'] }),
+      old:      codes({ ...base }),
+      s1row:    codes({ s1: 'In-Return', s2: null, zone: 'Other_Regions', returnFlags: ['TYPE_CONFLICT'] }),
+      shipped:  codes({ ...base, s2: 'Shipped', returnFlags: ['TYPE_CONFLICT'] }, 'shipped'),
+    };
+  });
+  is(fl.none.length === 0, '`EDITED_AFTER_RETURN` لوحدها معلومة مش مراجعة (مفيش علامة)', JSON.stringify(fl.none));
+  is(fl.conflict.includes('type_conflict'), '⚠️ `TYPE_CONFLICT` ← علامة «نوع الدورة اتغيّر بعد الإنشاء»', JSON.stringify(fl.conflict));
+  is(fl.between.includes('edit_between_cycles') && !fl.between.includes('edit_after_close'), '`EDIT_BETWEEN_CYCLES` بتغلب `EDIT_AFTER_CLOSE` (علامة واحدة)', JSON.stringify(fl.between));
+  is(fl.after.includes('edit_after_close'), '`EDIT_AFTER_CLOSE` ← علامة', JSON.stringify(fl.after));
+  is(fl.noag.includes('no_agreement'), '`NO_AGREEMENT` ← علامة (النوع مجهول)', JSON.stringify(fl.noag));
+  is(fl.old.length === 0, 'Worker قديم (بلا `returnFlags`) = صفر علامات جديدة', JSON.stringify(fl.old));
+  is(fl.s1row.length === 0 && fl.shipped.length === 0, 'الأعلام على صفوف S2 في «في طريق الرجوع» بس', JSON.stringify([fl.s1row, fl.shipped]));
+
+  // ⑥ التصدير بنفس ترتيب الجدول
+  is(await page.evaluate(() => { const t = qExport.toString(); const i = k => t.indexOf(`key: '${k}'`); return i('tracking') < i('reqDate') && i('reqDate') < i('packed') && i('packed') < i('type') && i('type') < i('created') && i('created') < i('flags'); }),
+     '⬇ أعمدة التصدير بنفس ترتيب الجدول (… طلب · تغليف · نوع · أوردر · مراجعة)');
+  is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | ').slice(0, 300));
   await ctx.close();
 }
 

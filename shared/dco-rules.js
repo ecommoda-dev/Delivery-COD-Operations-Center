@@ -198,6 +198,30 @@ function ecoFlags(o, status, queue) {
         detail: 'الحالة Shipped بس شوبيفاي مسجّلة الأوردر UNFULFILLED',
         action: 'الشحنة مش مسجّلة على شوبيفاي — راجع خطوة الشحن' });
     }
+  } else if (queue === 'inreturn' && machine === 's2' && Array.isArray(o.returnFlags)) {
+    // 🔴 أعلام دورة الاستبدال/الاسترجاع من دفتر `agreements` (`in-return-orders-worker` 1.3.0 ·
+    //    `order-lifecycle` v1.11.1 §2-D) — **بتتعلّم ومابتتحرّكش** (قاعدة 13). `EDITED_AFTER_RETURN`
+    //    لوحدها معلومة مش مراجعة، فمالهاش علامة هنا. 🔴 اللي بيتشحن بيتبع **النوع النهائي**.
+    const kind = o.returnKind === 'exchange' ? 'استبدال' : o.returnKind === 'return' ? 'استرجاع' : '—';
+    if (o.returnFlags.includes('TYPE_CONFLICT')) {
+      f.push({ code: 'type_conflict', label: 'نوع الدورة اتغيّر بعد الإنشاء',
+        detail: `الـ Return اتعمل بنوع، وتعديل الأوردر بعده خلّى النوع الفعلي «${kind}»`,
+        action: 'راجع الأوردر — اللي بيتشحن بيتبع النوع الحالي «' + kind + '»، وحالة S2 ممكن تكون لسه على النوع القديم' });
+    }
+    if (o.returnFlags.includes('EDIT_BETWEEN_CYCLES')) {
+      f.push({ code: 'edit_between_cycles', label: 'تعديل بين دورتين',
+        detail: 'الأوردر اتعدّل بعد قفل دورة وقبل ما اللي بعدها تبدأ — اتنسب للدورة السابقة',
+        action: 'راجع التعديل — ممكن يكون نيّته للدورة الجديدة' });
+    } else if (o.returnFlags.includes('EDIT_AFTER_CLOSE')) {
+      f.push({ code: 'edit_after_close', label: 'تعديل بعد قفل الدورة',
+        detail: 'الأوردر اتعدّل بعد ما دورة الاستبدال/الاسترجاع اتقفلت',
+        action: 'راجع التعديل على شوبيفاي' });
+    }
+    if (o.returnFlags.includes('NO_AGREEMENT')) {
+      f.push({ code: 'no_agreement', label: 'الدورة لسه ما اتعالجتش',
+        detail: 'مفيش سجل مبيعات للـ Return ده على شوبيفاي — النوع مجهول',
+        action: 'استنى لحد ما الـ Return يتعالج — متخمّنش النوع' });
+    }
   }
 
   return f;
@@ -212,13 +236,16 @@ function ecoFlags(o, status, queue) {
 //    كانت هتعدّي بفحص S1، والصح ٢.)
 // ── تسمية نوع صف S2 — استبدال ولا استرجاع؟ ───────────────────
 //
-// 🔴 `order-lifecycle` قاعدة 8: النوع من `return.exchangeLineItems` (بيرجع من الـ Worker
-//    كـ`returnKind`) — مش من حالة الماكينة. ⚠️ **والفاضية مش استرجاع**: تعديل الأوردر بعد
-//    تسجيل الاستبدال بيفضّيها، فبنقول «غير مؤكد» بدل ما ندّعي استرجاع.
-// ⚠️ **اختياري بالتصميم:** Worker مابيرجّعش `returnKind` (الجاهز · المشحون · نسخة قديمة من
-//    «في طريق الرجوع») = التسمية العامة القديمة بالظبط، فمفيش طابور تاني بيتغيّر.
+// 🔴 `order-lifecycle` قاعدة 8 (v1.11.1 · §2-D): النوع من **دفتر المبيعات** (`order.agreements`) —
+//    الـ Worker (`in-return-orders-worker` 1.3.0) بيحسبه ويرجّعه كـ`returnKind` = النوع **النهائي**
+//    لأحدث دورة: `exchange` · `return` (مؤكَّد من الدفتر). ⚠️ مش من `exchangeLineItems` ومش من S2.
+// ⚠️ `return_unconfirmed` = Worker أقدم (1.2.0) كان بيحكم من `exchangeLineItems` — والفاضية مش دليل
+//    استرجاع، فبنفضل نقول «غير مؤكد». `null` (دفتر ناقص · NO_AGREEMENT · Worker أقدم) = التسمية العامة.
+// ⚠️ **اختياري بالتصميم:** Worker مابيرجّعش `returnKind` (الجاهز · المشحون) = التسمية العامة القديمة
+//    بالظبط، فمفيش طابور تاني بيتغيّر.
 function ecoS2Label(o) {
   if (o.returnKind === 'exchange') return 'استبدال';
+  if (o.returnKind === 'return') return 'استرجاع';
   if (o.returnKind === 'return_unconfirmed') return 'استرجاع (غير مؤكد)';
   return 'استبدال/استرجاع';
 }
