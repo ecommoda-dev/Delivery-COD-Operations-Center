@@ -181,6 +181,19 @@ function addressCell(o) {
   return street ? esc(street) : '<span class="flag-ok">بلا عنوان</span>';
 }'''
 
+ADDR_FN_INRETURN = '''// 🟤 «في طريق الرجوع» — شكل عرض العنوان نفس عمود «العنوان بالكامل (شوبيفاي)» في «رفع بوسطة»:
+//    سطر أول **المحافظة ◀ المدينة** (`province`/`city` من الـ Worker) وسطر تاني باقي العنوان
+//    (`address1` — `address2`). كل قطعة في <bdi> عشان الإنجليزي ما يقلبش الترتيب بصريًا (Bidi).
+//    ⚠️ اسم العمود وبحثه وترتيبه وتصديره ما اتغيّروش — عرض بس.
+function addressCell(o) {
+  const head = [o.province, o.city].filter(Boolean)
+    .map(x => `<bdi>${esc(x)}</bdi>`).join(' ◀ ');
+  const rest = [o.address1, o.address2].filter(Boolean).join(' — ');
+  if (!head && !rest) return '<span class="flag-ok">بلا عنوان</span>';
+  return `<div style="font-weight:700;">${head || '—'}</div>`
+       + (rest ? `<div style="margin-top:2px;font-size:12.5px;font-weight:400;">${esc(rest)}</div>` : '');
+}'''
+
 NOTE_FN = '''// 🔴 **عمود «ملحوظات»** (v1.6.0 · طلب أحمد 17-09-2026) — مصدره حقل
 //    **Notes** على الأوردر في شوبيفاي (`note` في رد الـ Worker، من
 //    `ready-orders-worker` **v1.3.0**).
@@ -1609,7 +1622,7 @@ PAGES = [
     extraCell="""__TYPE_TD__      <td>${trackingCell(o)}</td>\n__CREATED_TD__      <td class="date-cell">${returnRequestCell(o)}</td>\n""",
     extraFn=TR_FN + '\n' + REQ_FN + '\n' + COURIER_FN,
     waChipsBox='', waChipsCall='', waChipsJs='',
-    addrHead='', addrCell='', addrFn=ADDR_FN,
+    addrHead='', addrCell='', addrFn=ADDR_FN_INRETURN,
     addrAfterHead='<th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort(\'address\')">العنوان<span class="sort-icon" data-q-sort="address"></span></th>',
     addrAfterCell="""      <td class="addr-cell">${addressCell(o)}</td>\n""",
     noteHead='', noteCell='', noteFn='',
