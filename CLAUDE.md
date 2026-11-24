@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center (`Delivery-COD-Operations-Center`)
 
-![version](https://img.shields.io/badge/version-v2.11.1-blue)
+![version](https://img.shields.io/badge/version-v2.12.0-blue)
 
 **بتعمل إيه:** هب واحد لمحطة الشحن والتحصيل. الموظف بيدخل **مرة واحدة**،
 وبيشوف طوابير الشحن: اللي **جاهز يخرج**، واللي **خرج ولسه بلا نتيجة** —
@@ -77,6 +77,15 @@
 > 🔄 **أسماء قديمة في الملف ده (تاريخية):** قبل المرحلة ٣/٤ (هب المخزن v1.45.0 · هب الشحن v1.49.0) كان فيه `shared/shell.js` و`shared/shell.css` والبادئات `woc*`/`dco*`. دلوقتي:
 > `shell.js` ← **`core.js`** (المشترك) + **`hub-config.js`** (`ECO_WORKERS` · `TOOL_VERSION` · مفاتيح الجلسة والسر) + **`dco-rules.js`**، و`shell.css` ← **`core.css`** (المشترك) + **`hub.css`** (ألوان الهب)، والبادئات ← **`eco*`** / `eco-` (`wocApi`←`ecoApi` · `WOC_WORKERS`/`DCO_WORKERS`←`ECO_WORKERS` · `.woc-*`/`.dco-*`←`.eco-*`). **قيم مفاتيح التخزين ما اتغيّرتش** (`woc_session` · `dco_session` · `*_worker_secret`). أي نص تحت بيقول «في الـ shell» معناه الملف المناسب من دول.
 
+## 🛵 تمريرة v2.12.0 — «أسماء المناديب»: بروفايل المندوب في D1 (تليفونين · صورة · رقم قومي بـPIN) (طلب أحمد 24-11-2026)
+
+- الـ Worker `courier-names-worker` **2.0.0** (ريبو `Courier-Names`) · `ECO_WORKERS.couriers.min` → **`2.0.0`** (🔴 **انشره قبل الصفحة**) · `TOOL_VERSION` → `v2.12.0`. القرارات والعقد الكامل في `CLAUDE.md` بتاع `Courier-Names` (قسم «بروفايل المندوب» و«عقد القراءة»).
+- **الصفحة (`Courier-Names.html` §PROFILE):** زرار «👤 بيانات» لكل مندوب (مش Bosta/Showroom) ← مودال: صورة (بتتصغّر ٢٥٦px JPEG في المتصفح) · تليفونين · الرقم القومي. فلتر «بياناتهم ناقصة» + شارة ناقص/كامل. صور القايمة بتتجاب لوحدها (٣ في نفس الوقت).
+- 🔴 **شوبيفاي هي اللي بتقرر مين في القايمة وترتيبه** — D1 خصائص بس. حفظ البيانات **مابيعيدش تحميل القايمة** (عشان ترتيب غير محفوظ مايضيعش).
+- 🔒 **الرقم القومي: PIN في كل فتح/إدخال/تعديل/حذف** (نافذة `#pinOverlay` · `withPin`) — PIN غلط بيسأل تاني برسالة، ٥ غلط = قفل ١٠ دقايق (من الـ Worker). الرقم مابيتخزّنش في متغيّر دائم: بيتعرض في عنصر واحد وبيتمسح بعد ٣٠ ث أو مع قفل النافذة، وخانة إدخاله بتتفضّى مع قفل نافذة الـ PIN.
+- ⚠️ **ما اتجرّبش على Worker/D1/شوبيفاي حقيقيين.** الصفحة على Worker وهمي بحالة (`docs/courier-profile-check.mjs` **٤١ بند** — متصفح فعلي)، والـ Worker على SQLite حقيقي (`worker-check.mjs` **٥٣ بند** في ريبوه). tools 210 + فشل واحد قديم (`Bosta-Webhook-Status-Receiver` «تابات الأداة»).
+- ⚠️ **أي هب/أداة تقرا البروفايلات:** `courier_profiles` و`courier_photos` قراءة بس · ⛔ `courier_sensitive` (الرقم القومي) لـ`courier-names-worker` وحده — العقد في `CLAUDE.md` بتاعه.
+- ⛔ **مفتوح:** تسجيل `tool='courier_names'` + `profile_update` · `photo_update` · `sensitive_update` · `view_sensitive` في `ecommoda-constants` §7.1 (قبل النشر — Rule 7) · وتسجيل عقد القراءة هناك.
 ## 📍 تمريرة v2.11.1 — عنوان «المشحون» بشكل «المحافظة ◀ المدينة» + اسم العمود «تاريخ [S2]» (طلب أحمد 24-11-2026)
 
 - **«المشحون»:** عمود «العنوان» بنفس شكل «في طريق الرجوع» (`ADDR_FN_INRETURN`): سطر أول **المحافظة ◀ المدينة** غامق وسطر تاني الشارع. عرض بس — البحث والترتيب والتصدير ما اتغيّروا. الأوردر بلا شارع بيعرض المحافظة، و«بلا عنوان» بس لو مفيش حاجة خالص.
@@ -1081,7 +1090,7 @@ tool في D1 : delivery_cod_ops_center   ← login · logout بس (ولسه مط
 | `COD-Payment-Center.html` | 🔗 **تحصيل الأوردرات COD** (مدموجة · **النسخة الوحيدة من v1.89.0** — الريبو بقى Worker وبس) | `cod-payment-center-worker` | **`3.28.0`** | **M (1200)** |
 | `Partial-Delivery.html` | 🔗 **التسليم الجزئي** (مدموجة من v1.10.0 · بلا نسخة قديمة · اسم الملف اتغيّر v1.11.0 · S2 من v1.62.0) | `partial-delivery-worker` | **`1.3.0`** | **M (1200)** |
 | `Bosta-Orders-Upload.html` | 🔗 **رفع بوسطة** (مدموجة من v1.13.0 · من v1.18.0 هي النسخة الوحيدة — الرابط القديم اتشال بلا تحويل) | `bosta-orders-upload-worker` | **`2.20.0`** | **M (1200)** |
-| `Courier-Names.html` | 🛵 **أسماء المناديب** (v1.30.0 · قسم «أدوات أخرى» · Worker وبس في ريبو `Courier-Names`) | `courier-names-worker` | **`1.0.0`** | **M (1200)** |
+| `Courier-Names.html` | 🛵 **أسماء المناديب** (v1.30.0 · قسم «أدوات أخرى» · Worker وبس في ريبو `Courier-Names` · **v2.11.0: + بروفايل المندوب في D1**) | `courier-names-worker` | **`2.0.0`** | **M (1200)** |
 | `Bosta-Webhook-Status-Receiver.html` | 📮 **مستقبل حالة شحنات بوسطة** (v1.35.0 · **صف في «قسم أوردرات بوسطة» (اتسمّى «متابعة شحنات بوسطة» في v1.40.0)** · Worker وبس في ريبو `Bosta-Webhook-Status-Receiver` · **عرض بحت**) | `bosta-webhook-status-receiver-worker` | **`1.10.0`** | **L (1400)** |
 | `Bosta-Delivery-Follow-Up.html` | 📲 **متابعة التأجيلات** (v1.44.0 · **صف في «أوردرات بوسطة»** · Worker وبس في ريبو `Bosta-Delivery-Follow-Up`) | `bosta-delivery-follow-up-worker` | **`1.0.0`** | **L (1400)** |
 
