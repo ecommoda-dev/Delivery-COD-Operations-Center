@@ -94,6 +94,34 @@
 .confirm-lines li.soft { color: var(--text-secondary); }
 .confirm-lines li.warn { background: var(--amber-light); color: var(--amber-dark); font-weight: 600; }
 .confirm-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-start; }
+
+/* ══════════ §PROFILE (v2.11.0) — بروفايل المندوب ══════════ */
+.cn-av { width: 44px; height: 44px; border-radius: 50%; flex: none; background: var(--surface-2); border: 1px solid var(--border-strong);
+  display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: var(--text-secondary);
+  overflow: hidden; }
+.cn-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cn-av.lg { width: 96px; height: 96px; font-size: 34px; }
+.cn-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.cn-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--text-secondary); }
+.cn-ph { font-family: var(--font-mono); direction: ltr; unicode-bidi: embed; }
+.cn-miss { font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px; background: var(--amber-light); color: var(--amber-dark); border: 1px solid var(--amber); white-space: nowrap; }
+.cn-full { font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px; background: var(--green-light); color: var(--green-dark); border: 1px solid var(--green); white-space: nowrap; }
+.cn-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.cn-filter button { border: 1px solid var(--border-strong); background: var(--surface); border-radius: 16px; padding: 4px 12px; font-size: 12px; cursor: pointer; font-family: var(--font-body); }
+.cn-filter button.on { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); font-weight: 700; }
+.pm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+@media (max-width: 560px) { .pm-grid { grid-template-columns: 1fr; } }
+.pm-field label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
+.pm-field input[type=text], .pm-field input[type=password], .pm-field input[type=tel] { width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); font-size: 14px; font-family: var(--font-mono); direction: ltr; text-align: left; }
+.pm-field input:focus { outline: none; border-color: var(--accent); }
+.pm-photo { display: flex; align-items: center; gap: 14px; margin: 10px 0 4px; flex-wrap: wrap; }
+.pm-box { border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 12px; margin-top: 14px; background: var(--surface-2); }
+.pm-box h4 { margin: 0 0 8px; font-size: 13.5px; }
+.pm-nid { font-family: var(--font-mono); font-size: 18px; direction: ltr; text-align: left; letter-spacing: 1px; font-weight: 700; }
+.pm-nid-info { font-size: 12.5px; color: var(--text-secondary); margin-top: 4px; }
+.pm-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.pm-err { color: var(--red-dark); font-size: 12.5px; font-weight: 600; min-height: 18px; margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -124,6 +152,7 @@
       <button class="btn btn-outline btn-sm" id="cnReloadBtn">↺ تحديث</button>
     </div>
     <div id="cnBanner"></div>
+    <div id="cnFilter" class="cn-filter"></div>
     <div id="cnDirty" style="display:none;"></div>
     <div id="cnList"><div class="q-empty">⏳ جاري تحميل القايمة...</div></div>
   </div>
@@ -149,7 +178,19 @@
     <div class="eco-modal-body">
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v1.30.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.11.0</span>
+          <span class="cl-ver-date">24-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🛵 <b>بيانات المندوب</b>: تليفون أساسي · تليفون إضافي · صورة · رقم قومي — محفوظة في D1 ومربوطة باسم المندوب. شوبيفاي لسه هي اللي بتقرر مين في القايمة وترتيبه.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔒 <b>الرقم القومي بـPIN</b>: كل فتح أو تعديل بيطلب الـ PIN بتاعك وبيتسجّل باسمك (من غير الرقم نفسه). ٥ محاولات غلط = قفل ١٠ دقايق. بيتخفى بعد ٣٠ ثانية. الصورة مش بيانات حساسة.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>فلتر «بياناتهم ناقصة» + شارة «ناقص N / كامل». حذف المندوب بيخلّي بياناته محفوظة (مش بتتمسح) — ولو رجّعت نفس الاسم بيرجع بروفايله مع تنبيه.</span></li>
+          <li class="cl-item"><span class="cl-tag fix">تنبيه</span><span>🔴 يحتاج <code>courier-names-worker</code> إصدار <b>2.0.0</b> — انشره قبل الصفحة.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v1.30.0</span>
           <span class="cl-ver-date">05-10-2026</span>
         </div>
         <ul class="cl-items">
@@ -182,6 +223,20 @@
         </div>
       </details>
       <details class="about-sec">
+        <summary>👤 بيانات المندوب (D1)</summary>
+        <div class="about-sec-body">
+          <ul>
+            <li>زرار «👤 بيانات» على كل مندوب: <b>تليفون أساسي</b> · <b>تليفون إضافي</b> (موبايل مصري) · <b>صورة</b> (بتتصغّر ٢٥٦px) · <b>الرقم القومي</b>.</li>
+            <li>البيانات مربوطة <b>بالاسم</b> زي ما هو في الميتافيلد. القايمة والترتيب من شوبيفاي — البيانات بتتحفظ في D1 بس.</li>
+            <li>🔒 <b>الرقم القومي</b> محمي بالـ PIN بتاعك في كل مرة (فتح · إدخال · تعديل · حذف)، وكل عملية بتتسجّل باسمك من غير الرقم. بيتخفى بعد ٣٠ ثانية. ٥ PIN غلط = قفل ١٠ دقايق.</li>
+            <li><b>الحذف</b> من القايمة مابيمسحش بيانات المندوب — بتفضل محفوظة. ولو رجّعت نفس الاسم بيرجع بروفايله القديم مع تنبيه، <b>اتأكد إنه نفس الشخص</b>.</li>
+            <li>«Bosta» و«Showroom» مالهمش بيانات شخصية.</li>
+            <li>باقي أدوات المركز (وأي هب تاني) بتقدر تقرا التليفونات والصورة من الـ D1 — <b>الرقم القومي مقصور على الأداة دي</b>.</li>
+            <li>⚠️ لو شاشة البيانات اتفتحت وحد تاني عدّل نفس المندوب، الحفظ بيترفض «اتعدّلت من حد تاني» — حدّث وأعد.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="about-sec">
         <summary>⚠️ لازم تعرف</summary>
         <div class="about-sec-body">
           <ul>
@@ -204,12 +259,73 @@
             <li>§CONFIG — <code>ECO_WORKERS.couriers</code> (في <code>shared/hub-config.js</code>) · الجلسة والسر من الـ shell.</li>
             <li>§LIST — عرض القايمة · السحب · الأسهم · «حفظ الترتيب».</li>
             <li>§ACTIONS — <code>add_courier</code> · <code>remove_courier</code> (بعد <code>courier_usage</code>) · <code>reorder_couriers</code>.</li>
+            <li>§PROFILE — مودال البيانات · تصغير الصورة (<code>createImageBitmap</code> → canvas) · مودال الـ PIN (<code>withPin</code>) · <code>reveal_national_id</code> / <code>set_national_id</code>.</li>
             <li>§LOG — <code>get_logs</code> (آخر ٣٠ تعديل).</li>
           </ul>
           <p>الـ Worker: <code>courier-names-worker</code> في ريبو <code>Courier-Names</code> —
              Worker وبس، والصفحة دي هي النسخة الوحيدة.</p>
         </div>
       </details>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ §PROFILE-MODAL (v2.11.0) ══════════════ -->
+<div class="eco-overlay" id="pmOverlay">
+  <div class="eco-modal" style="max-width:620px;">
+    <div class="eco-modal-hdr"><h3 id="pmTitle">👤 بيانات المندوب</h3><button class="modal-close-x" onclick="pmClose()">✕</button></div>
+    <div class="eco-modal-body">
+      <div id="pmResult"></div>
+      <div class="pm-photo">
+        <span class="cn-av lg" id="pmAvatar"></span>
+        <div>
+          <div class="pm-row" style="margin-top:0;">
+            <label class="btn btn-outline btn-sm" for="pmFile" style="cursor:pointer;">📷 اختيار صورة</label>
+            <input type="file" id="pmFile" accept="image/jpeg,image/png,image/webp" style="display:none;">
+            <button class="btn btn-ghost btn-sm" id="pmPhotoRemove" type="button">حذف الصورة</button>
+          </div>
+          <div class="cn-sub" style="margin:6px 0 0;">بتتصغّر تلقائيًا (٢٥٦px) قبل الرفع. الصورة مش بيانات حساسة.</div>
+        </div>
+      </div>
+      <div class="pm-grid">
+        <div class="pm-field"><label for="pmPhone1">رقم التليفون الأساسي</label><input type="tel" id="pmPhone1" inputmode="numeric" autocomplete="off" maxlength="20"></div>
+        <div class="pm-field"><label for="pmPhone2">رقم تليفون إضافي</label><input type="tel" id="pmPhone2" inputmode="numeric" autocomplete="off" maxlength="20"></div>
+      </div>
+      <div class="pm-err" id="pmErr"></div>
+      <div class="pm-box">
+        <h4>🪪 الرقم القومي <span class="cn-lock">🔒 بـPIN في كل مرة</span></h4>
+        <div class="pm-nid" id="pmNid">—</div>
+        <div class="pm-nid-info" id="pmNidInfo"></div>
+        <div class="pm-row">
+          <button class="btn btn-outline btn-sm" id="pmNidShow" type="button">👁 إظهار</button>
+          <button class="btn btn-outline btn-sm" id="pmNidEdit" type="button">✎ إدخال / تعديل</button>
+          <button class="btn btn-ghost btn-sm" id="pmNidDel" type="button" style="color:var(--red-dark);">حذف الرقم</button>
+        </div>
+        <div class="cn-sub" style="margin:8px 0 0;">كل فتح أو تعديل بيتسجّل باسمك. بعد ٣٠ ثانية الرقم بيتخفى لوحده.</div>
+      </div>
+      <div class="confirm-actions">
+        <button class="btn btn-primary" id="pmSave" type="button">💾 حفظ</button>
+        <button class="btn btn-ghost" onclick="pmClose()" type="button">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ §PIN-MODAL ══════════════ -->
+<div class="eco-overlay" id="pinOverlay">
+  <div class="eco-modal" style="max-width:380px;">
+    <div class="eco-modal-hdr"><h3 id="pinHdr">🔒 تأكيد الـ PIN</h3><button class="modal-close-x" onclick="pinClose(null)">✕</button></div>
+    <div class="eco-modal-body">
+      <p id="pinLead" style="margin-top:0;"></p>
+      <div class="pm-field" id="pinExtraWrap" style="display:none;margin-bottom:10px;"><label for="pinExtra" id="pinExtraLbl"></label>
+        <input type="text" id="pinExtra" autocomplete="off" inputmode="numeric" maxlength="20"></div>
+      <div class="pm-field"><label for="pinInput">الـ PIN بتاعك</label>
+        <input type="password" id="pinInput" autocomplete="off" inputmode="numeric" maxlength="20"></div>
+      <div class="pm-err" id="pinErr"></div>
+      <div class="confirm-actions">
+        <button class="btn btn-primary" id="pinOk" type="button">تأكيد</button>
+        <button class="btn btn-ghost" onclick="pinClose(null)" type="button">إلغاء</button>
+      </div>
     </div>
   </div>
 </div>
@@ -254,10 +370,12 @@ const PAGE_WORKERS = ['couriers'];
 let cnServer = [];        // القايمة زي ما شوبيفاي رجّعتها (الحقيقة)
 let cnLocal  = [];        // الترتيب المعروض (ممكن يكون اتغيّر محليًا ولسه ما اتحفظش)
 let cnProtected = [];
-let cnMax = 100, cnMaxLen = 60;
+let cnMax = 100, cnMaxLen = 60, cnMaxPhoto = 150 * 1024;
 let cnLoaded = false;
 let cnBusy = false;
 let cnDragFrom = null;
+let cnProf = {};          // بروفايل كل اسم (من D1 عبر get_couriers) — الاسم هو المفتاح
+let cnOnlyMissing = false;
 
 const cnIsDirty = () => cnLoaded && cnLocal.join('\u0000') !== cnServer.join('\u0000');
 const cnIsProtected = (n) => cnProtected.some(p => p.toLowerCase() === String(n).toLowerCase());
@@ -270,14 +388,20 @@ async function cnLoad(opts = {}) {
     cnServer = d.couriers || [];
     cnLocal = [...cnServer];
     cnProtected = d.protectedNames || [];
+    cnProf = d.profiles || {};
+    cnMaxPhoto = d.maxPhotoBytes || cnMaxPhoto;
     cnMax = d.maxCouriers || cnMax;
     cnMaxLen = d.maxNameLen || cnMaxLen;
     cnLoaded = true;
     document.getElementById('cnAddInput').maxLength = cnMaxLen;
     // ⚠️ التحقق لسه شغّال على شوبيفاي بعد تعديل القايمة — مش خطأ، بس بنقولها.
-    document.getElementById('cnBanner').innerHTML = d.validationStatus === 'IN_PROGRESS'
-      ? '<div class="cn-banner">⏳ شوبيفاي لسه بتراجع الأوردرات الحالية على القايمة (<code>IN_PROGRESS</code>) — ممكن تعديل جديد يترفض لحد ما تخلص. جرّب بعد دقيقة.</div>'
-      : '';
+    document.getElementById('cnBanner').innerHTML =
+        (d.validationStatus === 'IN_PROGRESS'
+          ? '<div class="cn-banner">⏳ شوبيفاي لسه بتراجع الأوردرات الحالية على القايمة (<code>IN_PROGRESS</code>) — ممكن تعديل جديد يترفض لحد ما تخلص. جرّب بعد دقيقة.</div>'
+          : '')
+      + (d.profilesError
+          ? `<div class="cn-banner bad">⚠️ بيانات المناديب (D1) ما اتحمّلتش: ${esc(d.profilesError)} — القايمة نفسها سليمة والإضافة والحذف والترتيب شغّالين.</div>`
+          : '');
   } catch (e) {
     // ⚠️ فشل القراءة مش «قايمة فاضية» — لو فيه قايمة معروضة من قبل بتفضل زي ما هي.
     document.getElementById('cnBanner').innerHTML =
@@ -305,13 +429,27 @@ function cnRender() {
 
   const listEl = document.getElementById('cnList');
   if (!cnLocal.length) { listEl.innerHTML = '<div class="q-empty">القايمة فاضية</div>'; return; }
+  cnRenderFilter();
   listEl.innerHTML = cnLocal.map((name, i) => {
+    // الفلتر «الناقص بس» عرض بس — مابيغيّرش الترتيب ولا الفهارس (الأزرار بتشتغل بفهرس cnLocal)
+    if (cnOnlyMissing && !(cnProf[name]?.missing || []).length) return '';
     const prot = cnIsProtected(name);
+    const pr = cnProf[name] || null;
+    const person = !prot && (!pr || pr.kind === 'person');
+    const miss = pr && person ? (pr.missing || []) : [];
     return `<div class="cn-item" draggable="true" data-i="${i}">
       <span class="cn-handle" title="اسحب لتغيير الترتيب" aria-hidden="true">⠿</span>
       <span class="cn-num">${i + 1}</span>
-      <span class="cn-name">${esc(name)}</span>
-      ${prot ? '<span class="cn-lock" title="اسم نظامي — مابيتحذفش">🔒 نظامي</span>' : ''}
+      ${person ? `<span class="cn-av" data-av="${esc(name)}">${cnAvatarInner(name)}</span>` : ''}
+      <span class="cn-main">
+        <span class="cn-name">${esc(name)}</span>
+        ${person ? `<span class="cn-meta">
+          ${pr?.phonePrimary ? `<span class="cn-ph">${esc(pr.phonePrimary)}</span>` : '<span>بلا تليفون</span>'}
+          ${pr ? (miss.length ? `<span class="cn-miss" title="${esc(cnMissLabel(miss))}">ناقص ${miss.length}</span>` : '<span class="cn-full">كامل ✓</span>') : ''}
+        </span>` : ''}
+      </span>
+      ${prot ? '<span class="cn-lock" title="اسم نظامي — مابيتحذفش ومالوش بيانات شخصية">🔒 نظامي</span>' : ''}
+      ${person ? `<button class="btn btn-outline btn-sm" data-act="profile" data-i="${i}">👤 بيانات</button>` : ''}
       <span class="cn-mv">
         <button data-act="up" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="فوق">▲</button>
         <button data-act="down" data-i="${i}" ${i === cnLocal.length - 1 ? 'disabled' : ''} aria-label="تحت">▼</button>
@@ -319,6 +457,7 @@ function cnRender() {
       ${prot ? '' : `<button class="cn-del" data-act="del" data-i="${i}" ${dirty || cnBusy ? 'disabled' : ''}>🗑 حذف</button>`}
     </div>`;
   }).join('');
+  cnLoadPhotos();
 }
 
 // الأحداث بـ addEventListener على الحاوية (مش onclick بنص فيه الاسم)
@@ -329,6 +468,7 @@ document.getElementById('cnList').addEventListener('click', (e) => {
   if (b.dataset.act === 'up')   cnMove(i, i - 1);
   if (b.dataset.act === 'down') cnMove(i, i + 1);
   if (b.dataset.act === 'del')  cnRemove(i);
+  if (b.dataset.act === 'profile') pmOpen(cnLocal[i]);
 });
 document.getElementById('cnDirty').addEventListener('click', (e) => {
   if (e.target.id === 'cnSaveOrder') cnSaveOrder();
@@ -505,9 +645,271 @@ async function cnSaveOrder() {
 }
 
 // ══════════════════════════════════════════════════════
+// §PROFILE (v2.11.0) — بروفايل المندوب · صورة · تليفونين · رقم قومي بـPIN
+// ══════════════════════════════════════════════════════
+// 🔴 الاسم هو المفتاح، وشوبيفاي هي اللي بتقرر مين في القايمة. D1 بس بتضيف خصائص.
+// 🔴 الرقم القومي مابيتخزّنش في أي متغيّر دائم هنا — بيتعرض في عنصر واحد وبيتمسح
+//    بعد ٣٠ ثانية أو مع قفل النافذة. وما بيتبعتش في أي نداء غير بعد PIN.
+const CN_MISS_LABEL = { phonePrimary: 'التليفون الأساسي', photo: 'الصورة', nationalId: 'الرقم القومي' };
+const cnMissLabel = (m) => 'ناقص: ' + m.map(k => CN_MISS_LABEL[k] || k).join(' · ');
+const cnMissing = (p) => p.kind !== 'person' ? [] : [!p.phonePrimary && 'phonePrimary', !p.hasPhoto && 'photo', !p.hasNationalId && 'nationalId'].filter(Boolean);
+
+const cnPhotoCache = {};   // name → { t: photoUpdatedAt, url } — صور مصغّرة صغيرة، بتتجاب لوحدها
+function cnInitial(name) { return esc((String(name).trim()[0] || '?').toUpperCase()); }
+function cnAvatarInner(name) {
+  const c = cnPhotoCache[name], p = cnProf[name];
+  return (c && p && c.t === p.photoUpdatedAt) ? `<img src="${c.url}" alt="">` : cnInitial(name);
+}
+function cnSetAvatar(name) {
+  document.querySelectorAll('.cn-av[data-av]').forEach(el => { if (el.dataset.av === name) el.innerHTML = cnAvatarInner(name); });
+  if (pmState && pmState.name === name && pmState.photo === undefined) pmPaintAvatar();
+}
+let cnPhotoJob = 0;
+async function cnLoadPhotos() {
+  const job = ++cnPhotoJob;
+  const todo = cnLocal.filter(n => cnProf[n]?.hasPhoto && !(cnPhotoCache[n] && cnPhotoCache[n].t === cnProf[n].photoUpdatedAt));
+  let i = 0;
+  async function worker() {
+    while (i < todo.length && job === cnPhotoJob) {
+      const name = todo[i++], t = cnProf[name].photoUpdatedAt;
+      try {
+        const d = await apiGet('get_courier_photo', { name });
+        cnPhotoCache[name] = { t: d.updatedAt || t, url: d.dataUrl };
+        if (cnProf[name]) cnProf[name].photoUpdatedAt = d.updatedAt || t;
+        cnSetAvatar(name);
+      } catch { /* الصورة تحسين عرض — الحرف الأول بيفضل */ }
+    }
+  }
+  await Promise.all([worker(), worker(), worker()]);
+}
+
+function cnRenderFilter() {
+  const total = cnLocal.filter(n => (cnProf[n]?.missing || []).length).length;
+  document.getElementById('cnFilter').innerHTML =
+    `<button data-f="all" class="${cnOnlyMissing ? '' : 'on'}">الكل</button>
+     <button data-f="missing" class="${cnOnlyMissing ? 'on' : ''}">بياناتهم ناقصة (${total})</button>`;
+}
+document.getElementById('cnFilter').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-f]'); if (!b) return;
+  cnOnlyMissing = b.dataset.f === 'missing'; cnRender();
+});
+
+// ── مودال PIN ─────────────────────────────────────────
+let pinResolve = null;
+// extraLabel اختياري: خانة تانية في نفس النافذة (الرقم القومي عند الإدخال) — بترجع { pin, extra }
+let pinNeedsExtra = false;
+function askPin(title, lead, err, extraLabel, extraKeep) {
+  document.getElementById('pinHdr').textContent = title;
+  document.getElementById('pinLead').textContent = lead;
+  document.getElementById('pinErr').textContent = err || '';
+  pinNeedsExtra = !!extraLabel;
+  document.getElementById('pinExtraWrap').style.display = extraLabel ? '' : 'none';
+  document.getElementById('pinExtraLbl').textContent = extraLabel || '';
+  document.getElementById('pinExtra').value = extraLabel ? (extraKeep || '') : '';
+  const inp = document.getElementById('pinInput'); inp.value = '';
+  document.getElementById('pinOverlay').classList.add('open');
+  setTimeout(() => (extraLabel && !extraKeep ? document.getElementById('pinExtra') : inp).focus(), 50);
+  return new Promise(res => { pinResolve = res; });
+}
+function pinClose(v) {
+  document.getElementById('pinOverlay').classList.remove('open');
+  document.getElementById('pinInput').value = '';
+  document.getElementById('pinExtra').value = '';   // 🔴 الرقم القومي مايفضلش في الخانة
+  if (pinResolve) { pinResolve(v); pinResolve = null; }
+}
+document.getElementById('pinOk').addEventListener('click', () => {
+  const pin = document.getElementById('pinInput').value;
+  const extra = document.getElementById('pinExtra').value.trim();
+  if (!pin || (pinNeedsExtra && !extra)) return;
+  pinClose({ pin, extra });
+});
+document.getElementById('pinInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('pinOk').click(); });
+// PIN غلط = نسأل تاني بالرسالة (والـ Worker بيعدّ المحاولات ويقفل بعد ٥). أي خطأ تاني بيطلع.
+async function withPin(title, lead, fn, extraLabel) {
+  let err = '', keep = '';
+  for (;;) {
+    const r = await askPin(title, lead, err, extraLabel, keep);
+    if (r === null) return null;
+    keep = r.extra;
+    try { return await fn(r.pin, r.extra); }
+    catch (e) {
+      if (e.payload?.code === 'bad_pin') { err = e.message; continue; }
+      throw e;
+    }
+  }
+}
+
+// ── مودال البروفايل ──────────────────────────────────
+// pmState.photo: undefined = ما اتغيّرتش · null = اتحذفت · 'data:…' = صورة جديدة
+let pmState = null, pmHideTimer = null;
+function pmPaintAvatar() {
+  const el = document.getElementById('pmAvatar');
+  const photo = pmState.photo;
+  if (typeof photo === 'string') el.innerHTML = `<img src="${photo}" alt="">`;
+  else if (photo === null) el.innerHTML = cnInitial(pmState.name);
+  else el.innerHTML = cnAvatarInner(pmState.name);
+}
+function pmHideNid() {
+  clearTimeout(pmHideTimer); pmHideTimer = null;
+  const p = pmState && cnProf[pmState.name];
+  document.getElementById('pmNid').textContent = p?.nationalIdMasked || (p?.hasNationalId ? '••••••••••••••' : 'غير مسجّل');
+  document.getElementById('pmNidInfo').textContent = '';
+}
+function pmRefreshNidButtons() {
+  const p = cnProf[pmState.name];
+  document.getElementById('pmNidShow').style.display = p.hasNationalId ? '' : 'none';
+  document.getElementById('pmNidDel').style.display  = p.hasNationalId ? '' : 'none';
+  document.getElementById('pmNidEdit').textContent   = p.hasNationalId ? '✎ تعديل' : '✎ إدخال';
+}
+function pmOpen(name) {
+  const p = cnProf[name];
+  if (!p) { showToast('بيانات المندوب مش متحمّلة — اضغط «تحديث»', 'error'); return; }
+  pmState = { name, photo: undefined };
+  document.getElementById('pmTitle').textContent = `👤 ${name}`;
+  document.getElementById('pmResult').innerHTML = '';
+  document.getElementById('pmErr').textContent = '';
+  document.getElementById('pmPhone1').value = p.phonePrimary || '';
+  document.getElementById('pmPhone2').value = p.phoneSecondary || '';
+  document.getElementById('pmFile').value = '';
+  pmPaintAvatar(); pmHideNid(); pmRefreshNidButtons();
+  document.getElementById('pmOverlay').classList.add('open');
+}
+function pmClose() {
+  if (cnBusy) return;
+  pmHideNid();   // 🔴 الرقم يتمسح من الشاشة مع القفل
+  document.getElementById('pmOverlay').classList.remove('open');
+  pmState = null;
+}
+
+// تصغير الصورة: ٢٥٦px · JPEG · خلفية بيضا (للـ PNG الشفاف). بيشيل EXIF كمان.
+async function pmResize(file) {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error('الصورة لازم تكون JPEG أو PNG أو WebP');
+  const bmp = await createImageBitmap(file);
+  const side = 256, scale = Math.min(1, side / Math.max(bmp.width, bmp.height));
+  const w = Math.max(1, Math.round(bmp.width * scale)), h = Math.max(1, Math.round(bmp.height * scale));
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(bmp, 0, 0, w, h);
+  for (const q of [0.85, 0.75, 0.6, 0.45]) {
+    const url = cv.toDataURL('image/jpeg', q);
+    if (Math.floor(url.length * 3 / 4) <= cnMaxPhoto) return url;
+  }
+  throw new Error('الصورة لسه كبيرة بعد التصغير — جرّب صورة تانية');
+}
+document.getElementById('pmFile').addEventListener('change', async function () {
+  const f = this.files && this.files[0]; if (!f || !pmState) return;
+  try { pmState.photo = await pmResize(f); pmPaintAvatar(); document.getElementById('pmErr').textContent = ''; }
+  catch (e) { document.getElementById('pmErr').textContent = e.message; }
+});
+document.getElementById('pmPhotoRemove').addEventListener('click', () => {
+  if (!pmState) return;
+  pmState.photo = cnProf[pmState.name].hasPhoto ? null : undefined; pmPaintAvatar();
+});
+
+function pmShowResult(parts, ok) {
+  document.getElementById('pmResult').innerHTML =
+    `<div class="cn-result ${ok ? 'success' : 'error'}"><span class="badge">${ok ? '✓ تم' : '✗ فشل'}</span>${parts.map(esc).join('<br>')}</div>`;
+}
+function pmApplyProfile(name, resp) {
+  const old = cnProf[name];
+  const merged = { ...old, ...resp, hasNationalId: old.hasNationalId, nationalIdMasked: old.nationalIdMasked };
+  merged.missing = cnMissing(merged);
+  cnProf[name] = merged;
+}
+
+document.getElementById('pmSave').addEventListener('click', async () => {
+  if (!pmState || cnBusy) return;
+  const name = pmState.name, p = cnProf[name];
+  const v1 = document.getElementById('pmPhone1').value.trim(), v2 = document.getElementById('pmPhone2').value.trim();
+  const body = { employee: ecoSession.username, name, expectedVersion: p.version || undefined };
+  if (v1 !== (p.phonePrimary || '')) body.phonePrimary = v1;
+  if (v2 !== (p.phoneSecondary || '')) body.phoneSecondary = v2;
+  const hasPhones = 'phonePrimary' in body || 'phoneSecondary' in body;
+  const hasPhoto = pmState.photo !== undefined;
+  if (!hasPhones && !hasPhoto) { pmShowResult(['مفيش تعديل مطلوب حفظه'], false); return; }
+
+  cnBusy = true; document.getElementById('pmSave').disabled = true;
+  const msgs = []; let allOk = true;
+  try {
+    if (hasPhones) {
+      const d = await apiPost('update_courier_profile', body);
+      if (d.status === 'success') { pmApplyProfile(name, d.profile); msgs.push(d.message); (d.notices || []).forEach(n => msgs.push('⚠️ ' + n)); }
+      else { allOk = false; msgs.push(d.error || d.status); }
+      if (d.logged === false) msgs.push('⚠️ العملية تمت لكن ما اتسجّلتش في السجل');
+    }
+    if (hasPhoto && allOk) {
+      const d = await apiPost('set_courier_photo', { employee: ecoSession.username, name, dataUrl: pmState.photo });
+      if (d.status === 'success') {
+        pmApplyProfile(name, d.profile);
+        if (pmState.photo) cnPhotoCache[name] = { t: d.profile.photoUpdatedAt, url: pmState.photo }; else delete cnPhotoCache[name];
+        pmState.photo = undefined; msgs.push(d.message);
+      } else { allOk = false; msgs.push(d.error || d.status); }
+    }
+    pmShowResult(msgs, allOk); playBeep(allOk ? 'success' : 'warn');
+    // الحقول اتحدّثت من الرد — مفيش cnLoad عشان ترتيب غير محفوظ مايضيعش
+    document.getElementById('pmPhone1').value = cnProf[name].phonePrimary || '';
+    document.getElementById('pmPhone2').value = cnProf[name].phoneSecondary || '';
+    pmPaintAvatar(); cnSetAvatar(name); pmRefreshNidButtons();
+  } catch (e) {
+    // 🔴 فشل شبكة بعد ما النداء ممكن يكون وصل = «معرفناش» مش «فشل»
+    pmShowResult([`ما قدرناش نتأكد: ${e.message}`, 'اقفل النافذة وحدّث القايمة وشوف إن كان الحفظ تم.'], false); playBeep('error');
+  } finally {
+    cnBusy = false; document.getElementById('pmSave').disabled = false; cnRender();
+  }
+});
+
+// ── الرقم القومي (PIN) ───────────────────────────────
+function pmShowNid(d) {
+  document.getElementById('pmNid').textContent = d.nationalId;
+  const i = d.info;
+  document.getElementById('pmNidInfo').textContent = i ? `مواليد ${i.birthDate} · ${i.gender} · ${i.governorate}` : '';
+  clearTimeout(pmHideTimer);
+  pmHideTimer = setTimeout(pmHideNid, 30000);
+}
+document.getElementById('pmNidShow').addEventListener('click', async () => {
+  if (!pmState || cnBusy) return;
+  const name = pmState.name;
+  cnBusy = true;
+  try {
+    const d = await withPin('🔒 فتح الرقم القومي', `اكتب الـ PIN بتاعك عشان تشوف الرقم القومي لـ«${name}». العملية بتتسجّل باسمك.`,
+      (pin) => apiPost('reveal_national_id', { employee: ecoSession.username, pin, name }));
+    if (d && d.ok) { pmShowNid(d); playBeep('success'); }
+    else if (d) { pmShowResult([d.error || 'مفيش رقم'], false); }
+  } catch (e) {
+    pmShowResult([e.message], false); playBeep('error');
+  } finally { cnBusy = false; cnRender(); }
+});
+async function pmSetNid(remove) {
+  if (!pmState || cnBusy) return;
+  const name = pmState.name;
+  cnBusy = true;
+  try {
+    const d = await withPin(remove ? '🔒 حذف الرقم القومي' : '🔒 حفظ الرقم القومي',
+      `اكتب الـ PIN بتاعك عشان ${remove ? 'تحذف' : 'تحفظ'} الرقم القومي لـ«${name}». العملية بتتسجّل باسمك (من غير الرقم نفسه).`,
+      (pin, nid) => apiPost('set_national_id', { employee: ecoSession.username, pin, name, nationalId: remove ? null : nid }),
+      remove ? null : 'الرقم القومي (١٤ رقم)');
+    if (!d) return;
+    if (d.status === 'success') {
+      cnProf[name].hasNationalId = !d.removed; cnProf[name].nationalIdMasked = d.nationalIdMasked || null;
+      cnProf[name].missing = cnMissing(cnProf[name]);
+      pmShowResult([d.message], true); playBeep('success');
+      pmHideNid(); pmRefreshNidButtons();
+    } else { pmShowResult([d.error || d.status], false); playBeep('warn'); }
+  } catch (e) {
+    pmShowResult([e.message], false); playBeep('error');
+  } finally { cnBusy = false; cnRender(); }
+}
+document.getElementById('pmNidEdit').addEventListener('click', () => pmSetNid(false));
+document.getElementById('pmNidDel').addEventListener('click', async () => {
+  if (!pmState || cnBusy) return;
+  const ok = await askConfirm({ header: '🗑 حذف الرقم القومي', lead: `هتحذف الرقم القومي المسجّل لـ«${pmState.name}»:`,
+    lines: [{ text: 'مفيش تراجع — هتحتاج تدخله من جديد', warn: true }], okLabel: 'تأكيد الحذف', cls: 'btn-red' });
+  if (ok) await pmSetNid(true);
+});
+
+// ══════════════════════════════════════════════════════
 // §LOG — آخر ٣٠ تعديل
 // ══════════════════════════════════════════════════════
-const CN_TYPE_LABELS = { add_courier: 'إضافة مندوب', remove_courier: 'حذف مندوب', reorder_couriers: 'ترتيب القايمة', rejected: 'مرفوض / متعمل خلاص' };
+const CN_TYPE_LABELS = { add_courier: 'إضافة مندوب', remove_courier: 'حذف مندوب', reorder_couriers: 'ترتيب القايمة', profile_update: 'تعديل بيانات', photo_update: 'صورة', sensitive_update: '🔒 رقم قومي (تعديل)', view_sensitive: '🔒 فتح الرقم القومي', rejected: 'مرفوض / متعمل خلاص' };
 function cnExtra(e) { try { return e.extra ? JSON.parse(e.extra) : {}; } catch { return {}; } }
 async function cnLoadLog() {
   const body = document.getElementById('cnLogBody');
@@ -547,7 +949,9 @@ document.addEventListener('keydown', (e) => {
   if (document.getElementById('settingsOverlay')?.classList.contains('open')) closeSettings();
   document.getElementById('aboutOverlay')?.classList.remove('open');
   document.getElementById('changelogOverlay')?.classList.remove('open');
-  if (document.getElementById('confirmOverlay')?.classList.contains('open')) closeConfirm(false);
+  if (document.getElementById('pinOverlay')?.classList.contains('open')) { pinClose(null); return; }
+  if (document.getElementById('confirmOverlay')?.classList.contains('open')) { closeConfirm(false); return; }
+  if (document.getElementById('pmOverlay')?.classList.contains('open')) pmClose();
 });
 
 // ══════════════════════════════════════════════════════
@@ -556,7 +960,7 @@ document.addEventListener('keydown', (e) => {
 document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '🛵',
   title:    'أسماء المناديب',
-  subtitle: 'قايمة الاختيار custom.courier — إضافة · حذف · ترتيب',
+  subtitle: 'قايمة custom.courier + بيانات المندوب — إضافة · حذف · ترتيب · تليفونات · صورة · رقم قومي',
   session:  ecoSession,
 });
 
