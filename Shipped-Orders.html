@@ -625,7 +625,7 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
               <th class="sortable-th" data-q-sort="orderName" onclick="qToggleSort('orderName')">رقم الأوردر<span class="sort-icon" data-q-sort="orderName"></span></th>
               <th class="sortable-th col-cust" data-q-sort="customer"  onclick="qToggleSort('customer')">العميل<span class="sort-icon" data-q-sort="customer"></span></th>
               <th class="sortable-th" data-q-sort="courier" onclick="qToggleSort('courier')">المندوب<span class="sort-icon" data-q-sort="courier"></span></th>
-              <th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort('address')">العنوان<span class="sort-icon" data-q-sort="address"></span></th><th class="sortable-th" data-q-sort="machineLabel" onclick="qToggleSort('machineLabel')">نوع الأوردر<span class="sort-icon" data-q-sort="machineLabel"></span></th><th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort('tracking')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th><th class="sortable-th col-date" data-q-sort="createdAt" onclick="qToggleSort('createdAt')">تاريخ الأوردر<span class="sort-icon" data-q-sort="createdAt"></span></th><th class="sortable-th col-date" data-q-sort="returnRequestedAt" onclick="qToggleSort('returnRequestedAt')">تاريخ الطلب [S2]<span class="sort-icon" data-q-sort="returnRequestedAt"></span></th>
+              <th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort('address')">العنوان<span class="sort-icon" data-q-sort="address"></span></th><th class="sortable-th" data-q-sort="machineLabel" onclick="qToggleSort('machineLabel')">نوع الأوردر<span class="sort-icon" data-q-sort="machineLabel"></span></th><th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort('tracking')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th><th class="sortable-th col-date" data-q-sort="createdAt" onclick="qToggleSort('createdAt')">تاريخ الأوردر<span class="sort-icon" data-q-sort="createdAt"></span></th><th class="sortable-th col-date" data-q-sort="returnRequestedAt" onclick="qToggleSort('returnRequestedAt')">تاريخ [S2]<span class="sort-icon" data-q-sort="returnRequestedAt"></span></th>
               <!-- ⚠️ الاسم **«تاريخ التغليف»** مش «الوقت منذ التغليف» — الخلية
                    فيها التاريخ **والبادج** مع بعض، بالظبط زي عمود «تاريخ
                    الأوردر» اللي جنبه. اسم العمود لازم يوصف اللي جوّاه، والبادج
@@ -714,12 +714,12 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
                 ⚠️ مش من <code>exchangeLineItems</code> ولا من حالة S2. لو النوع اتغيّر بعد الإنشاء أو
                 الدورة لسه ما اتعالجتش بتظهر <b>علامة مراجعة</b> (مابتتنقلش). ولو الـ Worker ما رجّعش
                 النوع بتتعرض «استبدال/استرجاع» العامة.</li>
-            <li><b>تاريخ الطلب [S2]</b> — تاريخ إنشاء <b>آخر</b> Return request على شوبيفاي
+            <li><b>تاريخ [S2]</b> — تاريخ إنشاء <b>آخر</b> Return request على شوبيفاي
                 (<code>Return.createdAt</code> لأحدث دورة غير ملغية). بيخصّ صفوف <b>S2</b> بس، فصف
                 الشحنة الأصلية (S1) فيه <code>—</code> وده <b>مش</b> خطأ. الأوردر اللي اتفتح عليه
                 أكتر من دورة بيظهر تحت تاريخه اسم الدورة وعددهم. ⚠️ محتاج <code>read_returns</code>
                 على الـ Custom App.</li>
-            <li><b>الفلاتر والترتيب</b> — قمع في رأس <b>رقم التتبع</b> (بحث) و<b>تاريخ الطلب [S2]</b>
+            <li><b>الفلاتر والترتيب</b> — قمع في رأس <b>رقم التتبع</b> (بحث) و<b>تاريخ [S2]</b>
                 (فترة سريعة أو من/إلى بتوقيت القاهرة). الترتيب الافتراضي عند الفتح: <b>تاريخ الأوردر
                 من الأقدم للأحدث</b>، والضغطة التالتة على أي عمود بترجّعه. <b>اسم المندوب</b> بلون
                 مجموعته (بوسطة أحمر · شو روم تركواز · مناديب أزرق).</li>
@@ -779,8 +779,10 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
           <span class="cl-ver-date">26-10-2026</span>
         </div>
         <ul class="cl-items">
-          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔀 <b>الجدول بنفس شكل «في طريق الرجوع»</b> — الترتيب: رقم الأوردر · العميل · المندوب · العنوان · <b>نوع الأوردر</b> · رقم التتبع · <b>تاريخ الأوردر</b> · <b>تاريخ الطلب [S2]</b> · تاريخ التغليف · مراجعة (الجدول والتصدير). <b>اسم المندوب</b> بلون مجموعته، و«استرجاع» بلون بني-أحمر. الترتيب الافتراضي عند الفتح: <b>تاريخ الأوردر من الأقدم للأحدث</b>.</span></li>
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span>📅 <b>عمود «تاريخ الطلب [S2]»</b> — تاريخ آخر Return request على الأوردر (أحدث دورة غير ملغية). بيخصّ صفوف S2 بس — صف S1 فيه <code>—</code>. وقمع فلتر في رأسه وفي رأس «رقم التتبع».</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>✏️ <b>اسم عمود «تاريخ الطلب» بقى «تاريخ [S2]»</b> (الرأس والفلتر والـ chip والتصدير) — في «المشحون» و«في طريق الرجوع» الاتنين. المعنى زي ما هو: تاريخ آخر Return request على صف S2.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>📍 <b>عمود «العنوان» بشكل «في طريق الرجوع»</b> — سطر أول <b>المحافظة ◀ المدينة</b> بخط غامق وسطر تاني الشارع (<code>address1</code> — <code>address2</code>). عرض بس: البحث والترتيب والتصدير ما اتغيّروا.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔀 <b>الجدول بنفس شكل «في طريق الرجوع»</b> — الترتيب: رقم الأوردر · العميل · المندوب · العنوان · <b>نوع الأوردر</b> · رقم التتبع · <b>تاريخ الأوردر</b> · <b>تاريخ [S2]</b> · تاريخ التغليف · مراجعة (الجدول والتصدير). <b>اسم المندوب</b> بلون مجموعته، و«استرجاع» بلون بني-أحمر. الترتيب الافتراضي عند الفتح: <b>تاريخ الأوردر من الأقدم للأحدث</b>.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>📅 <b>عمود «تاريخ [S2]»</b> — تاريخ آخر Return request على الأوردر (أحدث دورة غير ملغية). بيخصّ صفوف S2 بس — صف S1 فيه <code>—</code>. وقمع فلتر في رأسه وفي رأس «رقم التتبع».</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔎 <b>«نوع الأوردر» لصفوف S2 بقى «استبدال» أو «استرجاع»</b> من دفتر مبيعات الأوردر (<code>order.agreements</code> — <code>order-lifecycle</code> v1.11.1 قاعدة 8) بدل التسمية العامة. نوع الدورة اللي اتغيّر بعد الإنشاء أو اتعدّل بعد قفلها بياخد <b>علامة مراجعة</b> (مابيتنقلش).</span></li>
           <li class="cl-item"><span class="cl-tag change">تنبيه</span><span>⛔ محتاج <code>shipped-orders-worker</code> <b>1.3.0</b> (وصلاحية <code>read_returns</code> على الـ Custom App) — <b>انشره قبل الصفحة</b>. ⚠️ تكلفة الاستعلام بعد الإضافة مش مقيسة: راجع <code>queryCost</code>.</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span>⬇ <b>زرار «تصدير XLSX»</b> للجدول — بيصدّر اللي ظاهر بالظبط بعد الفلاتر والبحث والتاريخ والترتيب. اسم الملف <code>Shipped-Orders-{المندوب}-{العدد}.xlsx</code> (<code>All</code> لو مفيش فلتر مندوب).</span></li>
@@ -1148,7 +1150,7 @@ let qDateFrom = null, qDateTo = null, qDateFilterActive = false, qActivePreset =
 // ⚠️ نوعين بس: `text` (رقم التتبع — بحث بـ`includes`) و`date` (تاريخ الطلب — على **يوم القاهرة**
 //    زي فلتر «تاريخ الأوردر» بالظبط، وصف بلا تاريخ **مابيظهرش** لما الفلتر شغّال).
 // ⚠️ مفيش فلتر على الأعمدة اللي مالهاش `Q_XF` ولا `Q_HDR_FLT` — القمع بيتبني من المفتاحين بس.
-const Q_XF = [{ key: 'tracking', sort: 'tracking', kind: 'text', label: 'رقم التتبع', get: o => o.tracking }, { key: 'reqDate', sort: 'returnRequestedAt', kind: 'date', label: 'تاريخ الطلب [S2]', get: o => o.returnRequestedAt }];
+const Q_XF = [{ key: 'tracking', sort: 'tracking', kind: 'text', label: 'رقم التتبع', get: o => o.tracking }, { key: 'reqDate', sort: 'returnRequestedAt', kind: 'date', label: 'تاريخ [S2]', get: o => o.returnRequestedAt }];
 const qXf = {};
 const xfInit = x => x.kind === 'date' ? { from: null, to: null, preset: '' } : { term: '' };
 Q_XF.forEach(x => { qXf[x.key] = xfInit(x); });
@@ -1873,21 +1875,17 @@ function customerCell(o) {
   return t ? `<span class="cust-txt" title="${esc(t)}">${esc(t)}</span>`
            : '<span class="flag-ok">—</span>';
 }
-// 🔴 **العنوان الكامل في خلية واحدة** (طلب أحمد 16-09-2026).
-//    `address1` + `address2` — الشارع هو اللي بيفرّق بين عنوانين، وهو
-//    اللي الموظف بيرتّب بيه الدفعة.
-// 🔴 **وسطر المدينة/المحافظة اتشال** (طلب أحمد 16-09-2026). القيمة كانت
-//    بتتكرّر جوّه نص العنوان نفسه في أغلب الصفوف («… المطرية، القاهرة»
-//    وتحتها «Cairo · القاهرة»)، والسطر الرمادي التاني كان بيطوّل كل صف
-//    في الجدول **من غير ما يضيف حاجة**.
-//    ⚠️ والمعلومة **ما ضاعتش**: `city`/`province` لسه بيرجعوا من الـ Worker
-//       ولسه في الكاش الخام، فرجوع السطر تعديل عرض بحت.
-// 🔴 **و«بلا عنوان» بتتقال صراحةً** — خانة فاضية بتتقري «الشاشة بايظة»،
-//    والحقيقة إن الأوردر ده **فعلاً مالوش عنوان** على شوبيفاي وده شغل
-//    محتاج تدخّل (⚠️ مش علامة مراجعة: قايمة العلامات قرار منفصل).
+// 🟤 «في طريق الرجوع» — شكل عرض العنوان نفس عمود «العنوان بالكامل (شوبيفاي)» في «رفع بوسطة»:
+//    سطر أول **المحافظة ◀ المدينة** (`province`/`city` من الـ Worker) وسطر تاني باقي العنوان
+//    (`address1` — `address2`). كل قطعة في <bdi> عشان الإنجليزي ما يقلبش الترتيب بصريًا (Bidi).
+//    ⚠️ اسم العمود وبحثه وترتيبه وتصديره ما اتغيّروش — عرض بس.
 function addressCell(o) {
-  const street = [o.address1, o.address2].filter(Boolean).join(' — ').trim();
-  return street ? esc(street) : '<span class="flag-ok">بلا عنوان</span>';
+  const head = [o.province, o.city].filter(Boolean)
+    .map(x => `<bdi>${esc(x)}</bdi>`).join(' ◀ ');
+  const rest = [o.address1, o.address2].filter(Boolean).join(' — ');
+  if (!head && !rest) return '<span class="flag-ok">بلا عنوان</span>';
+  return `<div style="font-weight:700;">${head || '—'}</div>`
+       + (rest ? `<div style="margin-top:2px;font-size:12.5px;font-weight:400;">${esc(rest)}</div>` : '');
 }
 
 // 🔴 رقم التتبع: الجديد أولاً، والقديم بعلامة صريحة. «الرقم ده من حقل
@@ -1906,7 +1904,7 @@ function trackingCell(o) {
   return num
        + (o.trackingIsLegacy ? '<span class="cell-sub">من الحقل القديم</span>' : '');
 }
-// 🟢 «تاريخ الطلب» («في طريق الرجوع» من in-return-orders-worker 1.1.0 · و«المشحون» باسم «تاريخ الطلب [S2]» من shipped-orders-worker 1.3.0) — تاريخ إنشاء
+// 🟢 «تاريخ الطلب» («في طريق الرجوع» من in-return-orders-worker 1.1.0 · و«المشحون» باسم «تاريخ [S2]» من shipped-orders-worker 1.3.0) — تاريخ إنشاء
 //    **آخر** Return request على الأوردر (`returnRequestedAt`). الأوردر ممكن يفتح أكتر من دورة —
 //    الـ Worker هو اللي بيختار أحدث دورة غير ملغية (order-lifecycle Rule 15)، والصفحة بتعرض بس.
 //    ⚠️ `—` معناها «مفيش Return على الأوردر ده» (صف S1 · أو RTO) — مش خطأ ولا علامة مراجعة.
@@ -1962,7 +1960,7 @@ async function qExport() {
       { header: 'رقم التتبع',     key: 'tracking', width: 16 },
       { header: 'مصدر رقم التتبع', key: 'trkSrc',   width: 16 },
       { header: 'تاريخ الأوردر',  key: 'created',  width: 20 },
-      { header: 'تاريخ الطلب [S2]',    key: 'reqDate',  width: 20 },
+      { header: 'تاريخ [S2]',    key: 'reqDate',  width: 20 },
       { header: 'تاريخ التغليف',  key: 'packed',   width: 20 },
       { header: 'المراجعة',       key: 'flags',    width: 30 },
     ];
