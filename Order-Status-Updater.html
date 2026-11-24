@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <!-- skills: html-builder v9.1.0 (تاب سجل العمليات فقط — باقي الصفحة v6.6.0) · worker-builder v2.1.0 · constants v1.4.0 · order-lifecycle v1.3.0 - 18-11-2026 -->
+  <!-- skills: html-builder v9.1.1 (تاب «تحديث الأوردرات» v2.14.0 + تاب سجل العمليات — باقي الصفحة v6.6.0) · worker-builder v2.1.0 · constants v1.4.0 · order-lifecycle v1.3.0 - 18-11-2026 -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>تحديث حالة الأوردرات — مركز عمليات الشحن والتحصيل</title>
@@ -509,6 +509,168 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 .page-btn:hover:not(:disabled) { background: var(--accent-light); border-color: var(--accent-border); color: var(--accent); }
 .page-btn:disabled { opacity: .4; cursor: not-allowed; }
 
+
+/* ══════════════════════════════════════════════════════════════
+   §REDESIGN v2.14.0 — إعادة تصميم «تحديث حالة الأوردرات» (طلب أحمد 24-11-2026)
+   · الإطار كله بيتلوّن بلون الحالة (`.osu.c-*` → --sc/--sc-l/--sc-b) · خطوة ١ شريط مصمت
+   · الخطوات بتظهر بعد اختيار الحالة (`.osu-flow`) · الملخص ثم الجدول تحته
+   ══════════════════════════════════════════════════════════════ */
+.osu { --sc: var(--border-strong); --sc-l: var(--surface-2); --sc-b: var(--border-strong); border: 2px solid transparent; border-radius: 16px; padding: 12px; transition: background .3s, border-color .3s; }
+.osu.c-purple { --sc: var(--purple); --sc-l: var(--purple-light); --sc-b: var(--purple-border); }
+.osu.c-accent { --sc: var(--accent); --sc-l: var(--accent-light); --sc-b: var(--accent-border); }
+.osu.c-green  { --sc: var(--green);  --sc-l: var(--green-light);  --sc-b: var(--green-border); }
+.osu.c-amber  { --sc: var(--amber);  --sc-l: var(--amber-light);  --sc-b: var(--amber-border); }
+.osu.c-red    { --sc: var(--red);    --sc-l: var(--red-light);    --sc-b: var(--red-border); }
+.osu[class*="c-"] { background: color-mix(in srgb, var(--sc) 15%, var(--bg)); border-color: var(--sc); }
+.osu-stack { display: flex; flex-direction: column; gap: 12px; }
+.osu .wiz-step, .osu .card { margin-bottom: 0; }
+.wiz-step-body:empty { display: none; }
+.wiz-step-num.done { background: var(--sc); }
+
+/* كشف الخطوات بعد اختيار الحالة */
+.osu-flow { display: grid; grid-template-rows: 0fr; visibility: hidden; margin-top: -12px; transition: grid-template-rows .5s ease, visibility 0s linear .5s; }
+.osu-flow.on { grid-template-rows: 1fr; visibility: visible; margin-top: 0; transition: grid-template-rows .5s ease, visibility 0s; }
+.osu-flow-in { overflow: hidden; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 2px; margin: -2px; }
+.osu-flow-in > * { opacity: 0; transform: translateY(10px); transition: opacity .4s ease, transform .4s ease; }
+.osu-flow.on > .osu-flow-in > * { opacity: 1; transform: none; transition-delay: calc(var(--i, 0) * 90ms + 120ms); }
+@media (prefers-reduced-motion: reduce) { .osu-flow, .osu-flow-in > * { transition: none !important; } }
+
+/* خطوة ١ بعد الاختيار: شريط مصمت — الحالة في النص · ✓ يمين · الزرار شمال */
+.wiz-step.s1-has { background: var(--sc); border-color: var(--sc); }
+.s1-has .wiz-step-hdr { justify-content: center; position: relative; min-height: 88px; }
+.s1-chip { display: inline-flex; align-items: center; gap: 10px; background: var(--surface); color: var(--sc); font-size: 25px; font-weight: 800; padding: 10px 40px; border-radius: 12px; }
+.s1-has .wiz-step-num { position: absolute; inset-inline-start: 16px; top: 50%; margin-top: -13px; width: 26px; height: 26px; background: var(--surface); color: var(--sc); }
+.s1-change { position: absolute; inset-inline-end: 16px; top: 50%; margin-top: -20px; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 9px 22px; border-radius: 999px; border: 2px solid var(--surface); background: var(--surface); color: var(--sc); font-family: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; }
+.s1-change:hover { filter: brightness(.95); }
+.s1-has .status-grid { margin-top: 2px; }
+@media (max-width: 640px) {
+  .s1-has .wiz-step-hdr { flex-direction: column; gap: 10px; padding: 14px; min-height: 0; }
+  .s1-has .wiz-step-num, .s1-change { position: static; margin: 0; }
+  .s1-chip { font-size: 21px; padding: 8px 28px; }
+}
+
+/* كبسولة الجنب — بدون ظل + تعبئة خفيفة بلون الحالة */
+.osu-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 9px 22px; border-radius: 999px; border: 2px solid var(--sc-b); background: var(--sc-l); color: var(--sc); font-family: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; transition: filter .15s; white-space: nowrap; }
+.osu-pill:hover:not(:disabled) { filter: brightness(.95); }
+.osu-pill:disabled { opacity: .5; cursor: not-allowed; }
+.osu-num { width: 26px; height: 26px; border-radius: 50%; background: var(--sc); color: var(--on-accent); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+.osu-state { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 11px; font-size: 12px; font-weight: 800; border: 1.5px solid var(--border-strong); background: var(--surface-2); color: var(--text-secondary); }
+.osu-state.ok   { background: var(--green-light); border-color: var(--green-border); color: var(--green); }
+.osu-state.warn { background: var(--amber-light); border-color: var(--amber-border); color: var(--amber); }
+
+/* مربع الإدخال الموحّد (unified-entry-box · Enter فقط) */
+.entry-bar { --ev: var(--sc); background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--ev); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+.entry-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.entry-segs { display: inline-flex; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.entry-chip { border: 0; background: var(--surface); color: var(--text-secondary); padding: 7px 14px; font-family: inherit; font-size: 12.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.entry-chip.is-on { background: var(--ev); color: var(--on-accent); }
+.entry-chip:disabled { cursor: not-allowed; opacity: .6; }
+.entry-auto { background: var(--surface); color: var(--text-primary); font-size: 10px; font-weight: 800; padding: 1px 7px; border-radius: 999px; }
+.entry-hint { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-secondary); pointer-events: none; }
+.entry-hint svg { width: 18px; height: 18px; }
+.alt-search-toggle { margin: 0 !important; margin-inline-start: auto !important; }
+.entry-row { display: flex; gap: 10px; align-items: stretch; }
+.entry-input { flex: 1; min-width: 0; min-height: 52px; border: 2px solid var(--ev); border-radius: 11px; background: var(--surface); color: var(--text-primary); font-family: var(--font-mono); font-size: 16px; font-weight: 700; padding: 0 16px; direction: ltr; text-align: left; letter-spacing: .02em; }
+.entry-input:focus { outline: 3px solid color-mix(in srgb, var(--ev) 25%, transparent); outline-offset: 0; }
+.entry-input:disabled { opacity: .6; }
+.entry-btn { min-width: 104px; border: 0; border-radius: 11px; background: var(--ev); color: var(--on-accent); font-family: inherit; font-size: 14px; font-weight: 800; padding: 0 18px; cursor: pointer; }
+.entry-btn:disabled { background: var(--border); color: var(--text-secondary); cursor: not-allowed; }
+.entry-fails { border: 1.5px solid var(--red-border); background: var(--red-light); border-radius: 11px; padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; }
+.entry-fails[hidden] { display: none; }
+.ef-row { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--red); }
+.ef-row bdi { direction: ltr; font-weight: 800; }
+.ef-row .x { margin-inline-start: auto; border: 1.5px solid var(--red-border); background: var(--surface); color: var(--red); border-radius: 7px; width: 26px; height: 26px; font-weight: 800; cursor: pointer; }
+.ef-head { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 800; color: var(--red); }
+
+/* بلاطات المناديب (صورة + اسم) */
+.osu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.osu-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.osu-tile { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 10px 12px; border-radius: 14px; border: 2px solid var(--border-strong); background: var(--surface); color: var(--text-primary); font-family: inherit; text-align: start; cursor: pointer; transition: border-color .15s, background .15s; }
+.osu-tile:hover:not(.none) { border-color: var(--sc); background: var(--sc-l); }
+.osu-tile .nm { font-weight: 800; font-size: 14px; overflow-wrap: anywhere; }
+.osu-tile .sub { display: block; font-size: 11.5px; color: var(--text-secondary); font-weight: 600; }
+.osu-tile .tg { margin-inline-start: auto; font-size: 10.5px; font-weight: 800; border-radius: 999px; padding: 2px 9px; border: 1.5px solid var(--sc-b); background: var(--sc-l); color: var(--sc); white-space: nowrap; }
+.osu-tile.none { border-style: dashed; background: var(--surface-2); cursor: not-allowed; }
+.osu-tile.none .tg { border-color: var(--red-border); background: var(--red-light); color: var(--red); }
+.osu-tile.sm { padding: 7px 10px; border-radius: 12px; }
+.osu-tile.sm .nm { font-size: 13px; }
+.osu-tile.on { border-color: var(--sc); background: var(--sc-l); }
+/* «اختيار مندوب آخر» — دايمًا بثيم أحمر */
+.osu-more { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 68px; padding: 10px 14px; border-radius: 14px; border: 2px dashed var(--red); background: var(--red-light); color: var(--red); font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer; }
+.osu-more:hover { border-style: solid; }
+.osu-more .plus { width: 36px; height: 36px; border-radius: 50%; background: var(--red); color: var(--on-accent); display: inline-flex; align-items: center; justify-content: center; font-size: 22px; line-height: 1; }
+.osu-confirmed { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border: 2px solid var(--sc); background: var(--sc-l); border-radius: 14px; padding: 10px 14px; }
+.osu-confirmed .nm { font-weight: 800; font-size: 15px; color: var(--sc); }
+.osu-confirmed .sp { flex: 1; }
+.av { --s: 36px; width: var(--s); height: var(--s); border-radius: 50%; overflow: hidden; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--sc-l); border: 2px solid var(--surface); box-shadow: 0 0 0 1.5px var(--border-strong); color: var(--sc); font-weight: 800; font-size: calc(var(--s) * .42); }
+.av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.osu-cbody { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+.osu-sec { font-size: 12px; font-weight: 800; color: var(--text-secondary); }
+
+/* الملخص */
+.osu-sum { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.osu-sum-grid { display: grid; grid-template-columns: 1.1fr 1.1fr .8fr; gap: 12px; }
+.osu-cell { border: 1.5px solid var(--border); background: var(--surface-2); border-radius: 13px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.osu-cell.st { align-items: center; }
+.osu-lbl { font-size: 11.5px; font-weight: 800; color: var(--text-secondary); }
+.osu-val { display: flex; align-items: center; gap: 10px; min-height: 40px; font-weight: 800; font-size: 16px; }
+.osu-cell.st .osu-val { justify-content: center; width: 100%; }
+.osu-val .dash { color: var(--text-muted); }
+.st-chip { display: inline-flex; align-items: center; gap: 8px; border-radius: 11px; padding: 10px 38px; background: var(--sc); color: var(--on-accent); font-weight: 800; font-size: 25px; }
+.cnt-badge { min-width: 44px; height: 44px; border-radius: 12px; background: var(--sc-l); border: 2px solid var(--sc-b); color: var(--sc); display: inline-flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; padding: 0 10px; font-variant-numeric: tabular-nums; }
+.cnt-badge.zero { background: var(--surface); border-color: var(--border-strong); color: var(--text-secondary); }
+.osu-sum .sum-box-sub { gap: 5px; }
+.osu .btn-update { min-height: 58px; padding: 0 16px; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 12px; border-radius: 13px; }
+.osu .btn-update .n { min-width: 34px; height: 34px; border-radius: 9px; background: rgba(255,255,255,.24); display: inline-flex; align-items: center; justify-content: center; font-size: 19px; padding: 0 9px; font-variant-numeric: tabular-nums; }
+.osu .btn-update:disabled { opacity: 1; background: var(--border); color: var(--text-secondary); }
+.osu .btn-update:disabled .n { background: var(--surface); color: var(--text-secondary); }
+@media (max-width: 760px) { .osu-sum-grid { grid-template-columns: 1fr; } .entry-row { flex-direction: column-reverse; } .entry-btn { min-height: 46px; } }
+
+/* جدول الأوردرات */
+.osu-res { display: flex; align-items: center; gap: 10px; padding: 12px 16px; flex-wrap: wrap; cursor: pointer; user-select: none; }
+.osu-res .res-lbl { font-weight: 800; font-size: 13px; }
+.osu-res .res-cnt { min-width: 34px; height: 30px; border-radius: 9px; background: var(--sc-l); border: 1.5px solid var(--sc-b); color: var(--sc); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; padding: 0 8px; }
+.osu-res .sp { flex: 1; }
+.clr-all { border: 1.5px solid var(--red); background: var(--red); color: var(--on-accent); border-radius: 9px; padding: 5px 12px; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.clr-all:disabled { background: var(--surface-2); border-color: var(--border-strong); color: var(--text-secondary); opacity: .6; cursor: default; }
+.ord-chips { padding: 8px 16px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border); }
+.ord-chips[hidden] { display: none; }
+.chips-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.chips-label { font-size: 12px; font-weight: 800; color: var(--text-secondary); }
+.fchip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 6px 2px 10px; background: var(--accent-light); border: 1.5px solid var(--accent-border); color: var(--accent); font-size: 12px; font-weight: 800; }
+.fchip button { border: 0; background: transparent; color: inherit; font-weight: 800; padding: 0 4px; cursor: pointer; }
+.ord-scroll { max-height: 380px; overflow: auto; border-top: 1px solid var(--border); }
+.ord-scroll .otbl { min-width: 760px; }
+.otbl thead th { position: sticky; top: 0; z-index: 2; font-size: 12px; font-weight: 700; color: var(--text-primary); text-transform: none; letter-spacing: 0; box-shadow: 0 1px 0 var(--border-strong); }
+.otbl tbody td { font-size: 12.5px; font-weight: 600; }
+.th-in { display: inline-flex; align-items: center; gap: 6px; }
+.th-sort { border: 0; background: transparent; color: inherit; font: inherit; font-weight: 700; padding: 0; cursor: pointer; }
+.ofb { border: 0; background: transparent; color: var(--text-secondary); padding: 2px 3px; border-radius: 5px; display: inline-flex; cursor: pointer; }
+.ofb svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; }
+.ofb.on { background: var(--accent-light); color: var(--accent); outline: 1.5px solid var(--accent-border); }
+.cc { display: inline-flex; align-items: center; gap: 7px; border: 1.5px solid var(--purple-border); background: var(--purple-light); color: var(--purple); border-radius: 999px; padding: 2px 10px 2px 4px; font-weight: 800; font-size: 12px; }
+.cc .av { --s: 22px; --sc-l: var(--surface); --sc: var(--purple); }
+.flag-btn { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; border: 1.5px solid var(--amber-border); background: var(--amber-light); color: var(--amber); font-family: inherit; font-size: 11.5px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.flag-btn.bad { border-color: var(--red-border); background: var(--surface); color: var(--red); }
+.opop { position: fixed; z-index: 200; min-width: 190px; background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.2); padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+.opop .clear-btn { border: 1.5px solid var(--red); background: var(--red); color: var(--on-accent); border-radius: 8px; padding: 5px 10px; font-family: inherit; font-size: 12px; font-weight: 800; margin-bottom: 4px; cursor: pointer; }
+.opop .it { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.opop .it:hover { background: var(--surface-2); }
+
+/* نافذة سبب المراجعة */
+.osu-ovl { position: fixed; inset: 0; background: rgba(10,14,25,.55); z-index: 600; display: none; align-items: flex-start; justify-content: center; padding: 6vh 16px; }
+.osu-ovl.open { display: flex; }
+.osu-modal { background: var(--surface); border-radius: 16px; width: min(720px, 100%); box-shadow: 0 20px 60px rgba(0,0,0,.35); display: flex; flex-direction: column; max-height: 86vh; }
+.osu-m-hdr { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); font-weight: 800; font-size: 15px; }
+.osu-m-hdr .sp { flex: 1; }
+.osu-m-body { padding: 16px 18px; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+.osu-m-ftr { display: flex; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.fl-card { border: 1.5px solid var(--amber-border); background: var(--amber-light); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.fl-card.bad { border-color: var(--red-border); background: var(--red-light); }
+.fl-card .t { font-weight: 800; color: var(--amber); }
+.fl-card.bad .t { color: var(--red); }
+.fl-card .d { font-weight: 700; direction: ltr; text-align: right; }
+.fl-card .a { font-size: 12.5px; color: var(--text-primary); font-weight: 600; }
 </style>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -583,7 +745,23 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.6.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.14.0</span>
+          <span class="cl-ver-date">24-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>إعادة تصميم صفحة «تحديث الأوردرات» (طلب أحمد):</strong> عند الفتح بتظهر خطوة <strong>الحالة المستهدفة لوحدها</strong>، وبعد الاختيار باقي الخطوات بتظهر تدريجيًا. الخطوة بتتحوّل لشريط مصمت بلون الحالة (الحالة في المنتصف بخط كبير، ✓ يمين، «تغيير الحالة» شمال) و<strong>الإطار كله بياخد لون الحالة</strong> — مربع الإدخال وبلاطة المندوب والملخص وزرار التحديث.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>تغيير الحالة بعد إدخال الأوردرات مابيمسحش الأوردرات:</strong> بتتحفظ وبيتعاد فحص انتقالاتها (وتوست بيقول كام أوردر بقى غير مطابق)، والمندوب المؤكَّد بيتحفظ لو الحالة الجديدة لسه محتاجاه.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>مربع إدخال موحّد</strong> (<code>unified-entry-box</code>): حقل واحد + chips «رقم الأوردر / فاتورة شوبيفاي» بتتبع الطول، والإضافة بـ Enter أو «إضافة» بس. المدخل المرفوض (حروف · طول غير معروف · أوردر مش موجود) بيروح <strong>صندوق أحمر</strong> بسطر قصير، والتحديث مقفول لحد ما يتفضّى.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>خطوة المندوب:</strong> بلاطات بصورة المندوب (من Worker «أسماء المناديب»، والحرف الأول بديل)، اختيار بلاطة = تأكيد بضغطة واحدة، وبلاطة «اختيار مندوب آخر» حمرا ونصها حسب الحالة. اتشالت جمل الشرح القديمة، والخطوة بتظهر لما يبقى فيه أوردرات.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الملخص:</strong> الحالة في المنتصف بخط أكبر، المندوب بصورته، العدد في مربع واضح، وزرار <strong>«تحديث (N) أوردر»</strong> بالعدد في مربع. <strong>الزرار مقفول طول ما فيه انتقال غير مسموح أو أوردر لسه بيتفحص أو مدخل مرفوض</strong>، فمفيش حاجة لنافذة «احذفهم أولاً».</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>جدول الأوردرات اتنقل تحت زرار التحديث وبقى بترتيب الإدخال</strong> (أول أوردر رقم 1) على معيار الجداول: عناوين ثابتة، فلاتر رأس العمود (المسار · المندوب · المراجعة)، ترتيب، «النتائج: N». وعمود <strong>«المراجعة»</strong> جديد بنافذة بتشرح السبب والمطلوب (زي «المشحون»). الجدول مفتوح طول ما فيه أوردرات، والطيّ اليدوي هو السيد.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>صفر تعديل في الـ Worker ولا <code>ECO_WORKERS.orderStatus.min</code>. صور المناديب بتستخدم <code>get_courier_photo</code> الموجود في Worker «أسماء المناديب» (2.0.0)، وفشلها مابيأثرش على الأداة. ⚠️ ما اتجرّبش على Worker/شوبيفاي حقيقيين.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v2.6.0</span>
           <span class="cl-ver-date">18-11-2026</span>
         </div>
         <ul class="cl-items">
@@ -925,10 +1103,10 @@ body.col-resizing{cursor:col-resize;user-select:none;}
           <h4>كيف تعمل — Workflow</h4>
           <ol>
             <li>الدخول بيحصل <strong>مرة واحدة في الشاشة الرئيسية للمركز</strong> — وكل عملية هنا بتتنسب للموظف اللي داخل بيه.</li>
-            <li>اختيار الحالة المستهدفة فقط (Ready / Shipped / Delivered / Cancelled / Returned) من خطوة 1 — عند الاختيار يظهر بادج كبير باسم الحالة في منتصف الخطوة وزرار "تغيير الحالة" تحته (نفس تصميم تأكيد المندوب في v3.3.0)، وخلفية القسم كله بتاخد لون الحالة القوي الصريح.</li>
-            <li>إضافة الأوردرات: سكانر، رقم يدوي، أو "بحث عن أوردرات مندوب معيّن" (متاح للحالات التي تتطلب مندوب) — بما فيها خيار "🚫 بدون مندوب" لجلب الأوردرات اللي مفيش عليها مندوب مسجَّل خالص. كل أوردر يُصنَّف تلقائياً S1 أو S2 فور إضافته، وأي انتقال غير مسموح يظهر بخلفية حمراء واضحة ويمنع التحديث حتى يُحذف. الجدول مقفول تلقائياً إلا لو فيه خطأ <strong>أو أوردر ناقصه سبب إلغاء/إرجاع (v4.2.0)</strong>، وحذف أوردر منه بيحافظ على حالة الفتح/القفل الحالية.</li>
+            <li>اختيار الحالة المستهدفة فقط (Ready / Shipped / Delivered / Cancelled / Returned) من خطوة 1 — عند فتح الأداة بتظهر الخطوة دي لوحدها، وبعد الاختيار باقي الخطوات بتظهر تدريجيًا والإطار كله بياخد لون الحالة. الخطوة بتتحوّل لشريط مصمت بلون الحالة (الحالة في المنتصف وزرار «تغيير الحالة» شمال). <strong>تغيير الحالة بعد إدخال أوردرات مابيمسحش الأوردرات</strong> — بتتحفظ وبيتعاد فحص انتقالاتها، والمندوب المؤكَّد بيتحفظ لو الحالة الجديدة لسه محتاجاه.</li>
+            <li>إضافة الأوردرات: <strong>مربع إدخال موحّد</strong> (Enter أو «إضافة» بس — مفيش إضافة تلقائية بمؤقّت) — ١–٧ أرقام = رقم أوردر، ١٣–١٥ رقم = باركود فاتورة شوبيفاي (Order ID)، والـ chip بيتبع الطول. أي مدخل مرفوض (حروف · طول غير معروف · أوردر مش موجود) بيروح <strong>صندوق أحمر</strong> بسطر قصير والتحديث مقفول لحد ما يتفضّى. أو "بحث عن أوردرات مندوب معيّن" (للحالات اللي بتحتاج مندوب) — بما فيها "🚫 بدون مندوب". كل أوردر يُصنَّف S1 أو S2 فور إضافته، وبيتعرض في الجدول <strong>بترتيب الإدخال</strong> (أول أوردر رقم 1) وعمود «المراجعة» بيقول السبب لأي انتقال غير مسموح بنافذة شرح.</li>
             <li><strong>سبب الإلغاء/الإرجاع (v4.0.0، دقّقها v4.1.0):</strong> لو الحالة المستهدفة <code>Cancelled</code> أو <code>Returned</code>، عمود إضافي "سبب الإلغاء/الإرجاع" يظهر جنب كل أوردر في الجدول — قائمة اختيار مسحوبة من الميتافيلدز <code>custom.cancel_manual_reason</code> / <code>custom.return_manual_reason</code>. الاختيار <strong>إلزامي بس للأوردرات اللي هتتحل فعليًا S1</strong> (<code>Cancelled</code>، أو <code>Returned</code> لما S2 يكون فاضي) — زرار "تحديث الكل" يفضل معطّل والسطر بيتلوّن أحمر لحد ما يتم اختيار سبب لكل أوردر S1 مضاف. أوردر <code>Returned</code> اللي هيتحل S2 (<code>Returned_S2</code>) بيوري خانة "— (S2، غير مطلوب) —" بدل قائمة الاختيار، والسبب مش مطلوب ولا بيتكتب عليه. <strong>(v4.2.0):</strong> لو حاول الموظف يضغط "تحديث الكل" وفيه سبب ناقص، الجدول بيتفتح بالقوة وتظهر نافذة تأكيد بأسماء الأوردرات الناقصة. <strong>(v4.3.0):</strong> لو الأوردر عليه سبب مسجّل أصلاً على شوبيفاي (من خدمة العملاء)، بيظهر مختار سلفًا في القائمة مع شارة <code>📋 مسجّل مسبقًا</code> — الصف مش بيتلوّن أحمر، الزرار مش بيتقفل، والأداة مابتكتبش فوق القيمة إلا لو الموظف بدّلها بنفسه.</li>
-            <li>تأكيد المندوب: الأوردرات المضافة بتتجمّع في مجموعات باسم المندوب (بما فيها "بدون مندوب" كمجموعة عرض للأوردرات اللي مفيش عليها مندوب مسجَّل). لو مجموعة واحدة حقيقية بس، تظهر كاقتراح يتأكد بضغطة واحدة. لو أكتر من مجموعة، تتعرض كلها في جدول (اسم المندوب / عدد الأوردرات / أرقام الأوردرات) ولازم اختيار يدوي صريح. "بدون مندوب" مينفعش يتختار أبداً كمندوب نهائي — صفها بيظهر معطّل في الجدول، ولازم اختيار مندوب حقيقي من "📋 اختار مندوب آخر".</li>
+            <li>المندوب (بيظهر لما الحالة محتاجة مندوب وفيه أوردرات): بلاطات بصورة المندوب للمسجَّل على الأوردرات، واختيار بلاطة = تأكيد بضغطة واحدة. «بدون مندوب» بتظهر مقفولة (مينفعش مندوب نهائي). بلاطة «اختيار مندوب آخر» حمرا ونصها بيتغيّر حسب الحالة («اختر مندوب واحد فقط» لو فيه أكتر من مندوب · «اختر المندوب» لو مفيش مندوب خالص). إضافة أو حذف أوردر بيلغي التأكيد. الصور من Worker «أسماء المناديب» (<code>get_courier_photo</code>) والحرف الأول بديل.</li>
             <li>الضغط على "تحديث الكل" — تُرسل الأوردرات للـ Worker على دفعات من 20، والـ Worker يتحقق من الانتقال ويحسم S1/S2 لكل أوردر بنفسه قبل التنفيذ.</li>
             <li>بعد انتهاء التحديث تظهر <strong>نافذة ملخص منبثقة</strong> (v3.6.0) فيها أرقام النتيجة بس — ناجح / محتاج مراجعة / فاشل — من غير تفاصيل أوردرات، ولما يكون فيه فشل بتتلوّن أحمر بالكامل وبيظهر بانر تنبيه. منها الموظف بيختار: 🆕 تسجيل أوردرات جديدة (إعادة ضبط كاملة لخطوة 1) · 📜 تفاصيل الأوردرات (يفتح تاب سجل العمليات) · 🖨️ طباعة (في حالة Shipped فقط).</li>
             <li>الأوردرات اللي اتحدّثت فعلاً بتخرج من القائمة تلقائياً، والفاشلة بس هي اللي بتفضل للمراجعة أو إعادة المحاولة.</li>
@@ -976,12 +1154,12 @@ body.col-resizing{cursor:col-resize;user-select:none;}
           <h4>FEATURE MAP</h4>
           <ul>
             <li><code>Login (PIN)</code> — <strong>اتشال من الصفحة دي</strong> — بقى في <code>index.html</code> بتاع المركز (<code>requireSession()</code> في <code>shared/core.js</code> §SESSION)</li>
-            <li><code>اختيار الحالة المستهدفة (خطوة 1، خلفية القسم بلون الحالة + بادج/زرار بنفس تصميم v3.3.0)</code> — HTML §TOOL-JS — <code>selectTargetLabel()</code> / <code>renderStep1Body()</code> / <code>reopenStep1()</code></li>
-            <li><code>Scanner gun input</code> — HTML §SCAN — <code>handleScan()</code></li>
-            <li><code>إضافة يدوية</code> — HTML §TOOL-JS — <code>addManualOrder()</code> → <code>resolve_by_name</code></li>
+            <li><code>اختيار الحالة المستهدفة (خطوة 1 — شريط مصمت بلون الحالة، والإطار كله بيتلوّن، وباقي الخطوات بتظهر بعد الاختيار)</code> — HTML §TOOL-JS — <code>selectTargetLabel()</code> / <code>renderStep1Body()</code> / <code>toggleStep1()</code> / <code>setFlow()</code> / <code>applyTheme()</code></li>
+            <li><code>مربع الإدخال الموحّد (Enter فقط · chip بيتبع الطول · صندوق أحمر)</code> — HTML §SCAN — <code>submitEntry()</code> / <code>syncEntry()</code> / <code>entryFail()</code></li>
+            <li><code>إضافة رقم أوردر</code> — HTML §SCAN — <code>submitEntry()</code> → <code>resolve_by_name</code> (١–٧ أرقام) · باركود فاتورة (١٣–١٥) بيتضاف كـ Order ID وبيتفحص بـ <code>hydrateOrders()</code></li>
             <li><code>تصنيف S1/S2 تلقائي + التحقق</code> — HTML §TOOL-JS — <code>hydrateOrders()</code> / <code>clientResolveSpecifier()</code> — Worker §STATUS — <code>resolveSpecifier()</code></li>
-            <li><code>جدول الأوردرات القابل للطي — الصف كله قابل للضغط (auto-collapse يحترم اختيار المستخدم، وبيفتح تلقائي لو فيه أوردر محظور أو ناقصه سبب — v4.2.0)</code> — HTML §TOOL-JS — <code>applyAutoCollapseRule()</code> / <code>toggleOrdersTable()</code></li>
-            <li><code>تأكيد المندوب — تجميع بالمجموعات في جدول (اسم/عدد/أرقام أوردرات) + تأكيد صريح دايماً + "بدون مندوب" لا يُختار أبداً</code> — HTML §TOOL-JS — <code>renderCourierStep()</code> / <code>groupTableHTML()</code> / <code>chooseCourier()</code> / <code>openCourierPicker()</code></li>
+            <li><code>جدول الأوردرات — تحت زرار التحديث، بترتيب الإدخال، عمود «المراجعة» بنافذة سبب، فلاتر رأس العمود (المسار · المندوب · المراجعة)، ترتيب، عناوين ثابتة، مفتوح طول ما فيه أوردرات (الطيّ اليدوي هو السيد)</code> — HTML §TOOL-JS — <code>renderOrders()</code> / <code>orderFlags()</code> / <code>openOrderFlags()</code> / <code>openOrdPop()</code> / <code>applyAutoCollapseRule()</code></li>
+            <li><code>خطوة المندوب — بلاطات بصورة + تأكيد بضغطة + «اختيار مندوب آخر» أحمر بنص حسب الحالة</code> — HTML §TOOL-JS — <code>renderCourierStep()</code> / <code>chooseCourier()</code> / <code>ensureCourierPhotos()</code> / <code>cAvatar()</code></li>
             <li><code>بحث أوردرات مندوب (S1+S2 مدموجين) + خيار "بدون مندوب"</code> — HTML §TOOL-JS — <code>openCourierSearch()</code> — Worker §STATUS — <code>search_courier_orders</code> (<code>noCourier</code>)</li>
             <li><code>سبب الإلغاء/الإرجاع — عمود في جدول الأوردرات، Cancelled/Returned فقط، إلزامي بس لأوردرات S1 (v4.0.0، دقّقها v4.1.0)</code> — HTML §TOOL-JS — <code>needsReasonFor()</code> / <code>orderNeedsReason()</code> / <code>reasonSelectHTML()</code> / <code>setOrderReason()</code> / <code>ensureReasonValues()</code> — Worker §STATUS — <code>reason_values</code> / <code>applyDirect()</code></li>
             <li><code>تحديث الكل (دفعات 20)</code> — HTML §TOOL-JS — <code>doStartUpdate()</code></li>
@@ -1082,105 +1260,83 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 </div>
 
 <div class="tab-panel active" id="panelMain">
+<div class="osu" id="osuFrame">
+<div class="osu-stack">
 
-  <!-- ─── §TOOL::wizStep1 — الحالة المستهدفة ─── -->
+  <!-- ─── §TOOL::wizStep1 — الحالة المستهدفة (قبل الاختيار: شبكة · بعده: شريط مصمت بلون الحالة) ─── -->
   <div class="wiz-step" id="wizStep1">
-    <div class="wiz-step-hdr" id="wizStep1Hdr">
-      <div class="wiz-step-title">
-        <span class="wiz-step-num">1</span> الحالة المستهدفة
-      </div>
-      <div id="wizStep1Badge"></div>
-    </div>
-    <div class="wiz-step-body" id="wizStep1Body">
-      <div class="status-grid" id="statusGrid"></div>
-    </div>
+    <div class="wiz-step-hdr" id="wizStep1Hdr"></div>
+    <div class="wiz-step-body" id="wizStep1Body"></div>
   </div>
 
-  <!-- ─── §TOOL::wizStep2 — إدخال الأوردرات ─── -->
-  <div class="wiz-step wiz-locked" id="wizStep2">
-    <div class="wiz-step-hdr">
-      <div class="wiz-step-title"><span class="wiz-step-num">2</span> إدخال الأوردرات</div>
-    </div>
-    <div class="wiz-step-body" id="wizStep2Body">
-      <div class="in-grid">
-        <div>
-          <div class="in-wrap">
-            <span class="in-ico">🔫</span>
-            <input type="text" id="scanInput" class="scan-in" placeholder="امسح الباركود هنا..." autocomplete="off" spellcheck="false" />
-          </div>
-          <p class="in-hint" style="text-align:center;">💡 امسح بالسكانر — الإضافة تلقائية + تصنيف S1/S2 فوري</p>
+  <!-- باقي الخطوات بتظهر بعد اختيار الحالة -->
+  <div class="osu-flow" id="osuFlow"><div class="osu-flow-in">
+
+    <!-- ─── §TOOL::entry — مربع الإدخال الموحّد ─── -->
+    <div class="entry-bar" id="entryBar" data-mode="order" style="--i:0">
+      <div class="entry-top">
+        <span class="osu-num">2</span>
+        <div class="entry-segs" role="group" aria-label="نوع الإدخال">
+          <button class="entry-chip is-on" id="chipOrder" data-m="order" onclick="setEntryMode('order')">رقم الأوردر<span class="entry-auto" id="entryAuto" hidden>تلقائي</span></button>
+          <button class="entry-chip" id="chipInvoice" data-m="invoice" onclick="setEntryMode('invoice')">فاتورة شوبيفاي</button>
         </div>
-        <div>
-          <div class="man-row">
-            <div class="in-wrap">
-              <span class="in-ico">#</span>
-              <input type="text" id="manualInput" class="man-in" placeholder="رقم الأوردر يدوياً..." autocomplete="off" spellcheck="false" inputmode="numeric" />
-            </div>
-            <button class="btn btn-primary" id="manualBtn" onclick="addManualOrder()">إضافة</button>
-          </div>
-          <p class="in-hint">💡 مع أو بدون علامة #</p>
+        <span class="entry-hint" id="entryHint" aria-hidden="true"></span>
+        <div class="alt-search-toggle" id="altSearchToggle" style="display:none">
+          <button class="osu-pill" id="altSearchToggleBtn" onclick="toggleAltSearch()">🔍 أوردرات مندوب</button>
         </div>
       </div>
-
-      <div class="alt-search-toggle" id="altSearchToggle" style="display:none">
-        <button class="alt-search-btn" onclick="toggleAltSearch()" id="altSearchToggleBtn"><span class="ico">🔍</span>ابحث عن أوردرات مندوب معين في شوبيفاي مباشرة</button>
+      <div class="entry-row">
+        <button class="entry-btn" id="entryBtn" onclick="submitEntry()" disabled>إضافة</button>
+        <input type="text" id="entryInput" class="entry-input" aria-label="رقم الأوردر أو باركود الفاتورة" autocomplete="off" spellcheck="false" inputmode="numeric" />
       </div>
       <div class="alt-search-panel" id="altSearchPanel" style="display:none">
-        <div class="courier-grid" id="altCourierGrid"><div class="courier-hint">⏳ جاري التحميل...</div></div>
+        <div class="osu-grid" id="altCourierGrid"><div class="courier-hint">⏳ جاري التحميل...</div></div>
       </div>
+      <div class="entry-fails" id="entryFails" hidden></div>
     </div>
-  </div>
 
-  <!-- ─── §TOOL::wizStep3 — تأكيد المندوب (بند 3 — دايماً تأكيد صريح، مفيش تلقائي) ─── -->
-  <div class="wiz-step" id="wizStep3" style="display:none">
-    <div class="wiz-step-hdr">
-      <div class="wiz-step-title"><span class="wiz-step-num">3</span> تأكيد المندوب</div>
+    <!-- ─── §TOOL::wizStep3 — المندوب (بيظهر لما الحالة محتاجة مندوب وفيه أوردرات) ─── -->
+    <div class="wiz-step" id="wizStep3" style="display:none;--i:1">
+      <div class="wiz-step-hdr" id="wizStep3Hdr"></div>
+      <div class="wiz-step-body" id="wizStep3Body"></div>
     </div>
-    <div class="wiz-step-body" id="wizStep3Body">
-      <div class="wiz-note">أضف أوردرات في الخطوة السابقة عشان الأداة تكتشف المندوب تلقائياً.</div>
-    </div>
-  </div>
 
-  <!-- ─── §TOOL::ordersTable — collapsible، الصف العلوي كله قابل للضغط (بند 5) ─── -->
-  <div class="card">
-    <div class="card-hdr ord-toggle-row" onclick="toggleOrdersTable()">
-      <h2>📋 الأوردرات <span class="pill p-purple" id="ordersCount">0</span></h2>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <button class="btn-sm danger" onclick="event.stopPropagation();clearOrders()">🗑 مسح الكل</button>
-        <span class="card-toggle-arrow" id="ordersToggleArrow">▾</span>
+    <!-- ─── §TOOL::summary ─── -->
+    <div class="card osu-sum" style="--i:2">
+      <div class="osu-sum-grid" id="sumGrid">
+        <div class="osu-cell st"><span class="osu-lbl">الحالة المستهدفة</span><div class="osu-val" id="sumTargetVal"><span class="dash">—</span></div></div>
+        <div class="osu-cell" id="sumCourierBox"><span class="osu-lbl">المندوب</span><div class="osu-val" id="sumCourierVal"><span class="dash">—</span></div></div>
+        <div class="osu-cell"><span class="osu-lbl">عدد الأوردرات</span><div class="osu-val"><span class="cnt-badge zero" id="sumCount">0</span><span class="sum-box-sub" id="sumCountSub"></span></div></div>
       </div>
-    </div>
-    <div style="overflow-x:auto;" class="ord-tbl-wrap collapsed" id="ordersWrap">
-      <div class="empty-box"><span class="ei">📋</span>لم تتم إضافة أي أوردرات بعد</div>
-    </div>
-  </div>
-
-  <!-- ─── §TOOL::summary — 3-box grid ─── -->
-  <div class="card">
-    <div class="sum-grid" id="sumGrid">
-      <div class="sum-box">
-        <div class="sum-box-label">🎯 الحالة المستهدفة</div>
-        <div class="sum-box-val" id="sumTargetVal">—</div>
-      </div>
-      <div class="sum-box" id="sumCourierBox" style="display:none">
-        <div class="sum-box-label">🛵 المندوب</div>
-        <div class="sum-box-val" id="sumCourierVal">—</div>
-      </div>
-      <div class="sum-box">
-        <div class="sum-box-label">عدد الأوردرات</div>
-        <div class="sum-box-val count" id="sumCount">0</div>
-        <div class="sum-box-sub" id="sumCountSub"></div>
-      </div>
-    </div>
-    <div class="sum-acts">
-      <button class="btn-update" id="updateBtn" onclick="startUpdate()" disabled>🚀 تحديث الكل</button>
+      <button class="btn-update" id="updateBtn" onclick="startUpdate()" disabled>تحديث الأوردرات</button>
       <div class="prog-wrap" id="progWrap"><div class="prog-bar" id="progBar"></div></div>
-      <!-- v3.6.0: قائمة النتائج التفصيلية اتشالت من هنا — بقت نافذة ملخص
-           منبثقة (#summaryOverlay) بتظهر بعد كل تحديث، والتفاصيل في تاب السجل -->
+      <!-- قائمة النتائج التفصيلية بتتعرض في نافذة الملخص (#summaryOverlay) والتفاصيل في تاب السجل -->
     </div>
-  </div>
+
+    <!-- ─── §TOOL::ordersTable — تحت زرار التحديث · بترتيب الإدخال ─── -->
+    <div class="card" style="--i:3">
+      <div class="osu-res" onclick="toggleOrdersTable()">
+        <span class="card-toggle-arrow" id="ordersToggleArrow">▾</span>
+        <span class="res-lbl">النتائج:</span>
+        <span class="res-cnt" id="ordersCount">0</span>
+        <span class="sp"></span>
+        <button class="clr-all" id="ordClrFilters" onclick="event.stopPropagation();clearOrderFilters()" disabled>✕ مسح كل الفلاتر</button>
+        <button class="btn-sm danger" onclick="event.stopPropagation();clearOrders()">🗑 مسح الكل</button>
+      </div>
+      <div class="ord-chips" id="ordChips" hidden></div>
+      <div class="ord-tbl-wrap collapsed" id="ordersWrap">
+        <div class="empty-box"><span class="ei">📋</span>لم تتم إضافة أي أوردرات بعد</div>
+      </div>
+    </div>
+
+  </div></div>
 
 </div>
+</div>
+</div>
+
+<!-- نافذة سبب المراجعة (عمود «المراجعة» في جدول الأوردرات) -->
+<div class="osu-ovl" id="ordFlagOvl" onclick="if(event.target===this)closeOrderFlags()"><div class="osu-modal" id="ordFlagModal"></div></div>
 
 <!-- ══════════════════════════════════════════════════════════════
      §LOG — سجل العمليات (data-table-standard.md · v8.6.0)
@@ -1453,7 +1609,12 @@ let courierConfirmed   = false;  // §TOOL-JS::chooseCourier — بند 3: تأ�
 let courierConfirmedOrderSnapshot = ''; // snapshotOrders() وقت آخر تأكيد — أي تغيير في القايمة يلغي التأكيد
 let courierPickerForced = false; // true وقت الضغط على "🔄 تغيير المندوب" حتى لو فيه تأكيد سابق
 let lastCourierAlertKey = '';
-let orders    = [];   // [orderId, ...] newest first
+let step3ListOpen = false;       // v2.14.0 — قايمة «كل المناديب» مفتوحة في خطوة المندوب
+let entryMode = 'order';         // v2.14.0 — chip مربع الإدخال: 'order' | 'invoice' (بيتبع طول المدخل)
+let entryFails = [];             // v2.14.0 — مدخلات اترفضت (صندوق أحمر) — التحديث مقفول لحد ما تتفضّى
+let ordFilter = { path: new Set(), courier: new Set(), review: new Set() };   // فلاتر رأس عمود جدول الأوردرات
+let ordSort = null;              // { k: 'i'|'n', d: 1|-1 } — بدون ترتيب = ترتيب الإدخال
+let orders    = [];   // [orderId, ...] بترتيب الإدخال (أول أوردر = رقم 1)
 const orderInfo = {}; // orderId → { name, s1, s2, courier, isCancelled } — courier فاضي = بدون مندوب
 let isUpdating = false;
 let courierListCache = null;
@@ -1653,6 +1814,55 @@ function switchMainTab(tab) {
   else if (!logLoaded) { loadLogFilterLists(); fetchLog(); }
 }
 
+// ─── §TOOL-JS::avatars — صور المناديب من Worker «أسماء المناديب» (get_courier_photo) ───
+// الصورة تحسين عرض: الفشل أو غيابها = الحرف الأول. ٣ نداءات في نفس الوقت، وبتتخزّن في الجلسة.
+const courierApi = ecoApi(ECO_WORKERS.couriers);
+const courierPhotos = {};          // name → dataUrl | null (مفيش صورة / فشل)
+const photoQueue = new Set();
+let courierProf = null, courierProfAt = 0, courierProfBusy = null, courierProfOk = false;
+
+function cInitial(name) { return escHtml(String(name || '?').trim().charAt(0).toUpperCase() || '?'); }
+function cAvatar(name, size) {
+  const url = courierPhotos[name];
+  return `<span class="av" data-av="${escAttr(name)}" style="--s:${size || 36}px">${url ? `<img src="${url}" alt="">` : cInitial(name)}</span>`;
+}
+function paintAvatar(name) {
+  const url = courierPhotos[name];
+  if (!url) return;
+  document.querySelectorAll('.av[data-av]').forEach(el => { if (el.dataset.av === name) el.innerHTML = `<img src="${url}" alt="">`; });
+}
+async function loadCourierProfiles() {
+  if (courierProfOk && courierProf && Date.now() - courierProfAt < VALUES_TTL_MS) return courierProf;
+  if (courierProfBusy) return courierProfBusy;
+  courierProfBusy = courierApi.apiGet('get_couriers')
+    .then(d => { courierProf = d.profiles || {}; courierProfAt = Date.now(); courierProfOk = true; return courierProf; })
+    .catch(() => { courierProfOk = false; return courierProf || {}; })
+    .finally(() => { courierProfBusy = null; });
+  return courierProfBusy;
+}
+async function ensureCourierPhotos(names) {
+  const fresh = [...new Set(names)].filter(n => n && n !== NO_COURIER_LABEL && !(n in courierPhotos) && !photoQueue.has(n));
+  if (!fresh.length) return;
+  fresh.forEach(n => photoQueue.add(n));
+  const prof = await loadCourierProfiles();
+  if (!courierProfOk) { fresh.forEach(n => photoQueue.delete(n)); return; }   // فشل التحميل: نحاول تاني أول ما يتعاد الرسم
+  const todo = fresh.filter(n => prof[n] && prof[n].hasPhoto);
+  fresh.filter(n => !todo.includes(n)).forEach(n => { courierPhotos[n] = null; photoQueue.delete(n); });
+  let i = 0;
+  const work = async () => {
+    while (i < todo.length) {
+      const n = todo[i++];
+      try {
+        const d = await courierApi.apiGet('get_courier_photo', { name: n });
+        courierPhotos[n] = (d && d.dataUrl) || null;
+        paintAvatar(n);
+      } catch { courierPhotos[n] = null; }
+      finally { photoQueue.delete(n); }
+    }
+  };
+  await Promise.all([work(), work(), work()]);
+}
+
 // ─── §TOOL-JS::renderTargetGrid (step 1 — full grid, shown before selection or on "تغيير الحالة") ───
 function renderTargetGrid() {
   const grid = document.getElementById('statusGrid');
@@ -1664,49 +1874,55 @@ function renderTargetGrid() {
   ).join('');
 }
 
-// ─── §TOOL-JS::renderStep1Body (بند 1، v3.4.1) ───
-// خلفية القسم كله (هيدر + body) بلون الحالة القوي الصريح (زي "تحديث الكل")
-// فاضلة زي v3.4.0. لكن محتوى الـ body رجع بالظبط لتصميم/حجم v3.3.0: بادج
-// الحالة (courier-confirmed-badge) في المنتصف، وتحته مباشرة زرار "🔄 تغيير
-// الحالة" (btn-sm) بحجم أصغر. مفيش بادج منفصل في سطر الهيدر بقى — wizStep1Badge
-// بتتصفّر دايماً. step1Open يتحكم في أي محتوى يظهر — منفصل عن currentTargetLabel نفسه.
+// ─── §TOOL-JS::renderStep1Body (v2.14.0) ───
+// قبل الاختيار: عنوان «الحالة المستهدفة» + شبكة الحالات.
+// بعد الاختيار: شريط مصمت بلون الحالة — الحالة في النص بخط كبير، ✓ يمين لوحدها، «تغيير الحالة»
+// شمال. الضغط عليه بيفتح الشبكة جوّه نفس الكارت من غير ما يمسح الأوردرات.
 function renderStep1Body() {
-  const step     = document.getElementById('wizStep1');
-  const badgeBox = document.getElementById('wizStep1Badge');
-  const body     = document.getElementById('wizStep1Body');
-
-  if (step1Open || !currentTargetLabel) {
+  const step = document.getElementById('wizStep1');
+  const hdr  = document.getElementById('wizStep1Hdr');
+  const body = document.getElementById('wizStep1Body');
+  const cfg  = TARGET_LABELS[currentTargetLabel];
+  if (!cfg) {
     step.className = 'wiz-step';
-    badgeBox.innerHTML = '';
+    hdr.innerHTML = '<div class="wiz-step-title"><span class="wiz-step-num">1</span> الحالة المستهدفة</div>';
     body.innerHTML = '<div class="status-grid" id="statusGrid"></div>';
     renderTargetGrid();
     return;
   }
-
-  const cfg = TARGET_LABELS[currentTargetLabel];
-  step.className = `wiz-step wiz-step1-solid ${cfg.color}`;
-  badgeBox.innerHTML = '';
-  body.innerHTML = `
-    <div class="step-confirm-wrap">
-      <span class="courier-confirmed-badge ${cfg.color}">${cfg.icon} ${currentTargetLabel}</span>
-      <button class="btn-sm" onclick="reopenStep1()">🔄 تغيير الحالة</button>
-    </div>`;
+  step.className = 'wiz-step s1-has';
+  hdr.innerHTML = `<span class="wiz-step-num">✓</span>
+    <span class="s1-chip">${cfg.icon} ${escHtml(currentTargetLabel)}</span>
+    <button class="s1-change" onclick="toggleStep1()">⇄ ${step1Open ? 'إخفاء' : 'تغيير الحالة'}</button>`;
+  if (step1Open) { body.innerHTML = '<div class="status-grid" id="statusGrid"></div>'; renderTargetGrid(); }
+  else body.innerHTML = '';
 }
 
-// ─── §TOOL-JS::selectTargetLabel (step 1 → unlocks step 2) ───
+function setFlow(on) { document.getElementById('osuFlow').classList.toggle('on', !!on); }
+function applyTheme() {
+  const cfg = TARGET_LABELS[currentTargetLabel];
+  document.getElementById('osuFrame').className = 'osu' + (cfg ? ' ' + cfg.color : '');
+}
+
+// ─── §TOOL-JS::selectTargetLabel (step 1 → يكشف باقي الخطوات) ───
+// تغيير الحالة بعد إدخال أوردرات **مابيمسحش** الأوردرات: بتتحفظ وبيتعاد فحص انتقالاتها.
+// المندوب المؤكَّد بيتحفظ لو الحالة الجديدة لسه محتاجاه. الأسباب بتتصفّر (بتتحدد بالحالة).
 function selectTargetLabel(label) {
+  const prev = currentTargetLabel;
+  if (label === prev) { step1Open = false; renderStep1Body(); focusScan(); return; }
+  const had = orders.length;
   currentTargetLabel = label;
   step1Open = false;
-  currentCourier = '';
-  courierConfirmed = false;
-  courierConfirmedOrderSnapshot = '';
+  const keepCourier = TARGET_LABELS[label].needsCourier && courierConfirmed && !!currentCourier;
+  if (!keepCourier) { currentCourier = ''; courierConfirmed = false; courierConfirmedOrderSnapshot = ''; }
   courierPickerForced = false;
+  step3ListOpen = false;
   lastCourierAlertKey = '';
   orderReasons = {};   // v4.0.0 — تصفير الأسباب المختارة عند تغيير الحالة المستهدفة
 
   renderStep1Body();
-
-  document.getElementById('wizStep2').classList.remove('wiz-locked');
+  applyTheme();
+  setFlow(true);
 
   refreshAltSearchVisibility();
   renderCourierStep();
@@ -1715,16 +1931,22 @@ function selectTargetLabel(label) {
   updateActionState();
   focusScan();
 
-  // v4.0.0 — تحميل قوائم أسباب الإلغاء/الإرجاع مقدّمًا (lazy، مرة واحدة لكل
-  // جلسة) لو الحالة المختارة محتاجاها؛ الجدول بيتعاد رسمه بمجرد ما توصل.
-  // v4.5.0 — `force` مقصود: اختيار الحالة بيحصل مرة واحدة قبل كل دفعة تقريبًا،
-  // فده أرخص وأضمن مكان لتحديث القايمة من الـ TTL لوحده.
+  if (prev && had) {
+    const bad = orders.filter(orderIsBlocked).length;
+    showToast(`الحالة بقت ${label} — ${had.toLocaleString('en-US')} ${ordWord(had)} اتحفظوا${bad ? ` و${bad.toLocaleString('en-US')} غير مطابق` : ' وكلهم مطابقين'}`, bad ? 'warning' : 'success', 5000);
+  }
+
+  // v4.0.0 — تحميل قوائم أسباب الإلغاء/الإرجاع مقدّمًا (lazy). v4.5.0 — `force` مقصود.
   if (needsReasonFor(label)) {
     ensureReasonValues(true).then(() => { if (currentTargetLabel === label) renderOrders(); });
   }
 }
 
-// ─── §TOOL-JS::reopenStep1 (بند 1/2 — "تغيير الحالة": يرجع لشبكة الاختيار) ───
+// ─── §TOOL-JS::toggleStep1 / reopenStep1 (فتح/قفل شبكة الحالات من غير مسح أي حاجة) ───
+function toggleStep1() {
+  step1Open = !step1Open;
+  renderStep1Body();
+}
 function reopenStep1(silent = false) {
   step1Open = true;
   renderStep1Body();
@@ -1753,9 +1975,11 @@ function refreshAltSearchVisibility() {
 }
 
 // بند 3، v3.2.0 — أول زرار في القايمة دايماً "🚫 بدون مندوب" (noCourier search)
+// v2.14.0 — بلاطات بصورة المندوب
 function courierGridButtonsHTML(list, onClickFn) {
-  const noneBtn = `<button class="courier-btn" style="border-style:dashed" onclick="${onClickFn}('__NONE__')">🚫 ${escHtml(NO_COURIER_LABEL)}</button>`;
-  return noneBtn + list.map(c => `<button class="courier-btn" onclick="${onClickFn}('${escJsAttr(c)}')">${escHtml(c)}</button>`).join('');
+  ensureCourierPhotos(list);
+  const noneBtn = `<button class="osu-tile sm none" style="cursor:pointer" onclick="${onClickFn}('__NONE__')"><span class="av">🚫</span><span class="nm">${escHtml(NO_COURIER_LABEL)}</span></button>`;
+  return noneBtn + list.map(c => `<button class="osu-tile sm" onclick="${onClickFn}('${escJsAttr(c)}')">${cAvatar(c, 34)}<span class="nm">${escHtml(c)}</span></button>`).join('');
 }
 
 async function toggleAltSearch() {
@@ -1769,142 +1993,89 @@ async function toggleAltSearch() {
   grid.innerHTML = courierGridButtonsHTML(list, 'openCourierSearch');
 }
 
-// ─── §TOOL-JS::renderCourierStep (step 3 — بند 4، v3.2.0: إعادة بناء بالمجموعات) ───
-// كل الأوردرات المضافة بتتجمّع بحسب المندوب المسجَّل عليها حالياً — الأوردرات
-// اللي مفيش عليها مندوب خالص بتتجمّع تحت NO_COURIER_LABEL زي أي مجموعة تانية،
-// من غير أي تحذير مخصوص ليها. لو مجموعة واحدة بس → اقتراح تأكيد بضغطة واحدة.
-// لو أكتر من مجموعة → عرض كل المجموعات بعددها ولازم اختيار يدوي صريح.
+// ─── §TOOL-JS::renderCourierStep (step 3 — v2.14.0: بلاطات بصورة المندوب) ───
+// الأوردرات المضافة بتتجمّع بحسب المندوب المسجَّل عليها. اختيار بلاطة = تأكيد بضغطة واحدة.
+// «بدون مندوب» بتظهر بس مقفولة (مينفعش مندوب نهائي). والخطوة كلها مخفية لحد ما يبقى فيه أوردرات.
 function renderCourierStep() {
   const step = document.getElementById('wizStep3');
   const cfg  = TARGET_LABELS[currentTargetLabel];
+  const hdr  = document.getElementById('wizStep3Hdr');
   const body = document.getElementById('wizStep3Body');
 
   if (!currentTargetLabel || !cfg || !cfg.needsCourier) {
     step.style.display = 'none';
-    step.classList.remove('wiz-alert', 'done');
+    updateActionState();
+    return;
+  }
+  if (!orders.length) {
+    step.style.display = 'none';
+    currentCourier = ''; courierConfirmed = false; courierPickerForced = false; step3ListOpen = false; lastCourierAlertKey = '';
     updateActionState();
     return;
   }
   step.style.display = 'block';
 
-  if (!orders.length) {
-    step.classList.remove('wiz-alert', 'done');
-    currentCourier = ''; courierConfirmed = false; courierPickerForced = false; lastCourierAlertKey = '';
-    body.innerHTML = '<div class="wiz-note">أضف أوردرات في الخطوة السابقة عشان الأداة تكتشف المندوب تلقائياً.</div>';
+  // أي تغيير في قايمة الأوردرات بعد التأكيد يلغي التأكيد
+  if (courierConfirmed && courierConfirmedOrderSnapshot !== snapshotOrders()) courierConfirmed = false;
+
+  const head = (done) => `<div class="wiz-step-title"><span class="wiz-step-num ${done ? 'done' : ''}">${done ? '✓' : '3'}</span> المندوب</div>
+    <span class="osu-state ${done ? 'ok' : 'warn'}">${done ? '✓ مؤكد' : 'مطلوب'}</span>`;
+
+  // ── حالة: مؤكَّد، ومش متطلوب فتح البيكر ──
+  if (courierConfirmed && !courierPickerForced) {
+    hdr.innerHTML = head(true);
+    body.innerHTML = `<div class="osu-confirmed">${cAvatar(currentCourier, 44)}<span class="nm">${escHtml(currentCourier)}</span><span class="sp"></span>
+      <button class="osu-pill" onclick="openCourierPicker()">⇄ تغيير المندوب</button></div>`;
+    ensureCourierPhotos([currentCourier]);
     updateActionState();
     return;
   }
 
-  // أي تغيير في قايمة الأوردرات بعد التأكيد يلغي التأكيد
-  if (courierConfirmed && courierConfirmedOrderSnapshot !== snapshotOrders()) {
-    courierConfirmed = false;
-  }
+  hdr.innerHTML = head(false);
 
-  // §TOOL-JS::grouping — بند 4: "بدون مندوب" مجموعة عادية زي أي مندوب
+  // §TOOL-JS::grouping — "بدون مندوب" مجموعة عادية في العرض بس
   const grouped = {};
   orders.forEach(id => {
     const label = orderInfo[id]?.courier || NO_COURIER_LABEL;
     (grouped[label] = grouped[label] || []).push(id);
   });
-  const distinctLabels = Object.keys(grouped).sort((a, b) => {
+  const labels = Object.keys(grouped).sort((a, b) => {
     if (a === NO_COURIER_LABEL) return 1;
     if (b === NO_COURIER_LABEL) return -1;
     return a.localeCompare(b);
   });
+  const registered = labels.filter(l => l !== NO_COURIER_LABEL);
 
-  const escQ = escJsAttr;   // v4.5.0 — هروب موحّد (كان بيغطي ' بس، من غير \\ ولا HTML)
-
-  // §TOOL-JS::groupTableHTML (بند 2/3، v3.4.0) — جدول بدل الأزرار الأفقية:
-  // اسم المندوب | عدد الأوردرات | أرقام الأوردرات. صف "بدون مندوب" دايماً
-  // معطّل (مفيش onclick) لأنه مينفعش يتختار كمندوب نهائي أبداً.
-  const groupTableHTML = (activeVal) => {
-    const rows = distinctLabels.map(label => {
-      const ids = grouped[label];
-      const isBlocked = label === NO_COURIER_LABEL;
-      // design-system.md "Order Number Display" — رقم الأوردر لازم يكون هايبر لينك
-      // لشوبيفاي (orderLink)، مش نص عادي. stopPropagation على الـ td عشان الضغط على
-      // اللينك ميفتحش chooseCourier(label) بالغلط (الصف كله قابل للضغط أصلاً).
-      const names = ids.map(id => orderLink(orderInfo[id]?.name || id, id)).join('، ');
-      return `<tr class="${label === activeVal ? 'active' : ''} ${isBlocked ? 'blocked' : ''}"
-                 ${isBlocked ? '' : `onclick="chooseCourier('${escQ(label)}')"`}>
-        <td class="ctbl-name">${escHtml(label)}${isBlocked ? ' <span class="mini-badge bad">غير متاح</span>' : ''}</td>
-        <td>${ids.length.toLocaleString('en-US')}</td>
-        <td class="ctbl-orders" onclick="event.stopPropagation()">${names}</td>
-      </tr>`;
-    }).join('');
-    return `<table class="courier-tbl">
-      <thead><tr><th>المندوب</th><th>عدد الأوردرات</th><th>أرقام الأوردرات</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-  };
-
-  const fullListToggle = `
-    <div class="alt-search-toggle" style="margin-top:10px">
-      <button class="btn-sm go" onclick="toggleStep3FullList()">📋 اختار مندوب آخر</button>
-    </div>
-    <div id="step3FullListWrap" style="display:none;margin-top:8px">
-      <div class="courier-grid" id="step3FullList"><div class="courier-hint">⏳ جاري التحميل...</div></div>
-    </div>`;
-
-  // ── حالة: مؤكَّد، ومش متطلوب فتح البيكر ──
-  if (courierConfirmed && !courierPickerForced) {
-    step.classList.remove('wiz-alert');
-    step.classList.add('done');
-    body.innerHTML = `
-      <div class="courier-confirmed-wrap">
-        <span class="courier-confirmed-badge">🛵 ${escHtml(currentCourier)}</span>
-        <button class="btn-sm" onclick="openCourierPicker()">🔄 تغيير المندوب</button>
-      </div>`;
-    updateActionState();
-    return;
-  }
-
-  step.classList.remove('done');
-
-  // بند 3، v3.4.0 — لو المجموعة الوحيدة هي "بدون مندوب" (كل الأوردرات المضافة
-  // مفيش عليها مندوب مسجَّل) مينفعش تتعامل كاقتراح جاهز، لازم اختيار يدوي حقيقي.
-  const onlyNoCourier    = distinctLabels.length === 1 && distinctLabels[0] === NO_COURIER_LABEL;
-  const isCleanSuggestion = !courierPickerForced && distinctLabels.length === 1 && !onlyNoCourier;
-  const isAlert = !courierPickerForced && (distinctLabels.length > 1 || onlyNoCourier);
-  step.classList.toggle('wiz-alert', isAlert);
-
-  if (isAlert) {
-    const alertKey = distinctLabels.slice().sort().join('|');
+  const alertKey = labels.slice().sort().join('|');
+  if (!courierPickerForced && (labels.length > 1 || (labels.length === 1 && labels[0] === NO_COURIER_LABEL))) {
     if (alertKey !== lastCourierAlertKey) { playBeep('warn'); lastCourierAlertKey = alertKey; }
-  } else if (!courierPickerForced) {
-    lastCourierAlertKey = '';
-  }
+  } else if (!courierPickerForced) lastCourierAlertKey = '';
 
-  if (courierPickerForced) {
-    const cancelBtn = courierConfirmed ? `<div style="margin-top:10px"><button class="btn-sm" onclick="cancelCourierPicker()">إلغاء</button></div>` : '';
-    body.innerHTML = `
-      <div class="wiz-note">اختار المندوب من الأوردرات المضافة، أو من كل المناديب تحت:</div>
-      ${groupTableHTML(currentCourier)}
-      ${fullListToggle}
-      ${cancelBtn}`;
-  } else if (isCleanSuggestion) {
-    const only = distinctLabels[0];
-    body.innerHTML = `
-      <div class="wiz-note">✓ الأوردرات المضافة كلها عليها نفس المندوب — أكّد أو غيّر:</div>
-      <div class="courier-suggest-wrap">
-        <span class="courier-confirmed-badge suggest">🛵 ${escHtml(only)}</span>
-        <div class="courier-suggest-btns">
-          <button class="btn-sm go" onclick="chooseCourier('${escQ(only)}')">✅ تأكيد المندوب</button>
-          <button class="btn-sm" onclick="openCourierPicker()">🔄 تغيير المندوب</button>
-        </div>
-      </div>`;
-  } else if (onlyNoCourier) {
-    body.innerHTML = `
-      <div class="wiz-alert-banner"><span class="ai">⚠️</span><span>كل الأوردرات المضافة بدون مندوب مسجَّل — "بدون مندوب" مينفعش يتختار كمندوب نهائي، اختر مندوب حقيقي:</span></div>
-      ${groupTableHTML(currentCourier)}
-      ${fullListToggle}`;
-  } else if (isAlert) {
-    body.innerHTML = `
-      <div class="wiz-alert-banner"><span class="ai">⚠️</span><span>فيه أكتر من مندوب مسجَّل على الأوردرات المضافة — اختر مين اللي هيكمل بيهم:</span></div>
-      ${groupTableHTML(currentCourier)}
-      ${fullListToggle}`;
-  }
+  const nameOf = id => '#' + String(orderInfo[id]?.name || id).replace(/^#/, '');
+  const tiles = labels.map(label => {
+    const ids  = grouped[label];
+    const list = ids.slice(0, 3).map(nameOf).join(' ') + (ids.length > 3 ? ` +${ids.length - 3}` : '');
+    if (label === NO_COURIER_LABEL) {
+      return `<div class="osu-tile none" aria-disabled="true"><span class="av">?</span><span><span class="nm">${escHtml(label)}</span><span class="sub">${escHtml(list)}</span></span><span class="tg">غير متاح</span></div>`;
+    }
+    return `<button class="osu-tile" onclick="chooseCourier('${escJsAttr(label)}')">${cAvatar(label, 44)}<span><span class="nm">${escHtml(label)}</span><span class="sub">${ids.length.toLocaleString('en-US')} ${ordWord(ids.length)} · ${escHtml(list)}</span></span>${registered.length === 1 ? '<span class="tg">مقترح</span>' : ''}</button>`;
+  }).join('');
 
+  // «اختيار مندوب آخر» — دايمًا بثيم أحمر، والنص على حسب الحالة
+  const moreText = step3ListOpen ? 'إخفاء باقي المناديب'
+    : registered.length > 1 ? 'اختر مندوب واحد فقط'
+    : registered.length === 1 ? 'اختيار مندوب آخر'
+    : 'اختر المندوب';
+  const more = `<button class="osu-more" onclick="toggleStep3FullList()"><span class="plus">${step3ListOpen ? '–' : '+'}</span>${moreText}</button>`;
+
+  const cancel = courierConfirmed ? `<div><button class="osu-pill" onclick="cancelCourierPicker()">إلغاء</button></div>` : '';
+  body.innerHTML = `<div class="osu-cbody" style="padding:0">
+      <div class="osu-tiles">${tiles}${more}</div>
+      ${step3ListOpen ? '<div class="osu-sec">كل المناديب</div><div class="osu-grid" id="step3FullList"><div class="courier-hint">⏳ جاري التحميل...</div></div>' : ''}
+      ${cancel}
+    </div>`;
+  ensureCourierPhotos(registered);
+  if (step3ListOpen) fillStep3List();
   updateActionState();
 }
 
@@ -1915,22 +2086,23 @@ function openCourierPicker() {
 }
 function cancelCourierPicker() {
   courierPickerForced = false;
+  step3ListOpen = false;
   renderCourierStep();
 }
 
-async function toggleStep3FullList() {
-  const wrap = document.getElementById('step3FullListWrap');
-  if (!wrap) return;
-  const opening = wrap.style.display === 'none';
-  wrap.style.display = opening ? 'block' : 'none';
-  if (!opening) return;
-  const grid = document.getElementById('step3FullList');
-  grid.innerHTML = '<div class="courier-hint">⏳ جاري التحميل...</div>';
+function toggleStep3FullList() {
+  step3ListOpen = !step3ListOpen;
+  renderCourierStep();
+}
+async function fillStep3List() {
   const list = await ensureCourierList();
+  const grid = document.getElementById('step3FullList');
+  if (!grid) return;
   if (!list.length) { grid.innerHTML = '<div class="courier-hint err">⚠️ لا توجد قائمة مناديب معرّفة</div>'; return; }
   grid.innerHTML = list.map(c =>
-    `<button class="courier-btn ${c===currentCourier?'active':''}" onclick="chooseCourier('${escJsAttr(c)}')">${escHtml(c)}</button>`
+    `<button class="osu-tile sm ${c === currentCourier ? 'on' : ''}" onclick="chooseCourier('${escJsAttr(c)}')">${cAvatar(c, 34)}<span class="nm">${escHtml(c)}</span></button>`
   ).join('');
+  ensureCourierPhotos(list);
 }
 
 // ─── §TOOL-JS::chooseCourier (بند 3/4/5 — نقطة دخول واحدة لكل اختيار مجموعة) ───
@@ -1956,6 +2128,7 @@ function chooseCourier(courier) {
     currentCourier = courier;
     courierConfirmed = true;
     courierPickerForced = false;
+    step3ListOpen = false;
     courierConfirmedOrderSnapshot = snapshotOrders();
     renderCourierStep();
     renderOrders();
@@ -1989,29 +2162,36 @@ function chooseCourier(courier) {
   showConfirm(html, apply, { okText: 'تأكيد التغيير', html: true });
 }
 
-// ─── §TOOL-JS::updateActionState ───
+// ─── §TOOL-JS::updateActionState (v2.14.0) ───
 function statusColorClass(label) { return TARGET_LABELS[label]?.color || ''; }
+function ordWord(n) { return n === 1 ? 'أوردر' : n === 2 ? 'أوردرين' : (n >= 3 && n <= 10) ? 'أوردرات' : 'أوردر'; }
 
 function updateActionState() {
   const cfg = TARGET_LABELS[currentTargetLabel];
-  // v4.1.0 — سبب الإلغاء/الإرجاع إلزامي بس للأوردرات اللي هتتحل فعليًا لـ S1
-  // (orderNeedsReason يرجع false تلقائيًا للحالات التانية ولأوردرات S2)
-  // v4.3.0 — والسبب المسجّل أصلاً على الأوردر بيعدّي الشرط (orderReasonMissing)
+  const n = orders.length;
+  // v4.1.0/v4.3.0 — سبب الإلغاء/الإرجاع إلزامي بس للأوردرات اللي هتتحل S1 (والمسجّل مسبقًا بيعدّي)
   const allReasonsSet = !orders.some(id => orderReasonMissing(id));
-  const ok  = !!cfg && orders.length > 0 && (!cfg.needsCourier || (courierConfirmed && !!currentCourier)) && allReasonsSet && !isUpdating;
+  // v2.14.0 — الزرار **مقفول** طول ما فيه أوردر لسه بيتفحص، أو غير مطابق، أو مدخل مرفوض في الصندوق الأحمر
+  const pending = orders.some(id => { const i = orderInfo[id]; return !i || (i.s1 === undefined && !i.unknown); });
+  const blocked = orders.some(orderIsBlocked);
+  const ok = !!cfg && n > 0 && (!cfg.needsCourier || (courierConfirmed && !!currentCourier)) && allReasonsSet && !pending && !blocked && !entryFails.length && !isUpdating;
 
-  document.getElementById('updateBtn').disabled = !ok;
-  document.getElementById('updateBtn').className = cfg ? `btn-update ${cfg.color}` : 'btn-update';
-  document.getElementById('sumTargetVal').textContent = cfg ? `${cfg.icon} ${currentTargetLabel}` : '—';
-  document.getElementById('sumCourierBox').style.display = cfg?.needsCourier ? 'flex' : 'none';
-  document.getElementById('sumCourierVal').textContent = currentCourier ? `🛵 ${currentCourier}` : '—';
-  document.getElementById('sumCount').textContent   = orders.length.toLocaleString('en-US');
-  document.getElementById('ordersCount').textContent = orders.length.toLocaleString('en-US');
-  document.getElementById('sumGrid').classList.toggle('cols-2', !(cfg?.needsCourier));
+  const btn = document.getElementById('updateBtn');
+  btn.disabled = !ok;
+  btn.className = cfg ? `btn-update ${cfg.color}` : 'btn-update';
+  if (!isUpdating) btn.innerHTML = n ? `تحديث <span class="n">${n.toLocaleString('en-US')}</span> ${ordWord(n)}` : 'تحديث الأوردرات';
+
+  document.getElementById('sumTargetVal').innerHTML = cfg ? `<span class="st-chip">${cfg.icon} ${escHtml(currentTargetLabel)}</span>` : '<span class="dash">—</span>';
+  document.getElementById('sumCourierVal').innerHTML = (cfg?.needsCourier && currentCourier)
+    ? `${cAvatar(currentCourier, 40)}<span>${escHtml(currentCourier)}</span>` : '<span class="dash">—</span>';
+  if (cfg?.needsCourier && currentCourier) ensureCourierPhotos([currentCourier]);
+  const cnt = document.getElementById('sumCount');
+  cnt.textContent = n.toLocaleString('en-US');
+  cnt.classList.toggle('zero', !n);
 
   // بند 7 — S1/S2 sub-breakdown جوه مربع عدد الأوردرات
   const sub = document.getElementById('sumCountSub');
-  if (cfg && cfg.hasS2 && orders.length) {
+  if (cfg && cfg.hasS2 && n) {
     let s1n = 0, s2n = 0;
     orders.forEach(id => {
       const info = orderInfo[id] || {};
@@ -2025,90 +2205,132 @@ function updateActionState() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// §SCAN — scanner gun input
+// §SCAN — مربع الإدخال الموحّد (unified-entry-box): Enter أو «إضافة» فقط — مفيش مؤقّت إضافة تلقائية
 // ══════════════════════════════════════════════════════════════
-const scanInput = document.getElementById('scanInput');
-let scanTimer = null, lastScanKey = 0;
+const scanInput = document.getElementById('entryInput');
+const ICO_SCAN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg>';
+const ICO_KBD  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg>';
+const entryPending = new Set();   // رقم أوردر بيتحلّ دلوقتي — يمنع نفس الرقم مرتين قبل ما الرد يوصل
 
 function focusScan() {
   if (!document.getElementById('panelMain').classList.contains('active')) return;
-  // ⛔ شرط `#loginOverlay` **اتشال** — العنصر ده جزء من شاشة الدخول اللي
-  //    اتشالت من الصفحة دي، وقراءته كانت بترجّع `null` و`.classList`
-  //    بترمي، فتقطع كل دالة بتنادي `focusScan()` — وأخطرها
-  //    `selectTargetLabel()` اللي كانت بتقع **قبل سطر واحد** من
-  //    `ensureReasonValues()`، فقوايم الأسباب ما بتتحمّلش أبدًا.
-  //    بوابة الدخول بقت `requireSession()` في `shared/core.js`،
-  //    وهي بتحوّل الصفحة قبل أي سطر هنا.
-  scanInput.focus();
+  // ⛔ شرط `#loginOverlay` اتشال — شاشة الدخول مابقتش في الصفحة دي (`requireSession()` في `shared/core.js`).
+  if (scanInput && !scanInput.disabled && currentTargetLabel) scanInput.focus();
 }
 
-scanInput.addEventListener('input', () => {
-  clearTimeout(scanTimer);
-  const now = Date.now(), gap = now - lastScanKey;
-  lastScanKey = now;
-  scanTimer = setTimeout(handleScan, gap < 80 ? 150 : 400);
-});
+function entryDigits() { return latinDigits(scanInput.value).replace(/[#\s‎‏]/g, ''); }
 
-scanInput.addEventListener('keypress', e => {
-  if (e.key === 'Enter') { e.preventDefault(); clearTimeout(scanTimer); handleScan(); }
-});
-
-// Read AND clear inside handleScan — never in the listener (breaks manual typing)
-function handleScan() {
-  const val = scanInput.value.trim();
+// الـ chip بيتبع طول المدخل (١–٧ أوردر · ١٣–١٥ فاتورة) ويفضل عليه
+function syncEntry() {
+  const raw = scanInput.value, conv = latinDigits(raw);
+  if (conv !== raw) scanInput.value = conv;          // الأرقام العربي ← إنجليزي لحظيًا
+  const d = entryDigits();
+  let auto = false;
+  if (d.length && /^\d+$/.test(d)) {
+    const nm = d.length >= 13 && d.length <= 15 ? 'invoice' : d.length <= 7 ? 'order' : null;
+    if (nm && nm !== entryMode) { entryMode = nm; auto = true; }
+  }
+  document.getElementById('entryBar').dataset.mode = entryMode;
+  document.getElementById('chipOrder').classList.toggle('is-on', entryMode === 'order');
+  document.getElementById('chipInvoice').classList.toggle('is-on', entryMode === 'invoice');
+  const ab = document.getElementById('entryAuto');
+  if (auto) { ab.dataset.keep = '1'; }
+  if (!d.length) ab.dataset.keep = '';
+  ab.hidden = !(ab.dataset.keep === '1' && d.length);
+  if (!ab.hidden) document.getElementById(entryMode === 'order' ? 'chipOrder' : 'chipInvoice').appendChild(ab);
+  document.getElementById('entryHint').innerHTML = (entryMode === 'invoice' || d.length >= 8) ? ICO_SCAN + 'سكانر' : ICO_KBD + 'كتابة الرقم';
+  document.getElementById('entryBtn').disabled = isUpdating || !raw.trim();
+}
+function setEntryMode(m) {
+  if (isUpdating) return;
+  entryMode = m;
   scanInput.value = '';
-  if (isUpdating) { showToast('التحديث شغّال — استنى لحد ما يخلص', 'warning'); playBeep('warn'); return; }
+  document.getElementById('entryAuto').dataset.keep = '';
+  syncEntry();
   scanInput.focus();
-  if (!val || val.length < 3) return;
-
-  if (!currentTargetLabel) { showToast('اختر الحالة المستهدفة أولاً', 'warning'); playBeep('warn'); return; }
-  if (orders.includes(val)) { showToast(`⚠️ موجود بالفعل: ${val}`, 'warning'); playBeep('warn'); return; }
-
-  addOrders([val]);
-  showToast('✓ تمت الإضافة', 'success');
-  playBeep('scan');
-  if (navigator.vibrate) navigator.vibrate(80);
 }
 
-// ─── §TOOL-JS::addManualOrder ───
-async function addManualOrder() {
-  const input = document.getElementById('manualInput');
-  const btn   = document.getElementById('manualBtn');
-  const raw   = input.value.trim().replace(/^#/, '');
-  if (isUpdating) { showToast('التحديث شغّال — استنى لحد ما يخلص', 'warning'); return; }
-  if (!raw) { input.focus(); return; }
-  if (!currentTargetLabel) { showToast('اختر الحالة المستهدفة أولاً', 'warning'); playBeep('warn'); return; }
+scanInput.addEventListener('input', syncEntry);
+scanInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); submitEntry(); }
+});
 
-  btn.disabled = true; input.disabled = true; btn.textContent = '⏳';
+function renderEntryFails() {
+  const box = document.getElementById('entryFails');
+  if (!entryFails.length) { box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  const rows = entryFails.map((f, i) => `<div class="ef-row"><span>⚠️</span><bdi>${escHtml(f.l)}</bdi><span>— ${escHtml(f.r)}</span><button class="x" onclick="removeEntryFail(${i})" aria-label="حذف">✕</button></div>`).join('');
+  box.innerHTML = (entryFails.length > 1
+    ? `<div class="ef-head"><span>${entryFails.length.toLocaleString('en-US')} حاجة ما اتضافتش للجدول</span><button class="btn-sm danger" onclick="clearEntryFails()">🗑 شيل الكل</button></div>` : '') + rows;
+}
+function removeEntryFail(i) { entryFails.splice(i, 1); renderEntryFails(); updateActionState(); }
+function clearEntryFails() { entryFails = []; renderEntryFails(); updateActionState(); }
+function entryFail(label, reason) {
+  if (!entryFails.some(f => f.l === label && f.r === reason)) entryFails.push({ l: label, r: reason });
+  renderEntryFails();
+  updateActionState();
+  showToast(`${label} — ${reason}`, 'error', 6500);
+  playBeep('warn');
+}
+function entryDup(id, name) {
+  showToast(`⚠️ موجود بالفعل: ${name || id}`, 'warning', 3200);
+  playBeep('warn');
+  ordersCollapsed = false; renderOrdersCollapseUI();
+  renderOrders(id);
+}
+
+async function submitEntry() {
+  if (isUpdating) { showToast('التحديث شغّال — استنى لحد ما يخلص', 'warning'); playBeep('warn'); return; }
+  const raw = entryDigits();
+  if (!scanInput.value.trim()) { scanInput.focus(); return; }
+  if (!currentTargetLabel) { showToast('اختر الحالة المستهدفة أولاً', 'warning'); playBeep('warn'); return; }
+  scanInput.value = ''; syncEntry(); scanInput.focus();     // القراءة والمسح هنا مش في الـ listener
+
+  if (!/^\d+$/.test(raw)) { entryFail(raw || '—', 'مش رقم أوردر'); return; }
+
+  // باركود فاتورة شوبيفاي = Order ID (١٣–١٥ رقم) — بيتضاف مباشرة وhydrate يفحصه
+  if (raw.length >= 13 && raw.length <= 15) {
+    if (orders.includes(raw)) { entryDup(raw, raw); return; }
+    addOrders([raw]);
+    showToast('✓ تمت الإضافة', 'success', 2200);
+    playBeep('scan');
+    if (navigator.vibrate) navigator.vibrate(80);
+    return;
+  }
+  if (raw.length > 15) { entryFail(raw, `${raw.length} خانة — غالبًا باركودين ملزوقين، اسكنهم واحد واحد`); return; }
+  if (raw.length > 7)  { entryFail(raw, `${raw.length} خانة — مش طول معروف، غالبًا اتقرا ناقص`); return; }
+
+  const num = raw.replace(/^0+/, '');
+  if (!num) { entryFail(raw, 'مش رقم أوردر'); return; }
+  if (entryPending.has(num)) return;
+  entryPending.add(num);
   try {
-    const data = await apiPost('resolve_by_name', { orderName: '#' + raw });
-    if (data.notFound) { showToast(`⚠️ #${raw} غير موجود`, 'warning'); playBeep('warn'); }
-    else if (orders.includes(data.orderId)) { showToast(`⚠️ موجود بالفعل: ${data.orderName}`, 'warning'); playBeep('warn'); }
-    else {
-      orderInfo[data.orderId] = { ...(orderInfo[data.orderId] || {}), name: data.orderName };
-      addOrders([data.orderId]);
-      showToast(`✓ تمت إضافة ${data.orderName}`, 'success');
-      playBeep('scan');
+    const data = await apiPost('resolve_by_name', { orderName: '#' + num });
+    if (data.notFound) { entryFail('#' + num, 'مفيش أوردر بالرقم ده على شوبيفاي'); return; }
+    if (data.orderName && String(data.orderName).replace(/^#/, '') !== num) {
+      entryFail('#' + num, `شوبيفاي رجّع ${data.orderName} — الرقم ناقص`); return;
     }
+    if (orders.includes(data.orderId)) { entryDup(data.orderId, data.orderName); return; }   // مفيش await بين الفحص والإضافة
+    orderInfo[data.orderId] = { ...(orderInfo[data.orderId] || {}), name: data.orderName };
+    addOrders([data.orderId]);
+    showToast(`✓ تمت إضافة ${data.orderName}`, 'success', 2200);
+    playBeep('scan');
   } catch (e) {
     showToast(e.message || 'خطأ في الاتصال', 'error');
     playBeep('error');
+  } finally {
+    entryPending.delete(num);
   }
-  input.value = ''; input.disabled = false;
-  btn.disabled = false; btn.textContent = 'إضافة';
-  focusScan();
 }
-
-document.getElementById('manualInput').addEventListener('keypress', e => {
-  if (e.key === 'Enter') { e.preventDefault(); addManualOrder(); }
-});
 
 // ─── §TOOL-JS::addOrders ───
 function addOrders(ids) {
   const fresh = ids.filter(id => !orders.includes(id));
   if (!fresh.length) return;
-  orders = fresh.concat(orders);
-  renderOrders(true);
+  orders = orders.concat(fresh);        // v2.14.0 — بترتيب الإدخال: أول أوردر = رقم 1
+  if (!ordersManualOverride) { ordersCollapsed = false; renderOrdersCollapseUI(); }   // الجدول مفتوح تحت الزرار ما لم الموظف طواه بإيده
+  renderOrders(fresh[fresh.length - 1]);
+  renderCourierStep();
   updateActionState();
   hydrateOrders(fresh);
 }
@@ -2229,10 +2451,10 @@ function removeUnknownOrders() {
 // (حالة جديدة/مسح الكل/تسجيل خروج/تحديث ناجح) — عشان كده حذف أوردر واحد من
 // الجدول مبيقفلوش تلقائي على المستخدم بعد كده.
 function applyAutoCollapseRule() {
+  // v2.14.0 — الجدول بقى تحت زرار التحديث ومفتوح طول ما فيه أوردرات (كان مقفول إلا عند الخطأ)،
+  // واختيار الموظف اليدوي (طيّ) هو السيد لحد ما حدث يصفّره (حالة جديدة · مسح الكل · تحديث ناجح).
   if (ordersManualOverride) { renderOrdersCollapseUI(); return; }
-  const hasBlocked = orders.some(id => orderIsBlocked(id));
-  const hasMissingReason = orders.some(id => orderReasonMissing(id));   // v4.3.0
-  ordersCollapsed = !hasBlocked && !hasMissingReason;
+  ordersCollapsed = !orders.length;
   renderOrdersCollapseUI();
 }
 function toggleOrdersTable() {
@@ -2245,78 +2467,207 @@ function renderOrdersCollapseUI() {
   document.getElementById('ordersToggleArrow').classList.toggle('open', !ordersCollapsed);
 }
 
-// ─── §TOOL-JS::renderOrders ───
-function renderOrders(flashFirst = false) {
+// ─── §TOOL-JS::renderOrders (v2.14.0) ───
+// بترتيب الإدخال (أول أوردر = رقم 1) · عمود «المراجعة» بنافذة سبب · فلاتر رأس العمود (المسار · المندوب · المراجعة)
+// · ترتيب بالضغط (#، رقم الأوردر) · عناوين ثابتة.
+function allowedText(spec) {
+  const r = TRANSITION_RULES[spec];
+  if (!r) return 'مفيش قاعدة انتقال للحالة دي';
+  let t = `S1 لازم تكون: ${r.s1From.join(' · ')}`;
+  if (r.s2Blank) t += ' و S2 فاضية';
+  else if (r.s2In) t += ` و S2: ${r.s2In.map(v => v || 'فاضية').join(' · ')}`;
+  return t;
+}
+// كل ما يخلّي الصف محتاج مراجعة: bad = بيمنع التحديث ومحتاج حذف · warn = محتاج إدخال في نفس الصف
+function orderFlags(id) {
+  const info = orderInfo[id] || {};
+  const f = [];
+  if (info.unknown) {
+    f.push({ k: 'bad', t: 'كود مش أوردر معروف', d: 'مفيش أوردر بالكود ده على شوبيفاي', a: 'غالبًا لاصقة غلط (باركود منتج · AWB بوسطة · لاصقة قديمة). احذفه من القايمة.' });
+  } else if (info.isCancelled) {
+    f.push({ k: 'bad', t: 'ملغي على شوبيفاي', d: 'cancelledAt / S1 = Cancelled', a: 'الأوردر الملغي مينفعش يتحدّث. احذفه من القايمة.' });
+  } else if (info.s1 !== undefined && currentTargetLabel) {
+    const spec = clientResolveSpecifier(currentTargetLabel, info.s1, info.s2);
+    if (!spec || !isTransitionValid(spec, info.s1, info.s2)) {
+      f.push({ k: 'bad', t: 'انتقال غير مسموح', d: `S1: ${info.s1 || '—'}${info.s2 ? ` · S2: ${info.s2}` : ''}  ←  ${currentTargetLabel}`, a: `${allowedText(spec)}. احذف الأوردر من القايمة أو غيّر الحالة المستهدفة.` });
+    }
+  }
+  if (orderReasonMissing(id)) {
+    f.push({ k: 'warn', t: 'سبب الإلغاء/الإرجاع ناقص', d: `الحالة المستهدفة: ${currentTargetLabel}`, a: 'اختار السبب من القايمة في نفس الصف.' });
+  }
+  return f;
+}
+const reviewKey = fl => fl.some(x => x.k === 'bad') ? 'غير مسموح' : fl.length ? 'تنبيه' : 'سليم';
+
+const FUNNEL_O = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>';
+const ORD_FILTER_TITLE = { path: 'المسار', courier: 'المندوب', review: 'المراجعة' };
+
+function ordFilterOptions(k) {
+  if (k === 'path') return ['S1', 'S2'];
+  if (k === 'courier') return [...new Set(orders.map(id => orderInfo[id]?.courier || NO_COURIER_LABEL))];
+  return ['غير مسموح', 'تنبيه', 'سليم'];
+}
+function ordRowPath(id) {
+  const info = orderInfo[id] || {};
+  const spec = currentTargetLabel ? clientResolveSpecifier(currentTargetLabel, info.s1, info.s2) : null;
+  return spec ? (spec.endsWith('_S2') ? 'S2' : 'S1') : '';
+}
+function ordAnyFilter() { return ordFilter.path.size || ordFilter.courier.size || ordFilter.review.size; }
+function clearOrderFilters() { Object.values(ordFilter).forEach(s => s.clear()); closeOrdPop(); renderOrders(); }
+
+function renderOrdChips() {
+  const box = document.getElementById('ordChips');
+  const rows = Object.keys(ordFilter).filter(k => ordFilter[k].size).map(k =>
+    `<div class="chips-row"><span class="chips-label">${ORD_FILTER_TITLE[k]}:</span>${[...ordFilter[k]].map(v => `<span class="fchip">${escHtml(v)}<button onclick="unfilterOrd('${k}','${escJsAttr(v)}')" aria-label="شيل">✕</button></span>`).join('')}</div>`);
+  box.hidden = !rows.length;
+  box.innerHTML = rows.join('');
+  document.getElementById('ordClrFilters').disabled = !rows.length;
+}
+function unfilterOrd(k, v) { ordFilter[k].delete(v); renderOrders(); }
+function sortOrd(k) {
+  const cur = ordSort && ordSort.k === k ? ordSort.d : 0;
+  ordSort = cur === 0 ? { k, d: 1 } : cur === 1 ? { k, d: -1 } : null;
+  renderOrders();
+}
+
+let ordPop = null;   // { k, btn }
+function closeOrdPop() { const p = document.getElementById('ordPop'); if (p) p.remove(); ordPop = null; }
+function openOrdPop(btn, k) {
+  const was = ordPop && ordPop.k === k;
+  closeOrdPop();
+  if (was) return;
+  const d = document.createElement('div');
+  d.className = 'opop'; d.id = 'ordPop';
+  const r = btn.getBoundingClientRect();
+  d.style.top = (r.bottom + 6) + 'px';
+  d.style.left = Math.max(8, Math.min(r.left - 60, window.innerWidth - 220)) + 'px';
+  const set = ordFilter[k];
+  const paint = () => {
+    d.innerHTML = `<button class="clear-btn" type="button">✕ مسح الاختيار</button>` + ordFilterOptions(k).map(o =>
+      `<label class="it"><input type="checkbox" ${set.has(o) ? 'checked' : ''} data-o="${escAttr(o)}">${escHtml(o)}</label>`).join('');
+  };
+  paint();
+  d.addEventListener('change', e => {
+    const o = e.target.dataset.o; if (o === undefined) return;
+    e.target.checked ? set.add(o) : set.delete(o);
+    renderOrders();                       // القايمة بتفضل مفتوحة — بنتحرك عليها هنا بعد إعادة رسم الجدول
+  });
+  d.addEventListener('click', e => { if (e.target.classList.contains('clear-btn')) { set.clear(); renderOrders(); } });
+  document.body.appendChild(d);
+  ordPop = { k, btn };
+}
+// حارس `document.contains` إلزامي: إعادة بناء الجدول بتشيل العنصر المضغوط قبل ما الحدث يوصل (Standards #32)
+document.addEventListener('click', e => {
+  if (!document.contains(e.target)) return;
+  const p = document.getElementById('ordPop');
+  if (p && !p.contains(e.target) && !e.target.closest('.ofb')) closeOrdPop();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeOrdPop(); closeOrderFlags(); } });
+
+// نافذة سبب المراجعة
+function openOrderFlags(id) {
+  const fl = orderFlags(id);
+  if (!fl.length) return;
+  const info = orderInfo[id] || {};
+  document.getElementById('ordFlagModal').innerHTML = `
+    <div class="osu-m-hdr"><button class="modal-close-x" onclick="closeOrderFlags()" aria-label="إغلاق">✕</button><span class="sp"></span><span>${escHtml(info.name || id)} — محتاج مراجعة ⚠️</span></div>
+    <div class="osu-m-body">${fl.map(x => `<div class="fl-card ${x.k === 'bad' ? 'bad' : ''}"><div class="t">${escHtml(x.t)}</div><div class="d">${escHtml(x.d)}</div><div class="a"><b>المطلوب:</b> ${escHtml(x.a)}</div></div>`).join('')}</div>
+    <div class="osu-m-ftr"><button class="btn-sm" onclick="closeOrderFlags()">إغلاق</button>${isUpdating ? '' : `<button class="btn-sm danger" onclick="removeOrder('${escJsAttr(id)}');closeOrderFlags()">🗑 حذف الأوردر من القايمة</button>`}</div>`;
+  document.getElementById('ordFlagOvl').classList.add('open');
+}
+function closeOrderFlags() { document.getElementById('ordFlagOvl').classList.remove('open'); }
+
+function renderOrders(flashId) {
   const wrap = document.getElementById('ordersWrap');
-  document.getElementById('ordersCount').textContent = orders.length.toLocaleString('en-US');
 
   if (!orders.length) {
+    document.getElementById('ordersCount').textContent = '0';
     wrap.innerHTML = '<div class="empty-box"><span class="ei">📋</span>لم تتم إضافة أي أوردرات بعد</div>';
+    renderOrdChips();
     return;
   }
 
-  const showReason     = needsReasonFor(currentTargetLabel);        // v4.0.0
-  const reasonChoices  = showReason ? currentReasonChoices() : [];
+  // فلتر على قيمة اختفت من الأوردرات (اتحذفت/اتحدّثت) = جدول فاضي بلا سبب، فبنشيلها
+  for (const k of Object.keys(ordFilter)) {
+    const valid = new Set(ordFilterOptions(k));
+    [...ordFilter[k]].forEach(v => { if (!valid.has(v)) ordFilter[k].delete(v); });
+  }
 
-  const rows = orders.map((id, i) => {
+  const showReason    = needsReasonFor(currentTargetLabel);
+  const reasonChoices = showReason ? currentReasonChoices() : [];
+
+  let list = orders.map((id, i) => ({ id, i, fl: orderFlags(id) }));
+  list = list.filter(({ id, fl }) => {
+    if (ordFilter.path.size && !ordFilter.path.has(ordRowPath(id))) return false;
+    if (ordFilter.courier.size && !ordFilter.courier.has(orderInfo[id]?.courier || NO_COURIER_LABEL)) return false;
+    if (ordFilter.review.size && !ordFilter.review.has(reviewKey(fl))) return false;
+    return true;
+  });
+  if (ordSort) {
+    const num = id => parseInt(String(orderInfo[id]?.name || '').replace(/\D/g, ''), 10) || 0;
+    list = [...list].sort((a, b) => ordSort.d * (ordSort.k === 'n' ? num(a.id) - num(b.id) : a.i - b.i));
+  }
+  document.getElementById('ordersCount').textContent = list.length.toLocaleString('en-US');
+  ensureCourierPhotos(orders.map(id => orderInfo[id]?.courier).filter(Boolean));
+
+  const rows = list.map(({ id, i, fl }) => {
     const info  = orderInfo[id] || {};
-    const known = info.s1 !== undefined;
     const spec  = currentTargetLabel ? clientResolveSpecifier(currentTargetLabel, info.s1, info.s2) : null;
-    let cls = '', badge = '';
-
-    if (info.unknown) {
-      // v4.5.0 — الكود ده مش أوردر معروف على شوبيفاي (لاصقة غلط غالبًا)
-      cls = 'row-unknown';
-      badge = '<span class="mini-badge bad">❓ كود مش أوردر معروف على Shopify</span>';
-    } else if (info.isCancelled) {
-      cls = 'row-cancelled';
-      badge = '<span class="mini-badge bad">❌ ملغي على Shopify</span>';
-    } else if (known && currentTargetLabel && (!spec || !isTransitionValid(spec, info.s1, info.s2))) {
-      cls = 'row-bad';
-      badge = '<span class="mini-badge bad">⚠️ انتقال غير مسموح</span>';
-    } else if (flashFirst && i === 0) {
-      cls = 'row-new';
-    }
+    let cls = '';
+    if (info.unknown) cls = 'row-unknown';
+    else if (info.isCancelled) cls = 'row-cancelled';
+    else if (fl.some(x => x.k === 'bad')) cls = 'row-bad';
+    else if (flashId && flashId === id) cls = 'row-new';
 
     const pathTag = spec
       ? `<span class="pill ${spec.endsWith('_S2') ? 'p-amber' : 'p-accent'}">${spec.endsWith('_S2') ? 'S2' : 'S1'}</span>`
       : '<span class="pill-empty">—</span>';
-    const courierBadge = info.courier ? `<span class="pill p-purple">🛵 ${escHtml(info.courier)}</span>` : '<span class="pill-empty">—</span>';
-    // v4.1.0 — العمود بيظهر لكل صفوف الجدول لما الحالة المستهدفة Cancelled/Returned
-    // (showReason)، بس السبب إلزامي/بيتعرض بس للصفوف اللي فعليًا هتتحل S1
-    // (rowNeedsReason — نفس spec المحسوب فوق، مفيش نداء تاني). صف S2 بيوري
-    // خانة "مش مطلوب" بدل الـ <select>.
+    const courierBadge = info.courier ? `<span class="cc">${cAvatar(info.courier, 22)}${escHtml(info.courier)}</span>` : '<span class="pill-empty">—</span>';
     const rowNeedsReason = spec === 'Cancelled' || spec === 'Returned';
     const reasonCell = showReason
       ? (rowNeedsReason
           ? `<td class="c-reason" onclick="event.stopPropagation()">${reasonSelectHTML(id, reasonChoices)}</td>`
           : `<td class="c-reason reason-na">— (S2، غير مطلوب) —</td>`)
       : '';
+    const first = fl.find(x => x.k === 'bad') || fl[0];
+    const review = first
+      ? `<button class="flag-btn ${first.k === 'bad' ? 'bad' : ''}" onclick="openOrderFlags('${escJsAttr(id)}')">⚠ ${escHtml(first.t)}${fl.length > 1 ? ` +${fl.length - 1}` : ''}</button>`
+      : '<span class="pill-empty">—</span>';
 
-    // v4.5.0 — معرّف للصف عشان setOrderReason تحدّث **الصف بتاعه بس** بدل ما
-    // تعيد بناء الجدول كله (كانت بتضيّع تركيز الـ select وتقفل أي قايمة مفتوحة).
     return `<tr class="${cls}" id="ordrow-${escAttr(id)}">
-      <td class="c-del"><button class="del-x" onclick="removeOrder('${id}')">✕</button></td>
+      <td class="c-del"><button class="del-x" onclick="removeOrder('${escJsAttr(id)}')" ${isUpdating ? 'disabled' : ''}>✕</button></td>
       <td>${i + 1}</td>
-      <td class="c-name">${orderLink(info.name, id)}${badge}</td>
+      <td class="c-name">${orderLink(info.name, id)}</td>
       <td>${statusPill(info.s1)}</td>
       <td>${statusPill(info.s2)}</td>
       <td>${pathTag}</td>
       <td>${courierBadge}</td>
       ${reasonCell}
+      <td>${review}</td>
     </tr>`;
   }).join('');
 
-  wrap.innerHTML = `<table class="otbl">
-    <thead><tr>
-      <th style="width:36px"></th><th style="width:34px">#</th>
-      <th>رقم الأوردر</th>
-      <th>S1 الحالية</th><th>S2 الحالية</th>
-      <th>المسار</th><th>المندوب</th>
-      ${showReason ? '<th>سبب الإلغاء/الإرجاع</th>' : ''}
-    </tr></thead><tbody>${rows}</tbody></table>`;
+  const fb = k => `<button class="ofb ${ordFilter[k].size ? 'on' : ''}" onclick="openOrdPop(this,'${k}')" aria-label="فلتر ${ORD_FILTER_TITLE[k]}">${FUNNEL_O}</button>`;
+  const srt = (k, l) => `<button class="th-sort" onclick="sortOrd('${k}')">${l}${ordSort && ordSort.k === k ? (ordSort.d > 0 ? ' ▲' : ' ▼') : ''}</button>`;
+  const empty = `<tr><td colspan="${showReason ? 9 : 8}" class="empty-box" style="padding:26px">مفيش نتيجة للفلتر</td></tr>`;
 
+  wrap.innerHTML = `<div class="ord-scroll"><table class="otbl">
+    <thead><tr>
+      <th style="width:36px"></th><th style="width:44px">${srt('i', '#')}</th>
+      <th>${srt('n', 'رقم الأوردر')}</th>
+      <th>S1 الحالية</th><th>S2 الحالية</th>
+      <th><span class="th-in">المسار ${fb('path')}</span></th>
+      <th><span class="th-in">المندوب ${fb('courier')}</span></th>
+      ${showReason ? '<th>سبب الإلغاء/الإرجاع</th>' : ''}
+      <th><span class="th-in">المراجعة ${fb('review')}</span></th>
+    </tr></thead><tbody>${rows || empty}</tbody></table></div>`;
+
+  renderOrdChips();
   renderOrdersCollapseUI();
+  if (flashId) {
+    const row = document.getElementById(`ordrow-${flashId}`);
+    if (row && !ordersCollapsed) row.scrollIntoView({ block: 'nearest' });
+  }
 }
 
 // ─── §TOOL-JS::startUpdate ───
@@ -2386,12 +2737,13 @@ function startUpdate() {
 // التقدم بيرجع لورا. الحل: لقطة ثابتة + قفل الإدخال طول التحديث.
 function setUpdateLock(locked) {
   isUpdating = locked;
-  const scan = document.getElementById('scanInput');
-  const man  = document.getElementById('manualInput');
-  const mbtn = document.getElementById('manualBtn');
-  if (scan) { scan.disabled = locked; scan.placeholder = locked ? '⏳ التحديث شغّال — استنى...' : 'امسح الباركود هنا...'; }
-  if (man)  man.disabled  = locked;
-  if (mbtn) mbtn.disabled = locked;
+  const inp = document.getElementById('entryInput');
+  if (inp) inp.disabled = locked;
+  const ebtn = document.getElementById('entryBtn');
+  if (ebtn) ebtn.disabled = locked || !(inp && inp.value.trim());
+  const alt = document.getElementById('altSearchToggleBtn');
+  if (alt) alt.disabled = locked;
+  document.querySelectorAll('#entryBar .entry-chip').forEach(b => b.disabled = locked);
   document.querySelectorAll('#ordersWrap .del-x').forEach(b => b.disabled = locked);
 }
 
@@ -2460,7 +2812,7 @@ async function doStartUpdate() {
   logLoaded = false;
 
   setUpdateLock(false);
-  btn.textContent = '🚀 تحديث الكل';
+  // (نص الزرار بيتعاد من updateActionState بعد التنظيف)
 
   // ── تنظيف القائمة: الأوردرات اللي اتحدّثت فعلاً (ناجح أو تحذير) بتخرج من
   //    القائمة، والفاشلة بس هي اللي بتفضل عشان الموظف يقدر يراجعها/يعيد
@@ -2594,9 +2946,13 @@ function summaryStartFresh() {
   courierPickerForced = false;
   lastCourierAlertKey = '';
   step1Open = true;
+  step3ListOpen = false;
+  entryFails = []; renderEntryFails();
+  Object.values(ordFilter).forEach(x => x.clear()); ordSort = null; closeOrdPop();
 
   renderStep1Body();                                  // بيعيد بناء شبكة اختيار الحالة
-  document.getElementById('wizStep2').classList.add('wiz-locked');
+  applyTheme();
+  setFlow(false);                                     // باقي الخطوات بتختفي لحد اختيار حالة جديدة
   document.getElementById('progWrap').classList.remove('on');
   document.getElementById('progBar').style.width = '0%';
 
@@ -3984,6 +4340,8 @@ document.getElementById('headerMount').innerHTML = ecoHeader({
 
 renderVersionUI();
 renderStep1Body();
+syncEntry();
+renderEntryFails();
 
 // ⚠️ **حارس النسخة بياخد مفاتيح الـ Workers اللي الصفحة بتناديها** —
 //    رسالة «الـ Worker نسخة قديمة» من غير اسم الأداة بتخلّي الموظف

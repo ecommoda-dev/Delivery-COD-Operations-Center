@@ -6,6 +6,8 @@
    ══════════════════════════════════════════════════════════════ */
 
 :root {
+  /* قيم افتراضية محايدة لتوكنز «لون الحالة» (`.osu.c-*` في Order-Status-Updater بيبدّلها) و`--i` ترتيب كشف الخطوات — زي `--age` في core.css */
+  --sc: var(--border-strong); --sc-l: var(--surface-2); --sc-b: var(--border-strong); --i: 0; --ev: var(--sc); --s: 36px;
   --id-upload:#a21caf;
   --id-upload-light:#fdf4ff;
   --id-upload-border:#f0abfc;
