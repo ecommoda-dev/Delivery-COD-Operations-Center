@@ -1415,10 +1415,10 @@ SHIPPED_ABOUT_COLS = '''            <li><b>العنوان</b> — <code>address1
 #    (`In-Return-Orders-…`) — فمفيش نسخة تانية بتفترق (درس R1).
 # ⛔ بلا جرد ولا مربعات «موقع الشحنة» ولا عمود ملحوظات — نفس أسباب «المشحون»
 #    بالحرف (الشرح عند معاملات صفحة المشحون).
-REQ_FN = '''// 🟢 «تاريخ الطلب» (طابور «في طريق الرجوع» بس · in-return-orders-worker 1.1.0) — تاريخ إنشاء
+REQ_FN = '''// 🟢 «تاريخ الطلب» («في طريق الرجوع» من in-return-orders-worker 1.1.0 · و«المشحون» باسم «تاريخ [S2]» من shipped-orders-worker 1.3.0) — تاريخ إنشاء
 //    **آخر** Return request على الأوردر (`returnRequestedAt`). الأوردر ممكن يفتح أكتر من دورة —
 //    الـ Worker هو اللي بيختار أحدث دورة غير ملغية (order-lifecycle Rule 15)، والصفحة بتعرض بس.
-//    ⚠️ `—` معناها «مفيش Return على الأوردر ده» (RTO عادةً) — مش خطأ ولا علامة مراجعة.
+//    ⚠️ `—` معناها «مفيش Return على الأوردر ده» (صف S1 · أو RTO) — مش خطأ ولا علامة مراجعة.
 //    ⚠️ ولو فيه أكتر من دورة بيظهر سطر صغير باسم آخر دورة وعددهم، عشان التاريخ ما يتقريش على إنه
 //       تاريخ الدورة الوحيدة.
 function returnRequestCell(o) {
@@ -1439,21 +1439,44 @@ COURIER_FN = '''function courierCell(o) {
   return `<span class="cou-txt ${g ? esc(g.cls) : ''}">${esc(o.courier)}</span>`;
 }
 '''
-EXPORT_JS_INRETURN = EXPORT_JS.replace('Shipped-Orders', 'In-Return-Orders')
-assert 'Shipped-Orders' not in EXPORT_JS_INRETURN
-# 🟢 التصدير لصفحة «في طريق الرجوع» بس — نفس ترتيب الجدول (v2.10.0):
-# … العنوان · نوع الأوردر · رقم التتبع · مصدر التتبع · تاريخ الأوردر · تاريخ الطلب · تاريخ التغليف · المراجعة
-_tr = "      { header: 'رقم التتبع',     key: 'tracking', width: 16 },\n"
-_src = "      { header: 'مصدر رقم التتبع', key: 'trkSrc',   width: 16 },\n"
-_a = "      { header: 'تاريخ الأوردر',  key: 'created',  width: 20 },\n"
-_p = "      { header: 'تاريخ التغليف',  key: 'packed',   width: 20 },\n"
-_t = "      { header: 'نوع الأوردر',    key: 'type',     width: 16 },\n"
-assert EXPORT_JS_INRETURN.count(_tr + _src + _a + _p + _t) == 1
-EXPORT_JS_INRETURN = EXPORT_JS_INRETURN.replace(_tr + _src + _a + _p + _t,
-    _t + _tr + _src + _a + "      { header: 'تاريخ الطلب',    key: 'reqDate',  width: 20 },\n" + _p)
-_b = "        created:  dt(o.createdAt),\n"
-assert EXPORT_JS_INRETURN.count(_b) == 1
-EXPORT_JS_INRETURN = EXPORT_JS_INRETURN.replace(_b, _b + "        reqDate:  dt(o.returnRequestedAt),\n")
+def _export_with_req(name, req_header):
+    """نسخة التصدير بترتيب الجدول الجديد (v2.10.0): … نوع الأوردر · رقم التتبع · مصدر التتبع · تاريخ الأوردر ·
+    تاريخ الطلب · تاريخ التغليف. نفس الكود للصفحتين بالحرف — الفرق اسم الملف وعنوان عمود الطلب (درس R1)."""
+    js = EXPORT_JS.replace('Shipped-Orders', name)
+    assert name == 'Shipped-Orders' or 'Shipped-Orders' not in js
+    _tr = "      { header: 'رقم التتبع',     key: 'tracking', width: 16 },\n"
+    _src = "      { header: 'مصدر رقم التتبع', key: 'trkSrc',   width: 16 },\n"
+    _a = "      { header: 'تاريخ الأوردر',  key: 'created',  width: 20 },\n"
+    _p = "      { header: 'تاريخ التغليف',  key: 'packed',   width: 20 },\n"
+    _t = "      { header: 'نوع الأوردر',    key: 'type',     width: 16 },\n"
+    assert js.count(_tr + _src + _a + _p + _t) == 1
+    js = js.replace(_tr + _src + _a + _p + _t,
+        _t + _tr + _src + _a + "      { header: '%s',    key: 'reqDate',  width: 20 },\n" % req_header + _p)
+    _b = "        created:  dt(o.createdAt),\n"
+    assert js.count(_b) == 1
+    return js.replace(_b, _b + "        reqDate:  dt(o.returnRequestedAt),\n")
+
+EXPORT_JS_INRETURN = _export_with_req('In-Return-Orders', 'تاريخ [S2]')
+# 🟢 «المشحون» (v2.11.0): نفس الترتيب — وعمود الطلب اسمه «تاريخ [S2]» (بيخصّ صفوف S2 بس)
+EXPORT_JS_SHIPPED = _export_with_req('Shipped-Orders', 'تاريخ [S2]')
+
+SHIPPED_ABOUT_COLS_V2 = SHIPPED_ABOUT_COLS + '''
+            <li><b>نوع الأوردر</b> — «عادي» = الشحنة الأصلية (S1). وصف S2 بييجي من <b>دفتر
+                مبيعات الأوردر</b> (<code>order.agreements</code> — قاعدة 8 في
+                <code>order-lifecycle</code> v1.11.1) على <b>أحدث</b> دورة: <b>«استبدال»</b> أو
+                <b>«استرجاع»</b> (بلون بني-أحمر) حسب <b>النوع النهائي</b> بعد أي تعديل على الأوردر.
+                ⚠️ مش من <code>exchangeLineItems</code> ولا من حالة S2. لو النوع اتغيّر بعد الإنشاء أو
+                الدورة لسه ما اتعالجتش بتظهر <b>علامة مراجعة</b> (مابتتنقلش). ولو الـ Worker ما رجّعش
+                النوع بتتعرض «استبدال/استرجاع» العامة.</li>
+            <li><b>تاريخ [S2]</b> — تاريخ إنشاء <b>آخر</b> Return request على شوبيفاي
+                (<code>Return.createdAt</code> لأحدث دورة غير ملغية). بيخصّ صفوف <b>S2</b> بس، فصف
+                الشحنة الأصلية (S1) فيه <code>—</code> وده <b>مش</b> خطأ. الأوردر اللي اتفتح عليه
+                أكتر من دورة بيظهر تحت تاريخه اسم الدورة وعددهم. ⚠️ محتاج <code>read_returns</code>
+                على الـ Custom App.</li>
+            <li><b>الفلاتر والترتيب</b> — قمع في رأس <b>رقم التتبع</b> (بحث) و<b>تاريخ [S2]</b>
+                (فترة سريعة أو من/إلى بتوقيت القاهرة). الترتيب الافتراضي عند الفتح: <b>تاريخ الأوردر
+                من الأقدم للأحدث</b>، والضغطة التالتة على أي عمود بترجّعه. <b>اسم المندوب</b> بلون
+                مجموعته (بوسطة أحمر · شو روم تركواز · مناديب أزرق).</li>'''
 
 INRETURN_ABOUT_COLS = SHIPPED_ABOUT_COLS.replace('shipped-orders-worker', 'in-return-orders-worker').replace('<b>1.2.0</b>', '<b>1.2.0</b>')
 INRETURN_ABOUT_COLS += '''
@@ -1470,14 +1493,24 @@ INRETURN_ABOUT_COLS += '''
                 الدورة بيغيّر النوع من غير ما يلمس الـ Return. لو النوع اتغيّر بعد الإنشاء أو الدورة
                 لسه ما اتعالجتش بتظهر <b>علامة مراجعة</b> (مابتتنقلش). ولو الـ Worker ما رجّعش النوع
                 بتتعرض «استبدال/استرجاع» العامة.</li>
-            <li><b>الفلاتر والترتيب</b> — قمع في رأس <b>رقم التتبع</b> (بحث) و<b>تاريخ الطلب</b>
-                (فترة سريعة أو من/إلى بتوقيت القاهرة). الترتيب الافتراضي عند الفتح: <b>تاريخ الطلب
-                من الأقدم للأحدث</b> (الأوردر بلا Return في الآخر)، والضغطة التالتة على أي عمود
+            <li><b>الفلاتر والترتيب</b> — قمع في رأس <b>رقم التتبع</b> (بحث) و<b>تاريخ [S2]</b>
+                (فترة سريعة أو من/إلى بتوقيت القاهرة). الترتيب الافتراضي عند الفتح: <b>تاريخ الأوردر
+                من الأقدم للأحدث</b>، والضغطة التالتة على أي عمود
                 بترجّعه. <b>اسم المندوب</b> بلون مجموعته (بوسطة أحمر · شو روم تركواز · مناديب أزرق).</li>
-            <li><b>تاريخ الطلب</b> — تاريخ إنشاء <b>آخر</b> Return request على شوبيفاي
+            <li><b>تاريخ [S2]</b> — تاريخ إنشاء <b>آخر</b> Return request على شوبيفاي
                 (<code>Return.createdAt</code> لأحدث دورة غير ملغية). الأوردر اللي اتفتح عليه أكتر
                 من دورة بيظهر تحت تاريخه اسم الدورة وعددهم. <code>—</code> = مفيش Return على
                 الأوردر (RTO عادةً). ⚠️ محتاج <code>read_returns</code> على الـ Custom App.</li>'''
+
+CL_V2111 = r'''          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>✏️ <b>اسم عمود «تاريخ الطلب» بقى «تاريخ [S2]»</b> (الرأس والفلتر والـ chip والتصدير) — في «المشحون» و«في طريق الرجوع» الاتنين. المعنى زي ما هو: تاريخ آخر Return request على صف S2.</span></li>
+'''
+CL_V2111_SHIPPED = r'''          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>📍 <b>عمود «العنوان» بشكل «في طريق الرجوع»</b> — سطر أول <b>المحافظة ◀ المدينة</b> بخط غامق وسطر تاني الشارع (<code>address1</code> — <code>address2</code>). عرض بس: البحث والترتيب والتصدير ما اتغيّروا.</span></li>
+'''
+CL_V2110_SHIPPED = r'''          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔀 <b>الجدول بنفس شكل «في طريق الرجوع»</b> — الترتيب: رقم الأوردر · العميل · المندوب · العنوان · <b>نوع الأوردر</b> · رقم التتبع · <b>تاريخ الأوردر</b> · <b>تاريخ [S2]</b> · تاريخ التغليف · مراجعة (الجدول والتصدير). <b>اسم المندوب</b> بلون مجموعته، و«استرجاع» بلون بني-أحمر. الترتيب الافتراضي عند الفتح: <b>تاريخ الأوردر من الأقدم للأحدث</b>.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>📅 <b>عمود «تاريخ [S2]»</b> — تاريخ آخر Return request على الأوردر (أحدث دورة غير ملغية). بيخصّ صفوف S2 بس — صف S1 فيه <code>—</code>. وقمع فلتر في رأسه وفي رأس «رقم التتبع».</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>🔎 <b>«نوع الأوردر» لصفوف S2 بقى «استبدال» أو «استرجاع»</b> من دفتر مبيعات الأوردر (<code>order.agreements</code> — <code>order-lifecycle</code> v1.11.1 قاعدة 8) بدل التسمية العامة. نوع الدورة اللي اتغيّر بعد الإنشاء أو اتعدّل بعد قفلها بياخد <b>علامة مراجعة</b> (مابيتنقلش).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تنبيه</span><span>⛔ محتاج <code>shipped-orders-worker</code> <b>1.3.0</b> (وصلاحية <code>read_returns</code> على الـ Custom App) — <b>انشره قبل الصفحة</b>. ⚠️ تكلفة الاستعلام بعد الإضافة مش مقيسة: راجع <code>queryCost</code>.</span></li>
+'''
 
 CL_V2101_INRETURN = r'''          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>📍 <b>عمود «العنوان» بنفس شكل «العنوان بالكامل (شوبيفاي)» في «رفع بوسطة»</b> — سطر أول <b>المحافظة ◀ المدينة</b> (<code>province</code>/<code>city</code>) بخط غامق، وسطر تاني باقي العنوان (<code>address1</code> — <code>address2</code>). اسم العمود وبحثه وترتيبه وتصديره ما اتغيّروا — عرض بس. صفر تعديل Worker ولا <code>min</code>.</span></li>
 '''
@@ -1571,10 +1604,22 @@ PAGES = [
     icon='🚚', title='طابور المشحون', subtitle='مركز عمليات الشحن والتحصيل',
     emptyOk='مفيش شحنات مفتوحة دلوقتي',
     packCol='تاريخ التغليف',
-    extraHead='<th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort(\'tracking\')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th>',
+    # 🟤 v2.11.0 — نفس ترتيب أعمدة «في طريق الرجوع» بالحرف (طلب أحمد 24-11-2026):
+    #    … العنوان · نوع الأوردر · رقم التتبع · تاريخ الأوردر · تاريخ [S2] · تاريخ التغليف · مراجعة
+    #    (`inReturnOrder` = معامل نقل «نوع الأوردر» و«تاريخ الأوردر» في الماركب — اسمه قديم، بيخدم الصفحتين).
+    extraHead='__TYPE_TH__<th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort(\'tracking\')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th>__CREATED_TH__'
+              '<th class="sortable-th col-date" data-q-sort="returnRequestedAt" onclick="qToggleSort(\'returnRequestedAt\')">تاريخ [S2]<span class="sort-icon" data-q-sort="returnRequestedAt"></span></th>',
+    sortExtra=" returnRequestedAt:{ type:'date' },",
+    xf=("{ key: 'tracking', sort: 'tracking', kind: 'text', label: 'رقم التتبع', get: o => o.tracking },"
+        " { key: 'reqDate', sort: 'returnRequestedAt', kind: 'date', label: 'تاريخ [S2]', get: o => o.returnRequestedAt }"),
+    # ⚠️ الافتراضي عند الفتح «تاريخ الأوردر» من الأقدم للأحدث — **مش** «تاريخ الطلب»: صفوف S1 (أغلب الطابور)
+    #    مالهاش تاريخ طلب أصلاً، فترتيب بيه كان هيحطّ الطابور كله في الآخر. (قرار الترتيب نفسه بتاع «في طريق الرجوع» v2.10.0.)
+    defaultSort="{ key: 'createdAt', dir: 'asc' }",
+    inReturnOrder=True,
+    courierCell='<td>${courierCell(o)}</td>',
     extraFilter='',
-    extraCell="""      <td>${trackingCell(o)}</td>\n""",
-    extraFn=TR_FN,
+    extraCell="""__TYPE_TD__      <td>${trackingCell(o)}</td>\n__CREATED_TD__      <td class="date-cell">${returnRequestCell(o)}</td>\n""",
+    extraFn=TR_FN + '\n' + REQ_FN + '\n' + COURIER_FN,
     # ⛔ بلا مربعات «موقع الشحنة» — مفيش فلتر `where` في الصفحة دي أصلاً،
     #    ومربع بيفلتر على فلتر مش موجود = ضغطة مالهاش أثر.
     waChipsBox='', waChipsCall='', waChipsJs='',
@@ -1586,21 +1631,22 @@ PAGES = [
     # ⚠️ ولو اتشال `address1` من الـ Worker العمود بيقول «بلا عنوان» على كل
     #    صف — وحارس النسخة (`shipped.min = 1.2.0`) هو اللي بيقول السبب.
     # ⚠️ وبلا عمود ملحوظات — `note` جه في `ready-orders-worker` v1.3.0 وبس.
-    addrHead='', addrCell='', addrFn=ADDR_FN,
+    addrHead='', addrCell='', addrFn=ADDR_FN_INRETURN,
     addrAfterHead='<th class="sortable-th col-addr" data-q-sort="address" onclick="qToggleSort(\'address\')">العنوان<span class="sort-icon" data-q-sort="address"></span></th>',
     addrAfterCell="""      <td class="addr-cell">${addressCell(o)}</td>\n""",
     noteHead='', noteCell='', noteFn='',
-    exportLib=EXPORT_LIB, exportBtn=EXPORT_BTN, exportJs=EXPORT_JS,
-    aboutCols=SHIPPED_ABOUT_COLS,
-    cols=9,
+    exportLib=EXPORT_LIB, exportBtn=EXPORT_BTN, exportJs=EXPORT_JS_SHIPPED,
+    aboutCols=SHIPPED_ABOUT_COLS_V2,
+    cols=10,
     # ⛔ بلا جرد — أوردر `Shipped` خرج من المكتب بالتعريف، فجرده سؤال
     #    مالوش معنى (الشرح كامل فوق عند الكتل).
     auditCss='', auditTabs='', auditLib='', auditView='', auditJs='', auditAbout='',
     apiFns='apiGet',
-    clItems=CL_V161_SHIPPED + CL_V158_SHIPPED + CL_V138, clV133=CL_SHIPPED, clPrev=CL_SHIPPED_PREV,
+    skills='html-builder v8.5.0 · worker-builder v3.7.0 · constants v3.1.0 · order-lifecycle v1.11.1 — 24-11-2026',
+    clItems=CL_V2111 + CL_V2111_SHIPPED + CL_V2110_SHIPPED + CL_V161_SHIPPED + CL_V158_SHIPPED + CL_V138, clV133=CL_SHIPPED, clPrev=CL_SHIPPED_PREV,
     aboutWhat='''الأوردرات اللي حالتها <code>Shipped</code> — خرجت من المخزن
              و<b>محدش سجّل لها نتيجة نهائية</b> لسه. ⚠️ <code>In-Return</code>
-             <b>مش داخلة</b> في الطابور ده (بند مفتوح).''',
+             <b>مش داخلة</b> في الطابور ده — ليها طابور مستقل «في طريق الرجوع».''',
   ),
   dict(
     file='In-Return-Orders.html', key='inreturn', status='In-Return', action='get_in_return_queue',
@@ -1612,12 +1658,12 @@ PAGES = [
     #    بلا موقع الشحنة/ملحوظات/جرد. (الأسباب مكتوبة عند معاملات صفحة المشحون فوق.)
     # 🟤 v2.10.0 — ترتيب الأعمدة: … العنوان · نوع الأوردر · رقم التتبع · تاريخ الأوردر · تاريخ الطلب · تاريخ التغليف · مراجعة
     extraHead='__TYPE_TH__<th class="sortable-th" data-q-sort="tracking" onclick="qToggleSort(\'tracking\')">رقم التتبع<span class="sort-icon" data-q-sort="tracking"></span></th>__CREATED_TH__'
-              '<th class="sortable-th col-date" data-q-sort="returnRequestedAt" onclick="qToggleSort(\'returnRequestedAt\')">تاريخ الطلب<span class="sort-icon" data-q-sort="returnRequestedAt"></span></th>',
+              '<th class="sortable-th col-date" data-q-sort="returnRequestedAt" onclick="qToggleSort(\'returnRequestedAt\')">تاريخ [S2]<span class="sort-icon" data-q-sort="returnRequestedAt"></span></th>',
     sortExtra=" returnRequestedAt:{ type:'date' },",
     # 🟤 v2.9.0 — فلاتر في رأس «رقم التتبع» (نص) و«تاريخ الطلب» (تاريخ) · ترتيب افتراضي بتاريخ الطلب
     #    من الأقدم للأحدث · «تاريخ الأوردر» بعد «نوع الأوردر» · اسم المندوب بلون مجموعته.
     xf=("{ key: 'tracking', sort: 'tracking', kind: 'text', label: 'رقم التتبع', get: o => o.tracking },"
-        " { key: 'reqDate', sort: 'returnRequestedAt', kind: 'date', label: 'تاريخ الطلب', get: o => o.returnRequestedAt }"),
+        " { key: 'reqDate', sort: 'returnRequestedAt', kind: 'date', label: 'تاريخ [S2]', get: o => o.returnRequestedAt }"),
     defaultSort="{ key: 'createdAt', dir: 'asc' }",
     inReturnOrder=True,
     courierCell='<td>${courierCell(o)}</td>',
@@ -1641,7 +1687,7 @@ PAGES = [
     #    وبنود v8.6.0 (فلتر نص بتوكنز · نافذة أرقام · قايمة تاريخ بأقسام · فلتر وقت · عرض أعمدة متماثل) 🟡 مُستحسن **ما اتطبّقتش** — بتتطبّق على الثلاث
     #    صفحات مع بعض (درس R1)، مش على الصفحة الجديدة لوحدها.
     skills='html-builder v8.5.0 (جدول الطابور المشترك) · worker-builder v3.10.0 · constants v4.4.0 · order-lifecycle v1.11.1 — 22-11-2026',
-    clSingle=True, clItems=CL_V2101_INRETURN + CL_V290_INRETURN + CL_V280_INRETURN + CL_V165_INRETURN, clV133='', clPrev='',
+    clSingle=True, clItems=CL_V2111 + CL_V2101_INRETURN + CL_V290_INRETURN + CL_V280_INRETURN + CL_V165_INRETURN, clV133='', clPrev='',
     aboutWhat='''الأوردرات اللي حالتها <code>In-Return</code> — مرتجعة وفي طريقها
              للمخزن و<b>محدش سجّل لها <code>Returned</code></b> لسه. 🔴 <b>مفيهاش
              أوردرات <code>Shipped</code></b> — دي في طابور «تحت التوصيل (Shipped)»،
@@ -3787,7 +3833,7 @@ for p in PAGES:
     out = out.replace('__ICON__', p['icon'])
     out = out.replace('__EMPTY_OK__', p['emptyOk'])
     out = out.replace('__PACK_COL__', p['packCol'])
-    # 🔴 «في طريق الرجوع»: عمود «تاريخ الأوردر» بعد «نوع الأوردر» (v2.9.0) — النقل في الماركب
+    # 🔴 «في طريق الرجوع» و«المشحون» (v2.11.0): عمود «تاريخ الأوردر» بعد «نوع الأوردر» (v2.9.0) — النقل في الماركب
     #    (الرأس والخلية) بنفس النص بالحرف، مش إعادة كتابة.
     if p.get('inReturnOrder'):
         # v2.10.0: «نوع الأوردر» بعد «العنوان» و«تاريخ الأوردر» بعد «رقم التتبع» — النقل في الماركب

@@ -91,7 +91,9 @@ const ECO_WORKERS = {
   //       Worker قديم وجديد مئات الصفوف مش عشرات.
   // 🔴 **`1.2.0` من v1.58.0** — عمود «العنوان» في طابور المشحون بيقرا `address1`/`address2` من الرد.
   //    على Worker أقدم العمود بيقول «بلا عنوان» على كل صف (الحارس بيسمّي الأداة والنسخة).
-  shipped: { url: 'https://shipped-orders-worker.ecommoda-dev.workers.dev', min: '1.2.0', label: 'طابور المشحون' },
+  // 🔴 **`1.3.0` من v2.11.0** — عمود «تاريخ الطلب [S2]» و«نوع الأوردر» (استبدال/استرجاع) بيقروا `returnRequestedAt`/`returnKind`.
+  //    على Worker أقدم العمود بيقول `—` على كل صف S2 (ادعاء «مفيش Return» غلط) — الحارس بيسمّي الأداة والنسخة.
+  shipped: { url: 'https://shipped-orders-worker.ecommoda-dev.workers.dev', min: '1.3.0', label: 'طابور المشحون' },
   // 🟤 **«في طريق الرجوع» (v1.65.0) — تالت طابور في «الحالات الانتقالية»** · Worker في ريبو `In-Return-Orders`
   //    (**Worker وبس** — الواجهة `In-Return-Orders.html` جوّه الهب). `1.0.0` = أول نسخة (مفيش نسخة أقدم)، فالحارس
   //    هنا بيمسك الحالة الوحيدة الممكنة: الـ Worker ما اتنشرش أو الـ Promote ناقص (`get_config` بيرجّع 404/401)،
@@ -266,7 +268,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v2.11.0';                     // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v2.12.0';                     // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
