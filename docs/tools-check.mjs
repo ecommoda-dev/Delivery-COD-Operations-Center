@@ -74,13 +74,13 @@ const TOOLS = [
   },
   {
     // 🔴 v1.30.0 — «أسماء المناديب» (قسم «أدوات أخرى»). Worker وبس، مفيش
-    //    نسخة مستقلة ولا `source`. تاب واحد (القايمة)، ومفيش سر قديم أصلاً.
+    //    نسخة مستقلة ولا `source`. (v2.13.0) تابين: المناديب + سجل العمليات، ومفيش سر قديم أصلاً.
     page:      'Courier-Names.html',
     title:     'أسماء المناديب',
     workerKey: 'couriers',
     host:      'courier-names-worker.ecommoda-dev.workers.dev',
     oldSecret: 'courier_names_worker_secret',
-    tabs:      0,
+    tabs:      2,
   },
   {
     // 🔴 v1.54.0 — «تحويل الشحنة إلى بوسطة» (قسم «أدوات أخرى»). Worker وبس في ريبو

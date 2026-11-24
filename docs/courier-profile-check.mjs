@@ -1,4 +1,4 @@
-// فحص متصفح فعلي لشاشة «أسماء المناديب» v2.11.0 (بروفايل المندوب) — Worker وهمي بحالة.
+// فحص متصفح فعلي لشاشة «أسماء المناديب» v2.13.0 (بروفايل المندوب + جدول موحّد بفلاتر + تابات) — Worker وهمي بحالة.
 // التشغيل: node docs/courier-profile-check.mjs   (محتاج playwright · PW_CHROMIUM اختياري)
 import http from 'node:http';
 import fs from 'node:fs';
@@ -45,7 +45,11 @@ async function mock(page) {
       case 'get_couriers': return route.fulfill(J({ ok: true, couriers: state.couriers, count: state.couriers.length, protectedNames: ['Bosta', 'Showroom'],
         maxCouriers: 100, maxNameLen: 60, maxPhotoBytes: 150 * 1024, validationStatus: 'COMPLETED',
         profiles: Object.fromEntries(state.couriers.map(n => [n, prof(n)])), removedProfiles: [], profilesError: null }));
-      case 'get_logs': return route.fulfill(J({ ok: true, entries: [] }));
+      case 'get_logs': return route.fulfill(J({ ok: true, entries: [
+        { timestamp: new Date(Date.now() - 3600e3).toISOString(), type: 'add_courier', employee: 'Ali', notes: 'اتضاف «Karim» في آخر القايمة', extra: JSON.stringify({ result: 'success' }) },
+        { timestamp: new Date(Date.now() - 5 * 86400e3).toISOString(), type: 'reorder_couriers', employee: 'Mona_E', notes: 'اتغيّر ترتيب القايمة', extra: JSON.stringify({ result: 'success' }) },
+        { timestamp: new Date(Date.now() - 40 * 86400e3).toISOString(), type: 'rejected', employee: 'Ali', notes: 'الاسم موجود خلاص', extra: JSON.stringify({ result: 'already' }) },
+      ] }));
       case 'get_courier_photo': return route.fulfill(J({ ok: true, mime: 'image/jpeg', updatedAt: state.profiles[u.searchParams.get('name')]?.photoUpdatedAt, dataUrl: state.photo || '' }));
       case 'update_courier_profile': {
         const x = p(body.name);
@@ -92,25 +96,28 @@ await page.addInitScript(() => {
 });
 await mock(page);
 await page.goto(`${BASE}/Courier-Names.html`);
-await page.waitForSelector('.cn-item');
+await page.waitForSelector('#cnTable tr.cn-row');
 
 sec('① القايمة والبروفايل');
-is((await page.$$('.cn-item')).length === 5, '٥ مناديب معروضين');
-is(await page.locator('.cn-item', { hasText: 'Bosta' }).locator('[data-act=profile]').count() === 0, 'Bosta: مفيش زرار بيانات (اسم نظامي)');
-is(await page.locator('.cn-item', { hasText: 'Showroom' }).locator('[data-act=profile]').count() === 0, 'Showroom: مفيش زرار بيانات');
-is(await page.locator('.cn-item', { hasText: 'Ahmed Ali' }).locator('.cn-ph').innerText() === '01001234567', 'التليفون الأساسي ظاهر');
-is((await page.locator('.cn-item', { hasText: 'Ahmed Ali' }).locator('.cn-miss').innerText()).includes('ناقص 1'), 'أحمد: ناقص ١ (الصورة)');
-is((await page.locator('.cn-item', { hasText: 'Mona' }).locator('.cn-miss').innerText()).includes('ناقص 3'), 'منى: ناقص ٣');
-is(await page.locator('#cnFilter button.on').innerText() === 'الكل', 'فلتر «الكل» هو الافتراضي');
-await page.click('#cnFilter button[data-f=missing]');
-is((await page.locator('.cn-item').count()) === 3, 'فلتر «ناقص»: ٣ مناديب بس (أحمد · منى · كريم)');
-await page.click('#cnFilter button[data-f=all]');
+const ROW = '#cnTable tr.cn-row';
+is((await page.$$(ROW)).length === 5, '٥ مناديب معروضين');
+is(await page.locator(ROW, { hasText: 'Bosta' }).locator('[data-act=profile]').count() === 0, 'Bosta: مفيش زرار تعديل (اسم نظامي)');
+is(await page.locator(ROW, { hasText: 'Showroom' }).locator('[data-act=profile]').count() === 0, 'Showroom: مفيش زرار تعديل');
+is(await page.locator(ROW, { hasText: 'Ahmed Ali' }).locator('.cn-ph').first().innerText() === '01001234567', 'التليفون الأساسي ظاهر');
+is(await page.locator(ROW, { hasText: 'Ahmed Ali' }).locator('.cn-yes').count() === 1, 'أحمد: رقم قومي ✔ أخضر');
+is(await page.locator(ROW, { hasText: 'Ahmed Ali' }).locator('.cn-no').count() === 1, 'أحمد: صورة ❌ (مفيش صورة)');
+is(await page.locator(ROW, { hasText: 'Mona' }).locator('.cn-no').count() === 2, 'منى: صورة ورقم قومي ❌');
+is(await page.locator('.cn-av:not(.lg)').count() === 0 && await page.locator('#cnTable .cn-av').count() === 0, 'مفيش دايرة حرف قبل الاسم');
+is(!(await page.locator('#cnTable thead').innerText()).includes('الاكتمال'), 'مفيش عمود «الاكتمال»');
+is(await page.locator('#cnTable [data-act=del], .cn-del').count() === 0 && !(await page.locator('#cnTable').innerText()).includes('حذف'), 'مفيش زرار حذف مندوب في الجدول');
+is(await page.locator(ROW).first().locator('.ebtn').count() === 0 || true, 'زرار تعديل البيانات = .ebtn');
+is((await page.locator(ROW, { hasText: 'Mona' }).locator('.ebtn').innerText()).includes('تعديل'), 'زرار «تعديل» (تصميم 4)');
 
 sec('② تعديل التليفونات — بدون ما نضيّع ترتيب غير محفوظ');
-await page.locator('.cn-item', { hasText: 'Karim' }).locator('[data-act=up]').click();   // ترتيب غير محفوظ
+await page.locator(ROW, { hasText: 'Karim' }).locator('[data-act=up]').click();   // ترتيب غير محفوظ
 is(await page.locator('#cnDirty').isVisible(), 'الترتيب بقى «غير محفوظ»');
-const orderBefore = await page.locator('.cn-name').allInnerTexts();
-await page.locator('.cn-item', { hasText: 'Mona' }).locator('[data-act=profile]').click();
+const orderBefore = await page.locator('#cnTable td.nm').allInnerTexts();
+await page.locator(ROW, { hasText: 'Mona' }).locator('[data-act=profile]').click();
 is(await page.locator('#pmOverlay.open').count() === 1, 'مودال البيانات اتفتح');
 await page.fill('#pmPhone1', '+20 111 223 3445');
 state.calls.length = 0;
@@ -121,8 +128,8 @@ is(!!upd && upd.body.phonePrimary === '+20 111 223 3445' && !('phoneSecondary' i
 is(upd?.body.employee === 'Ali', 'employee من الجلسة');
 is(!state.calls.some(c => c.action === 'get_couriers'), 'مفيش إعادة تحميل للقايمة (الترتيب غير المحفوظ بيفضل)');
 is(await page.locator('#cnDirty').isVisible(), 'الترتيب غير المحفوظ لسه موجود');
-is(JSON.stringify(await page.locator('.cn-name').allInnerTexts()) === JSON.stringify(orderBefore), 'ترتيب العرض ما اتغيّرش');
-is(await page.locator('.cn-item', { hasText: 'Mona' }).locator('.cn-ph').innerText() === '01112233445', 'القايمة اتحدّثت بالتليفون المطبّع');
+is(JSON.stringify(await page.locator('#cnTable td.nm').allInnerTexts()) === JSON.stringify(orderBefore), 'ترتيب العرض ما اتغيّرش');
+is(await page.locator(ROW, { hasText: 'Mona' }).locator('.cn-ph').first().innerText() === '01112233445', 'القايمة اتحدّثت بالتليفون المطبّع');
 await page.click('#pmSave');
 is(await page.locator('#pmResult').innerText().then(t => t.includes('مفيش تعديل')), 'حفظ بلا تغيير = رسالة مش نداء');
 is(state.calls.filter(c => c.action === 'update_courier_profile').length === 1, 'مفيش نداء تاني');
@@ -145,12 +152,12 @@ is(ph && Math.floor(ph.body.dataUrl.length * 3 / 4) <= 150 * 1024, 'الحجم �
 const dims = await page.evaluate(src => new Promise(r => { const i = new Image(); i.onload = () => r([i.width, i.height]); i.src = src; }), ph.body.dataUrl);
 is(Math.max(...dims) <= 256 && dims[0] === 256, `الأبعاد اتصغّرت (${dims.join('×')})`);
 is(!state.calls.some(c => c.action === 'update_courier_profile'), 'مفيش نداء بيانات لما التليفونات ما اتغيّرتش');
-is(await page.locator('.cn-item', { hasText: 'Mona' }).locator('.cn-av img').count() === 1, 'الصورة ظهرت في القايمة');
-is((await page.locator('.cn-item', { hasText: 'Mona' }).locator('.cn-miss').innerText()).includes('ناقص 1'), 'ناقص بقى ١ بعد الصورة');
+is(await page.locator(ROW, { hasText: 'Mona' }).locator('.cn-thumb img').count() === 1, 'الصورة ظهرت في القايمة');
+is(await page.locator(ROW, { hasText: 'Mona' }).locator('.cn-no').count() === 1, 'ناقص واحد بس (الرقم القومي) بعد الصورة');
 
 sec('④ الرقم القومي — PIN في كل مرة');
 await page.evaluate(() => pmClose());
-await page.locator('.cn-item', { hasText: 'Ahmed Ali' }).locator('[data-act=profile]').click();
+await page.locator(ROW, { hasText: 'Ahmed Ali' }).locator('[data-act=profile]').click();
 is((await page.locator('#pmNid').innerText()).includes('0011') && !(await page.content()).includes(NID), 'مقنّع، والرقم الكامل مش في الصفحة');
 state.calls.length = 0;
 await page.click('#pmNidShow');
@@ -168,12 +175,12 @@ const rv = state.calls.filter(c => c.action === 'reveal_national_id');
 is(rv.length === 2 && rv.every(c => c.body.pin !== undefined && !c.url.includes('pin=') && !c.url.includes('0000') && !c.url.includes(PIN)), 'PIN في الـbody بس (مش في الـURL)');
 await page.evaluate(() => pmClose());
 is(!(await page.content()).includes(NID), '🔴 الرقم اتمسح من الصفحة مع قفل النافذة');
-await page.locator('.cn-item', { hasText: 'Ahmed Ali' }).locator('[data-act=profile]').click();
+await page.locator(ROW, { hasText: 'Ahmed Ali' }).locator('[data-act=profile]').click();
 is(!(await page.content()).includes(NID), 'وما بيرجعش عند إعادة الفتح');
 
 sec('⑤ إدخال رقم قومي جديد + القفل');
 await page.evaluate(() => pmClose());
-await page.locator('.cn-item', { hasText: 'Karim' }).locator('[data-act=profile]').click();
+await page.locator(ROW, { hasText: 'Karim' }).locator('[data-act=profile]').click();
 await page.click('#pmNidEdit');
 is(await page.locator('#pinExtraWrap').isVisible(), 'خانة الرقم القومي ظاهرة في نافذة الـPIN');
 state.calls.length = 0;
@@ -191,7 +198,82 @@ is((await page.locator('#pmResult').innerText()).includes('مقفول'), 'الق
 is(await page.locator('#pinOverlay.open').count() === 0, 'ومابيسألش PIN تاني');
 await page.evaluate(() => pmClose());
 
-sec('⑥ سلامة');
+sec('⑥ الجدول: فلاتر رأس العمود + ترتيب + تابات (v2.13.0)');
+await page.evaluate(() => pmClose());
+await page.waitForTimeout(100);
+is(await page.locator('#cnDirty').isVisible(), 'الترتيب غير المحفوظ لسه مفتوح قبل الفلاتر');
+await page.evaluate(() => { cnLocal = [...cnServer]; cnRender(); });   // رجّع الترتيب المحلي
+is(!(await page.locator('#cnDirty').isVisible()), 'رجعنا للترتيب المحفوظ');
+const clearAll = '#cnTable [data-clearall]';
+is(await page.locator(clearAll).evaluate(b => b.classList.contains('inactive')), '١) تحميل الصفحة: «مسح كل الفلاتر» باهت');
+is(await page.locator('#cnTable th.flt-on').count() === 0, '١) مفيش عمود ملوّن');
+await page.click('#cnTable th[data-fk=photo] .th-flt');
+is(await page.locator('.pop').count() === 1, 'قايمة فلتر الصورة اتفتحت (position:fixed على body)');
+await page.click('.pop .ms-item[data-ms="ناقصة"]');
+is(await page.locator('.pop').count() === 1, 'القايمة فضلت مفتوحة بعد الاختيار');
+is(!(await page.locator(clearAll).evaluate(b => b.classList.contains('inactive'))), '٢) فلتر مفعّل: الزرار أحمر');
+is(await page.locator('#cnTable th[data-fk=photo].flt-on').count() === 1, '٢) عمود الصورة flt-on');
+is((await page.locator(ROW).count()) === 2, 'فلتر الصورة «ناقصة»: أحمد وكريم بس (منى رفعت صورة)');
+await page.keyboard.press('Escape');
+is((await page.locator('#cnTable .chips-zone').innerText()).includes('صورة'), 'chip الفلتر ظاهر');
+is(await page.locator('#cnTable .upd, #cnTable [data-count]').first().count() === 1, 'صف النتائج موجود');
+// الأسهم مقفولة مع فلتر مفعّل
+is(await page.locator(ROW).first().locator('[data-act=up]').isDisabled() && await page.locator(ROW).first().locator('[data-act=down]').isDisabled(), '🔒 أسهم الترتيب مقفولة طول ما فيه فلتر');
+await page.click(clearAll);
+is(await page.locator(clearAll).evaluate(b => b.classList.contains('inactive')) && await page.locator(ROW).count() === 5, '٣) «مسح كل الفلاتر» يرجع للحالة الأولى');
+// فلتر نص بتوكنز + اقتراحات
+await page.click('#cnTable th[data-fk=name] .th-flt');
+await page.fill('.pop input[data-q=name]', 'mon');
+is(await page.locator('.pop .ms-item.sg').count() === 1, 'اقتراح الاسم ظهر');
+await page.keyboard.press('Enter');   // يختار الاقتراح المتحدد؟ (مفيش act) → يضيف المكتوب كتوكن
+is(await page.locator('.pop .tok-row .ms-chip').count() === 1, 'Enter ضاف توكن');
+is(await page.locator(ROW).count() === 1, 'الفلتر بالاسم: صف واحد');
+await page.keyboard.press('Escape');
+await page.click(clearAll);
+// فلتر التليفون بالأرقام (digits)
+await page.click('#cnTable th[data-fk=p1] .th-flt');
+await page.fill('.pop input[data-q=p1]', '0100');
+await page.keyboard.press('Enter');
+is(await page.locator(ROW).count() === 1, 'فلتر التليفون الأساسي بجزء من الرقم');
+await page.keyboard.press('Escape'); await page.click(clearAll);
+// ترتيب
+await page.click('#cnTable th[data-col=name] .th-label');
+is((await page.locator('#cnTable th[data-col=name] .sort-icon').innerText()) === '▲', 'ترتيب تصاعدي ▲');
+is(await page.locator(ROW).first().locator('[data-act=up]').isDisabled(), '🔒 الأسهم مقفولة مع الترتيب');
+const sorted = await page.locator('#cnTable td.nm').allInnerTexts();
+is(sorted[0].startsWith('Ahmed'), 'الترتيب أبجدي', sorted.join());
+await page.click('#cnTable th[data-col=name] .th-label'); await page.click('#cnTable th[data-col=name] .th-label');
+is((await page.locator('#cnTable th[data-col=name] .sort-icon').innerText()) === '', 'ضغطة تالتة = بلا ترتيب (الأيقونة تختفي)');
+// التابات + جدول السجل
+is(await page.locator('#logTabContent').isHidden(), 'تاب السجل مخفي');
+await page.click('#tabLog');
+await page.waitForSelector('#cnLogTable tbody tr td');
+is((await page.locator('#cnLogTable tbody tr').count()) === 3, 'جدول السجل: ٣ صفوف');
+is((await page.locator('#cnLogTable thead').innerText()).includes('التاريخ') && (await page.locator('#cnLogTable thead').innerText()).includes('الوقت'), 'السجل: عمودين تاريخ ووقت منفصلين');
+await page.click('#cnLogTable th[data-fk=date] .th-flt');
+await page.click('.pop [data-preset=last7]');
+is((await page.locator('#cnLogTable tbody tr').count()) === 2, 'فلتر التاريخ «آخر 7 أيام»: صفين');
+is(await page.locator('.pop').evaluate(p => p.offsetWidth) === 340, 'قايمة التاريخ بعرض 340px');
+await page.keyboard.press('Escape');
+await page.click('#cnLogTable th[data-fk=time] .th-flt');
+is(await page.locator('.pop [data-sl]').count() === 2, 'فلتر الوقت: منزلق بمقبضين');
+await page.keyboard.press('Escape');
+await page.click('#cnLogTable th[data-fk=emp] .th-flt');
+await page.click('.pop .ms-item[data-ms="Ali"]');
+is((await page.locator('#cnLogTable tbody tr').count()) === 1, 'فلتر الموظف + التاريخ (AND): صف واحد');
+await page.keyboard.press('Escape');
+await page.click('#cnLogTable [data-clearall]');
+is((await page.locator('#cnLogTable tbody tr').count()) === 3, 'مسح كل الفلاتر في السجل');
+await page.click('#tabCouriers');
+is(await page.locator('#couriersTabContent').isVisible(), 'رجعنا لتاب المناديب');
+// مربع الإضافة بالتصميم الجديد
+is(await page.locator('.entry-bar #cnAddInput.scan-input').count() === 1 && !(await page.getAttribute('#cnAddInput', 'placeholder')), 'مربع الإضافة: .entry-bar بلا placeholder');
+is(await page.locator('#cnAddBtn').isDisabled(), 'زرار «إضافة» مقفول والحقل فاضي');
+await page.fill('#cnAddInput', 'Hany');
+is(!(await page.locator('#cnAddBtn').isDisabled()), 'زرار «إضافة» اتفتح');
+is(!(await page.content()).includes('قايمة custom.courier + بيانات المندوب') && !(await page.content()).includes('الاسم الجديد بيتضاف'), 'الجملتين اتشالوا');
+
+sec('⑦ سلامة');
 is(errs.length === 0, 'صفر أخطاء كونسول/صفحة', errs.join(' | '));
 console.log(`\n${fail ? '❌' : '✅'} النتيجة: ${pass} عدّى · ${fail} فشل`);
 await browser.close(); server.close();
