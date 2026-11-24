@@ -161,7 +161,9 @@ const SHIPPED_RAW = [
     itemsQty:1, total:'1500.00', currency:'EGP', zone:'Cairo+Giza', courier:'Show Room',
     s1:'Delivered', s2:'Shipped', packedAtS1:'2026-09-01T09:00:00Z', packedAtS2:'2026-09-12T09:00:00Z',
     packedByS1:'Abo Selim', packedByS2:'Marwan Mohammed', whereaboutsS1:null, whereaboutsS2:null,
-    trackingS1:'1110000', trackingS2:'7654321', trackingLegacy:null },
+    trackingS1:'1110000', trackingS2:'7654321', trackingLegacy:null,
+    // 🟢 v2.11.0 (shipped-orders-worker 1.3.0) — دورة R/E واحدة ونوعها «استرجاع» من دفتر المبيعات
+    returnRequestedAt:'2026-09-10T08:00:00Z', returnName:'#56003-R1', returnStatus:'OPEN', returnCycles:1, returnKind:'return', returnFlags:[] },
   // ⚠️ رقم التتبع من **الحقل القديم المتوقّف** — لازم يتقال
   { orderId:'7212000000014', orderName:'#56004', createdAt:'2026-09-03T08:00:00Z', cancelledAt:null,
     fulfillment:'FULFILLED', financial:'PENDING', customer:'طارق فهمي', address1:null, address2:null, province:'Giza',
@@ -1131,14 +1133,19 @@ console.log('\n══ ⑤ Shipped-Orders.html ══');
   const shHeads = await page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim()));
   is(shHeads.indexOf('العنوان') === shHeads.indexOf('المندوب') + 1,
      '🔴 طابور المشحون: عمود «العنوان» **بعد المندوب مباشرةً**', JSON.stringify(shHeads));
-  is(shHeads.indexOf('رقم التتبع') === shHeads.indexOf('العنوان') + 1,
-     'ورقم التتبع بعده (الترتيب: العميل · المندوب · العنوان · رقم التتبع)', JSON.stringify(shHeads));
+  // 🟤 v2.11.0: «نوع الأوردر» بعد العنوان ثم رقم التتبع — نفس ترتيب «في طريق الرجوع»
+  is(shHeads.indexOf('نوع الأوردر') === shHeads.indexOf('العنوان') + 1 && shHeads.indexOf('رقم التتبع') === shHeads.indexOf('نوع الأوردر') + 1,
+     'ثم «نوع الأوردر» ثم «رقم التتبع» (الترتيب: العميل · المندوب · العنوان · النوع · رقم التتبع)', JSON.stringify(shHeads));
   const shAddrIdx = shHeads.indexOf('العنوان');
   const shAddr = await page.$$eval('#qBody tr', (r, i) => r.map(x => x.children[i].textContent.trim()), shAddrIdx);
   is(shAddr.some(t => t.includes('٥ شارع الجمهورية') && t.includes('الدور الثاني')),
      'خلية العنوان فيها `address1` و`address2` مع بعض', JSON.stringify(shAddr));
-  is(shAddr.filter(t => t === 'بلا عنوان').length === 1,
-     '🔴 الأوردر اللي مالوش عنوان بيقول **«بلا عنوان»** بالنص', JSON.stringify(shAddr));
+  // 🟤 v2.11.1: نفس شكل «في طريق الرجوع» — سطر المحافظة ◀ المدينة ثم الشارع. الأوردر بلا شارع بيعرض المحافظة بس
+  //    («بلا عنوان» بتظهر لما مفيش محافظة ولا مدينة ولا شارع).
+  is(shAddr.includes('Giza') && shAddr.some(t => t.startsWith('Alexandria') && t.includes('٥ شارع الجمهورية')),
+     '🟤 العنوان بشكل «المحافظة ◀ المدينة» + الشارع، والأوردر بلا شارع بيعرض المحافظة', JSON.stringify(shAddr));
+  is(await page.$$eval('#qBody td.addr-cell > div:first-child', e => e.length > 0 && e.every(x => x.style.fontWeight === '700')),
+     'سطر المحافظة غامق (زي «في طريق الرجوع»)');
   is(await page.$$eval('#qBody tr td.addr-cell', e => e.length) === SHIPPED_TOTAL,
      'والخلية `.addr-cell` (بتلفّ) على كل صف');
   // 🔴 **وبلا عمود «ملحوظات» لنفس السبب بالظبط** — `note` جه في
@@ -1147,8 +1154,8 @@ console.log('\n══ ⑤ Shipped-Orders.html ══');
   //    ادعاء غلط، مش خانة فاضية. والبند ده بيمنع إضافته «بالقياس».
   is(!shHeads.includes('ملحوظات'),
      '🔴 وبلا عمود «ملحوظات» كمان — العمود بيتضاف **في نفس تسليم الـ Worker**', JSON.stringify(shHeads));
-  is(shHeads.at(-2) === 'نوع الأوردر' && shHeads.at(-1) === 'مراجعة',
-     'ونفس ترتيب آخر عمودين بالحرف زي صفحة الجاهز', JSON.stringify(shHeads.slice(-2)));
+  is(shHeads.at(-1) === 'مراجعة' && shHeads.at(-2) === 'تاريخ التغليف',
+     'وآخر عمودين: تاريخ التغليف ثم المراجعة', JSON.stringify(shHeads.slice(-2)));
   // ⛔ **وبلا صف مربعات «موقع الشحنة»** (v1.8.0) — مفيش فلتر `where` في
   //    الصفحة دي أصلاً (العمود التاني هنا رقم تتبع)، ومربع بيفلتر على
   //    فلتر مش موجود = ضغطة مالهاش أثر. والبند ده بيمنع إضافته «بالقياس».
@@ -1261,15 +1268,14 @@ console.log('\n══ ⑤-ب In-Return-Orders.html ══');
     const h = await o2.page.$$eval('#qTable thead th', e => e.map(x => x.textContent.trim())); await o2.ctx.close(); return h; })();
   // 🟢 v1.2.0: نفس أعمدة «المشحون» + «تاريخ الطلب» بعد «رقم التتبع» مباشرةً (الفرق الوحيد)
   // 🟤 v2.10.0: «نوع الأوردر» بعد «العنوان» مباشرةً، و«تاريخ الأوردر» بعد «رقم التتبع» مباشرةً (طلب أحمد 22-11-2026)
-  const expHeads = shHeads.filter(h => h !== 'نوع الأوردر' && h !== 'تاريخ الأوردر');
-  expHeads.splice(expHeads.indexOf('العنوان') + 1, 0, 'نوع الأوردر');
-  expHeads.splice(expHeads.indexOf('رقم التتبع') + 1, 0, 'تاريخ الأوردر', 'تاريخ الطلب');
+  // 🟤 v2.11.0: «المشحون» بقى بنفس الترتيب — الفرق الوحيد اسم عمود الطلب («تاريخ [S2]» هناك) وسهم الترتيب الافتراضي
+  const expHeads = shHeads.map(h => h.replace(/[▲▼]/g, '').trim());
   is(JSON.stringify(heads) === JSON.stringify(expHeads),
-     '🔴 أعمدة «في طريق الرجوع»: النوع بعد العنوان · تاريخ الأوردر ثم تاريخ الطلب بعد رقم التتبع', JSON.stringify(heads));
+     '🔴 أعمدة «في طريق الرجوع» == أعمدة «المشحون» بالترتيب (النوع بعد العنوان · تاريخ الأوردر ثم تاريخ الطلب بعد رقم التتبع)', JSON.stringify(heads));
   // 🟢 «تاريخ الطلب» + «نوع الأوردر» من رد الـ Worker
   const reqRows = await page.$$eval('#qBody tr', trs => trs.map(tr => ({
     name: tr.children[0].textContent.trim(), cells: [...tr.children].map(c => c.textContent.trim()) })));
-  const iReq = heads.indexOf('تاريخ الطلب'), iType = heads.indexOf('نوع الأوردر');
+  const iReq = heads.indexOf('تاريخ [S2]'), iType = heads.indexOf('نوع الأوردر');
   const r2 = reqRows.find(r => r.name === '#57002'), r1 = reqRows.find(r => r.name === '#57001');
   is(r2 && /09\/09\/2026/.test(r2.cells[iReq]) && /#57002-R2/.test(r2.cells[iReq]) && /2 دورات/.test(r2.cells[iReq]),
      '📅 «تاريخ الطلب» بيعرض تاريخ آخر دورة + اسمها + عدد الدورات', r2 && r2.cells[iReq]);
@@ -1287,8 +1293,9 @@ console.log('\n══ ⑤-ب In-Return-Orders.html ══');
   const legacy = await page.$$eval('#qBody tr', els => (els.find(e => e.textContent.includes('#57003')) || {}).innerText || '');
   is(legacy.includes('888777') && legacy.includes('من الحقل القديم'), 'رقم من الحقل المتوقّف بيتعرض وبعلامة صريحة');
   const addr = await page.$$eval('#qBody tr', (r) => r.map(x => x.querySelector('td.addr-cell')?.textContent.trim()));
-  is(addr.some(t => t && t.includes('١٢ شارع التحرير') && t.includes('شقة ٤')) && addr.filter(t => t === 'بلا عنوان').length === 1,
-     'العنوان: `address1`+`address2` مع بعض، و«بلا عنوان» على الأوردر اللي مالوش', JSON.stringify(addr));
+  // v2.10.1: سطر المحافظة ◀ المدينة ثم الشارع — الأوردر اللي مالوش شارع بيعرض المحافظة بس (مش «بلا عنوان» لأن عنده محافظة)
+  is(addr.some(t => t && t.includes('١٢ شارع التحرير') && t.includes('شقة ٤')) && addr.some(t => t === 'Giza'),
+     'العنوان: المحافظة/المدينة + `address1`—`address2`، والأوردر بلا شارع بيعرض المحافظة', JSON.stringify(addr));
 
   // الأرضية معلنة من رد الـ Worker
   is((await page.textContent('#qScope')).includes('01/04/2026'), '🔴 شيب الأرضية «01/04/2026» ظاهر وجاي من رد الـ Worker', await page.textContent('#qScope'));
@@ -1326,6 +1333,62 @@ console.log('\n══ ⑤-ب In-Return-Orders.html ══');
   await ctx.close();
 }
 
+
+// ══════════════════════════════════════════════════════════════
+// ⑤-ب 🚚 «المشحون» v2.11.0 — نفس جدول «في طريق الرجوع» + «تاريخ [S2]» + النوع من دفتر المبيعات
+// ══════════════════════════════════════════════════════════════
+console.log('\n══ ⑤-ب Shipped-Orders.html — v2.11.0 ══');
+{
+  const { page, ctx, errors } = await newPage();
+  await page.goto(`${BASE}/Shipped-Orders.html`);
+  await page.waitForSelector('#qBody tr');
+  const names = () => page.$$eval('#qBody tr', r => r.map(x => (x.textContent.match(/#\d{5}/) || [])[0]).filter(Boolean));
+  const heads = await page.$$eval('#qTable thead th', e => e.map(x => x.textContent.replace(/[▲▼]/g, '').trim()));
+  is(JSON.stringify(heads) === JSON.stringify(['رقم الأوردر', 'العميل', 'المندوب', 'العنوان', 'نوع الأوردر', 'رقم التتبع', 'تاريخ الأوردر', 'تاريخ [S2]', 'تاريخ التغليف', 'مراجعة']),
+     '🔴 أعمدة «المشحون» بترتيب «في طريق الرجوع» + «تاريخ [S2]»', JSON.stringify(heads));
+  is(!heads.includes('تاريخ الطلب'), '✏️ اسم العمود «تاريخ [S2]» مش «تاريخ الطلب»');
+
+  // الترتيب الافتراضي = تاريخ الأوردر تصاعدي
+  const oldest = await page.evaluate(() => [...qState.rows].sort((x, y) => new Date(x.createdAt) - new Date(y.createdAt))[0].orderName);
+  is(await page.evaluate(() => qSortState.key === 'createdAt' && qSortState.dir === 'asc'), '↕️ الترتيب الافتراضي عند الفتح: تاريخ الأوردر تصاعدي (الأقدم أولًا)');
+  is((await page.textContent('th[data-q-sort="createdAt"] .sort-icon')).trim() === '▲', 'السهم ▲ ظاهر على «تاريخ الأوردر»');
+  is((await names())[0] === oldest, 'أول صف = أقدم تاريخ أوردر', (await names()).join());
+  await page.click('th[data-q-sort="createdAt"]'); await page.click('th[data-q-sort="createdAt"]');
+  is(await page.evaluate(() => qSortState.key === null) && (await names())[0] === oldest, 'الضغطة التالتة بترجّع للافتراضي (تاريخ الأوردر)');
+
+  // «تاريخ [S2]» ونوع الأوردر من رد الـ Worker
+  const rows = await page.$$eval('#qBody tr', trs => trs.map(tr => ({ name: tr.children[0].textContent.trim(), cells: [...tr.children].map(c => c.textContent.trim()) })));
+  const iReq = heads.indexOf('تاريخ [S2]'), iType = heads.indexOf('نوع الأوردر');
+  const s2r = rows.find(r => r.name === '#56003'), s1r = rows.find(r => r.name === '#56001');
+  is(s2r && /10\/09\/2026/.test(s2r.cells[iReq]), '📅 «تاريخ [S2]» بيعرض تاريخ آخر Return على صف S2', s2r && s2r.cells[iReq]);
+  is(s1r && s1r.cells[iReq] === '—', '📅 صف S1 (شحنة أصلية) = `—` (مش خطأ)', s1r && s1r.cells[iReq]);
+  is(s2r && s2r.cells[iType] === 'استرجاع' && s1r && s1r.cells[iType] === 'عادي', '🔀 النوع: S2 + returnKind=return ← «استرجاع» · S1 ← «عادي»', JSON.stringify([s2r && s2r.cells[iType], s1r && s1r.cells[iType]]));
+  is(await page.evaluate(() => { const e = [...document.querySelectorAll('#qBody .type-text')].find(x => x.textContent.trim() === 'استرجاع'); return !!e && e.classList.contains('type-return') && getComputedStyle(e).color === 'rgb(156, 58, 34)'; }),
+     '🟤 «استرجاع» بلون بني-أحمر (`--id-return`) زي «في طريق الرجوع»');
+
+  // اسم المندوب بلون مجموعته
+  const col = (sel) => page.evaluate(s => { const e = document.querySelector(s); return e ? getComputedStyle(e).color : null; }, sel);
+  const bostaChip = await col('.zchip.qc-bosta');
+  const bostaTxt = await page.evaluate(() => { const e = [...document.querySelectorAll('#qBody .cou-txt')].find(x => x.textContent.trim() === 'Bosta'); return e ? getComputedStyle(e).color : null; });
+  is(bostaTxt && bostaTxt === bostaChip, '🎨 «Bosta» بنفس لون مربع «بوسطة» (نص بس)', `${bostaTxt} ≠ ${bostaChip}`);
+
+  // قمع رقم التتبع وتاريخ [S2]
+  is(await page.$('th[data-q-sort="tracking"] .th-flt') !== null && await page.$('th[data-q-sort="returnRequestedAt"] .th-flt') !== null, '🔎 قمع في رأس «رقم التتبع» و«تاريخ [S2]»');
+  await page.click('th[data-q-sort="returnRequestedAt"] .th-flt');
+  await page.fill('.hpop [data-xfdate="reqDate|from"]', '2026-09-10');
+  await page.fill('.hpop [data-xfdate="reqDate|to"]', '2026-09-10');
+  is((await names()).join() === '#56003', 'فلتر «تاريخ [S2]» بيطلّع #56003 بس (صفوف S1 بلا تاريخ طلب)', (await names()).join());
+  is((await page.textContent('#qChipsSpecial')).includes('تاريخ [S2]'), 'chip الفلتر بالاسم الجديد');
+  await page.click('.hpop [data-hact="xclear"]'); await page.keyboard.press('Escape');
+  await page.click('#qClearAllBtn');
+
+  // الأعلام على صف S2 + التصدير
+  is(await page.evaluate(() => { const r = qState.rows.find(x => x.orderName === '#56003'); r.returnFlags = ['TYPE_CONFLICT']; return ecoFlags(r, 'Shipped', 'shipped').some(f => f.code === 'type_conflict'); }), '⚠️ `TYPE_CONFLICT` على صف S2 في «المشحون» بياخد علامة مراجعة');
+  is(await page.evaluate(() => { const t = qExport.toString(); const i = k => t.indexOf(`key: '${k}'`); return i('address') < i('type') && i('type') < i('tracking') && i('tracking') < i('created') && i('created') < i('reqDate') && i('reqDate') < i('packed') && i('packed') < i('flags') && t.includes('تاريخ [S2]'); }),
+     '⬇ أعمدة التصدير بنفس ترتيب الجدول (… نوع · تتبع · أوردر · «تاريخ [S2]» · تغليف · مراجعة)');
+  is(errors.length === 0, 'صفر خطأ في الكونسول', errors.join(' | ').slice(0, 300));
+  await ctx.close();
+}
 
 // ══════════════════════════════════════════════════════════════
 // ⑤-ج 🟤 «في طريق الرجوع» v2.9.0 — فلاتر التتبع/تاريخ الطلب · الترتيب الافتراضي · الألوان · النوع من الدفتر
@@ -1382,7 +1445,7 @@ console.log('\n══ ⑤-ج In-Return-Orders.html — v2.9.0 ══');
   await page.fill('.hpop [data-xfdate="reqDate|from"]', '2026-09-09');
   await page.fill('.hpop [data-xfdate="reqDate|to"]', '2026-09-09');
   is((await names()).join() === '#57002', 'من 09/09 إلى 09/09 بيطلّع #57002 بس (الباقي بلا تاريخ طلب)', (await names()).join());
-  is((await page.textContent('#qChipsSpecial')).includes('تاريخ الطلب'), 'chip «تاريخ الطلب» ظاهر');
+  is((await page.textContent('#qChipsSpecial')).includes('تاريخ [S2]'), 'chip «تاريخ [S2]» ظاهر');
   await page.fill('.hpop [data-xfdate="reqDate|from"]', '2026-09-10');
   await page.fill('.hpop [data-xfdate="reqDate|to"]', '2026-09-12');
   is((await names()).length === 0, 'نطاق مالوش أوردرات = صفر صفوف');
@@ -1427,7 +1490,9 @@ console.log('\n══ ⑤-ج In-Return-Orders.html — v2.9.0 ══');
       noag:     codes({ ...base, returnFlags: ['NO_AGREEMENT'] }),
       old:      codes({ ...base }),
       s1row:    codes({ s1: 'In-Return', s2: null, zone: 'Other_Regions', returnFlags: ['TYPE_CONFLICT'] }),
-      shipped:  codes({ ...base, s2: 'Shipped', returnFlags: ['TYPE_CONFLICT'] }, 'shipped'),
+      shipped:  ecoFlags({ ...base, s2: 'Shipped', returnFlags: ['TYPE_CONFLICT'] }, 'Shipped', 'shipped').map(f => f.code),
+      shippedS1: ecoFlags({ s1: 'Shipped', s2: null, zone: 'Other_Regions', fulfillment: 'FULFILLED', returnFlags: ['TYPE_CONFLICT'] }, 'Shipped', 'shipped').map(f => f.code),
+      ready:    ecoFlags({ ...base, s2: 'Ready', returnFlags: ['TYPE_CONFLICT'] }, 'Ready', 'ready').map(f => f.code),
     };
   });
   is(fl.none.length === 0, '`EDITED_AFTER_RETURN` لوحدها معلومة مش مراجعة (مفيش علامة)', JSON.stringify(fl.none));
@@ -1436,7 +1501,9 @@ console.log('\n══ ⑤-ج In-Return-Orders.html — v2.9.0 ══');
   is(fl.after.includes('edit_after_close'), '`EDIT_AFTER_CLOSE` ← علامة', JSON.stringify(fl.after));
   is(fl.noag.includes('no_agreement'), '`NO_AGREEMENT` ← علامة (النوع مجهول)', JSON.stringify(fl.noag));
   is(fl.old.length === 0, 'Worker قديم (بلا `returnFlags`) = صفر علامات جديدة', JSON.stringify(fl.old));
-  is(fl.s1row.length === 0 && fl.shipped.length === 0, 'الأعلام على صفوف S2 في «في طريق الرجوع» بس', JSON.stringify([fl.s1row, fl.shipped]));
+  // 🟢 v2.11.0: الأعلام على صفوف S2 في «في طريق الرجوع» و«المشحون» (اللي الـ Worker بتاعهم بيرجّع `returnFlags`) — مش «الجاهز» ولا صفوف S1
+  is(fl.s1row.length === 0 && fl.shippedS1.length === 0 && fl.ready.length === 0, 'صفوف S1 و«الجاهز» بلا أعلام دورة', JSON.stringify([fl.s1row, fl.shippedS1, fl.ready]));
+  is(fl.shipped.includes('type_conflict'), '🟢 «المشحون»: صف S2 بياخد علامة `type_conflict` كمان', JSON.stringify(fl.shipped));
 
   // ⑥ التصدير بنفس ترتيب الجدول
   is(await page.evaluate(() => { const t = qExport.toString(); const i = k => t.indexOf(`key: '${k}'`); return i('address') < i('type') && i('type') < i('tracking') && i('tracking') < i('created') && i('created') < i('reqDate') && i('reqDate') < i('packed') && i('packed') < i('flags'); }),

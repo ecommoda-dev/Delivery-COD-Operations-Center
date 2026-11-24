@@ -198,8 +198,12 @@ function ecoFlags(o, status, queue) {
         detail: 'الحالة Shipped بس شوبيفاي مسجّلة الأوردر UNFULFILLED',
         action: 'الشحنة مش مسجّلة على شوبيفاي — راجع خطوة الشحن' });
     }
-  } else if (queue === 'inreturn' && machine === 's2' && Array.isArray(o.returnFlags)) {
-    // 🔴 أعلام دورة الاستبدال/الاسترجاع من دفتر `agreements` (`in-return-orders-worker` 1.3.0 ·
+  }
+
+  // ⑦ أعلام دورة الاستبدال/الاسترجاع (S2) — **مستقلة عن فرع الطابور فوق**: «المشحون» له فرعه (بلا فلفلمنت)،
+  //    فلو الأعلام كانت `else if` في نفس السلسلة عمرها ما كانت هتتقيّم عليه.
+  if ((queue === 'inreturn' || queue === 'shipped') && machine === 's2' && Array.isArray(o.returnFlags)) {
+    // 🔴 أعلام دورة الاستبدال/الاسترجاع من دفتر `agreements` (`in-return-orders-worker` 1.3.0 و`shipped-orders-worker` 1.3.0 ·
     //    `order-lifecycle` v1.11.1 §2-D) — **بتتعلّم ومابتتحرّكش** (قاعدة 13). `EDITED_AFTER_RETURN`
     //    لوحدها معلومة مش مراجعة، فمالهاش علامة هنا. 🔴 اللي بيتشحن بيتبع **النوع النهائي**.
     const kind = o.returnKind === 'exchange' ? 'استبدال' : o.returnKind === 'return' ? 'استرجاع' : '—';
@@ -237,12 +241,12 @@ function ecoFlags(o, status, queue) {
 // ── تسمية نوع صف S2 — استبدال ولا استرجاع؟ ───────────────────
 //
 // 🔴 `order-lifecycle` قاعدة 8 (v1.11.1 · §2-D): النوع من **دفتر المبيعات** (`order.agreements`) —
-//    الـ Worker (`in-return-orders-worker` 1.3.0) بيحسبه ويرجّعه كـ`returnKind` = النوع **النهائي**
+//    الـ Worker (`in-return-orders-worker` 1.3.0 · `shipped-orders-worker` 1.3.0) بيحسبه ويرجّعه كـ`returnKind` = النوع **النهائي**
 //    لأحدث دورة: `exchange` · `return` (مؤكَّد من الدفتر). ⚠️ مش من `exchangeLineItems` ومش من S2.
 // ⚠️ `return_unconfirmed` = Worker أقدم (1.2.0) كان بيحكم من `exchangeLineItems` — والفاضية مش دليل
 //    استرجاع، فبنفضل نقول «غير مؤكد». `null` (دفتر ناقص · NO_AGREEMENT · Worker أقدم) = التسمية العامة.
-// ⚠️ **اختياري بالتصميم:** Worker مابيرجّعش `returnKind` (الجاهز · المشحون) = التسمية العامة القديمة
-//    بالظبط، فمفيش طابور تاني بيتغيّر.
+// ⚠️ **اختياري بالتصميم:** Worker مابيرجّعش `returnKind` (الجاهز · أو المشحون على Worker أقدم من 1.3.0) = التسمية
+//    العامة القديمة بالظبط.
 function ecoS2Label(o) {
   if (o.returnKind === 'exchange') return 'استبدال';
   if (o.returnKind === 'return') return 'استرجاع';
