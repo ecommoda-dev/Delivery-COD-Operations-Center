@@ -36,29 +36,205 @@
 .cn-add-row input:focus { outline: none; border-color: var(--accent); }
 .cn-add-row input.has-value { border-color: var(--accent-border); background: var(--accent-light); }
 
-/* ── القايمة ── */
+
+/* ── القايمة (v2.13.0: جدول موحّد بفلاتر رأس العمود) ── */
 .cn-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
-.cn-count { font-weight: 800; font-size: 14px; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 6px; padding: 3px 10px; }
+.cn-count { font-weight: 800; font-size: 13px; background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border-strong); border-radius: 6px; padding: 1px 9px; }
 .cn-dirty { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; margin-bottom: 10px;
   border-radius: var(--radius-sm); background: var(--amber-light); border: 1px solid var(--amber); color: var(--amber-dark); font-size: 13px; font-weight: 600; }
 .cn-dirty .grow { flex: 1; }
-
-.cn-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border);
-  border-radius: var(--radius-sm); margin-bottom: 8px; background: var(--surface); }
-.cn-item.dragging { opacity: .45; }
-.cn-item.drop-before { box-shadow: 0 -3px 0 0 var(--accent); }
-.cn-item.drop-after  { box-shadow: 0 3px 0 0 var(--accent); }
-.cn-handle { cursor: grab; color: var(--text-muted); font-size: 18px; user-select: none; padding: 0 4px; }
-.cn-num { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); min-width: 24px; text-align: center; }
-.cn-name { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+.cn-handle { cursor: grab; color: var(--text-muted); font-size: 17px; user-select: none; padding: 0 4px; }
+.cn-handle.off { cursor: not-allowed; opacity: .35; }
+.cn-num { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
 .cn-lock { font-size: 11.5px; font-weight: 700; color: var(--neutral-dark); background: var(--surface-2);
-  border: 1px solid var(--border-strong); border-radius: 12px; padding: 2px 8px; white-space: nowrap; }
+  border: 1px solid var(--border-strong); border-radius: 12px; padding: 2px 8px; white-space: nowrap; margin-inline-start: 6px; }
+tr.cn-row.dragging { opacity: .45; }
+tr.cn-row.drop-before td { box-shadow: inset 0 3px 0 0 var(--accent); }
+tr.cn-row.drop-after td  { box-shadow: inset 0 -3px 0 0 var(--accent); }
+.data-table td.nm { text-align: right; font-weight: 700; }
 .cn-mv { display: inline-flex; gap: 4px; }
-.cn-mv button, .cn-del { border: 1px solid var(--border); background: var(--surface); border-radius: 7px; cursor: pointer;
-  font-family: var(--font-body); font-size: 13px; padding: 5px 9px; }
+.cn-mv button { border: 1px solid var(--border); background: var(--surface); border-radius: 7px; cursor: pointer; font-family: var(--font-body); font-size: 13px; padding: 4px 9px; color: var(--text-primary); }
 .cn-mv button:disabled { opacity: .35; cursor: not-allowed; }
-.cn-del { color: var(--red-dark); border-color: var(--red); }
-.cn-del:disabled { opacity: .35; cursor: not-allowed; }
+.dash { color: var(--text-muted); opacity: .6; }
+.cn-yes { color: var(--green); font-size: 17px; font-weight: 800; }
+.cn-no  { font-size: 14px; }
+.cn-thumb { display: inline-flex; width: 38px; height: 38px; border-radius: 50%; overflow: hidden; background: var(--surface-2); border: 1px solid var(--border-strong); vertical-align: middle; }
+.cn-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* زرار تعديل البيانات (تصميم 4: خلفية زرقا فاتحة + قلم + «تعديل») */
+.ebtn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; font-family: var(--font-body); font-size: 12px; font-weight: 700; line-height: 1;
+  border: 1.5px solid var(--accent-border); background: var(--accent-light); color: var(--accent-dark); border-radius: var(--radius-sm); padding: 5px 11px; transition: all .15s; }
+.ebtn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ebtn:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.ebtn:disabled { opacity: .4; cursor: not-allowed; }
+.main-tab-btn .cn-count { background: var(--surface-2); }
+.q-empty { text-align: center; padding: 24px; color: var(--text-secondary); }
+.empty { padding: 30px; text-align: center; color: var(--text-secondary); font-weight: 700; }
+
+/* ── مربع الإضافة (.entry-bar — unified-entry-box.md § 5: كارت بحد علوي 3px + حقل 52px + زرار بنفس اللون) ── */
+.entry-bar { display: flex; flex-direction: column; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px 16px; margin-bottom: 14px; }
+.entry-title { font-size: 15px; font-weight: 800; }
+.scan-input-wrap { display: flex; gap: 8px; }
+.scan-input { flex: 1; width: 100%; padding: 0 14px; min-height: 52px; border: 2px solid var(--accent); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 16px;
+  background: var(--surface); color: var(--text-primary); outline: none; transition: box-shadow .15s, border-color .15s; }
+.scan-input:focus { box-shadow: 0 0 0 3px var(--focus-ring); }
+.scan-input:disabled { background: var(--surface-2); color: var(--text-secondary); }
+.entry-bar .scan-input-wrap .btn-primary { min-width: 96px; font-size: 15px; }
+.entry-bar .scan-input-wrap .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
+
+/* ══════ §TABLE-ENGINE CSS (من templates/24 — data-table-standard.md) ══════ */
+.unified-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;min-width:0}
+.clear-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;height:34px;border:1px solid var(--red-border);color:var(--red);background:var(--red-light)}
+.clear-btn:hover{background:var(--red);color:var(--on-accent);border-color:var(--red)}
+.clear-btn.inactive{border-color:var(--border);color:var(--text-muted);background:var(--surface-2);cursor:not-allowed;opacity:.6}
+.clear-btn.inactive:hover{background:var(--surface-2);color:var(--text-muted);border-color:var(--border)}
+
+/* مدخلات */
+.inp{width:100%;height:36px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:0 11px;font-size:13px;font-weight:600;color:var(--text-primary);background:var(--surface);outline:none;transition:border-color .15s,background .15s}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.inp.has-value{border-color:var(--accent);background:var(--accent-light)}
+.search-wrap{position:relative}
+.search-wrap .inp{padding-left:34px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text-muted);pointer-events:none}
+.pop{position:fixed;z-index:200;width:268px;max-width:calc(100vw - 16px);background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,.16);max-height:72vh;display:flex;flex-direction:column}
+.pop.wide{width:340px}
+.pop-hd{flex-shrink:0;padding:9px 12px;font-weight:800;font-size:12.5px;border-bottom:1px solid var(--border);background:var(--surface-2);border-radius:var(--radius-sm) var(--radius-sm) 0 0}
+.pop-hd.has-act{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-block:6px}
+.pop-body{padding:10px 12px;display:flex;flex-direction:column;gap:9px;overflow:auto;min-height:0}
+.pop-srch{padding:8px 10px 0}
+.ms-ftr-top{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border)}
+.lnk{border:none;background:none;font-size:12px;font-weight:700;cursor:pointer;color:var(--accent)}
+.lnk:hover{text-decoration:underline}
+.ms-list{overflow:auto;padding:4px}
+.ms-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12.5px;font-weight:600;user-select:none}
+.ms-item:hover{background:var(--surface-hover)}
+.ms-item .cb{width:16px;height:16px;border:1.5px solid var(--border-strong);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--on-accent);flex-shrink:0}
+.ms-item.on .cb{background:var(--accent);border-color:var(--accent)}
+.ms-item.on .cb::after{content:'✓'}
+.ms-cnt{margin-inline-start:auto;font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--text-mid);background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:0 7px}
+.rng{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rng>div{min-width:0}
+.rng label,.pop-body label{font-size:11.5px;font-weight:700;color:var(--text-mid);display:block;margin-bottom:3px}
+/* حقول التاريخ/الشهر/الوقت: الضغط في أي مكان جوه الصندوق يفتح اللوحة — مؤشر الكاليندر الأصلي ممدود على الصندوق كله (شفاف) والأيقونة مرسومة فوقه */
+.dt-wrap{position:relative;min-width:0}
+.dt-wrap .inp{position:relative;direction:ltr;min-width:0;padding:0 34px 0 10px;font-size:12.5px;cursor:pointer}
+.dt-wrap .inp::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
+.dt-ico{position:absolute;right:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--text-mid);pointer-events:none}
+.sec{display:flex;flex-direction:column;gap:5px}
+.pop-body>.sec+.sec{border-top:1px solid var(--border);padding-top:8px}
+.sec-h{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:22px}
+.sec-t{font-size:11px;font-weight:800;color:var(--text-mid)}
+.pills{display:grid;gap:5px}
+.pills.c2{grid-template-columns:repeat(2,1fr)}
+.pills.c3{grid-template-columns:repeat(3,1fr)}
+.pills.c4{grid-template-columns:repeat(4,1fr)}
+.pills.c6{grid-template-columns:repeat(6,1fr)}
+.pills button{min-height:28px;min-width:0;padding:2px;border:1px solid var(--border);background:var(--surface);border-radius:6px;font-size:12px;line-height:1.25;font-weight:600;cursor:pointer;color:var(--text-primary);transition:background .12s,border-color .12s}
+.pills.c4 button{font-size:11.5px}
+.pills button:hover{background:var(--surface-hover);border-color:var(--border-strong)}
+.pills button.on{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent-dark);font-weight:800}
+.yr-step{display:flex;align-items:center;justify-content:center;gap:4px}
+.yr-step button{width:24px;height:22px;border:1px solid var(--border);background:var(--surface);border-radius:5px;cursor:pointer;color:var(--text-mid);font-size:14px;line-height:1;font-weight:800}
+.yr-step button:hover:not(:disabled){background:var(--surface-hover);border-color:var(--border-strong)}
+.yr-step button:disabled{opacity:.35;cursor:not-allowed}
+.yr-step .yr-lbl{width:auto;min-width:68px;padding:0 10px;font-family:var(--font-mono);font-size:12.5px;font-weight:800;color:var(--text-primary)}
+.yr-step .yr-lbl.on{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent-dark)}
+.tok-row{display:flex;flex-wrap:wrap;gap:6px}
+.tok-row:empty{display:none}
+.pop-hd.has-act .clear-btn{height:26px;padding:2px 9px}
+.hint{font-size:11.5px;font-weight:600;color:var(--text-mid);line-height:1.8}
+.pop .clear-btn{height:30px;padding:4px 10px;font-size:12px}
+.pop .pop-body>.clear-btn{align-self:flex-start}
+
+/* Chips — اسم الفلتر مرة واحدة في أول السطر */
+.chips-zone{display:flex;flex-direction:column;gap:6px}
+.chips-zone.pad{padding:10px 16px;border-top:1px solid var(--border)}
+.chips-zone:empty{display:none}
+.ms-chips-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chips-label{font-size:11.5px;font-weight:700;color:var(--text-mid);white-space:nowrap}
+.ms-chip{display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);border:1px solid var(--accent-border);color:var(--accent-dark);border-radius:20px;padding:2px 4px 2px 10px;font-size:12px;font-weight:700}
+.ms-chip button{border:none;background:var(--accent-border);color:var(--accent-dark);width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:10px;line-height:1}
+.ms-chip button:hover{background:var(--accent);color:var(--on-accent)}
+
+/* صف النتائج */
+.tbl-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--surface-2);cursor:pointer;user-select:none;flex-wrap:wrap;border-radius:var(--radius) var(--radius) 0 0}
+.tbl-bar:hover{background:var(--surface-hover)}
+.tbl-bar-right,.tbl-bar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tbl-toggle{font-size:13px;color:var(--text-muted);transition:transform .25s}
+.tbl-toggle.open{transform:rotate(180deg)}
+.results-wrap{display:flex;align-items:center;gap:8px}
+.results-label{font-size:14px;font-weight:800;white-space:nowrap}
+.results-count{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:34px;padding:0 10px;font-family:var(--font-mono);font-size:17px;font-weight:800;color:var(--purple);background:var(--purple-light);border:1.5px solid var(--purple-border);border-radius:var(--radius-sm)}
+.upd{font-size:12px;font-weight:600;color:var(--text-mid)}
+/* تثبيت العناوين — سكرول داخلي */
+.tbl-scroll{max-height:68vh;overflow:auto}
+.tbl-body-wrap{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:1fr;transition:grid-template-rows .3s ease}
+.tbl-body-wrap>*{min-height:0;min-width:0}
+.tbl-body-wrap.collapsed{grid-template-rows:0fr;overflow:hidden}
+.tbl-body-wrap.collapsed>*{overflow:hidden}
+
+/* الجدول */
+.data-table{width:100%;border-collapse:collapse;table-layout:auto;font-size:var(--td-size)}
+.data-table.auto{table-layout:auto}
+.data-table thead th{position:sticky;top:0;z-index:20;background:var(--surface-2);color:var(--th-color);font-weight:var(--th-weight);font-size:var(--th-size);letter-spacing:.3px;text-transform:uppercase;padding:10px 6px;text-align:center;white-space:normal;box-shadow:inset 0 -2px 0 var(--border-strong)}
+.data-table tbody td{text-align:center;padding:9px 6px;border-bottom:1px solid var(--border);white-space:normal;overflow-wrap:anywhere;font-size:var(--td-size);font-weight:var(--td-weight)}
+.data-table thead th,.data-table tbody td{border-inline-start:1px solid var(--border)}
+.data-table thead th:first-child,.data-table tbody td:first-child{border-inline-start:none}
+.data-table tbody tr:hover{background:var(--surface-2)}
+.col-num{font-family:var(--font-mono);direction:ltr;white-space:nowrap}
+.th-in{display:inline-flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px;max-width:100%}
+.th-label{cursor:pointer;user-select:none;padding:2px 4px;border-radius:5px;transition:background .12s,color .12s}
+.th-label:hover{background:var(--accent-light);color:var(--accent-dark)}
+th.sorted .th-label{background:var(--accent-light);color:var(--accent-dark)}
+.sort-icon{display:inline-block;font-size:10px;color:var(--accent);font-weight:900}
+.sort-icon.active{margin-inline-start:4px}
+.th-flt{min-width:22px;height:22px;padding:0 3px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:800}
+.th-flt svg{width:14px;height:14px}
+.th-flt:hover{background:var(--accent-light);color:var(--accent)}
+th.flt-on .th-flt{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent)}
+.tip{position:fixed;z-index:210;max-width:300px;background:var(--neutral-dark);color:var(--on-accent);font-size:12px;font-weight:600;line-height:1.7;padding:6px 10px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.2);pointer-events:none;word-break:break-word}
+
+/* إضافات: باهت للتبادل · اقتراحات · تصاميم الوقت */
+.sec[data-sec]{transition:opacity .15s}
+.sec.dim{opacity:.4}
+.sec.dim:hover{opacity:.8}
+.sugg{border:1px solid var(--border);border-radius:var(--radius-sm);max-height:236px;overflow:auto;padding:3px}
+.sugg:empty{display:none}
+.ms-item.sg.act{background:var(--accent-light)}
+.sg-s{font-size:11px;font-weight:600;color:var(--text-mid)}
+.sg-more,.sg-empty{padding:6px 8px;font-size:11.5px;font-weight:600;color:var(--text-mid)}
+.sl-lbl{font-size:12.5px;font-weight:600;text-align:center}
+.sl-lbl b{font-weight:800;color:var(--accent-dark)}
+.dual{position:relative;height:26px;direction:rtl;margin-top:4px}
+.dual-track{position:absolute;left:0;right:0;top:11px;height:4px;border-radius:4px;background:var(--border-strong)}
+.dual-fill{position:absolute;top:0;bottom:0;background:var(--accent);border-radius:4px}
+.dual input[type=range]{position:absolute;left:0;top:0;width:100%;height:26px;margin:0;padding:0;background:transparent;pointer-events:none;-webkit-appearance:none;appearance:none;border:none;outline:none}
+.dual input[type=range]::-webkit-slider-runnable-track{height:26px;background:transparent}
+.dual input[type=range]::-moz-range-track{height:26px;background:transparent}
+.dual input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;pointer-events:auto;width:18px;height:18px;margin-top:4px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:grab}
+.dual input[type=range]::-moz-range-thumb{pointer-events:auto;width:14px;height:14px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:grab}
+.dual input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--accent);outline-offset:2px}
+
+/* حقل وقت مخصص + قايمة اختيار ساعة/دقيقة (بدل لوحة المتصفح الدايرية) */
+.tf-btn{display:flex;align-items:center;justify-content:flex-start;text-align:left;cursor:pointer;direction:ltr;font-family:var(--font-mono)}
+.tf-btn.open{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.tf-v.ph{color:var(--text-muted);font-weight:600}
+.tf-warn{font-size:11.5px;font-weight:700;color:var(--red-dark)}
+.tf-warn:empty{display:none}
+.tp{position:fixed;z-index:205;width:180px;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,.2);direction:ltr}
+.tp-cols{display:flex;align-items:flex-start;padding:8px 8px 0}
+.tp-col{flex:1;min-width:0}
+.tp-sep{align-self:center;font-weight:800;font-size:15px;color:var(--text-mid);padding:0 3px;margin-top:24px}
+.tp-hd{display:flex;align-items:center;justify-content:center;gap:5px;font-size:11.5px;font-weight:800;color:var(--text-mid);padding-bottom:5px;direction:rtl}
+.tp-hd small{font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--accent-dark);background:var(--accent-light);border:1px solid var(--accent-border);border-radius:8px;padding:0 5px}
+.tp-list{position:relative;height:168px;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--border);border-radius:6px;padding:2px}
+.tp-it{display:block;width:100%;height:28px;border:none;background:none;border-radius:5px;font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--text-primary);cursor:pointer}
+.tp-it:hover{background:var(--surface-hover)}
+.tp-it.on{background:var(--accent);color:var(--on-accent)}
+.tp-ft{display:flex;justify-content:space-between;align-items:center;padding:6px 8px 8px;direction:rtl}
+.tp-done{border:1px solid var(--accent-border);background:var(--accent-light);color:var(--accent-dark);border-radius:6px;padding:3px 14px;font-size:12px;font-weight:800;cursor:pointer}
+.tp-done:hover{background:var(--accent-border)}
+.data-table tbody td{vertical-align:middle}
 
 /* ── نتيجة العملية — أربع حالات ── */
 .cn-result { padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 13.5px; }
@@ -77,16 +253,11 @@
   background: var(--amber-light); border: 1px solid var(--amber); color: var(--amber-dark); }
 .cn-banner.bad { background: var(--red-light); border-color: var(--red); color: var(--red-dark); }
 
-/* ── جدول آخر التعديلات ── */
-.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-.data-table th, .data-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: right; vertical-align: top; }
-.data-table th { background: var(--surface-2); font-weight: 700; border-bottom: 2px solid var(--border); }
 .result-chip { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
 .result-chip.success { background: var(--green-light); color: var(--green-dark); }
 .result-chip.warning { background: var(--amber-light); color: var(--amber-dark); }
 .result-chip.error   { background: var(--red-light); color: var(--red-dark); }
 .result-chip.rejected, .result-chip.already { background: var(--surface-2); color: var(--neutral-dark); }
-.q-empty { text-align: center; padding: 24px; color: var(--text-secondary); }
 
 /* ── محتوى نافذة التأكيد — الـ shell مالوش نافذة تأكيد خالص ── */
 .confirm-lines { text-align: right; margin: 10px 0; padding: 0; list-style: none; }
@@ -101,14 +272,7 @@
   overflow: hidden; }
 .cn-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .cn-av.lg { width: 96px; height: 96px; font-size: 34px; }
-.cn-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.cn-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--text-secondary); }
 .cn-ph { font-family: var(--font-mono); direction: ltr; unicode-bidi: embed; }
-.cn-miss { font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px; background: var(--amber-light); color: var(--amber-dark); border: 1px solid var(--amber); white-space: nowrap; }
-.cn-full { font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 8px; background: var(--green-light); color: var(--green-dark); border: 1px solid var(--green); white-space: nowrap; }
-.cn-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-.cn-filter button { border: 1px solid var(--border-strong); background: var(--surface); border-radius: 16px; padding: 4px 12px; font-size: 12px; cursor: pointer; font-family: var(--font-body); }
-.cn-filter button.on { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); font-weight: 700; }
 .pm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
 @media (max-width: 560px) { .pm-grid { grid-template-columns: 1fr; } }
 .pm-field label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
@@ -135,36 +299,31 @@
 
 <div class="container">
 
-  <div id="cnResult"></div>
-
-  <div class="card">
-    <h3>➕ إضافة مندوب</h3>
-    <div class="cn-sub">الاسم الجديد بيتضاف <b>في آخر القايمة</b> — رتّبه بعدها لو عايزه في مكان تاني.</div>
-    <div class="cn-add-row">
-      <input type="text" id="cnAddInput" maxlength="60" autocomplete="off" aria-label="اسم المندوب الجديد">
-      <button class="btn btn-primary" id="cnAddBtn">إضافة</button>
-    </div>
+  <div class="main-tabs-bar">
+    <button class="main-tab-btn active" id="tabCouriers" onclick="switchMainTab('couriers')">🛵 المناديب <span class="cn-count" id="cnCount">—</span></button>
+    <button class="main-tab-btn" id="tabLog" onclick="switchMainTab('log')">🧾 سجل العمليات</button>
   </div>
 
-  <div class="card">
-    <div class="cn-head">
-      <h3 style="margin:0;">🛵 قايمة المناديب <span class="cn-count" id="cnCount">—</span></h3>
-      <button class="btn btn-outline btn-sm" id="cnReloadBtn">↺ تحديث</button>
+  <!-- ══════════════ §COURIERS ══════════════ -->
+  <div id="couriersTabContent">
+    <div id="cnResult"></div>
+
+    <div class="entry-bar">
+      <div class="entry-title">➕ إضافة مندوب</div>
+      <div class="scan-input-wrap">
+        <button class="btn btn-primary" id="cnAddBtn" disabled>إضافة</button>
+        <input type="text" class="scan-input" id="cnAddInput" maxlength="60" autocomplete="off" aria-label="اسم المندوب الجديد">
+      </div>
     </div>
+
     <div id="cnBanner"></div>
-    <div id="cnFilter" class="cn-filter"></div>
     <div id="cnDirty" style="display:none;"></div>
-    <div id="cnList"><div class="q-empty">⏳ جاري تحميل القايمة...</div></div>
+    <div id="cnTable"></div>
   </div>
 
-  <div class="card">
-    <h3>🧾 آخر التعديلات</h3>
-    <div style="overflow-x:auto;">
-      <table class="data-table">
-        <thead><tr><th>الوقت</th><th>الفعل</th><th>النتيجة</th><th>الموظف</th><th>تفاصيل</th></tr></thead>
-        <tbody id="cnLogBody"><tr><td colspan="5" class="q-empty">—</td></tr></tbody>
-      </table>
-    </div>
+  <!-- ══════════════ §LOG ══════════════ -->
+  <div id="logTabContent" style="display:none;">
+    <div id="cnLogTable"></div>
   </div>
 </div>
 
@@ -178,7 +337,20 @@
     <div class="eco-modal-body">
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.12.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.13.0</span>
+          <span class="cl-ver-date">24-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🗂️ <b>تابين:</b> «المناديب» و«سجل العمليات» (زي باقي الأدوات).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>📋 <b>قايمة المناديب بقت جدول:</b> المندوب · تليفون أساسي · تليفون إضافي · صورة (الصورة نفسها أو ❌) · رقم قومي (✔ أو ❌) · ترتيب · تعديل. من غير دايرة الحرف قبل الاسم ومن غير عمود «الاكتمال».</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span>🔍 <b>فلاتر وترتيب في رأس كل عمود</b> (المعيار الموحّد): اسم · تليفونين (توكنز بـ Enter + اقتراحات) · صورة · رقم قومي. وجدول السجل: تاريخ · وقت · فعل · نتيجة · موظف · تفاصيل. الفلاتر والترتيب للعرض بس — <b>أسهم/سحب الترتيب بتقفل</b> طول ما فيه فلتر أو ترتيب مفعّل.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>✎ زرار «تعديل» بدل «بيانات» (خلفية زرقا فاتحة + قلم) · مربع إضافة المندوب بتصميم الإدخال الموحّد · اتشالت جملتين الشرح من الهيدر ومن فوق المربع.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>⛔ <b>اتشال حذف المندوب من الأداة</b> (إضافة وترتيب وبيانات بس). ⚠️ نداء <code>remove_courier</code> لسه موجود في الـ Worker لكن الصفحة مابتناديهوش.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v2.12.0</span>
           <span class="cl-ver-date">24-11-2026</span>
         </div>
         <ul class="cl-items">
@@ -212,10 +384,9 @@
         <div class="about-sec-body">
           <p>بتعدّل <b>قايمة الاختيار</b> بتاعة ميتافيلد الأوردرات <code>custom.courier</code>
              (Settings → Custom data → Orders → Courier) — دي القايمة اللي بتظهر لما حد
-             يختار مندوب على أوردر. ثلاث أفعال بس:</p>
+             يختار مندوب على أوردر. فعلين بس على القايمة:</p>
           <ul>
             <li><b>إضافة مندوب</b> — بيتضاف في آخر القايمة.</li>
-            <li><b>حذف مندوب</b> — بيتعرض عدد أوردراته النشطة قبل التأكيد.</li>
             <li><b>تغيير الترتيب</b> — سحب الصف أو الأسهم، وبعدها «حفظ الترتيب».</li>
           </ul>
           <p>⛔ <b>مفيش تعديل اسم</b> — اسم جديد معناه قيمة جديدة، والأوردرات القديمة بتفضل
@@ -226,10 +397,10 @@
         <summary>👤 بيانات المندوب (D1)</summary>
         <div class="about-sec-body">
           <ul>
-            <li>زرار «👤 بيانات» على كل مندوب: <b>تليفون أساسي</b> · <b>تليفون إضافي</b> (موبايل مصري) · <b>صورة</b> (بتتصغّر ٢٥٦px) · <b>الرقم القومي</b>.</li>
+            <li>زرار «✎ تعديل» على كل مندوب: <b>تليفون أساسي</b> · <b>تليفون إضافي</b> (موبايل مصري) · <b>صورة</b> (بتتصغّر ٢٥٦px) · <b>الرقم القومي</b>.</li>
             <li>البيانات مربوطة <b>بالاسم</b> زي ما هو في الميتافيلد. القايمة والترتيب من شوبيفاي — البيانات بتتحفظ في D1 بس.</li>
             <li>🔒 <b>الرقم القومي</b> محمي بالـ PIN بتاعك في كل مرة (فتح · إدخال · تعديل · حذف)، وكل عملية بتتسجّل باسمك من غير الرقم. بيتخفى بعد ٣٠ ثانية. ٥ PIN غلط = قفل ١٠ دقايق.</li>
-            <li><b>الحذف</b> من القايمة مابيمسحش بيانات المندوب — بتفضل محفوظة. ولو رجّعت نفس الاسم بيرجع بروفايله القديم مع تنبيه، <b>اتأكد إنه نفس الشخص</b>.</li>
+            <li>مفيش حذف مندوب من الأداة. لو اتشال اسم من شوبيفاي بره الأداة بتفضل بياناته محفوظة، وبيرجع بروفايله القديم مع تنبيه لو اتضاف تاني — <b>اتأكد إنه نفس الشخص</b>.</li>
             <li>«Bosta» و«Showroom» مالهمش بيانات شخصية.</li>
             <li>باقي أدوات المركز (وأي هب تاني) بتقدر تقرا التليفونات والصورة من الـ D1 — <b>الرقم القومي مقصور على الأداة دي</b>.</li>
             <li>⚠️ لو شاشة البيانات اتفتحت وحد تاني عدّل نفس المندوب، الحفظ بيترفض «اتعدّلت من حد تاني» — حدّث وأعد.</li>
@@ -240,15 +411,13 @@
         <summary>⚠️ لازم تعرف</summary>
         <div class="about-sec-body">
           <ul>
-            <li><b>حذف اسم مابيمسحش القيمة من الأوردرات</b> اللي عليه — شوبيفاي بتعلّمها «غير صالحة»
-                لحد ما حد يعدّلها. عشان كده بنعرض عدد الأوردرات النشطة (<code>Ready</code> ·
-                <code>Shipped</code> · <code>In-Return</code>) قبل التأكيد.</li>
             <li><b>«Bosta» و«Showroom» أسماء نظامية</b> — الشاشة الرئيسية بتجمّع المناديب بالاسم ده،
-                وأدوات بوسطة بتعتمد عليه. حذفهم بيكسر التجميع في صمت، فمابيتحذفوش من هنا.</li>
+                وأدوات بوسطة بتعتمد عليه، ومالهمش بيانات شخصية.</li>
+            <li><b>الفلاتر والترتيب في الجدول للعرض بس</b> — ترتيب القايمة الحقيقي من شوبيفاي. عشان كده الأسهم
+                والسحب بيقفلوا طول ما فيه فلتر أو ترتيب مفعّل («مسح كل الفلاتر» بيفتحهم).</li>
             <li><b>أي مندوب جديد بيتحسب «مناديب»</b> في تجميع الشاشة الرئيسية — مجموعة بوسطة وشو روم بالاسم بس.</li>
             <li>القايمة بتتقرا من شوبيفاي <b>في كل فتح</b>، وكل فعل بيشتغل على القايمة الحالية — تعديل
                 موظف تاني مابيتمسحش. وبعد كل كتابة بنعيد القراءة ونتأكد.</li>
-            <li>الأرقام المعروضة للأوردرات النشطة بتتحسب لـ <b>S1 بس</b>.</li>
           </ul>
         </div>
       </details>
@@ -258,9 +427,10 @@
           <ul>
             <li>§CONFIG — <code>ECO_WORKERS.couriers</code> (في <code>shared/hub-config.js</code>) · الجلسة والسر من الـ shell.</li>
             <li>§LIST — عرض القايمة · السحب · الأسهم · «حفظ الترتيب».</li>
-            <li>§ACTIONS — <code>add_courier</code> · <code>remove_courier</code> (بعد <code>courier_usage</code>) · <code>reorder_couriers</code>.</li>
+            <li>§ACTIONS — <code>add_courier</code> · <code>reorder_couriers</code> (مفيش <code>remove_courier</code> من الصفحة).</li>
             <li>§PROFILE — مودال البيانات · تصغير الصورة (<code>createImageBitmap</code> → canvas) · مودال الـ PIN (<code>withPin</code>) · <code>reveal_national_id</code> / <code>set_national_id</code>.</li>
-            <li>§LOG — <code>get_logs</code> (آخر ٣٠ تعديل).</li>
+            <li>§TABLE-ENGINE — <code>ecoCreateTable()</code>: جدول موحّد بفلاتر رأس العمود (قيم · توكنز · تاريخ · وقت) + ترتيب، لجدولين: المناديب والسجل.</li>
+            <li>§LOG — <code>get_logs</code> (آخر ١٠٠ تعديل) · §TABS — <code>switchMainTab</code>.</li>
           </ul>
           <p>الـ Worker: <code>courier-names-worker</code> في ريبو <code>Courier-Names</code> —
              Worker وبس، والصفحة دي هي النسخة الوحيدة.</p>
@@ -365,6 +535,477 @@ const PAGE_WORKERS = ['couriers'];
 //    العام، وإعادة تعريف `const`/`let` بنفس الاسم بتقتل سكربت الصفحة كله.
 
 // ══════════════════════════════════════════════════════
+// §TABLE-ENGINE — القسم الموحّد: جدول + فلاتر في رأس العمود (data-table-standard.md v8.6.0)
+// ══════════════════════════════════════════════════════
+// 🔴 نسخة «مصنع»: كل جدول له حالته وقائمته العائمة، والـ listeners على document بتفحص إن الهدف جوّه جدولها.
+//    أنواع الفلاتر: ms (قيم متعددة) · q (توكنز بـ Enter + اقتراحات) · date · time.
+//    ⛔ مفيش عمود رقمي هنا (مفيش فلتر نطاق). ⛔ مفيش سحب لعرض الأعمدة (§ 9ب — مُستحسن مش كاسر) — الخلايا بتلتف.
+const TB_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const TB_PRESETS = { today:'اليوم', yesterday:'أمس', last3:'آخر 3 أيام', last7:'آخر 7 أيام', last14:'آخر 14 يوم', last21:'آخر 21 يوم', last30:'آخر 30 يوم', last60:'آخر 60 يوم', last90:'آخر 90 يوم', thisMonth:'الشهر الحالي', lastMonth:'الشهر السابق', thisYear:'العام الحالي', lastYear:'العام السابق' };
+const TB_FUNNEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z"/></svg>';
+const TB_ICO_CAL = '<svg class="dt-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+const TB_ICO_CLK = '<svg class="dt-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const tbPad = (n) => String(n).padStart(2, '0');
+function tbDay(d) { const p = cairoParts(d); return `${p.year}-${p.month}-${p.day}`; }       // yyyy-mm-dd بتوقيت القاهرة
+function tbHM(d)  { const p = cairoParts(d); return `${p.hour}:${p.minute}`; }              // HH:MM (24 ساعة) بتوقيت القاهرة
+function tbAddDays(s, n) { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10); }
+function tbFmtD(v) { if (!v) return '—'; const p = String(v).split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : v; }
+const tbH2M = (s) => { const [h, m] = String(s).split(':').map(Number); return h * 60 + m; };
+const tbM2H = (m) => `${tbPad(Math.floor(m / 60))}:${tbPad(m % 60)}`;
+const tbFT  = (v) => { const [h, m] = String(v).split(':').map(Number); return `${tbPad(h % 12 || 12)}:${tbPad(m)} ${h < 12 ? 'ص' : 'م'}`; };       // 12 ساعة قصير
+const tbFTL = (v) => { if (!v) return '—'; const [h, m] = String(v).split(':').map(Number); return `${tbPad(h % 12 || 12)}:${tbPad(m)} ${h >= 12 ? 'مساءً' : 'صباحاً'}`; };
+const tbMLbl = (m) => m >= 1440 ? 'نهاية اليوم' : tbFTL(tbM2H(m));
+function tbLatin(s) { return String(s).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)); }
+function tbNorm(s) {   // همزات→ا · ى→ي · ة→ه · شيل التشكيل والتطويل · أرقام عربي→إنجليزي
+  return tbLatin(String(s).toLowerCase()).replace(/[ً-ٰٟـ]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/\s+/g, ' ').trim();
+}
+const tbParts = (v) => tbLatin(v).split(/\D+/).filter(Boolean);
+function tbMonthRange(y, m) { return [`${y}-${tbPad(m)}-01`, `${y}-${tbPad(m)}-${tbPad(new Date(Date.UTC(y, m, 0)).getUTCDate())}`]; }
+
+/* cfg: { mount, cols:[{k,l,flt:'ms'|'q'|'date'|'time',nosort}], rows(), rowHtml(r), val:{k:r=>string}, qmode:{k:'words'|'digits'},
+          date:{k:r=>'YYYY-MM-DD'}, time:{k:r=>'HH:MM'}, sort:{k:r=>مقارن}, barBtns, onAction(name), onRendered(), emptyText } */
+function ecoCreateTable(cfg) {
+  const COLS = cfg.cols, root = document.getElementById(cfg.mount);
+  const $ = (s) => root.querySelector(s);
+  const FL = {}; COLS.forEach(c => { FL[c.k] = c.l; });
+  const typeOf = (k) => (COLS.find(c => c.k === k) || {}).flt || null;
+  const keysOf = (t) => COLS.filter(c => c.flt === t).map(c => c.k);
+  const MS_KEYS = keysOf('ms'), Q_KEYS = keysOf('q'), DATE_KEYS = keysOf('date'), TIME_KEYS = keysOf('time');
+  const SEARCH_MIN = 10;   // مربع البحث في قوائم القيم من 10 قيم فأكتر
+  const qmode = (k) => (cfg.qmode && cfg.qmode[k]) || 'words';
+  const newDate = () => ({ preset: '', from: '', to: '', month: '' });
+  const st = { ms: {}, q: {}, tok: {}, date: {}, tm: {}, sort: { key: null, dir: null } };
+  MS_KEYS.forEach(k => { st.ms[k] = new Set(); });
+  Q_KEYS.forEach(k => { st.q[k] = ''; st.tok[k] = []; });
+  DATE_KEYS.forEach(k => { st.date[k] = newDate(); });
+  TIME_KEYS.forEach(k => { st.tm[k] = { from: '', to: '' }; });
+  let ALL = [], qSpec = {};
+  let pop = null, popKey = null, popAnchor = null, popQ = '', popYear = 0, suggIdx = -1;
+  let tpEl = null, tpWhich = null, tpAnchor = null, tpM = null, tipEl = null;
+  const curYear = () => +tbDay(new Date()).slice(0, 4);
+
+  /* ── ترتيب البيانات للبحث: كل صف بيتجهّز مرة ── */
+  function prep() {
+    ALL = cfg.rows();
+    ALL.forEach(r => {
+      r._n = {}; r._d = {}; r._day = {}; r._hm = {};
+      Q_KEYS.forEach(k => { const v = cfg.val[k](r) || ''; r._n[k] = tbNorm(v); r._d[k] = tbLatin(v).replace(/\D/g, ''); });
+      DATE_KEYS.forEach(k => { r._day[k] = cfg.date[k](r) || ''; });
+      TIME_KEYS.forEach(k => { r._hm[k] = cfg.time[k](r) || ''; });
+    });
+  }
+  function itemsFor(k) {
+    const m = new Map();
+    ALL.forEach(r => { const v = cfg.val[k](r); m.set(v, (m.get(v) || 0) + 1); });
+    return [...m.entries()].map(([v, c]) => ({ v, c })).sort((x, y) => x.v.localeCompare(y.v, 'ar'));
+  }
+  const qClean = (k) => qmode(k) === 'digits' ? tbLatin(st.q[k]).replace(/\D/g, '') : tbNorm(st.q[k]);
+  const qOn = (k) => st.tok[k].length > 0 || !!qClean(k);
+  function buildQ() {
+    qSpec = {};
+    Q_KEYS.forEach(k => {
+      qSpec[k] = qmode(k) === 'digits'
+        ? { digits: [...st.tok[k], ...tbParts(st.q[k])] }
+        : { groups: [...st.tok[k], st.q[k]].map(g => tbNorm(g).split(' ').filter(Boolean)).filter(a => a.length) };
+    });
+  }
+  function commitTok(k) {   // Enter = ضيف المكتوب كتوكن (chip) وفضّي الحقل
+    let added = false;
+    if (qmode(k) === 'digits') { tbParts(st.q[k]).forEach(n => { added = true; if (!st.tok[k].includes(n)) st.tok[k].push(n); }); }
+    else { const v = st.q[k].trim().replace(/\s+/g, ' '), n = tbNorm(v); if (n) { added = true; if (!st.tok[k].some(t => tbNorm(t) === n)) st.tok[k].push(v); } }
+    if (!added) return false;
+    st.q[k] = ''; buildPop(); applyFilters();
+    const f = pop && pop.querySelector('[data-autofocus]'); if (f) f.focus();
+    return true;
+  }
+  /* اقتراحات أثناء الكتابة — الضغط عليها بيضيفها كتوكن */
+  function suggItems(k) {
+    if (qmode(k) === 'digits') {
+      const ps = tbParts(st.q[k]), p = ps[ps.length - 1]; if (!p) return { items: [], more: 0 };
+      const done = new Set(st.tok[k]), m = new Map();
+      ALL.forEach(r => { const d = r._d[k]; if (d && d.includes(p) && !done.has(d)) { const e = m.get(d) || { t: cfg.val[k](r), c: 0 }; e.c++; m.set(d, e); } });
+      const all = [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+      return { items: all.slice(0, 10).map(([d, e]) => ({ v: d, t: e.t, c: e.c })), more: Math.max(0, all.length - 10) };
+    }
+    const q = tbNorm(st.q[k]); if (!q) return { items: [], more: 0 };
+    const ws = q.split(' ').filter(Boolean), m = new Map(), done = new Set(st.tok[k].map(tbNorm));
+    ALL.forEach(r => { if (ws.every(w => r._n[k].includes(w))) { const v = cfg.val[k](r); m.set(v, (m.get(v) || 0) + 1); } });
+    const all = [...m.entries()].filter(([n]) => !done.has(tbNorm(n))).sort((a, b) => a[0].localeCompare(b[0], 'ar'));
+    return { items: all.slice(0, 10).map(([n, c]) => ({ v: n, t: n, c })), more: Math.max(0, all.length - 10) };
+  }
+  function suggHtml(k) {
+    if (!qClean(k)) return '';
+    const { items, more } = suggItems(k);
+    if (!items.length) return '<div class="sg-empty">مفيش اقتراحات — Enter بيضيف اللي كتبته كبحث جزئي</div>';
+    return items.map((i, n) => `<div class="ms-item sg ${n === suggIdx ? 'act' : ''}" data-sg="${n}" data-sgv="${esc(i.v)}"><span>${esc(i.t)}</span>${i.c ? `<span class="ms-cnt">${i.c}</span>` : ''}</div>`).join('')
+      + (more ? `<div class="sg-more">+${more} أخرى — كمّل الكتابة لتضييق النتائج</div>` : '');
+  }
+  function renderSugg() { const el = pop && pop.querySelector('.sugg'); if (el) { el.innerHTML = suggHtml(popKey); place(); } }
+  function markSugg() { if (!pop) return; pop.querySelectorAll('[data-sg]').forEach((b, n) => { b.classList.toggle('act', n === suggIdx); if (n === suggIdx) b.scrollIntoView({ block: 'nearest' }); }); }
+  function pickSugg(k, v) {
+    if (qmode(k) === 'digits') { const ps = tbParts(st.q[k]); ps.slice(0, -1).concat(v).forEach(n => { if (!st.tok[k].includes(n)) st.tok[k].push(n); }); }
+    else if (!st.tok[k].some(t => tbNorm(t) === tbNorm(v))) st.tok[k].push(v);
+    st.q[k] = ''; suggIdx = -1; buildPop(); applyFilters();
+    const f = pop && pop.querySelector('[data-autofocus]'); if (f) f.focus();
+  }
+  /* الوقت: من/إلى كنص HH:MM (فاضي = بداية/نهاية اليوم) */
+  const tmCount = (k) => (st.tm[k].from || st.tm[k].to) ? 1 : 0;
+  const tmRange = (a) => `من 🕐 ${a.from ? tbFTL(a.from) : 'بداية اليوم'} إلى 🕐 ${a.to ? tbFTL(a.to) : 'نهاية اليوم'}`;
+  function tmPass(k, r) { const a = st.tm[k], hm = r._hm[k]; if (a.from && hm < a.from) return false; if (a.to && hm > a.to) return false; return true; }
+  function pass(r) {
+    for (const k of MS_KEYS) { const s = st.ms[k]; if (s.size && !s.has(cfg.val[k](r))) return false; }
+    for (const k of Q_KEYS) {
+      const sp = qSpec[k];
+      if (sp.digits) { if (sp.digits.length && !sp.digits.some(t => r._d[k].includes(t))) return false; }
+      else if (sp.groups.length && !sp.groups.some(g => g.every(t => r._n[k].includes(t)))) return false;
+    }
+    for (const k of DATE_KEYS) { const d = st.date[k]; if (d.from && r._day[k] < d.from) return false; if (d.to && r._day[k] > d.to) return false; }
+    for (const k of TIME_KEYS) if (!tmPass(k, r)) return false;
+    return true;
+  }
+  function activeCount(k) {
+    const ty = typeOf(k);
+    if (ty === 'ms') return st.ms[k].size;
+    if (ty === 'q') return st.tok[k].length + (qClean(k) ? 1 : 0);
+    if (ty === 'date') return (st.date[k].from || st.date[k].to) ? 1 : 0;
+    if (ty === 'time') return tmCount(k);
+    return 0;
+  }
+  /* ⚠️ !!value مش !== null — undefined !== null = true */
+  function anyFilterActive() {
+    return MS_KEYS.some(k => st.ms[k].size > 0) || Q_KEYS.some(k => qOn(k))
+      || DATE_KEYS.some(k => !!st.date[k].from || !!st.date[k].to) || TIME_KEYS.some(k => tmCount(k) > 0);
+  }
+  const isViewActive = () => anyFilterActive() || !!st.sort.key;
+  const resetDate = (k) => { st.date[k] = newDate(); };
+  function clearAll() {
+    MS_KEYS.forEach(k => st.ms[k].clear());
+    Q_KEYS.forEach(k => { st.q[k] = ''; st.tok[k] = []; });
+    DATE_KEYS.forEach(resetDate); TIME_KEYS.forEach(k => { st.tm[k] = { from: '', to: '' }; });
+    closePop(); syncInputs(); applyFilters();
+  }
+  function setPreset(k, p) {
+    const t = tbDay(new Date()), Y = +t.slice(0, 4), M = +t.slice(5, 7), d = st.date[k];
+    let r;
+    if (p === 'today') r = [t, t];
+    else if (p === 'yesterday') { const y = tbAddDays(t, -1); r = [y, y]; }
+    else if (p === 'last3') r = [tbAddDays(t, -2), t];
+    else if (p === 'last7') r = [tbAddDays(t, -6), t];
+    else if (p === 'last14') r = [tbAddDays(t, -13), t];
+    else if (p === 'last21') r = [tbAddDays(t, -20), t];
+    else if (p === 'last30') r = [tbAddDays(t, -29), t];
+    else if (p === 'last60') r = [tbAddDays(t, -59), t];
+    else if (p === 'last90') r = [tbAddDays(t, -89), t];
+    else if (p === 'thisMonth') r = tbMonthRange(Y, M);
+    else if (p === 'lastMonth') r = M === 1 ? tbMonthRange(Y - 1, 12) : tbMonthRange(Y, M - 1);
+    else if (p === 'thisYear') r = [`${Y}-01-01`, `${Y}-12-31`];
+    else r = [`${Y - 1}-01-01`, `${Y - 1}-12-31`];
+    d.preset = p; d.month = ''; d.from = r[0]; d.to = r[1];
+  }
+  function setMonth(k, v) {   // «شهر محدد» = الشهر التقويمي كامل · «عام محدد» = السنة كلها
+    const d = st.date[k]; d.preset = '';
+    if (/^\d{4}-\d{2}$/.test(v)) { const r = tbMonthRange(+v.slice(0, 4), +v.slice(5, 7)); d.month = v; d.from = r[0]; d.to = r[1]; }
+    else if (/^\d{4}$/.test(v)) { d.month = v; d.from = `${v}-01-01`; d.to = `${v}-12-31`; }
+    else { d.month = ''; d.from = ''; d.to = ''; }
+  }
+  const dateLabel = (d) => d.preset ? TB_PRESETS[d.preset] : d.month ? (d.month.length === 4 ? `عام ${d.month}` : `${TB_MONTHS[+d.month.slice(5) - 1]} ${d.month.slice(0, 4)}`) : `من 📅 ${tbFmtD(d.from)} إلى 📅 ${tbFmtD(d.to)}`;
+
+  /* ── الترتيب: 3 حالات، مستقل عن الفلاتر ── */
+  function toggleSort(k) {
+    if (st.sort.key !== k) st.sort = { key: k, dir: 'asc' };
+    else if (st.sort.dir === 'asc') st.sort.dir = 'desc';
+    else st.sort = { key: null, dir: null };
+    applyFilters();
+  }
+  function sortRows(rows) {
+    if (!st.sort.key) return rows;
+    const g = cfg.sort[st.sort.key], d = st.sort.dir === 'asc' ? 1 : -1;
+    return [...rows].sort((a, b) => { const x = g(a), y = g(b); return (typeof x === 'string' ? x.localeCompare(y, 'ar') : x - y) * d; });   // [...rows] مش rows.sort()
+  }
+
+  /* ── البنية ── */
+  function buildThead() {
+    return '<tr>' + COLS.map(c => `<th data-col="${c.k}" ${c.flt ? `data-fk="${c.k}"` : ''}><div class="th-in">`
+      + (c.nosort ? `<span>${c.l}</span>` : `<span class="th-label" data-sort="${c.k}" tabindex="0" role="button">${c.l}<span class="sort-icon"></span></span>`)
+      + (c.flt ? `<button class="th-flt" type="button" data-flt="${c.k}" aria-label="فلتر ${esc(c.l)}">${TB_FUNNEL}<b class="th-cnt"></b></button>` : '')
+      + '</div></th>').join('') + '</tr>';
+  }
+  function mount() {
+    root.innerHTML = `<div class="unified-section"><div class="tbl-bar" data-tbar><div class="tbl-bar-right"><span class="tbl-toggle open" data-tog>▲</span>`
+      + `<div class="results-wrap"><span class="results-label">النتائج:</span><span class="results-count" data-count>—</span></div><span class="upd" data-upd></span></div>`
+      + `<div class="tbl-bar-left">${cfg.barBtns || ''}<button class="clear-btn inactive" type="button" data-clearall>✕ مسح كل الفلاتر</button></div></div>`
+      + `<div class="chips-zone pad" data-chips></div>`
+      + `<div class="tbl-body-wrap" data-wrap><div><div class="tbl-scroll"><table class="data-table"><thead>${buildThead()}</thead><tbody data-tb></tbody></table></div></div></div></div>`;
+  }
+  function chipRow(label, chips) { return `<div class="ms-chips-row"><span class="chips-label">${label}:</span>${chips.join('')}</div>`; }
+  const chip = (t, rm) => `<span class="ms-chip">${esc(t)}<button type="button" data-rm="${esc(rm)}" aria-label="إزالة">✕</button></span>`;
+  function renderChips() {
+    const z = $('[data-chips]'); if (!z) return;
+    const rows = [];
+    MS_KEYS.forEach(k => { if (st.ms[k].size) rows.push(chipRow(FL[k], [...st.ms[k]].map(v => chip(v, `ms:${k}:${v}`)))); });
+    Q_KEYS.forEach(k => { const cs = st.tok[k].map((t, i) => chip(t, `tok:${k}:${i}`)); if (qClean(k)) cs.push(chip(st.q[k].trim(), `q:${k}:`)); if (cs.length) rows.push(chipRow(FL[k], cs)); });
+    DATE_KEYS.forEach(k => { const d = st.date[k]; if (d.from || d.to) rows.push(chipRow(FL[k], [chip(dateLabel(d), `date:${k}:`)])); });
+    TIME_KEYS.forEach(k => { const a = st.tm[k]; if (a.from || a.to) rows.push(chipRow(FL[k], [chip(tmRange(a), `time:${k}:`)])); });
+    z.innerHTML = rows.join('');
+  }
+  function updateStates() {
+    const on = anyFilterActive();
+    root.querySelectorAll('[data-clearall]').forEach(b => b.classList.toggle('inactive', !on));
+    root.querySelectorAll('th[data-fk]').forEach(th => {
+      const n = activeCount(th.dataset.fk); th.classList.toggle('flt-on', n > 0);
+      const c = th.querySelector('.th-cnt'); if (c) c.textContent = n > 1 ? n : (n ? '●' : '');
+    });
+    root.querySelectorAll('th[data-col]').forEach(th => {
+      const act = st.sort.key === th.dataset.col; th.classList.toggle('sorted', act);
+      const si = th.querySelector('.sort-icon'); if (si) { si.textContent = act ? (st.sort.dir === 'asc' ? '▲' : '▼') : ''; si.classList.toggle('active', act); }
+    });
+  }
+  function syncInputs(src) {
+    document.querySelectorAll('[data-q]').forEach(i => { if (pop && pop.contains(i) && i !== src) { i.value = st.q[i.dataset.q]; i.classList.toggle('has-value', !!i.value.trim()); } });
+    document.querySelectorAll('[data-d]').forEach(i => { if (pop && pop.contains(i) && i !== src) i.value = st.date[i.dataset.dk][i.dataset.d]; });
+  }
+  function applyFilters() {
+    hideTip(); buildQ();
+    const f = ALL.filter(pass), s = sortRows(f);
+    const va = isViewActive();
+    $('[data-tb]').innerHTML = s.length ? s.map(r => cfg.rowHtml(r, va)).join('') : `<tr><td colspan="${COLS.length}" class="empty">${cfg.emptyText || 'مفيش نتايج مطابقة للفلاتر'}</td></tr>`;
+    $('[data-count]').textContent = f.length.toLocaleString('en-US');
+    renderChips(); updateStates();
+    if (cfg.onRendered) cfg.onRendered(isViewActive());
+  }
+
+  /* ── القائمة العائمة (position:fixed على body) ── */
+  function closePop() { if (pop) pop.remove(); pop = null; popKey = null; popAnchor = null; popQ = ''; suggIdx = -1; closeTp(); }
+  function openPop(k, anchor) {
+    hideTip();
+    if (popKey === k && popAnchor === anchor) { closePop(); return; }
+    closePop(); popKey = k; popAnchor = anchor;
+    pop = document.createElement('div'); pop.className = 'pop'; document.body.appendChild(pop);
+    if (typeOf(k) === 'date') { const m = st.date[k].month; popYear = m ? +m.slice(0, 4) : curYear(); }
+    buildPop();
+    const f = pop.querySelector('[data-autofocus]'); if (f) f.focus();
+  }
+  function place() {
+    if (!pop || !popAnchor) return;
+    if (!document.contains(popAnchor)) { closePop(); return; }
+    const r = popAnchor.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+    const left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8));
+    let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+    pop.style.left = left + 'px'; pop.style.top = top + 'px';
+  }
+  function listHtml(k) {
+    const q = popQ.trim().toLowerCase(), sel = st.ms[k];
+    const its = itemsFor(k).filter(i => !q || i.v.toLowerCase().includes(q));
+    return its.map(i => `<div class="ms-item ${sel.has(i.v) ? 'on' : ''}" data-ms="${esc(i.v)}"><span class="cb"></span><span>${esc(i.v)}</span><span class="ms-cnt">${i.c}</span></div>`).join('') || '<div class="empty" style="padding:14px">لا نتائج</div>';
+  }
+  function buildPop() {
+    closeTp();
+    const k = popKey, ty = typeOf(k); let h = '';
+    if (ty === 'ms') {
+      h = `<div class="pop-hd">${FL[k]}</div><div class="ms-ftr-top"><button class="clear-btn" type="button" data-act="clear">✕ مسح الاختيار</button><button class="lnk" type="button" data-act="all">تحديد الكل</button></div>`
+        + (itemsFor(k).length >= SEARCH_MIN ? '<div class="pop-srch"><input class="inp" data-msq aria-label="بحث" data-autofocus></div>' : '')
+        + `<div class="ms-list">${listHtml(k)}</div>`;
+    } else if (ty === 'q') {
+      const dg = qmode(k) === 'digits';
+      h = `<div class="pop-hd">${FL[k]}</div><div class="pop-body"><div class="search-wrap"><input class="inp ${qClean(k) ? 'has-value' : ''}" data-q="${k}" value="${esc(st.q[k])}" autocomplete="off" aria-label="بحث ${esc(FL[k])}" data-autofocus><span class="search-icon">🔍</span></div>`
+        + `<div class="sugg">${suggHtml(k)}</div><div class="tok-row">${st.tok[k].map((t, i) => `<span class="ms-chip">${esc(t)}<button type="button" data-tokrm="${i}" aria-label="إزالة">✕</button></span>`).join('')}</div>`
+        + `<div class="hint">${dg ? 'اكتب جزء من الرقم — هتظهر الأرقام المطابقة. اختار واحد أو اضغط Enter لإضافة اللي كتبته (أو الزق كذا رقم مع بعض). النتيجة أي واحد منهم.' : 'ابدأ اكتب وهتظهر القيم المطابقة (كل الكلمات بأي ترتيب) — اختار واحدة أو اضغط Enter لإضافة اللي كتبته. تقدر تضيف أكتر من قيمة، والنتيجة أي واحدة منهم.'}</div>`
+        + '<button class="clear-btn" type="button" data-act="qclear">✕ مسح الاختيار</button></div>';
+    } else if (ty === 'date') {
+      const d = st.date[k], cy = curYear();
+      const pb = (p) => `<button type="button" data-preset="${p}" class="${d.preset === p ? 'on' : ''}">${TB_PRESETS[p]}</button>`;
+      const mb = (n, i) => { const v = `${popYear}-${tbPad(i + 1)}`; return `<button type="button" data-mon="${v}" class="${d.month === v ? 'on' : ''}">${n}</button>`; };
+      h = `<div class="pop-hd has-act"><span>${FL[k]}</span><button class="clear-btn" type="button" data-act="dclear">✕ مسح الاختيار</button></div><div class="pop-body">`
+        + `<div class="sec"><div class="pills c3">${['today','yesterday','last3','last7','last14','last21','last30','last60','last90'].map(pb).join('')}</div></div>`
+        + `<div class="sec"><div class="pills c4">${['thisMonth','lastMonth','thisYear','lastYear'].map(pb).join('')}</div></div>`
+        + `<div class="sec"><div class="yr-step"><button type="button" data-yr="-1" aria-label="السنة السابقة" ${popYear <= cy - 10 ? 'disabled' : ''}>›</button><button type="button" class="yr-lbl ${d.month === String(popYear) ? 'on' : ''}" data-yrsel aria-label="العام كله">${popYear}</button><button type="button" data-yr="1" aria-label="السنة التالية" ${popYear >= cy ? 'disabled' : ''}>‹</button></div><div class="pills c6">${TB_MONTHS.map(mb).join('')}</div></div>`
+        + `<div class="sec"><div class="rng"><div><label>من تاريخ</label><div class="dt-wrap"><input type="date" class="inp" data-d="from" data-dk="${k}" value="${d.from}">${TB_ICO_CAL}</div></div><div><label>إلى تاريخ</label><div class="dt-wrap"><input type="date" class="inp" data-d="to" data-dk="${k}" value="${d.to}">${TB_ICO_CAL}</div></div></div></div></div>`;
+    } else if (ty === 'time') {
+      h = `<div class="pop-hd has-act"><span>${FL[k]}</span><button class="clear-btn" type="button" data-act="tclear">✕ مسح الاختيار</button></div><div class="pop-body">${timeBodyHtml(k)}</div>`;
+    }
+    pop.innerHTML = h; pop.classList.toggle('wide', ty === 'date' || ty === 'time');
+    place();
+  }
+  function timeBodyHtml(k) {
+    const a = st.tm[k], lo = a.from ? tbH2M(a.from) : 0, hi = a.to ? tbH2M(a.to) : 1440, L = Math.min(lo, hi), H = Math.max(lo, hi);
+    const tf = (w, lbl) => `<div><label>${lbl}</label><div class="dt-wrap"><button type="button" class="inp tf-btn" data-tf="${w}" aria-label="${lbl}"><span class="tf-v ${a[w] ? '' : 'ph'}">${a[w] ? tbFT(a[w]) : '--:--'}</span>${TB_ICO_CLK}</button></div></div>`;
+    return `<div class="sec"><div class="sl-lbl">من <b>${tbMLbl(L)}</b> إلى <b>${tbMLbl(H)}</b></div>`
+      + `<div class="dual"><div class="dual-track"><div class="dual-fill" style="right:${L / 14.4}%;left:${100 - H / 14.4}%"></div></div><input type="range" min="0" max="1440" step="1" value="${lo}" data-sl aria-label="من وقت"><input type="range" min="0" max="1440" step="1" value="${hi}" data-sl aria-label="إلى وقت"></div></div>`
+      + `<div class="sec"><div class="rng">${tf('from', 'من وقت')}${tf('to', 'إلى وقت')}</div><div class="tf-warn">${lo > hi ? 'وقت «من» بعد وقت «إلى» — مفيش نتايج' : ''}</div></div>`;
+  }
+  function syncTimeUI(fromSlider) {
+    const tk = popKey; if (!pop || !st.tm[tk]) return;
+    const a = st.tm[tk], lo = a.from ? tbH2M(a.from) : 0, hi = a.to ? tbH2M(a.to) : 1440, L = Math.min(lo, hi), H = Math.max(lo, hi);
+    const f = pop.querySelector('.dual-fill'); f.style.right = (L / 14.4) + '%'; f.style.left = (100 - H / 14.4) + '%';
+    pop.querySelector('.sl-lbl').innerHTML = `من <b>${tbMLbl(L)}</b> إلى <b>${tbMLbl(H)}</b>`;
+    if (!fromSlider) { const sl = pop.querySelectorAll('[data-sl]'); sl[0].value = lo; sl[1].value = hi; }
+    ['from', 'to'].forEach(w => { const v = pop.querySelector(`[data-tf="${w}"] .tf-v`); if (v) { v.textContent = a[w] ? tbFT(a[w]) : '--:--'; v.classList.toggle('ph', !a[w]); } });
+    pop.querySelector('.tf-warn').textContent = lo > hi ? 'وقت «من» بعد وقت «إلى» — مفيش نتايج' : '';
+  }
+  function updSlider(t) {   // خطوة 5 دقايق، والمقبضين ممكن يتخطّوا بعض (الحالة = الأصغر، الأكبر)
+    t.value = Math.round(+t.value / 5) * 5;
+    const v = [...pop.querySelectorAll('[data-sl]')].map(i => +i.value), a = Math.min(...v), b = Math.max(...v), s = st.tm[popKey];
+    s.from = a > 0 ? tbM2H(a) : ''; s.to = b < 1440 ? tbM2H(b) : '';
+    syncTimeUI(true); applyFilters();
+  }
+  /* قايمة الساعة والدقيقة (بدل <input type="time">): سكرول عادي بدون لفّ، ساعات 12 ص ← 11 م ودقايق 00→59 */
+  function closeTp() { if (tpEl) tpEl.remove(); if (tpAnchor) tpAnchor.classList.remove('open'); tpEl = null; tpWhich = null; tpAnchor = null; tpM = null; }
+  function placeTp() {
+    if (!tpEl || !tpAnchor) return;
+    const r = tpAnchor.getBoundingClientRect(), w = tpEl.offsetWidth, h = tpEl.offsetHeight;
+    const left = Math.max(8, Math.min(r.left, innerWidth - w - 8));
+    let top = r.bottom + 4; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 4);
+    tpEl.style.left = left + 'px'; tpEl.style.top = top + 'px';
+  }
+  function toggleTp(w, anchor) {
+    if (tpEl && tpWhich === w) { closeTp(); return; }
+    closeTp(); tpWhich = w; tpAnchor = anchor; anchor.classList.add('open');
+    const cur = st.tm[popKey][w], ch = cur ? +cur.slice(0, 2) : -1, cm = cur ? +cur.slice(3) : -1;
+    const col = (ttl, sub, items) => `<div class="tp-col"><div class="tp-hd">${ttl} <small>${sub}</small></div><div class="tp-list">${items}</div></div>`;
+    const hrs = Array.from({ length: 24 }, (_, h) => h).map(h => `<button type="button" class="tp-it ${h === ch ? 'on' : ''}" data-tph="${h}">${tbPad(h % 12 || 12)} ${h < 12 ? 'ص' : 'م'}</button>`).join('');
+    const mns = Array.from({ length: 60 }, (_, i) => i).map(m => `<button type="button" class="tp-it ${m === cm ? 'on' : ''}" data-tpm="${m}">${tbPad(m)}</button>`).join('');
+    tpEl = document.createElement('div'); tpEl.className = 'tp'; tpEl.setAttribute('role', 'dialog');
+    tpEl.innerHTML = `<div class="tp-cols">${col('ساعة', 'HH', hrs)}<div class="tp-sep">:</div>${col('دقيقة', 'MM', mns)}</div><div class="tp-ft"><button class="lnk" type="button" data-tpclear>مسح</button><button class="tp-done" type="button" data-tpdone>تم</button></div>`;
+    document.body.appendChild(tpEl); placeTp();
+    tpEl.querySelectorAll('.tp-it.on').forEach(b => { const l = b.parentElement; l.scrollTop = b.offsetTop - l.clientHeight / 2 + b.offsetHeight / 2; });
+  }
+  function markTp() {
+    if (!tpEl) return;
+    const cur = st.tm[popKey][tpWhich], ch = cur ? +cur.slice(0, 2) : -1, cm = cur ? +cur.slice(3) : (tpM !== null ? tpM : -1);
+    tpEl.querySelectorAll('[data-tph]').forEach(b => b.classList.toggle('on', +b.dataset.tph === ch));
+    tpEl.querySelectorAll('[data-tpm]').forEach(b => b.classList.toggle('on', +b.dataset.tpm === cm));
+  }
+  function setTf(w, v) { st.tm[popKey][w] = v; tpM = null; syncTimeUI(false); applyFilters(); markTp(); }
+  function tpAction(t) {
+    const b = t.closest('.tp-it'), cur = st.tm[popKey][tpWhich];
+    if (b) {
+      const ch = cur ? +cur.slice(0, 2) : null, cm = cur ? +cur.slice(3) : tpM;
+      if (b.dataset.tph !== undefined) setTf(tpWhich, `${tbPad(+b.dataset.tph)}:${tbPad(cm === null ? 0 : cm)}`);
+      else if (ch !== null) setTf(tpWhich, `${tbPad(ch)}:${tbPad(+b.dataset.tpm)}`);
+      else { tpM = +b.dataset.tpm; markTp(); }   // دقيقة اتختارت قبل الساعة → بتستنى
+      return;
+    }
+    if (t.closest('[data-tpclear]')) { setTf(tpWhich, ''); return; }
+    if (t.closest('[data-tpdone]')) closeTp();
+  }
+  const renderList = () => { const l = pop && pop.querySelector('.ms-list'); if (l) l.innerHTML = listHtml(popKey); };
+  function markDatePop() {   // تحديث الأزرار من غير ما نعيد بناء القايمة (عشان الفوكس)
+    if (!pop || typeOf(popKey) !== 'date') return;
+    const d = st.date[popKey];
+    pop.querySelectorAll('[data-preset]').forEach(b => b.classList.toggle('on', b.dataset.preset === d.preset));
+    pop.querySelectorAll('[data-mon]').forEach(b => b.classList.toggle('on', b.dataset.mon === d.month));
+    const yl = pop.querySelector('[data-yrsel]'); if (yl) yl.classList.toggle('on', d.month === String(popYear));
+  }
+  function popAction(t) {
+    const k = popKey;
+    if (tpEl && !t.closest('[data-tf]')) closeTp();
+    const tfb = t.closest('[data-tf]'); if (tfb) { toggleTp(tfb.dataset.tf, tfb); return; }
+    const sg = t.closest('[data-sg]'); if (sg) { pickSugg(k, sg.dataset.sgv); return; }   // ⚠️ قبل فرع .ms-item العادي
+    const it = t.closest('.ms-item');
+    if (it) { const s = st.ms[k], v = it.dataset.ms; s.has(v) ? s.delete(v) : s.add(v); renderList(); applyFilters(); return; }
+    const tr = t.closest('[data-tokrm]');
+    if (tr) { st.tok[k].splice(+tr.dataset.tokrm, 1); buildPop(); applyFilters(); const f = pop && pop.querySelector('[data-autofocus]'); if (f) f.focus(); return; }
+    const ys = t.closest('[data-yrsel]');
+    if (ys) { const v = String(popYear); if (st.date[k].month === v) resetDate(k); else setMonth(k, v); syncInputs(); applyFilters(); buildPop(); return; }
+    const yb = t.closest('[data-yr]');
+    if (yb) { if (yb.disabled) return; popYear = Math.max(curYear() - 10, Math.min(curYear(), popYear + (+yb.dataset.yr))); buildPop(); return; }
+    const mb = t.closest('[data-mon]');
+    if (mb) { const v = mb.dataset.mon; if (st.date[k].month === v) resetDate(k); else setMonth(k, v); syncInputs(); applyFilters(); buildPop(); return; }
+    const pr = t.closest('[data-preset]');
+    if (pr) { setPreset(k, pr.dataset.preset); syncInputs(); applyFilters(); buildPop(); return; }
+    const a = t.closest('[data-act]'); if (!a) return;
+    const act = a.dataset.act;
+    if (act === 'clear') { st.ms[k].clear(); buildPop(); applyFilters(); }
+    else if (act === 'all') { const s = st.ms[k], q = popQ.trim().toLowerCase(); itemsFor(k).filter(i => !q || i.v.toLowerCase().includes(q)).forEach(i => s.add(i.v)); renderList(); applyFilters(); }
+    else if (act === 'qclear') { st.q[k] = ''; st.tok[k] = []; buildPop(); applyFilters(); }
+    else if (act === 'dclear') { resetDate(k); syncInputs(); applyFilters(); buildPop(); }
+    else if (act === 'tclear') { st.tm[k] = { from: '', to: '' }; applyFilters(); buildPop(); }
+  }
+
+  /* ── tooltip قيم الفلتر المفعّل (مفيش اختيار = مفيش tooltip، ومفيش title native) ── */
+  function tipText(k) {
+    if (!activeCount(k)) return '';
+    const ty = typeOf(k);
+    if (ty === 'ms') return [...st.ms[k]].join('، ');
+    if (ty === 'q') return [...st.tok[k], ...(qClean(k) ? [st.q[k].trim()] : [])].join(' أو ');
+    if (ty === 'date') { const d = st.date[k], r = `من 📅 ${tbFmtD(d.from)} إلى 📅 ${tbFmtD(d.to)}`; return (d.preset || d.month) ? `${dateLabel(d)}: ${r}` : r; }
+    return tmRange(st.tm[k]);
+  }
+  function hideTip() { if (tipEl) tipEl.remove(); tipEl = null; }
+  function showTip(btn) {
+    hideTip();
+    const t = tipText(btn.dataset.flt); if (!t || popAnchor === btn) return;
+    tipEl = document.createElement('div'); tipEl.className = 'tip'; tipEl.textContent = t; document.body.appendChild(tipEl);
+    const r = btn.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+    tipEl.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)) + 'px';
+    let top = r.bottom + 6; if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 6);
+    tipEl.style.top = top + 'px';
+  }
+
+  /* ── الأحداث — listener على document + حارس القوايم المفتوحة (Standards #32) ── */
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!document.contains(t)) return;                          // الهدف اتشال بسبب re-render → مفيش قرار قفل
+    if (tpEl && tpEl.contains(t)) { tpAction(t); return; }
+    const trg = t.closest('[data-flt]');
+    if (trg && root.contains(trg)) { e.stopPropagation(); openPop(trg.dataset.flt, trg); return; }
+    if (pop && pop.contains(t)) {
+      if (t.matches && t.matches('.dt-wrap input')) { try { t.showPicker(); } catch (_) {} }   // showPicker بيرمي SecurityError جوه iframe
+      popAction(t); return;
+    }
+    if (pop) closePop();
+    if (!root.contains(t)) return;
+    const rm = t.closest('[data-rm]');
+    if (rm) {
+      const [type, key, ...rest] = rm.dataset.rm.split(':'), v = rest.join(':');
+      if (type === 'ms') st.ms[key].delete(v);
+      else if (type === 'q') st.q[key] = '';
+      else if (type === 'tok') st.tok[key].splice(+v, 1);
+      else if (type === 'date') resetDate(key);
+      else if (type === 'time') st.tm[key] = { from: '', to: '' };
+      applyFilters(); return;
+    }
+    if (t.closest('[data-clearall]')) { e.stopPropagation(); if (anyFilterActive()) clearAll(); return; }
+    const ba = t.closest('[data-baract]'); if (ba) { e.stopPropagation(); if (cfg.onAction) cfg.onAction(ba.dataset.baract); return; }
+    const so = t.closest('[data-sort]'); if (so) { toggleSort(so.dataset.sort); return; }
+    if (t.closest('[data-tbar]')) { $('[data-wrap]').classList.toggle('collapsed'); $('[data-tog]').classList.toggle('open'); }
+  });
+  document.addEventListener('input', (e) => {
+    const t = e.target;
+    if (!pop || !pop.contains(t)) return;
+    if (t.dataset.q !== undefined) { st.q[t.dataset.q] = t.value; t.classList.toggle('has-value', !!t.value.trim()); applyFilters(); suggIdx = -1; renderSugg(); }
+    else if (t.dataset.d) { const d = st.date[t.dataset.dk]; d[t.dataset.d] = t.value; d.preset = ''; d.month = ''; applyFilters(); markDatePop(); }
+    else if (t.dataset.sl !== undefined) updSlider(t);
+    else if (t.dataset.msq !== undefined) { popQ = t.value; renderList(); }
+  });
+  document.addEventListener('scroll', (e) => { place(); if (tpEl && !tpEl.contains(e.target)) closeTp(); hideTip(); }, true);
+  window.addEventListener('resize', () => { place(); closeTp(); });
+  document.addEventListener('keydown', (e) => {
+    const inQ = pop && popKey && typeOf(popKey) === 'q' && pop.contains(e.target) && e.target.matches && e.target.matches('input[data-q]');
+    if (e.key === 'Escape') { if (tpEl) { closeTp(); return; } closePop(); return; }
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && inQ) {
+      const n = pop.querySelectorAll('[data-sg]').length;
+      if (n) { e.preventDefault(); suggIdx = e.key === 'ArrowDown' ? (suggIdx + 1) % n : (suggIdx <= 0 ? n - 1 : suggIdx - 1); markSugg(); return; }
+    }
+    if (e.key === 'Enter' && !e.isComposing && inQ) {
+      const ac = pop.querySelector('[data-sg].act'); if (ac) { e.preventDefault(); pickSugg(popKey, ac.dataset.sgv); return; }
+      if (commitTok(popKey)) { e.preventDefault(); return; }
+    }
+    if (e.key === 'Enter' && pop && pop.contains(e.target) && e.target.matches && e.target.matches('input[data-q],input[data-d]')) { e.preventDefault(); e.target.blur(); closePop(); return; }   // Enter على حقل فاضي = اقفل والفلتر يفضل
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-sort]') && root.contains(e.target)) { e.preventDefault(); toggleSort(e.target.dataset.sort); }
+  });
+  document.addEventListener('mouseover', (e) => { const b = e.target.closest && e.target.closest('.th-flt'); if (b && root.contains(b)) showTip(b); else if (tipEl) hideTip(); });
+  document.addEventListener('mouseout', (e) => { if (!e.relatedTarget) hideTip(); });
+
+  mount(); prep(); applyFilters();
+  return {
+    refresh() { prep(); applyFilters(); },
+    isViewActive, clearView() { st.sort = { key: null, dir: null }; clearAll(); },
+    setUpd(txt) { const u = $('[data-upd]'); if (u) u.textContent = txt || ''; },
+  };
+}
+
+// ══════════════════════════════════════════════════════
 // §LIST
 // ══════════════════════════════════════════════════════
 let cnServer = [];        // القايمة زي ما شوبيفاي رجّعتها (الحقيقة)
@@ -375,14 +1016,15 @@ let cnLoaded = false;
 let cnBusy = false;
 let cnDragFrom = null;
 let cnProf = {};          // بروفايل كل اسم (من D1 عبر get_couriers) — الاسم هو المفتاح
-let cnOnlyMissing = false;
+let cnT = null, cnLogT = null;   // جدول المناديب + جدول السجل (ecoCreateTable)
+let cnLogRows = [];
 
 const cnIsDirty = () => cnLoaded && cnLocal.join('\u0000') !== cnServer.join('\u0000');
 const cnIsProtected = (n) => cnProtected.some(p => p.toLowerCase() === String(n).toLowerCase());
 
 async function cnLoad(opts = {}) {
-  const listEl = document.getElementById('cnList');
-  if (!cnLoaded) listEl.innerHTML = '<div class="q-empty">⏳ جاري تحميل القايمة...</div>';
+  const tbEl = document.querySelector('#cnTable [data-tb]');
+  if (!cnLoaded && tbEl) tbEl.innerHTML = '<tr><td colspan="8" class="q-empty">⏳ جاري تحميل القايمة...</td></tr>';
   try {
     const d = await apiGet('get_couriers');
     cnServer = d.couriers || [];
@@ -400,13 +1042,13 @@ async function cnLoad(opts = {}) {
           ? '<div class="cn-banner">⏳ شوبيفاي لسه بتراجع الأوردرات الحالية على القايمة (<code>IN_PROGRESS</code>) — ممكن تعديل جديد يترفض لحد ما تخلص. جرّب بعد دقيقة.</div>'
           : '')
       + (d.profilesError
-          ? `<div class="cn-banner bad">⚠️ بيانات المناديب (D1) ما اتحمّلتش: ${esc(d.profilesError)} — القايمة نفسها سليمة والإضافة والحذف والترتيب شغّالين.</div>`
+          ? `<div class="cn-banner bad">⚠️ بيانات المناديب (D1) ما اتحمّلتش: ${esc(d.profilesError)} — القايمة نفسها سليمة والإضافة والترتيب شغّالين.</div>`
           : '');
   } catch (e) {
     // ⚠️ فشل القراءة مش «قايمة فاضية» — لو فيه قايمة معروضة من قبل بتفضل زي ما هي.
     document.getElementById('cnBanner').innerHTML =
       `<div class="cn-banner bad">تعذّر تحميل القايمة من شوبيفاي: ${esc(e.message)}</div>`;
-    if (!cnLoaded) listEl.innerHTML = '<div class="q-empty">القايمة ما اتحمّلتش — اضغط «تحديث»</div>';
+    if (!cnLoaded && tbEl) tbEl.innerHTML = '<tr><td colspan="8" class="q-empty">القايمة ما اتحمّلتش — اضغط «تحديث»</td></tr>';
     document.getElementById('cnCount').textContent = cnLoaded ? String(cnLocal.length) : '—';
     return;
   }
@@ -414,60 +1056,72 @@ async function cnLoad(opts = {}) {
   if (!opts.skipLog) cnLoadLog();
 }
 
+const CN_PEN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>';
+const CN_NA = 'لا ينطبق', CN_UNK = 'غير محمّل';
+
+function cnBuildRows() {
+  return cnLocal.map((name, i) => {
+    const prot = cnIsProtected(name), pr = cnProf[name] || null;
+    const person = !prot && (!pr || pr.kind === 'person');
+    return {
+      name, i, prot, person, pr,
+      p1: person ? (pr?.phonePrimary || '') : '',
+      p2: person ? (pr?.phoneSecondary || '') : '',
+      photo: !person ? CN_NA : !pr ? CN_UNK : (pr.hasPhoto ? 'موجودة' : 'ناقصة'),
+      nid:   !person ? CN_NA : !pr ? CN_UNK : (pr.hasNationalId ? 'موجود' : 'ناقص'),
+    };
+  });
+}
+function cnThumbInner(name) {
+  const c = cnPhotoCache[name], p = cnProf[name];
+  return (c && p && c.t === p.photoUpdatedAt) ? `<img src="${c.url}" alt="">` : '';
+}
+function cnRowHtml(r, viewActive) {
+  const moveOff = cnBusy || viewActive;     // الأسهم والسحب شغّالين بس لما مفيش فلتر ولا ترتيب (الفهارس = ترتيب شوبيفاي)
+  const why = viewActive ? 'امسح الفلاتر والترتيب الأول عشان تغيّر ترتيب القايمة' : '';
+  const photoCell = !r.person ? '<span class="dash">—</span>'
+    : r.photo === 'موجودة' ? `<span class="cn-thumb" data-av="${esc(r.name)}">${cnThumbInner(r.name)}</span>`
+    : r.photo === CN_UNK ? '<span class="dash">—</span>' : '<span class="cn-no" title="مفيش صورة">❌</span>';
+  const nidCell = !r.person ? '<span class="dash">—</span>'
+    : r.nid === 'موجود' ? '<span class="cn-yes" title="مسجّل">✔</span>'
+    : r.nid === CN_UNK ? '<span class="dash">—</span>' : '<span class="cn-no" title="مش مسجّل">❌</span>';
+  return `<tr class="cn-row" data-i="${r.i}" ${moveOff ? '' : 'draggable="true"'}>
+    <td><span class="cn-handle ${moveOff ? 'off' : ''}" title="${why || 'اسحب لتغيير الترتيب'}" aria-hidden="true">⠿</span> <span class="cn-num">${r.i + 1}</span></td>
+    <td class="nm">${esc(r.name)}${r.prot ? '<span class="cn-lock" title="اسم نظامي — مالوش بيانات شخصية">🔒 نظامي</span>' : ''}</td>
+    <td>${r.p1 ? `<span class="cn-ph">${esc(r.p1)}</span>` : '<span class="dash">—</span>'}</td>
+    <td>${r.p2 ? `<span class="cn-ph">${esc(r.p2)}</span>` : '<span class="dash">—</span>'}</td>
+    <td>${photoCell}</td>
+    <td>${nidCell}</td>
+    <td><span class="cn-mv" ${why ? `title="${why}"` : ''}>
+      <button data-act="up" data-i="${r.i}" ${moveOff || r.i === 0 ? 'disabled' : ''} aria-label="فوق">▲</button>
+      <button data-act="down" data-i="${r.i}" ${moveOff || r.i === cnLocal.length - 1 ? 'disabled' : ''} aria-label="تحت">▼</button></span></td>
+    <td>${r.person ? `<button class="ebtn" data-act="profile" data-i="${r.i}" aria-label="تعديل بيانات ${esc(r.name)}">${CN_PEN}تعديل</button>` : ''}</td>
+  </tr>`;
+}
 function cnRender() {
-  document.getElementById('cnCount').textContent = String(cnLocal.length);
+  document.getElementById('cnCount').textContent = cnLoaded ? String(cnLocal.length) : '—';
   const dirty = cnIsDirty();
   const dEl = document.getElementById('cnDirty');
   dEl.style.display = dirty ? '' : 'none';
   dEl.innerHTML = dirty
-    ? `<div class="cn-dirty"><span class="grow">↕️ الترتيب اتغيّر ولسه ما اتحفظش — الإضافة والحذف مقفولين لحد ما تحفظ أو تتراجع.</span>
+    ? `<div class="cn-dirty"><span class="grow">↕️ الترتيب اتغيّر ولسه ما اتحفظش — الإضافة مقفولة لحد ما تحفظ أو تتراجع.</span>
          <button class="btn btn-primary btn-sm" id="cnSaveOrder">💾 حفظ الترتيب</button>
          <button class="btn btn-ghost btn-sm" id="cnUndoOrder">تراجع</button></div>`
     : '';
-  document.getElementById('cnAddBtn').disabled = dirty || cnBusy;
-  document.getElementById('cnAddInput').disabled = dirty;
-
-  const listEl = document.getElementById('cnList');
-  if (!cnLocal.length) { listEl.innerHTML = '<div class="q-empty">القايمة فاضية</div>'; return; }
-  cnRenderFilter();
-  listEl.innerHTML = cnLocal.map((name, i) => {
-    // الفلتر «الناقص بس» عرض بس — مابيغيّرش الترتيب ولا الفهارس (الأزرار بتشتغل بفهرس cnLocal)
-    if (cnOnlyMissing && !(cnProf[name]?.missing || []).length) return '';
-    const prot = cnIsProtected(name);
-    const pr = cnProf[name] || null;
-    const person = !prot && (!pr || pr.kind === 'person');
-    const miss = pr && person ? (pr.missing || []) : [];
-    return `<div class="cn-item" draggable="true" data-i="${i}">
-      <span class="cn-handle" title="اسحب لتغيير الترتيب" aria-hidden="true">⠿</span>
-      <span class="cn-num">${i + 1}</span>
-      ${person ? `<span class="cn-av" data-av="${esc(name)}">${cnAvatarInner(name)}</span>` : ''}
-      <span class="cn-main">
-        <span class="cn-name">${esc(name)}</span>
-        ${person ? `<span class="cn-meta">
-          ${pr?.phonePrimary ? `<span class="cn-ph">${esc(pr.phonePrimary)}</span>` : '<span>بلا تليفون</span>'}
-          ${pr ? (miss.length ? `<span class="cn-miss" title="${esc(cnMissLabel(miss))}">ناقص ${miss.length}</span>` : '<span class="cn-full">كامل ✓</span>') : ''}
-        </span>` : ''}
-      </span>
-      ${prot ? '<span class="cn-lock" title="اسم نظامي — مابيتحذفش ومالوش بيانات شخصية">🔒 نظامي</span>' : ''}
-      ${person ? `<button class="btn btn-outline btn-sm" data-act="profile" data-i="${i}">👤 بيانات</button>` : ''}
-      <span class="cn-mv">
-        <button data-act="up" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="فوق">▲</button>
-        <button data-act="down" data-i="${i}" ${i === cnLocal.length - 1 ? 'disabled' : ''} aria-label="تحت">▼</button>
-      </span>
-      ${prot ? '' : `<button class="cn-del" data-act="del" data-i="${i}" ${dirty || cnBusy ? 'disabled' : ''}>🗑 حذف</button>`}
-    </div>`;
-  }).join('');
+  const addIn = document.getElementById('cnAddInput');
+  document.getElementById('cnAddBtn').disabled = dirty || cnBusy || !addIn.value.trim();
+  addIn.disabled = dirty;
+  if (cnT) cnT.refresh();
   cnLoadPhotos();
 }
 
 // الأحداث بـ addEventListener على الحاوية (مش onclick بنص فيه الاسم)
-document.getElementById('cnList').addEventListener('click', (e) => {
+document.getElementById('cnTable').addEventListener('click', (e) => {
   const b = e.target.closest('button[data-act]');
   if (!b || cnBusy) return;
   const i = Number(b.dataset.i);
   if (b.dataset.act === 'up')   cnMove(i, i - 1);
   if (b.dataset.act === 'down') cnMove(i, i + 1);
-  if (b.dataset.act === 'del')  cnRemove(i);
   if (b.dataset.act === 'profile') pmOpen(cnLocal[i]);
 });
 document.getElementById('cnDirty').addEventListener('click', (e) => {
@@ -484,10 +1138,10 @@ function cnMove(from, to) {
 
 // السحب والإفلات
 (function () {
-  const list = document.getElementById('cnList');
-  const clear = () => list.querySelectorAll('.cn-item').forEach(el => el.classList.remove('dragging', 'drop-before', 'drop-after'));
+  const list = document.getElementById('cnTable');
+  const clear = () => list.querySelectorAll('tr.cn-row').forEach(el => el.classList.remove('dragging', 'drop-before', 'drop-after'));
   list.addEventListener('dragstart', (e) => {
-    const it = e.target.closest('.cn-item');
+    const it = e.target.closest('tr.cn-row');
     if (!it || cnBusy) { e.preventDefault(); return; }
     cnDragFrom = Number(it.dataset.i);
     it.classList.add('dragging');
@@ -496,16 +1150,16 @@ function cnMove(from, to) {
   });
   list.addEventListener('dragover', (e) => {
     if (cnDragFrom === null) return;
-    const it = e.target.closest('.cn-item');
+    const it = e.target.closest('tr.cn-row');
     if (!it) return;
     e.preventDefault();
-    list.querySelectorAll('.cn-item').forEach(el => el.classList.remove('drop-before', 'drop-after'));
+    list.querySelectorAll('tr.cn-row').forEach(el => el.classList.remove('drop-before', 'drop-after'));
     const r = it.getBoundingClientRect();
     it.classList.add(e.clientY < r.top + r.height / 2 ? 'drop-before' : 'drop-after');
   });
   list.addEventListener('drop', (e) => {
     if (cnDragFrom === null) return;
-    const it = e.target.closest('.cn-item');
+    const it = e.target.closest('tr.cn-row');
     if (!it) return;
     e.preventDefault();
     const r = it.getBoundingClientRect();
@@ -563,12 +1217,12 @@ async function cnRun(fn, verb) {
 
 document.getElementById('cnAddBtn').addEventListener('click', cnAdd);
 document.getElementById('cnAddInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') cnAdd(); });
-document.getElementById('cnAddInput').addEventListener('input', function () { this.classList.toggle('has-value', !!this.value); });
-document.getElementById('cnReloadBtn').addEventListener('click', () => {
+document.getElementById('cnAddInput').addEventListener('input', function () { document.getElementById('cnAddBtn').disabled = cnBusy || cnIsDirty() || !this.value.trim(); });
+function cnReload() {
   if (cnIsDirty() && !confirm('الترتيب اللي عدّلته ولسه ما اتحفظش هيضيع. متأكد؟')) return;
   document.getElementById('cnResult').innerHTML = '';
   cnLoad();
-});
+}
 
 async function cnAdd() {
   const input = document.getElementById('cnAddInput');
@@ -591,45 +1245,8 @@ async function cnAdd() {
   await cnRun(async () => {
     const d = await apiPost('add_courier', { employee: ecoSession.username, name });
     if (d.status === 'success' || d.status === 'warning' || d.status === 'already') input.value = '';
-    input.classList.remove('has-value');
     return d;
   }, 'إضافة مندوب');
-}
-
-async function cnRemove(i) {
-  const name = cnLocal[i];
-  if (name === undefined || cnBusy || cnIsDirty()) return;
-  // ① كام أوردر عليه؟ — قراءة بس
-  let usage = null, usageErr = null;
-  cnBusy = true; cnRender();
-  try { usage = await apiGet('courier_usage', { name }); }
-  catch (e) { usageErr = e.message; }
-  finally { cnBusy = false; cnRender(); }
-
-  const lines = [];
-  if (usageErr) {
-    lines.push({ text: `⚠️ ما قدرناش نعرف عدد الأوردرات على «${name}» (${usageErr}) — اتأكد على شوبيفاي قبل ما تكمّل`, warn: true });
-  } else if (!usage.reliable) {
-    lines.push({ text: '⚠️ عدّاد الأوردرات مش موثوق دلوقتي (فلتر شوبيفاي ما اشتغلش) — اتأكد على شوبيفاي قبل ما تكمّل', warn: true });
-  } else {
-    lines.push({
-      text: usage.active > 0
-        ? `⚠️ فيه ${usage.active.toLocaleString('en-US')} أوردر نشط (Ready/Shipped/In-Return) على «${name}» — هيفضل عليهم الاسم لكن «غير صالح»`
-        : `مفيش أوردرات نشطة على «${name}»`,
-      warn: usage.active > 0,
-    });
-    lines.push({ text: `إجمالي الأوردرات على الاسم ده: ${usage.total.toLocaleString('en-US')}${usage.capped ? '+ (العدّاد بيقف عند ١٠٬٠٠٠)' : ''} — S1 بس للنشط`, soft: true });
-  }
-  lines.push({ text: 'الحذف من القايمة بس — القيمة على الأوردرات القديمة مابتتمسحش', soft: true });
-  lines.push({ text: 'ترجيع الاسم بعد كده = إضافة من جديد (بيرجع في آخر القايمة)', soft: true });
-
-  const ok = await askConfirm({
-    header: '🗑 تأكيد حذف مندوب',
-    lead: `هتحذف «${name}» من قايمة المناديب على شوبيفاي:`,
-    lines, okLabel: `تأكيد — احذف «${name}»`, cls: 'btn-red',
-  });
-  if (!ok) return;
-  await cnRun(() => apiPost('remove_courier', { employee: ecoSession.username, name }), 'حذف مندوب');
 }
 
 async function cnSaveOrder() {
@@ -656,12 +1273,12 @@ const cnMissing = (p) => p.kind !== 'person' ? [] : [!p.phonePrimary && 'phonePr
 
 const cnPhotoCache = {};   // name → { t: photoUpdatedAt, url } — صور مصغّرة صغيرة، بتتجاب لوحدها
 function cnInitial(name) { return esc((String(name).trim()[0] || '?').toUpperCase()); }
-function cnAvatarInner(name) {
+function cnAvatarInner(name) {   // دايرة المودال بس — الجدول بيستخدم cnThumbInner
   const c = cnPhotoCache[name], p = cnProf[name];
   return (c && p && c.t === p.photoUpdatedAt) ? `<img src="${c.url}" alt="">` : cnInitial(name);
 }
 function cnSetAvatar(name) {
-  document.querySelectorAll('.cn-av[data-av]').forEach(el => { if (el.dataset.av === name) el.innerHTML = cnAvatarInner(name); });
+  document.querySelectorAll('.cn-thumb[data-av]').forEach(el => { if (el.dataset.av === name) el.innerHTML = cnThumbInner(name); });
   if (pmState && pmState.name === name && pmState.photo === undefined) pmPaintAvatar();
 }
 let cnPhotoJob = 0;
@@ -682,17 +1299,6 @@ async function cnLoadPhotos() {
   }
   await Promise.all([worker(), worker(), worker()]);
 }
-
-function cnRenderFilter() {
-  const total = cnLocal.filter(n => (cnProf[n]?.missing || []).length).length;
-  document.getElementById('cnFilter').innerHTML =
-    `<button data-f="all" class="${cnOnlyMissing ? '' : 'on'}">الكل</button>
-     <button data-f="missing" class="${cnOnlyMissing ? 'on' : ''}">بياناتهم ناقصة (${total})</button>`;
-}
-document.getElementById('cnFilter').addEventListener('click', (e) => {
-  const b = e.target.closest('button[data-f]'); if (!b) return;
-  cnOnlyMissing = b.dataset.f === 'missing'; cnRender();
-});
 
 // ── مودال PIN ─────────────────────────────────────────
 let pinResolve = null;
@@ -907,24 +1513,37 @@ document.getElementById('pmNidDel').addEventListener('click', async () => {
 });
 
 // ══════════════════════════════════════════════════════
-// §LOG — آخر ٣٠ تعديل
+// §LOG — آخر ١٠٠ تعديل (جدول موحّد بفلاتر رأس العمود)
 // ══════════════════════════════════════════════════════
 const CN_TYPE_LABELS = { add_courier: 'إضافة مندوب', remove_courier: 'حذف مندوب', reorder_couriers: 'ترتيب القايمة', profile_update: 'تعديل بيانات', photo_update: 'صورة', sensitive_update: '🔒 رقم قومي (تعديل)', view_sensitive: '🔒 فتح الرقم القومي', rejected: 'مرفوض / متعمل خلاص' };
 function cnExtra(e) { try { return e.extra ? JSON.parse(e.extra) : {}; } catch { return {}; } }
+function cnLogRowHtml(r) {
+  const chip = r.result !== '—' ? `<span class="result-chip ${esc(r.result)}">${esc(r.result)}</span>` : '—';
+  return `<tr><td>${esc(formatDate(r.iso))}</td><td>${esc(formatTimeOnly(r.iso))}</td><td>${esc(r.type)}</td><td>${chip}</td><td>${esc(r.employee)}</td><td class="nm">${esc(r.notes)}</td></tr>`;
+}
 async function cnLoadLog() {
-  const body = document.getElementById('cnLogBody');
   try {
-    const d = await apiGet('get_logs', { limit: 30 });
-    const rows = d.entries || [];
-    if (!rows.length) { body.innerHTML = '<tr><td colspan="5" class="q-empty">لسه مفيش تعديلات</td></tr>'; return; }
-    body.innerHTML = rows.map(e => {
-      const x = cnExtra(e);
-      const chip = x.result ? `<span class="result-chip ${esc(x.result)}">${esc(x.result)}</span>` : '—';
-      return `<tr><td>${esc(formatDateTime(e.timestamp))}</td><td>${esc(CN_TYPE_LABELS[e.type] || e.type)}</td><td>${chip}</td><td>${esc(e.employee || '—')}</td><td>${esc(e.notes || '—')}</td></tr>`;
-    }).join('');
+    const d = await apiGet('get_logs', { limit: 100 });
+    cnLogRows = (d.entries || []).map(e => {
+      const x = cnExtra(e), dt = new Date(e.timestamp);
+      return { iso: e.timestamp, t: dt.getTime(), day: tbDay(dt), hm: tbHM(dt), type: CN_TYPE_LABELS[e.type] || e.type || '—', result: x.result || '—', employee: e.employee || '—', notes: e.notes || '—' };
+    });
+    cnLogT.refresh();
+    cnLogT.setUpd('آخر تحديث ' + formatDateTime(new Date().toISOString()));
   } catch (e) {
-    body.innerHTML = `<tr><td colspan="5" class="q-empty">تعذّر تحميل السجل: ${esc(e.message)}</td></tr>`;
+    cnLogRows = [];
+    cnLogT.refresh();
+    document.querySelector('#cnLogTable [data-tb]').innerHTML = `<tr><td colspan="6" class="q-empty">تعذّر تحميل السجل: ${esc(e.message)}</td></tr>`;
   }
+}
+
+// ── التابات ──
+function switchMainTab(tab) {
+  document.getElementById('couriersTabContent').style.display = tab === 'couriers' ? '' : 'none';
+  document.getElementById('logTabContent').style.display = tab === 'log' ? '' : 'none';
+  document.getElementById('tabCouriers').classList.toggle('active', tab === 'couriers');
+  document.getElementById('tabLog').classList.toggle('active', tab === 'log');
+  if (tab === 'log') cnLoadLog();
 }
 
 // ── generic confirm — الـ shell مالوش نافذة تأكيد خالص ──────────
@@ -960,8 +1579,52 @@ document.addEventListener('keydown', (e) => {
 document.getElementById('headerMount').innerHTML = ecoHeader({
   icon:     '🛵',
   title:    'أسماء المناديب',
-  subtitle: 'قايمة custom.courier + بيانات المندوب — إضافة · حذف · ترتيب · تليفونات · صورة · رقم قومي',
+  subtitle: '',
   session:  ecoSession,
+});
+
+// ── الجداول: المناديب + السجل (ecoCreateTable) ──
+cnT = ecoCreateTable({
+  mount: 'cnTable',
+  cols: [
+    { k: 'pos',   l: '#', nosort: true },
+    { k: 'name',  l: 'المندوب',       flt: 'q' },
+    { k: 'p1',    l: 'تليفون أساسي',  flt: 'q' },
+    { k: 'p2',    l: 'تليفون إضافي',  flt: 'q' },
+    { k: 'photo', l: 'صورة',          flt: 'ms' },
+    { k: 'nid',   l: 'رقم قومي',      flt: 'ms' },
+    { k: 'mv',    l: 'ترتيب',         nosort: true },
+    { k: 'act',   l: 'إجراءات',       nosort: true },
+  ],
+  rows: cnBuildRows,
+  rowHtml: cnRowHtml,
+  val: { name: r => r.name, p1: r => r.p1, p2: r => r.p2, photo: r => r.photo, nid: r => r.nid },
+  qmode: { name: 'words', p1: 'digits', p2: 'digits' },
+  sort: { name: r => r.name, p1: r => r.p1, p2: r => r.p2, photo: r => r.photo, nid: r => r.nid },
+  barBtns: '<button class="btn btn-outline btn-sm" type="button" data-baract="reload">↺ تحديث</button>',
+  onAction: (a) => { if (a === 'reload') cnReload(); },
+  emptyText: 'القايمة فاضية أو مفيش نتايج مطابقة للفلاتر',
+});
+cnLogT = ecoCreateTable({
+  mount: 'cnLogTable',
+  cols: [
+    { k: 'date',   l: 'التاريخ',  flt: 'date' },
+    { k: 'time',   l: 'الوقت',    flt: 'time' },
+    { k: 'type',   l: 'الفعل',    flt: 'ms' },
+    { k: 'result', l: 'النتيجة',  flt: 'ms' },
+    { k: 'emp',    l: 'الموظف',   flt: 'ms' },
+    { k: 'notes',  l: 'تفاصيل',   flt: 'q' },
+  ],
+  rows: () => cnLogRows,
+  rowHtml: cnLogRowHtml,
+  val: { type: r => r.type, result: r => r.result, emp: r => r.employee, notes: r => r.notes },
+  qmode: { notes: 'words' },
+  date: { date: r => r.day },
+  time: { time: r => r.hm },
+  sort: { date: r => r.t, time: r => r.t, type: r => r.type, result: r => r.result, emp: r => r.employee, notes: r => r.notes },
+  barBtns: '<button class="btn btn-outline btn-sm" type="button" data-baract="reload">↺ تحديث</button>',
+  onAction: (a) => { if (a === 'reload') cnLoadLog(); },
+  emptyText: 'لسه مفيش تعديلات أو مفيش نتايج مطابقة للفلاتر',
 });
 
 renderVersionUI();
