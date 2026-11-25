@@ -77,6 +77,14 @@
 > 🔄 **أسماء قديمة في الملف ده (تاريخية):** قبل المرحلة ٣/٤ (هب المخزن v1.45.0 · هب الشحن v1.49.0) كان فيه `shared/shell.js` و`shared/shell.css` والبادئات `woc*`/`dco*`. دلوقتي:
 > `shell.js` ← **`core.js`** (المشترك) + **`hub-config.js`** (`ECO_WORKERS` · `TOOL_VERSION` · مفاتيح الجلسة والسر) + **`dco-rules.js`**، و`shell.css` ← **`core.css`** (المشترك) + **`hub.css`** (ألوان الهب)، والبادئات ← **`eco*`** / `eco-` (`wocApi`←`ecoApi` · `WOC_WORKERS`/`DCO_WORKERS`←`ECO_WORKERS` · `.woc-*`/`.dco-*`←`.eco-*`). **قيم مفاتيح التخزين ما اتغيّرتش** (`woc_session` · `dco_session` · `*_worker_secret`). أي نص تحت بيقول «في الـ shell» معناه الملف المناسب من دول.
 
+## ✂️ تمريرة v2.18.0 — «التسليم الجزئي»: حذف كمية معيّنة + SKU كبير + صورة fullscreen (طلب أحمد 25-11-2026)
+
+- الـ Worker `partial-delivery-worker` **1.5.0** (ريبو `Partial-Delivery`) · `ECO_WORKERS.partialDelivery.min` → **`1.5.0`** (🔴 انشره قبل الصفحة) · `TOOL_VERSION` → `v2.18.0`.
+- **الصفحة (`Partial-Delivery.html`):** Stepper (− / +) بيظهر **بعد تحديد الصف بس** للسطر اللي كميته المتاحة > 1، والافتراضي الكمية كلها. الزرار بيقول «حذف N قطعة (M منتج)»، ونافذة التأكيد بتسمّي «هتحذف X من Y · هيتبقى Z». بتبعت `quantities` للـ Worker.
+- 🔴 **ممنوع حذف كل محتوى الأوردر:** الزرار بيتقفل برسالة، والـ Worker بيرفض برضه (`rejected`).
+- السطر بيعرض **الـ SKU بس** (22px · وزن 800) والاسم في الـ tooltip · الصورة 96px والضغط عليها بيفتحها fullscreen (`#pdLightbox` · Esc/✕/ضغطة).
+- ⚠️ ما اتجرّبش في متصفح ولا على شوبيفاي حقيقية (فحوصات Playwright مش متنصّبة في البيئة).
+
 ## 🏬 تمريرة v2.17.0 — تاب «الشو روم» في «تحديث حالة الأوردرات»: Delivered/Returned مباشرة من Ready بعد Fulfillment (طلب أحمد 25-11-2026)
 
 - الـ Worker `order-status-updater-worker` **4.9.0** (ريبو `Order-Status-Updater`) · `ECO_WORKERS.orderStatus.min` → **`4.9.0`** (🔴 انشره قبل الصفحة) · `TOOL_VERSION` → `v2.17.0`. التفاصيل في `CLAUDE.md` بتاع `Order-Status-Updater` (قسم v4.9.0).

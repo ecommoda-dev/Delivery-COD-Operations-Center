@@ -103,10 +103,26 @@
 /* ── line items ── */
 .pd-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; }
 .pd-item.removed { opacity: .45; }
-.pd-item img { width: 46px; height: 46px; object-fit: cover; border-radius: 6px; background: var(--surface-2); flex-shrink: 0; }
+.pd-item .thumb { position: relative; width: 96px; height: 96px; padding: 0; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); flex-shrink: 0; cursor: zoom-in; overflow: hidden; }
+.pd-item .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pd-item .thumb::after { content: '🔍'; position: absolute; bottom: 3px; inset-inline-start: 3px; font-size: 13px; background: rgba(255,255,255,.85); border-radius: 6px; padding: 1px 4px; line-height: 1.2; }
+.pd-item .thumb.empty { cursor: default; }
+.pd-item .thumb.empty::after { content: none; }
+.pd-step { display: none; align-items: center; gap: 6px; margin-top: 8px; direction: ltr; }
+.pd-item.sel .pd-step { display: inline-flex; }
+.pd-step button { width: 38px; height: 38px; border-radius: 8px; border: 1.5px solid var(--border-strong); background: var(--surface); font-size: 20px; font-weight: 800; cursor: pointer; line-height: 1; }
+.pd-step button:disabled { opacity: .4; cursor: not-allowed; }
+.pd-step .n { min-width: 40px; text-align: center; font-family: var(--font-mono); font-size: 20px; font-weight: 800; }
+.pd-step .of { font-size: 12px; color: var(--text-secondary); font-weight: 700; direction: rtl; }
+.pd-item.sel { border-color: var(--red); background: var(--red-light); }
+.pd-lightbox { position: fixed; inset: 0; z-index: 9500; background: rgba(0,0,0,.92); display: none; align-items: center; justify-content: center; padding: 16px; cursor: zoom-out; }
+.pd-lightbox.open { display: flex; }
+.pd-lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; }
+.pd-lightbox .lb-close { position: absolute; top: 14px; inset-inline-start: 14px; width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,.95); color: #111827; font-size: 22px; font-weight: 800; cursor: pointer; }
+.pd-lightbox .lb-sku { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,.95); color: #111827; font-family: var(--font-mono); font-weight: 800; font-size: 18px; padding: 6px 16px; border-radius: 8px; direction: ltr; }
 .pd-item .info { flex: 1; min-width: 0; }
 .pd-item .info .t { font-weight: 700; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pd-item .info .s { font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); direction: ltr; text-align: right; }
+.pd-item .info .s { font-size: 22px; font-weight: 800; color: var(--text-primary); font-family: var(--font-mono); direction: ltr; text-align: right; letter-spacing: .3px; overflow-wrap: anywhere; }
 .pd-item .qty { font-family: var(--font-mono); font-weight: 700; font-size: 13px; color: var(--text-mid); white-space: nowrap; }
 .pd-item input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--red); }
 
@@ -333,6 +349,7 @@ th.flt-on .th-flt { background: var(--accent-light); border-color: var(--accent-
           <span class="cl-ver-date">25-11-2026</span>
         </div>
         <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>حذف عدد قطع معيّن من المنتج.</strong> بعد تحديد الصف بيظهر Stepper (− / +) لاختيار كمية الحذف، والباقي بيفضل في الأوردر. ممنوع حذف كل محتوى الأوردر. الـ SKU بس بخط كبير، والصورة أكبر وبتتفتح fullscreen. (Worker <code>1.5.0</code> — انشره قبل الصفحة.)</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>التسليم الجزئي على أوردر Ready لـ Showroom.</strong> الأوردر <code>S1 = Ready</code> و<code>Zone</code> و<code>Courier</code> الاتنين <code>Show_Room</code>/<code>Showroom</code> والفلفلمنت <code>UNFULFILLED</code> بقى مقبول. الحذف بدون إلغاء ولا إعادة فلفلمنت (الأوردر يفضل Ready)، والقطعة بتتسجّل في دفتر الرجوع للمخزن وهتفضل في المكتب لحد ما مندوب المخزن ياخدها. S1 بس. (Worker <code>1.4.0</code> — انشره قبل الصفحة.)</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>فلتر على عمود «النتيجة»</strong> (تم · تم جزئيًا · فشل · مرفوض · خلاص متعمل — اختيار متعدد) بنفس شكل باقي الفلاتر: قمع ▽ في رأس العمود + chips + «مسح كل الفلاتر». الفلترة <strong>من السيرفر</strong> (الصفحة والعدّاد والتصدير بيشوفوا نفس الفلتر)، فمحتاج <code>partial-delivery-worker</code> <strong>1.3.0</strong> — على نسخة أقدم الفلتر بيتجاهَل في صمت، وحارس النسخة بيقول كده.</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>عمود «تفاصيل التحذير»</strong> بعد النتيجة: لصف «تم جزئيًا» بيعرض السبب (إعادة فلفلمنت الباقي فشلت · أو القطع ما اتسجّلتش في دفتر الرجوع للمخزن) وبالتالي بتعرف الأوردر محتاج تدخّل يدوي ولا لأ — كان السبب بيظهر لحظة الحذف بس وبيضيع. بيطلع في ملف XLSX كمان. الصفوف اللي مفيهاش تحذير = «—».</span></li>
@@ -492,6 +509,11 @@ th.flt-on .th-flt { background: var(--accent-light); border-color: var(--accent-
 </div>
 
 <!-- ══════════════ §CONFIRM ══════════════ -->
+<div class="pd-lightbox" id="pdLightbox" onclick="closeLightbox()">
+  <button type="button" class="lb-close" aria-label="إغلاق" onclick="closeLightbox()">✕</button>
+  <img id="pdLightboxImg" alt="">
+  <div class="lb-sku" id="pdLightboxSku"></div>
+</div>
 <div class="eco-overlay" id="confirmOverlay">
   <div class="eco-modal" style="max-width:420px;">
     <div class="eco-modal-hdr"><h3 id="confirmHdr">⚠️ تأكيد</h3><button class="modal-close-x" onclick="closeConfirm(false)">✕</button></div>
@@ -793,11 +815,17 @@ function renderOrder(order, elig) {
   const items = order.lineItems || [];
   const itemsHtml = items.map((li, i) => `
     <div class="pd-item ${li.removed || !li.removable ? 'removed' : ''}">
-      ${li.image ? `<img src="${esc(li.image)}" alt="">` : `<div class="pd-item img" style="width:46px;height:46px;background:var(--surface-2);border-radius:6px;"></div>`}
+      ${li.image ? `<button type="button" class="thumb" onclick="openLightbox(this.dataset.src, this.dataset.sku)" data-src="${esc(li.image)}" data-sku="${esc(li.sku || li.title || '')}" aria-label="تكبير الصورة"><img src="${esc(li.image)}" alt=""></button>` : `<div class="thumb empty" aria-hidden="true"></div>`}
       <input type="checkbox" data-li="${esc(li.id)}" ${li.removed || !li.removable ? 'disabled' : ''} onchange="updateRemoveBtn()">
       <div class="info">
-        <div class="t" title="${esc(li.title)}">${esc(li.title)}${li.variantTitle ? ' — ' + esc(li.variantTitle) : ''}</div>
-        <div class="s">${esc(li.sku || '—')}</div>
+        <div class="s" title="${esc(li.title)}${li.variantTitle ? ' — ' + esc(li.variantTitle) : ''}">${esc(li.sku || li.title || '—')}</div>
+        ${li.removable && !li.removed && (li.maxRemovable ?? li.currentQuantity) > 1 ? `
+        <div class="pd-step" data-step="${esc(li.id)}" data-max="${li.maxRemovable ?? li.currentQuantity}" data-have="${li.currentQuantity}">
+          <button type="button" data-dir="-1" aria-label="أقل" onclick="stepQty(this,-1)">−</button>
+          <span class="n">${li.maxRemovable ?? li.currentQuantity}</span>
+          <button type="button" data-dir="1" aria-label="أكتر" onclick="stepQty(this,1)" disabled>+</button>
+          <span class="of">هتحذف من ${li.currentQuantity}</span>
+        </div>` : ''}
       </div>
       <div class="qty">${li.removed ? 'تم الحذف' : (li.removable ? `الكمية: ${li.currentQuantity}` : 'قطعة أصلية — خارج النطاق')}</div>
     </div>`).join('');
@@ -832,15 +860,64 @@ function renderOrder(order, elig) {
     </div>`;
 }
 
+function openLightbox(src, sku) {
+  if (!src) return;
+  document.getElementById('pdLightboxImg').src = src;
+  const k = document.getElementById('pdLightboxSku');
+  k.textContent = sku || ''; k.style.display = sku ? '' : 'none';
+  document.getElementById('pdLightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('pdLightbox').classList.remove('open');
+  document.getElementById('pdLightboxImg').removeAttribute('src');
+}
+
+function stepQty(btn, d) {
+  const box = btn.closest('.pd-step');
+  const max = +box.dataset.max;
+  const n = Math.min(max, Math.max(1, +box.querySelector('.n').textContent + d));
+  box.querySelector('.n').textContent = n;
+  box.querySelector('[data-dir="-1"]').disabled = n <= 1;
+  box.querySelector('[data-dir="1"]').disabled = n >= max;
+  updateRemoveBtn();
+}
+
+// الكمية المحددة لكل سطر مختار: { lineItemId: { qty, have } } — الصف من غير Stepper = كميته كلها
+function selectedQuantities() {
+  const out = {};
+  document.querySelectorAll('#orderCard input[type="checkbox"][data-li]:checked').forEach(c => {
+    const id = c.dataset.li;
+    const step = document.querySelector(`#orderCard .pd-step[data-step="${CSS.escape(id)}"]`);
+    const li = (currentOrder.lineItems || []).find(x => x.id === id);
+    out[id] = { qty: step ? +step.querySelector('.n').textContent : (li?.maxRemovable ?? li?.currentQuantity ?? 1), have: li?.currentQuantity ?? 1 };
+  });
+  return out;
+}
+
+// 🔴 ممنوع حذف كل محتوى الأوردر (الـ Worker بيرفضه برضه)
+function removesEverything(sel) {
+  const total = (currentOrder.lineItems || []).reduce((a, li) => a + li.currentQuantity, 0);
+  const rm = Object.values(sel).reduce((a, x) => a + x.qty, 0);
+  return total > 0 && rm >= total;
+}
+
 function updateRemoveBtn() {
-  const n = document.querySelectorAll('#orderCard input[type="checkbox"][data-li]:checked').length;
+  document.querySelectorAll('#orderCard .pd-item').forEach(row => {
+    const c = row.querySelector('input[type="checkbox"][data-li]');
+    row.classList.toggle('sel', !!c && c.checked);
+  });
+  const sel = selectedQuantities();
+  const n = Object.keys(sel).length;
+  const pieces = Object.values(sel).reduce((a, x) => a + x.qty, 0);
   const btn = document.getElementById('removeBtn');
   if (!btn) return;
   const blocked = pdFails.length > 0;   // أي صف في الصندوق الأحمر = التنفيذ مقفول
-  btn.disabled = n === 0 || blocked || !!pdBusy;
-  btn.textContent = n ? `🗑 حذف ${n} منتج محدد` : '🗑 حذف المنتجات المحددة';
+  const all = n > 0 && removesEverything(sel);
+  btn.disabled = n === 0 || blocked || all || !!pdBusy;
+  btn.textContent = n ? `🗑 حذف ${pieces} قطعة (${n} منتج)` : '🗑 حذف المنتجات المحددة';
   const why = document.getElementById('removeWhy');
-  if (why) why.textContent = blocked ? 'مقفول: فيه حاجات في الصندوق الأحمر — احذفها بـ ✕ الأول.' : '';
+  if (why) why.textContent = blocked ? 'مقفول: فيه حاجات في الصندوق الأحمر — احذفها بـ ✕ الأول.'
+    : all ? 'ممنوع حذف كل محتوى الأوردر — لازم يتبقى منتج واحد على الأقل (لو عايز تلغي الأوردر استخدم إلغاء الأوردر).' : '';
 }
 
 // ══════════════════════════════════════════════════════
@@ -850,21 +927,30 @@ async function confirmRemove() {
   const checked = [...document.querySelectorAll('#orderCard input[type="checkbox"][data-li]:checked')];
   if (!checked.length) return;
   const ids = checked.map(c => c.dataset.li);
+  const sel = selectedQuantities();
+  if (removesEverything(sel)) { updateRemoveBtn(); return; }
+  const quantities = Object.fromEntries(ids.map(id => [id, sel[id].qty]));
+  const partialLines = ids.filter(id => sel[id].qty < sel[id].have).map(id => {
+    const li = currentOrder.lineItems.find(x => x.id === id);
+    return `${li.sku || li.title}: هتحذف ${sel[id].qty} من ${sel[id].have} · هيتبقى ${sel[id].have - sel[id].qty}`;
+  });
+  const pieces = ids.reduce((a, id) => a + sel[id].qty, 0);
   const restock = document.getElementById('optRestock').checked;
   const reason  = document.getElementById('optReason').value.trim();
 
   const ok = await askConfirm({
     header: '⚠️ تأكيد التسليم الجزئي',
-    lead: `هتحذف ${ids.length} منتج من الأوردر ${currentOrder.name}:`,
+    lead: `هتحذف ${pieces} قطعة (${ids.length} منتج) من الأوردر ${currentOrder.name}:`,
     lines: [
       { text: currentOrder.machine === 's2'
           ? '🚫 الحذف نهائي — الأوردر هيفضل S2 بمنتجات أقل'
           : currentOrder.machine === 's1_ready'
             ? '🚫 الحذف نهائي — الأوردر هيفضل Ready بمنتجات أقل، والقطعة هتفضل في المكتب لحد استلام مندوب المخزن'
             : '🚫 الحذف نهائي — الأوردر هيرجع Shipped بمنتجات أقل' },
+      ...partialLines.map(t => ({ text: '✂️ ' + t })),
       { text: restock ? '📦 الكمية هترجع للمخزون' : '⚠️ الكمية مش هترجع للمخزون (بلا Restock)', soft: true },
     ],
-    okLabel: `تأكيد — احذف ${ids.length} منتج`,
+    okLabel: `تأكيد — احذف ${pieces} قطعة`,
   });
   if (!ok) return;
 
@@ -876,7 +962,7 @@ async function confirmRemove() {
 
   try {
     const d = await apiPost('remove_items', {
-      employee: currentEmployee.username, orderId: currentOrder.id, lineItemIds: ids, restock, reason,
+      employee: currentEmployee.username, orderId: currentOrder.id, lineItemIds: ids, quantities, restock, reason,
     });
     renderRemoveResult(d);
     pdSetLock(false);
@@ -1381,6 +1467,7 @@ document.addEventListener('keydown', (e) => {
   document.getElementById('aboutOverlay')?.classList.remove('open');
   document.getElementById('changelogOverlay')?.classList.remove('open');
   document.getElementById('confirmOverlay')?.classList.remove('open');
+  closeLightbox();
 });
 
 // ══════════════════════════════════════════════════════
