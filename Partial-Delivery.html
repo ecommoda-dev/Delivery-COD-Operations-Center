@@ -330,9 +330,10 @@ th.flt-on .th-flt { background: var(--accent-light); border-color: var(--accent-
       <div class="cl-version-block">
         <div class="cl-version-row">
           <span class="cl-ver-badge" id="clLatestVerBadge">v1.80.0</span>
-          <span class="cl-ver-date">08-11-2026</span>
+          <span class="cl-ver-date">25-11-2026</span>
         </div>
         <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>التسليم الجزئي على أوردر Ready لـ Showroom.</strong> الأوردر <code>S1 = Ready</code> و<code>Zone</code> و<code>Courier</code> الاتنين <code>Show_Room</code>/<code>Showroom</code> والفلفلمنت <code>UNFULFILLED</code> بقى مقبول. الحذف بدون إلغاء ولا إعادة فلفلمنت (الأوردر يفضل Ready)، والقطعة بتتسجّل في دفتر الرجوع للمخزن وهتفضل في المكتب لحد ما مندوب المخزن ياخدها. S1 بس. (Worker <code>1.4.0</code> — انشره قبل الصفحة.)</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>فلتر على عمود «النتيجة»</strong> (تم · تم جزئيًا · فشل · مرفوض · خلاص متعمل — اختيار متعدد) بنفس شكل باقي الفلاتر: قمع ▽ في رأس العمود + chips + «مسح كل الفلاتر». الفلترة <strong>من السيرفر</strong> (الصفحة والعدّاد والتصدير بيشوفوا نفس الفلتر)، فمحتاج <code>partial-delivery-worker</code> <strong>1.3.0</strong> — على نسخة أقدم الفلتر بيتجاهَل في صمت، وحارس النسخة بيقول كده.</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>عمود «تفاصيل التحذير»</strong> بعد النتيجة: لصف «تم جزئيًا» بيعرض السبب (إعادة فلفلمنت الباقي فشلت · أو القطع ما اتسجّلتش في دفتر الرجوع للمخزن) وبالتالي بتعرف الأوردر محتاج تدخّل يدوي ولا لأ — كان السبب بيظهر لحظة الحذف بس وبيضيع. بيطلع في ملف XLSX كمان. الصفوف اللي مفيهاش تحذير = «—».</span></li>
         </ul>
@@ -442,7 +443,7 @@ th.flt-on .th-flt { background: var(--accent-light); border-color: var(--accent-
             <li>الدخول بيحصل <strong>مرة واحدة في الشاشة الرئيسية للمركز</strong> — وكل عملية هنا
                 بتتنسب للموظف اللي داخل بيه.</li>
             <li>ابحث عن الأوردر برقمه (مثلًا 1780 أو #1780) أو اسكن الـ Order ID الطويل من الباركود.</li>
-            <li>الأداة بتتأكد إن الأوردر S1=Shipped/In-Return أو (S1=Delivered وS2=Shipped/In-Return) وFulfilled — لو مش كده بترفض بوضوح.</li>
+            <li>الأداة بتتأكد إن الأوردر S1=Shipped/In-Return أو (S1=Delivered وS2=Shipped/In-Return) وFulfilled، <b>أو S1=Ready على Showroom</b> (Zone وCourier الاتنين Show_Room/Showroom) والفلفلمنت UNFULFILLED — في حالة Ready الأوردر بيفضل Ready والقطعة المحذوفة بتتسجّل في دفتر الرجوع للمخزن وتفضل في المكتب لحد استلام مندوب المخزن. لو مش كده بترفض بوضوح.</li>
             <li>اختر المنتج(ات) المطلوب حذفها من قايمة المنتجات.</li>
             <li>حدّد لو عايز ترجّع الكمية للمخزون (Restock) واكتب سبب لو حابب.</li>
             <li>اضغط «حذف المنتجات المحددة» وأكّد في النافذة اللي بتقول العدد بالظبط.</li>
@@ -815,7 +816,7 @@ function renderOrder(order, elig) {
         </div>
       </div>
       <div class="pd-elig-banner ${elig.eligible ? 'ok' : 'bad'}">
-        ${elig.eligible ? (order.machine === 's2' ? '✅ أوردر استبدال (S2) مؤهّل للتسليم الجزئي — المتاح للحذف قطع الاستبدال الخارجة بس' : '✅ الأوردر مؤهّل للتسليم الجزئي') : `⛔ ${esc(elig.reason)}`}
+        ${elig.eligible ? (order.machine === 's2' ? '✅ أوردر استبدال (S2) مؤهّل للتسليم الجزئي — المتاح للحذف قطع الاستبدال الخارجة بس' : order.machine === 's1_ready' ? '✅ أوردر Ready (Showroom) مؤهّل للتسليم الجزئي — الأوردر هيفضل Ready والقطعة المحذوفة هتفضل في المكتب لحد استلام مندوب المخزن' : '✅ الأوردر مؤهّل للتسليم الجزئي') : `⛔ ${esc(elig.reason)}`}
       </div>
       ${elig.eligible ? `
         <h3>المنتجات</h3>
@@ -858,7 +859,9 @@ async function confirmRemove() {
     lines: [
       { text: currentOrder.machine === 's2'
           ? '🚫 الحذف نهائي — الأوردر هيفضل S2 بمنتجات أقل'
-          : '🚫 الحذف نهائي — الأوردر هيرجع Shipped بمنتجات أقل' },
+          : currentOrder.machine === 's1_ready'
+            ? '🚫 الحذف نهائي — الأوردر هيفضل Ready بمنتجات أقل، والقطعة هتفضل في المكتب لحد استلام مندوب المخزن'
+            : '🚫 الحذف نهائي — الأوردر هيرجع Shipped بمنتجات أقل' },
       { text: restock ? '📦 الكمية هترجع للمخزون' : '⚠️ الكمية مش هترجع للمخزون (بلا Restock)', soft: true },
     ],
     okLabel: `تأكيد — احذف ${ids.length} منتج`,
