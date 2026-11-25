@@ -597,6 +597,7 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 .osu-tile.sm { padding: 7px 10px; border-radius: 12px; }
 .osu-tile.sm .nm { font-size: 13px; }
 .osu-tile.on { border-color: var(--sc); background: var(--sc-l); }
+.osu-warn { border: 2px solid var(--amber-border); background: var(--amber-light); color: var(--amber); border-radius: 12px; padding: 12px 16px; font-size: 14px; font-weight: 800; text-align: center; }
 /* زرار «تأكيد المندوب» — أخضر */
 .osu-ok { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; padding: 10px 16px; border-radius: 14px; border: 2px solid var(--green); background: var(--green); color: var(--on-accent); font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer; transition: filter .15s; }
 .osu-ok:hover { filter: brightness(.93); }
@@ -625,6 +626,7 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 .osu-cell.st .osu-val { justify-content: center; width: 100%; }
 .osu-val .dash { color: var(--text-muted); }
 /* v2.15.0 — المندوب وعدد الأوردرات في المنتصف */
+.osu-cell { justify-content: center; }
 .osu-cell.ctr { align-items: center; text-align: center; }
 .osu-cell.ctr .osu-val { flex-direction: column; justify-content: center; width: 100%; gap: 8px; }
 .osu-cell.ctr .av { --s: 72px; }
@@ -763,9 +765,9 @@ body.col-resizing{cursor:col-resize;user-select:none;}
           <span class="cl-ver-date">25-11-2026</span>
         </div>
         <ul class="cl-items">
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>خطوة المندوب:</strong> لو فيه مندوب واحد بيظهر زرار أخضر «تأكيد المندوب - الاسم»، ولو أكتر من مندوب الزرار الأحمر بقى «اختر المندوب الصحيح».</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>خطوة المندوب:</strong> لو فيه مندوب واحد بيظهر زرار أخضر «تأكيد المندوب - الاسم»، ولو الأوردرات فيها أكتر من مندوب بيظهر تنبيه «⚠️ الأوردرات المُدخلة فيها أكثر من مندوب - تأكد من الفواتير قبل اختيار المندوب» والزرار الأحمر «اختيار مندوب آخر».</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نافذة تأكيد المندوب:</strong> صورة المندوب الجديد بحجم كبير، والسؤال بقى «تأكيد اختيار الاسم».</span></li>
-          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الملخص:</strong> صورة المندوب أكبر وفي المنتصف، وعدد الأوردرات رقم كبير في المنتصف وتحته S1 (أخضر) / S2.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الملخص:</strong> صورة المندوب أكبر وفي المنتصف، وعدد الأوردرات رقم كبير في المنتصف وتحته S1 (أخضر) / S2، وتسميات «الحالة المستهدفة / المندوب / عدد الأوردرات» اتشالت.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>جدول النتائج:</strong> زرار حذف الأوردر بقى دايرة حمرا بعلامة × واضحة.</span></li>
           <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>صورة افتراضية للمندوب</strong> (شخص رمادي) بدل أول حرف من الاسم لما مفيش صورة. صفر تعديل في الـ Worker.</span></li>
         </ul>
@@ -1332,9 +1334,9 @@ body.col-resizing{cursor:col-resize;user-select:none;}
     <!-- ─── §TOOL::summary ─── -->
     <div class="card osu-sum" style="--i:2">
       <div class="osu-sum-grid" id="sumGrid">
-        <div class="osu-cell st"><span class="osu-lbl">الحالة المستهدفة</span><div class="osu-val" id="sumTargetVal"><span class="dash">—</span></div></div>
-        <div class="osu-cell ctr" id="sumCourierBox"><span class="osu-lbl">المندوب</span><div class="osu-val" id="sumCourierVal"><span class="dash">—</span></div></div>
-        <div class="osu-cell ctr"><span class="osu-lbl">عدد الأوردرات</span><div class="osu-val"><span class="cnt-badge zero" id="sumCount">0</span><span class="sum-box-sub" id="sumCountSub"></span></div></div>
+        <div class="osu-cell st"><div class="osu-val" id="sumTargetVal"><span class="dash">—</span></div></div>
+        <div class="osu-cell ctr" id="sumCourierBox"><div class="osu-val" id="sumCourierVal"><span class="dash">—</span></div></div>
+        <div class="osu-cell ctr"><div class="osu-val"><span class="cnt-badge zero" id="sumCount">0</span><span class="sum-box-sub" id="sumCountSub"></span></div></div>
       </div>
       <button class="btn-update" id="updateBtn" onclick="startUpdate()" disabled>تحديث الأوردرات</button>
       <div class="prog-wrap" id="progWrap"><div class="prog-bar" id="progBar"></div></div>
@@ -2093,7 +2095,7 @@ function renderCourierStep() {
 
   // «اختيار مندوب آخر» — دايمًا بثيم أحمر، والنص على حسب الحالة
   const moreText = step3ListOpen ? 'إخفاء باقي المناديب'
-    : registered.length > 1 ? 'اختر المندوب الصحيح'
+    : registered.length > 1 ? 'اختيار مندوب آخر'
     : registered.length === 1 ? 'اختيار مندوب آخر'
     : 'اختر المندوب';
   const more = `<button class="osu-more" onclick="toggleStep3FullList()"><span class="plus">${step3ListOpen ? '–' : '+'}</span>${moreText}</button>`;
@@ -2101,8 +2103,11 @@ function renderCourierStep() {
   // v2.15.0 — مندوب واحد مسجَّل: زرار أخضر بتأكيد صريح بالاسم
   const okBtn = (registered.length === 1 && labels.length === 1)
     ? `<button class="osu-ok" onclick="chooseCourier('${escJsAttr(registered[0])}')"><span class="ck">✓</span>تأكيد المندوب - ${escHtml(registered[0])}</button>` : '';
+  const multiAlert = labels.length > 1
+    ? `<div class="osu-warn" role="alert">⚠️ الأوردرات المُدخلة فيها أكثر من مندوب - تأكد من الفواتير قبل اختيار المندوب</div>` : '';
   const cancel = courierConfirmed ? `<div><button class="osu-pill" onclick="cancelCourierPicker()">إلغاء</button></div>` : '';
   body.innerHTML = `<div class="osu-cbody" style="padding:0">
+      ${multiAlert}
       ${okBtn}
       <div class="osu-tiles">${tiles}${more}</div>
       ${step3ListOpen ? '<div class="osu-sec">كل المناديب</div><div class="osu-grid" id="step3FullList"><div class="courier-hint">⏳ جاري التحميل...</div></div>' : ''}
