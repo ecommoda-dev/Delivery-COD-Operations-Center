@@ -2,7 +2,7 @@
 
 # مركز عمليات الشحن والتحصيل — Delivery COD Operations Center (`Delivery-COD-Operations-Center`)
 
-![version](https://img.shields.io/badge/version-v2.17.0-blue)
+![version](https://img.shields.io/badge/version-v2.17.1-blue)
 
 **بتعمل إيه:** هب واحد لمحطة الشحن والتحصيل. الموظف بيدخل **مرة واحدة**،
 وبيشوف طوابير الشحن: اللي **جاهز يخرج**، واللي **خرج ولسه بلا نتيجة** —

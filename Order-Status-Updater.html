@@ -61,17 +61,17 @@
 .confirm-modal-hdr     { padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 700; color: var(--amber); display: flex; justify-content: space-between; align-items: center; }
 .confirm-modal-body    { padding: 16px 18px; font-size: 13px; line-height: 1.7; color: var(--text-primary); white-space: pre-line; max-height: 40vh; overflow-y: auto; }
 .confirm-modal-body.fit { white-space: normal; max-height: calc(100vh - 170px); }
-/* v2.17.0 — نافذة تأكيد التحديث */
-.cfm-meta   { display:flex; flex-wrap:wrap; gap:6px; font-size:12px; color:var(--text-secondary); margin-bottom:12px; }
-.cfm-meta b { color:var(--text-primary); }
-.cfm-tiles  { display:grid; grid-template-columns:repeat(auto-fit,minmax(90px,1fr)); gap:8px; }
-.cfm-tile   { border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--surface-2); padding:10px 6px; text-align:center; }
-.cfm-num    { font-size:22px; font-weight:800; line-height:1.2; direction:ltr; }
-.cfm-lbl    { font-size:11px; font-weight:600; color:var(--text-secondary); margin-top:2px; }
-.cfm-tile.main  { border-color:var(--accent); } .cfm-tile.main .cfm-num { color:var(--accent); }
-.cfm-tile.green { border-color:var(--green); background:var(--green-light); } .cfm-tile.green .cfm-num,.cfm-tile.green .cfm-lbl { color:var(--green); }
-.cfm-tile.amber { border-color:var(--amber); background:var(--amber-light); } .cfm-tile.amber .cfm-num,.cfm-tile.amber .cfm-lbl { color:var(--amber); }
-.cfm-courier{ display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+/* v2.17.1 — نافذة تأكيد التحديث: بادج الحالة + مربع العدد + S1/S2 صغيرين (نفس تصميم الملخص) */
+.cfm { --sc: var(--accent); --sc-l: var(--accent-light); --sc-b: var(--accent-border); display:flex; flex-direction:column; align-items:center; gap:14px; }
+.cfm.c-purple { --sc: var(--purple); --sc-l: var(--purple-light); --sc-b: var(--purple-border); }
+.cfm.c-green  { --sc: var(--green);  --sc-l: var(--green-light);  --sc-b: var(--green-border); }
+.cfm.c-amber  { --sc: var(--amber);  --sc-l: var(--amber-light);  --sc-b: var(--amber-border); }
+.cfm.c-red    { --sc: var(--red);    --sc-l: var(--red-light);    --sc-b: var(--red-border); }
+.cfm .st-chip { padding: 10px 38px; }
+.cfm-count  { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.cfm-count .cnt-badge { min-width:64px; height:64px; font-size:34px; border-radius:16px; }
+.cfm-lbl    { font-size:11px; font-weight:600; color:var(--text-secondary); }
+.cfm-courier{ display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; padding-top:14px; border-top:1px solid var(--border); }
 .cfm-cname  { font-weight:800; font-size:16px; text-align:center; }
 .confirm-modal-ftr     { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
 .btn-confirm-ok        { padding: 8px 18px; background: var(--red); color: var(--on-accent); border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s; }
@@ -774,12 +774,12 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.17.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.17.1</span>
           <span class="cl-ver-date">25-11-2026</span>
         </div>
         <ul class="cl-items">
           <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>طباعة المانفيست من نافذة «تم التحديث بنجاح»</strong> كانت بتطلع بدون اسم المندوب وتليفونه وصورته (اسم المندوب كان بيتصفّر بعد نجاح التحديث). دلوقتي نفس ورقة تاب السجل.</span></li>
-          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نافذة تأكيد التحديث</strong> اتعاد تصميمها بنفس شكل ملخص التحديث ونافذة تأكيد المندوب: الحالة المستهدفة · عدد الأوردرات (S1/S2) · صورة المندوب واسمه.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نافذة تأكيد التحديث</strong> اتعاد تصميمها بنفس شكل قسم الملخص: بادج الحالة الكبير بلونها · مربع «أوردرات» وتحته S1/S2 صغيرين · صورة المندوب واسمه.</span></li>
         </ul>
       </div>
 
@@ -2815,21 +2815,20 @@ function startUpdate() {
     const spec = clientResolveSpecifier(currentTargetLabel, info.s1, info.s2);
     if (spec && spec.endsWith('_S2')) s2n++; else s1n++;
   });
-  const tile = (num, lbl, cls) => `<div class="cfm-tile ${cls}"><div class="cfm-num">${num.toLocaleString('en-US')}</div><div class="cfm-lbl">${lbl}</div></div>`;
   const html = `
-    <div class="cfm-meta">
-      <span>الحالة المستهدفة: <b>${cfg.icon || ''} ${escHtml(currentTargetLabel)}</b></span>
-      <span>·</span><span>إجمالي الأوردرات: <b>${n.toLocaleString('en-US')}</b></span>
-    </div>
-    <div class="cfm-tiles">
-      ${tile(n, 'سيتم تحديثها', 'main')}
-      ${cfg.hasS2 ? tile(s1n, 'S1', 'green') + tile(s2n, 'S2', 'amber') : ''}
-    </div>
+    <div class="cfm ${cfg.color}">
+      <span class="st-chip">${cfg.icon || ''} ${escHtml(currentTargetLabel)}</span>
+      <div class="cfm-count">
+        <span class="cnt-badge">${n.toLocaleString('en-US')}</span>
+        <span class="cfm-lbl">أوردرات</span>
+        ${cfg.hasS2 ? `<span class="sum-box-sub"><span class="pill p-green">S1: ${s1n.toLocaleString('en-US')}</span><span class="pill p-amber">S2: ${s2n.toLocaleString('en-US')}</span></span>` : ''}
+      </div>
     ${cfg.needsCourier ? `
     <div class="cfm-courier">
       <span class="av" data-av="${escAttr(currentCourier)}" style="--s:96px;--sc-l:var(--surface-2);--sc:var(--accent)">${courierPhotos[currentCourier] ? `<img src="${courierPhotos[currentCourier]}" alt="">` : DEFAULT_AVATAR_SVG}</span>
       <div class="cfm-cname">${escHtml(currentCourier)}</div>
-    </div>` : ''}`;
+    </div>` : ''}
+    </div>`;
   showConfirm(html, doStartUpdate, { okText: 'تأكيد التحديث', html: true });
   if (cfg.needsCourier) ensureCourierPhotos([currentCourier]);
 }
