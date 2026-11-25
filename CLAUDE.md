@@ -77,6 +77,13 @@
 > 🔄 **أسماء قديمة في الملف ده (تاريخية):** قبل المرحلة ٣/٤ (هب المخزن v1.45.0 · هب الشحن v1.49.0) كان فيه `shared/shell.js` و`shared/shell.css` والبادئات `woc*`/`dco*`. دلوقتي:
 > `shell.js` ← **`core.js`** (المشترك) + **`hub-config.js`** (`ECO_WORKERS` · `TOOL_VERSION` · مفاتيح الجلسة والسر) + **`dco-rules.js`**، و`shell.css` ← **`core.css`** (المشترك) + **`hub.css`** (ألوان الهب)، والبادئات ← **`eco*`** / `eco-` (`wocApi`←`ecoApi` · `WOC_WORKERS`/`DCO_WORKERS`←`ECO_WORKERS` · `.woc-*`/`.dco-*`←`.eco-*`). **قيم مفاتيح التخزين ما اتغيّرتش** (`woc_session` · `dco_session` · `*_worker_secret`). أي نص تحت بيقول «في الـ shell» معناه الملف المناسب من دول.
 
+## 🧮 تمريرة v2.15.1 — «تحصيل الأوردرات COD»: رسوم المرتجع بتتخصم للدورات الجديدة بس (طلب أحمد 25-11-2026 · #61997)
+
+- الـ Worker `v3.29.0` (ريبو `COD-Payment-Center`) · `ECO_WORKERS.codPayment.min` → **`3.29.0`** (🔴 انشره قبل الصفحة) · `TOOL_VERSION` → `v2.15.1`. التفاصيل في `CLAUDE.md` بتاع `COD-Payment-Center` (قسم v3.29.0).
+- **العطل:** #61997 (3 دورات مرتجع × 75 · المتبقي 75) ظهر «صافي تحصيل المندوب» **-150** والصح **0**: `returnShipping` كان إجمالي رسوم كل الدورات (225) والاتنين الأولانيين اتخصموا في جلسات 15-11 و22-11.
+- **الصفحة (`COD-Payment-Center.html` · `addOrder`):** `order.returnShipping` بقى `returnShippingDue` من الـ Worker (رسوم الدورات بعد آخر تسجيل) فكل الحسابات (`returnFeeOf` · `calcCourierCollect` · عمود الشحن · الإحصائيات · `orderMeta.returnShipping`) بتمشي عليه. الإجمالي في `order.returnShippingAll` وبيتعرض في تفاصيل «Return Shipping» بس. Worker أقدم (بلا `returnShippingDue`) = الإجمالي زي الأول.
+- ✅ الفحص: `cod-freeship-check` 74 · `cod-pay-ui-check` 78 · `tools-check` 210 + فشل واحد قديم (`Bosta-Webhook-Status-Receiver` «تابات الأداة»). ⚠️ ما اتجرّبش على Worker/شوبيفاي حقيقيين. الصفوف القديمة اللي اتخصمت زيادة ما اتلمستش.
+
 ## 📦 تمريرة v2.14.0 — «تحديث حالة الأوردرات»: إعادة تصميم الصفحة كلها (طلب أحمد 24-11-2026)
 
 التصميم اتقرّر على **صفحة معاينة تفاعلية** بقرارات أحمد النهائية (شكل الحالة: ب+د · تمييز اللون: **ج خلفية الإطار** · أزرار الجانب: **ز كبسولة + تعبئة خفيفة** · «اختيار مندوب آخر»: **أ حد متقطّع، أحمر دايمًا**). `TOOL_VERSION` → `v2.14.0`. الصفحة بس (`Order-Status-Updater.html`) — **صفر تعديل Worker ولا `ECO_WORKERS.orderStatus.min`**.
