@@ -61,6 +61,18 @@
 .confirm-modal-hdr     { padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 700; color: var(--amber); display: flex; justify-content: space-between; align-items: center; }
 .confirm-modal-body    { padding: 16px 18px; font-size: 13px; line-height: 1.7; color: var(--text-primary); white-space: pre-line; max-height: 40vh; overflow-y: auto; }
 .confirm-modal-body.fit { white-space: normal; max-height: calc(100vh - 170px); }
+/* v2.17.0 — نافذة تأكيد التحديث */
+.cfm-meta   { display:flex; flex-wrap:wrap; gap:6px; font-size:12px; color:var(--text-secondary); margin-bottom:12px; }
+.cfm-meta b { color:var(--text-primary); }
+.cfm-tiles  { display:grid; grid-template-columns:repeat(auto-fit,minmax(90px,1fr)); gap:8px; }
+.cfm-tile   { border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--surface-2); padding:10px 6px; text-align:center; }
+.cfm-num    { font-size:22px; font-weight:800; line-height:1.2; direction:ltr; }
+.cfm-lbl    { font-size:11px; font-weight:600; color:var(--text-secondary); margin-top:2px; }
+.cfm-tile.main  { border-color:var(--accent); } .cfm-tile.main .cfm-num { color:var(--accent); }
+.cfm-tile.green { border-color:var(--green); background:var(--green-light); } .cfm-tile.green .cfm-num,.cfm-tile.green .cfm-lbl { color:var(--green); }
+.cfm-tile.amber { border-color:var(--amber); background:var(--amber-light); } .cfm-tile.amber .cfm-num,.cfm-tile.amber .cfm-lbl { color:var(--amber); }
+.cfm-courier{ display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+.cfm-cname  { font-weight:800; font-size:16px; text-align:center; }
 .confirm-modal-ftr     { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
 .btn-confirm-ok        { padding: 8px 18px; background: var(--red); color: var(--on-accent); border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s; }
 .btn-confirm-ok:hover  { background: var(--red-dark); }
@@ -762,7 +774,18 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.16.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.17.0</span>
+          <span class="cl-ver-date">25-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>طباعة المانفيست من نافذة «تم التحديث بنجاح»</strong> كانت بتطلع بدون اسم المندوب وتليفونه وصورته (اسم المندوب كان بيتصفّر بعد نجاح التحديث). دلوقتي نفس ورقة تاب السجل.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نافذة تأكيد التحديث</strong> اتعاد تصميمها بنفس شكل ملخص التحديث ونافذة تأكيد المندوب: الحالة المستهدفة · عدد الأوردرات (S1/S2) · صورة المندوب واسمه.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v2.16.0</span>
           <span class="cl-ver-date">25-11-2026</span>
         </div>
         <ul class="cl-items">
@@ -2783,9 +2806,32 @@ function startUpdate() {
     return;
   }
 
-  const msg = `تحديث ${orders.length.toLocaleString('en-US')} أوردر إلى "${currentTargetLabel}"؟` +
-              (cfg.needsCourier ? `\nالمندوب: ${currentCourier}` : '');
-  showConfirm(msg, doStartUpdate);
+  // v2.17.0 — نافذة تأكيد التحديث بنفس لغة ملخص التحديث ونافذة تأكيد المندوب:
+  //    سطر ميتا (الحالة · العدد) + بلاطات (S1/S2) + صورة المندوب واسمه.
+  const n = orders.length;
+  let s1n = 0, s2n = 0;
+  if (cfg.hasS2) orders.forEach(id => {
+    const info = orderInfo[id] || {};
+    const spec = clientResolveSpecifier(currentTargetLabel, info.s1, info.s2);
+    if (spec && spec.endsWith('_S2')) s2n++; else s1n++;
+  });
+  const tile = (num, lbl, cls) => `<div class="cfm-tile ${cls}"><div class="cfm-num">${num.toLocaleString('en-US')}</div><div class="cfm-lbl">${lbl}</div></div>`;
+  const html = `
+    <div class="cfm-meta">
+      <span>الحالة المستهدفة: <b>${cfg.icon || ''} ${escHtml(currentTargetLabel)}</b></span>
+      <span>·</span><span>إجمالي الأوردرات: <b>${n.toLocaleString('en-US')}</b></span>
+    </div>
+    <div class="cfm-tiles">
+      ${tile(n, 'سيتم تحديثها', 'main')}
+      ${cfg.hasS2 ? tile(s1n, 'S1', 'green') + tile(s2n, 'S2', 'amber') : ''}
+    </div>
+    ${cfg.needsCourier ? `
+    <div class="cfm-courier">
+      <span class="av" data-av="${escAttr(currentCourier)}" style="--s:96px;--sc-l:var(--surface-2);--sc:var(--accent)">${courierPhotos[currentCourier] ? `<img src="${courierPhotos[currentCourier]}" alt="">` : DEFAULT_AVATAR_SVG}</span>
+      <div class="cfm-cname">${escHtml(currentCourier)}</div>
+    </div>` : ''}`;
+  showConfirm(html, doStartUpdate, { okText: 'تأكيد التحديث', html: true });
+  if (cfg.needsCourier) ensureCourierPhotos([currentCourier]);
 }
 
 // ─── §TOOL-JS::updateLock — v4.5.0 🔴 ───
@@ -2827,6 +2873,10 @@ async function doStartUpdate() {
   // خالص هنا (chooseCourier/startUpdate بيرفضوه قبل الوصول للنقطة دي) — الحارس
   // هنا سطر أمان إضافي بس، مش مسار متوقع فعلياً.
   const courierToSend = currentCourier === NO_COURIER_LABEL ? '' : currentCourier;
+  // 🔴 v2.17.0 — لقطة اسم المندوب **قبل** التنظيف: `renderCourierStep()` بتصفّر `currentCourier`
+  //    لما القايمة تفضى بعد النجاح، فنافذة الملخص (ثم زرار الطباعة ← المانفيست) كانت بتاخد
+  //    مندوب فاضي وتطبع ورقة بلا اسم/تليفون/صورة. (الطباعة من تاب السجل كانت سليمة.)
+  const batchCourier = cfg.needsCourier ? currentCourier : '';
 
   for (let i = 0; i < batchOrders.length; i += UPDATE_CHUNK) {
     const chunk = batchOrders.slice(i, i + UPDATE_CHUNK);
@@ -2893,7 +2943,7 @@ async function doStartUpdate() {
   playBeep(errCount ? 'error' : warnCount ? 'warn' : 'success');
   showUpdateSummary({
     targetLabel: currentTargetLabel,
-    courier: cfg.needsCourier ? currentCourier : '',
+    courier: batchCourier,
     okCount, warnCount, errCount,
     printableIds: succeeded,
     anyUnlogged, batchError,
