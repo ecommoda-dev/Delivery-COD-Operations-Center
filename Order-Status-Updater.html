@@ -99,6 +99,14 @@
 /* Target status grid — 5 buttons */
 .status-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 @media (max-width: 700px) { .status-grid { grid-template-columns: repeat(3, 1fr); } }
+/* v2.17.0 — مسار الشو روم: زرارين بس + بانر + زرار «+ إضافة» في نافذة الاختيار */
+.status-grid.two { grid-template-columns: repeat(2, 1fr); }
+.status-btn small { display:block; font-size:10.5px; font-weight:600; opacity:.75; margin-top:2px; }
+.showroom-banner { display:flex; gap:8px; align-items:center; background:var(--amber-light, #fffbeb); border:1.5px solid var(--amber, #d97706); color:var(--text-primary); border-radius:var(--radius-sm, 8px); padding:9px 12px; margin-bottom:12px; font-size:12.5px; line-height:1.7; }
+.showroom-banner[hidden] { display:none; }
+.csm-add { padding:5px 10px; border:1.5px solid var(--accent); background:var(--surface); color:var(--accent); border-radius:8px; font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.csm-add:hover { background:var(--accent); color:var(--on-accent, #fff); }
+.csm-added { font-size:12px; font-weight:700; color:var(--green, #16a34a); white-space:nowrap; }
 .status-btn { padding: 14px 6px; border-radius: 10px; font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; border: 2px solid var(--border-strong); background: var(--surface-2); color: var(--text-secondary); transition: all .15s; text-align: center; }
 .status-btn:hover { border-color: var(--text-muted); background: var(--surface); }
 .status-btn .ico { font-size: 19px; display: block; margin-bottom: 4px; }
@@ -774,7 +782,19 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.17.1</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.17.0</span>
+          <span class="cl-ver-date">25-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>تاب «🏬 الشو روم»:</strong> أوردرات Ready (S1) بمنطقة <code>Show_Room</code> ومندوب <code>Showroom</code> بتتحدّث مباشرة لـ <strong>Delivered</strong> أو <strong>Returned</strong> بعد Fulfillment على شوبيفاي — من غير Shipped (العميل بيعاين وبعدين بيستلم أو بيرفض). زرارين بس: Shipped + Delivered (أخضر) · Shipped + Returned. الضغط على أي واحد بيفتح قايمة الأوردرات المؤهلة، وكل صف فيه زرار «+ إضافة» (جنب الـ checkbox و«إضافة المحدد»).</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الـ Fulfillment قبل أي كتابة:</strong> لو فشل الأوردر بيفضل Ready بلا أي تغيير وتقدر تعيد المحاولة. في Returned الـ Fulfillment بيسبق الإلغاء عشان event التنفيذ يظهر على الأوردر.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span>تبديل التاب بين «تحديث الأوردرات» و«الشو روم» والقايمة فيها أوردرات بيطلب تأكيد «القايمة هتتمسح» (القواعد مختلفة، فمفيش خلط). المندوب ثابت Showroom بلا خطوة مندوب. S1 فقط — S2 لسه برّه. يحتاج Worker <code>4.9.0</code> (<code>orderStatus.min</code>) — انشره قبل الصفحة.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v2.17.1</span>
           <span class="cl-ver-date">25-11-2026</span>
         </div>
         <ul class="cl-items">
@@ -1321,10 +1341,12 @@ body.col-resizing{cursor:col-resize;user-select:none;}
      ══════════════════════════════════════════════════════════════ -->
 <div class="main-tabs-bar">
   <button class="main-tab-btn active" id="tabMain" onclick="switchMainTab('main')">📦 تحديث الأوردرات</button>
+  <button class="main-tab-btn" id="tabShow" onclick="switchMainTab('showroom')">🏬 الشو روم</button>
   <button class="main-tab-btn" id="tabLog" onclick="switchMainTab('log')">📜 سجل العمليات</button>
 </div>
 
 <div class="tab-panel active" id="panelMain">
+<div class="showroom-banner" id="showroomBanner" hidden><span>🏬</span><span><b>مسار الشو روم — استثناء:</b> أوردر Ready (S1) لشو روم بيتحدّث لـ Delivered أو Returned مباشرة بعد Fulfillment — من غير Shipped. الأوردرات العادية من تاب «تحديث الأوردرات».</span></div>
 <div class="osu" id="osuFrame">
 <div class="osu-stack">
 
@@ -1348,6 +1370,9 @@ body.col-resizing{cursor:col-resize;user-select:none;}
         <span class="entry-hint" id="entryHint" aria-hidden="true"></span>
         <div class="alt-search-toggle" id="altSearchToggle" style="display:none">
           <button class="osu-pill" id="altSearchToggleBtn" onclick="toggleAltSearch()">🔍 أوردرات مندوب</button>
+        </div>
+        <div class="alt-search-toggle" id="showSearchWrap" style="display:none">
+          <button class="osu-pill" id="showSearchBtn" onclick="openShowroomSearch()">🏬 أوردرات الشو روم</button>
         </div>
       </div>
       <div class="entry-row">
@@ -1472,7 +1497,7 @@ body.col-resizing{cursor:col-resize;user-select:none;}
           <table class="csm-tbl">
             <thead><tr>
               <th style="width:40px;"><input type="checkbox" id="csmSelectAll" onchange="csmToggleAll(this)" /></th>
-              <th>رقم الأوردر</th><th>S1 الحالية</th><th>S2 الحالية</th>
+              <th>رقم الأوردر</th><th>S1 الحالية</th><th>S2 الحالية</th><th style="width:96px;"></th>
             </tr></thead>
             <tbody id="csmBody"></tbody>
           </table>
@@ -1656,6 +1681,23 @@ const TRANSITION_RULES = {
   Returned_S2: { s1From: ['Delivered'], s2In: ['Shipped', 'In-Return'] },
 };
 
+// ─── §TOOL-JS::showroom (v2.17.0) ───
+// أوردر Ready (S1) · custom.zone = Show_Room · custom.courier = Showroom → Delivered/Returned مباشرة بعد Fulfillment.
+// الفحص هنا للتغذية الفورية بس — الـ Worker هو المرجع (بيعيد قراءة الأوردر ويرفض غير المؤهل).
+// ⚠️ مش جدول انتقالات تالت: ده شرط واحد (Ready + S2 فاضي + شو روم) مكرّر من الـ Worker (showroomIneligibility).
+const SHOWROOM_LABELS = ['Delivered', 'Returned'];
+const SHOWROOM_COURIER = 'Showroom';
+function isShowroomVal(v) { return String(v || '').toLowerCase().replace(/[\s_\-]+/g, '') === 'showroom'; }
+function showroomWhy(i) {
+  if (!i || i.s1 === undefined) return null;      // لسه بيتفحص
+  if ((i.s1 || '').trim() !== 'Ready') return `الحالة "${i.s1 || 'فارغ'}" — مسار الشو روم لأوردر Ready بس`;
+  if ((i.s2 || '').trim()) return `عليه S2="${i.s2}" — مسار الشو روم لـ S1 بس`;
+  if (!isShowroomVal(i.zone)) return `المنطقة "${i.zone || 'فارغ'}" — لازم Show_Room`;
+  if (!isShowroomVal(i.courier)) return `المندوب "${i.courier || 'فارغ'}" — لازم Showroom`;
+  return null;
+}
+function displayLabel(label) { return flowMode === 'showroom' ? `Shipped + ${label}` : label; }
+
 const STATUS_PILL = {
   'New Order': 'p-mute', 'Confirmed': 'p-accent', 'WhatsApp-Confirmed': 'p-amber',
   'WhatsApp-CANCELLED': 'p-amber', 'Confirmed + Edit': 'p-amber', 'Pending Edit': 'p-amber',
@@ -1672,6 +1714,8 @@ const NO_COURIER_LABEL = 'بدون مندوب';
 
 // ─── §TOOL-JS::state ───
 let currentTargetLabel = '';
+// v2.17.0 — مسار الشو روم: 'normal' (التاب العادي) | 'showroom'. القايمة واحدة مشتركة، فالتبديل بيمسحها (بتأكيد).
+let flowMode = 'normal';
 let step1Open = true;    // true = عارض شبكة الاختيار، false = عارض البادج المؤكَّد (بند 2)
 let currentCourier     = '';
 let courierConfirmed   = false;  // §TOOL-JS::chooseCourier — بند 3: تأكيد صريح دايماً، مفيش تلقائي أبداً
@@ -1722,6 +1766,7 @@ function orderIsBlocked(id) {
   if (st.unknown) return true;   // v4.5.0 — كود مش أوردر معروف على شوبيفاي
   if (st.isCancelled) return true;
   if (st.s1 === undefined || !currentTargetLabel) return false;
+  if (flowMode === 'showroom') return !!showroomWhy(st);   // v2.17.0
   const spec = clientResolveSpecifier(currentTargetLabel, st.s1, st.s2);
   return !spec || !isTransitionValid(spec, st.s1, st.s2);
 }
@@ -1873,12 +1918,26 @@ function refreshReasonCell(id) {
 
 // ─── §TOOL-JS::tabs ───
 let logLoaded = false;
+// v2.17.0 — تاب «الشو روم» بيشارك نفس القايمة والإطار مع «تحديث الأوردرات» (قواعدهم مختلفة)، فالتبديل بينهم بيمسح القايمة —
+// بتأكيد لو فيها أوردرات (مش بنسيب أوردر عادي يتبعت بقواعد الشو روم أو العكس).
 function switchMainTab(tab) {
-  const isMain = tab === 'main';
-  document.getElementById('tabMain').classList.toggle('active', isMain);
-  document.getElementById('tabLog') .classList.toggle('active', !isMain);
+  const isLog = tab === 'log';
+  const wantMode = tab === 'showroom' ? 'showroom' : 'normal';
+  if (!isLog && wantMode !== flowMode) {
+    if (isUpdating) { showToast('التحديث شغّال — استنى لحد ما يخلص', 'warning'); return; }
+    const go = () => { flowMode = wantMode; resetWorkspace(); applyFlowModeUI(); switchMainTab(tab); };
+    if (orders.length) {
+      showConfirm(`القايمة هتتمسح (${orders.length.toLocaleString('en-US')} ${ordWord(orders.length)}) — تكمّل؟`, go, { okText: 'امسح وكمّل', okClass: 'btn-red' });
+    } else go();
+    return;
+  }
+  const isMain = !isLog;
+  document.getElementById('tabMain').classList.toggle('active', isMain && flowMode === 'normal');
+  document.getElementById('tabShow').classList.toggle('active', isMain && flowMode === 'showroom');
+  document.getElementById('tabLog') .classList.toggle('active', isLog);
   document.getElementById('panelMain').classList.toggle('active', isMain);
-  document.getElementById('panelLog') .classList.toggle('active', !isMain);
+  document.getElementById('panelLog') .classList.toggle('active', isLog);
+  document.getElementById('showroomBanner').hidden = !(isMain && flowMode === 'showroom');
   if (isMain) focusScan();
   else if (!logLoaded) { loadLogFilterLists(); fetchLog(); }
 }
@@ -1938,9 +1997,14 @@ async function ensureCourierPhotos(names) {
 function renderTargetGrid() {
   const grid = document.getElementById('statusGrid');
   if (!grid) return;
-  grid.innerHTML = Object.entries(TARGET_LABELS).map(([label, s]) =>
+  // v2.17.0 — تاب الشو روم: زرارين بس (Shipped+Delivered · Shipped+Returned) بنفس ألوان الحالتين
+  const entries = flowMode === 'showroom'
+    ? Object.entries(TARGET_LABELS).filter(([l]) => SHOWROOM_LABELS.includes(l))
+    : Object.entries(TARGET_LABELS);
+  grid.classList.toggle('two', flowMode === 'showroom');
+  grid.innerHTML = entries.map(([label, s]) =>
     `<button class="status-btn ${s.color} ${label === currentTargetLabel ? 'active' : ''}" data-label="${label}" onclick="selectTargetLabel('${label}')">
-       <span class="ico">${s.icon}</span>${label}
+       <span class="ico">${s.icon}</span>${displayLabel(label)}
      </button>`
   ).join('');
 }
@@ -1963,7 +2027,7 @@ function renderStep1Body() {
   }
   step.className = 'wiz-step s1-has';
   hdr.innerHTML = `<span class="wiz-step-num">✓</span>
-    <span class="s1-chip">${cfg.icon} ${escHtml(currentTargetLabel)}</span>
+    <span class="s1-chip">${cfg.icon} ${escHtml(displayLabel(currentTargetLabel))}</span>
     <button class="s1-change" onclick="toggleStep1()">⇄ ${step1Open ? 'إخفاء' : 'تغيير الحالة'}</button>`;
   if (step1Open) { body.innerHTML = '<div class="status-grid" id="statusGrid"></div>'; renderTargetGrid(); }
   else body.innerHTML = '';
@@ -1980,11 +2044,11 @@ function applyTheme() {
 // المندوب المؤكَّد بيتحفظ لو الحالة الجديدة لسه محتاجاه. الأسباب بتتصفّر (بتتحدد بالحالة).
 function selectTargetLabel(label) {
   const prev = currentTargetLabel;
-  if (label === prev) { step1Open = false; renderStep1Body(); focusScan(); return; }
+  if (label === prev) { step1Open = false; renderStep1Body(); focusScan(); if (flowMode === 'showroom') openShowroomSearch(); return; }
   const had = orders.length;
   currentTargetLabel = label;
   step1Open = false;
-  const keepCourier = TARGET_LABELS[label].needsCourier && courierConfirmed && !!currentCourier;
+  const keepCourier = flowMode !== 'showroom' && TARGET_LABELS[label].needsCourier && courierConfirmed && !!currentCourier;
   if (!keepCourier) { currentCourier = ''; courierConfirmed = false; courierConfirmedOrderSnapshot = ''; }
   courierPickerForced = false;
   step3ListOpen = false;
@@ -2011,6 +2075,8 @@ function selectTargetLabel(label) {
   if (needsReasonFor(label)) {
     ensureReasonValues(true).then(() => { if (currentTargetLabel === label) renderOrders(); });
   }
+  // v2.17.0 — تاب الشو روم: الضغط على الحالة بيفتح قايمة الأوردرات المؤهلة على طول
+  if (flowMode === 'showroom') openShowroomSearch();
 }
 
 // ─── §TOOL-JS::toggleStep1 / reopenStep1 (فتح/قفل شبكة الحالات من غير مسح أي حاجة) ───
@@ -2040,8 +2106,10 @@ async function ensureCourierList(force = false) {
 
 function refreshAltSearchVisibility() {
   const cfg = TARGET_LABELS[currentTargetLabel];
-  const show = !!cfg && cfg.needsCourier;
+  const sr = flowMode === 'showroom';
+  const show = !!cfg && cfg.needsCourier && !sr;
   document.getElementById('altSearchToggle').style.display = show ? 'block' : 'none';
+  document.getElementById('showSearchWrap').style.display = (sr && !!cfg) ? 'block' : 'none';   // v2.17.0
   if (!show) document.getElementById('altSearchPanel').style.display = 'none';
 }
 
@@ -2073,6 +2141,14 @@ function renderCourierStep() {
   const hdr  = document.getElementById('wizStep3Hdr');
   const body = document.getElementById('wizStep3Body');
 
+  // v2.17.0 — مسار الشو روم: مفيش خطوة مندوب — المندوب ثابت Showroom (الـ Worker بيستخدم قيمة الأوردر الفعلية)
+  if (flowMode === 'showroom') {
+    step.style.display = 'none';
+    currentCourier = currentTargetLabel ? SHOWROOM_COURIER : '';
+    courierConfirmed = !!currentTargetLabel;
+    updateActionState();
+    return;
+  }
   if (!currentTargetLabel || !cfg || !cfg.needsCourier) {
     step.style.display = 'none';
     updateActionState();
@@ -2263,7 +2339,7 @@ function updateActionState() {
   btn.className = cfg ? `btn-update ${cfg.color}` : 'btn-update';
   if (!isUpdating) btn.innerHTML = n ? `تحديث <span class="n">${n.toLocaleString('en-US')}</span> ${ordWord(n)}` : 'تحديث الأوردرات';
 
-  document.getElementById('sumTargetVal').innerHTML = cfg ? `<span class="st-chip">${cfg.icon} ${escHtml(currentTargetLabel)}</span>` : '<span class="dash">—</span>';
+  document.getElementById('sumTargetVal').innerHTML = cfg ? `<span class="st-chip">${cfg.icon} ${escHtml(displayLabel(currentTargetLabel))}</span>` : '<span class="dash">—</span>';
   document.getElementById('sumCourierVal').innerHTML = (cfg?.needsCourier && currentCourier)
     ? `${cAvatar(currentCourier, 72)}<span>${escHtml(currentCourier)}</span>` : '<span class="dash">—</span>';
   if (cfg?.needsCourier && currentCourier) ensureCourierPhotos([currentCourier]);
@@ -2569,6 +2645,9 @@ function orderFlags(id) {
     f.push({ k: 'bad', t: 'كود مش أوردر معروف', d: 'مفيش أوردر بالكود ده على شوبيفاي', a: 'غالبًا لاصقة غلط (باركود منتج · AWB بوسطة · لاصقة قديمة). احذفه من القايمة.' });
   } else if (info.isCancelled) {
     f.push({ k: 'bad', t: 'ملغي على شوبيفاي', d: 'cancelledAt / S1 = Cancelled', a: 'الأوردر الملغي مينفعش يتحدّث. احذفه من القايمة.' });
+  } else if (info.s1 !== undefined && currentTargetLabel && flowMode === 'showroom') {
+    const why = showroomWhy(info);
+    if (why) f.push({ k: 'bad', t: 'مش مؤهل لمسار الشو روم', d: why, a: 'مسار الشو روم لأوردر Ready · Show_Room · Showroom بس (S1). احذفه من القايمة أو حدّثه من تاب «تحديث الأوردرات».' });
   } else if (info.s1 !== undefined && currentTargetLabel) {
     const spec = clientResolveSpecifier(currentTargetLabel, info.s1, info.s2);
     if (!spec || !isTransitionValid(spec, info.s1, info.s2)) {
@@ -2817,7 +2896,8 @@ function startUpdate() {
   });
   const html = `
     <div class="cfm ${cfg.color}">
-      <span class="st-chip">${cfg.icon || ''} ${escHtml(currentTargetLabel)}</span>
+      <span class="st-chip">${cfg.icon || ''} ${escHtml(displayLabel(currentTargetLabel))}</span>
+      ${flowMode === 'showroom' ? '<div style="font-size:12px;font-weight:700;color:var(--amber);margin:4px 0 8px">🏬 مسار الشو روم — Fulfillment على شوبيفاي ثم الحالة (بدون Shipped)</div>' : ''}
       <div class="cfm-count">
         <span class="cnt-badge">${n.toLocaleString('en-US')}</span>
         <span class="cfm-lbl">أوردرات</span>
@@ -2886,6 +2966,7 @@ async function doStartUpdate() {
         courier:     cfg.needsCourier ? courierToSend : '',
         employee:    currentEmployee?.username || '',
       };
+      if (flowMode === 'showroom') body.flow = 'showroom';   // v2.17.0 — الـ Worker بيحكم على الأهلية بنفسه
       // سبب الإلغاء/الإرجاع لكل أوردر في الدفعة الحالية — needsReason هنا على
       // مستوى targetLabel بس (زي الـ Worker). أوردرات Returned اللي هتتحل S2
       // مالهاش select في الجدول أصلاً (v4.1.0)، فـ orderReasons[id] فاضي طبيعي
@@ -3045,6 +3126,13 @@ function summaryOpenLog() {
 // (القائمة + المندوب + الحالة المستهدفة) — نفس نقطة البداية بعد الدخول.
 function summaryStartFresh() {
   closeUpdateSummary();
+  resetWorkspace();
+  switchMainTab(flowMode === 'showroom' ? 'showroom' : 'main');
+  focusScan();
+}
+
+// v2.17.0 — إعادة ضبط كاملة لمساحة الشغل (القايمة + الحالة + المندوب + الفلاتر) — مشتركة بين «تسجيل أوردرات جديدة» وتبديل التاب.
+function resetWorkspace() {
   orders = [];
   orderReasons = {};   // v4.0.0
   Object.keys(orderInfo).forEach(k => delete orderInfo[k]);
@@ -3072,12 +3160,39 @@ function summaryStartFresh() {
   renderOrders();
   renderOrdersCollapseUI();
   updateActionState();
-  switchMainTab('main');
-  focusScan();
 }
 
 // ─── §TOOL-JS::courierSearch (alt path — search by a specific courier or noCourier) ───
 let csmResults = [];
+
+function applyFlowModeUI() {
+  document.getElementById('showroomBanner').hidden = flowMode !== 'showroom';
+}
+
+// v2.17.0 — قايمة أوردرات الشو روم المؤهلة (Ready · Show_Room · Showroom · S1) في نفس نافذة «أوردرات المندوب».
+async function openShowroomSearch() {
+  if (flowMode !== 'showroom' || !currentTargetLabel) return;
+  document.getElementById('csmCourierName').textContent = 'Showroom';
+  document.getElementById('csmHint').textContent = `جلب أوردرات الشو روم القابلة للانتقال إلى ${currentTargetLabel}...`;
+  document.getElementById('csmOverlay').classList.add('open');
+  document.getElementById('csmLoading').style.display = 'block';
+  document.getElementById('csmContent').style.display = 'none';
+  document.getElementById('csmWarn').style.display    = 'none';
+  document.getElementById('csmSelectAll').checked     = false;
+  try {
+    const data = await apiPost('search_showroom_orders', {});
+    csmResults = (data.orders || []).filter(o => !o.isCancelled);
+    if (data.truncated) {
+      const w = document.getElementById('csmWarn');
+      w.textContent = `⚠️ وصلنا للحد الأقصى (${(data.cap || 0).toLocaleString('en-US')} أوردر) — ممكن يكون فيه نتايج تانية ما ظهرتش. استخدم السكانر.`;
+      w.style.display = 'block';
+    }
+    renderCourierSearch();
+  } catch (e) {
+    closeCourierSearch();
+    showToast(`خطأ في البحث: ${e.message}`, 'error', 5000);
+  }
+}
 
 async function openCourierSearch(courierName) {
   if (!currentTargetLabel) return;
@@ -3125,18 +3240,24 @@ function renderCourierSearch() {
   const body = document.getElementById('csmBody');
 
   if (!csmResults.length) {
-    body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:28px;color:var(--text-muted)">لا توجد أوردرات مطابقة لهذا المندوب 🤷‍♂️</td></tr>';
+    body.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text-muted)">${flowMode === 'showroom' ? 'لا توجد أوردرات شو روم مؤهلة (Ready · Show_Room · Showroom) 🤷‍♂️' : 'لا توجد أوردرات مطابقة لهذا المندوب 🤷‍♂️'}</td></tr>`;
     document.getElementById('csmCount').textContent = '0';
     return;
   }
 
-  body.innerHTML = csmResults.map(o => `
+  // v2.17.0 — زرار «+ إضافة» لكل صف (بديل عن الـ checkbox + «إضافة المحدد»): بيضيف الأوردر ده والنافذة بتفضل مفتوحة،
+  // والصف بيتعلّم «✓ مضاف». الأوردر المضاف أصلاً بيظهر مضاف من أول رسم.
+  body.innerHTML = csmResults.map(o => {
+    const inList = orders.includes(String(o.orderId));
+    return `
     <tr>
-      <td><input type="checkbox" class="csm-cb" value="${o.orderId}" onchange="csmUpdateCount()" /></td>
+      <td><input type="checkbox" class="csm-cb" value="${o.orderId}" onchange="csmUpdateCount()" ${inList ? 'disabled' : ''} /></td>
       <td>${orderLink(o.name, o.orderId)}</td>
       <td>${statusPill(o.s1)}</td>
       <td>${statusPill(o.s2)}</td>
-    </tr>`).join('');
+      <td id="csmAct-${o.orderId}">${inList ? '<span class="csm-added">✓ مضاف</span>' : `<button class="csm-add" onclick="csmAddOne('${o.orderId}')">+ إضافة</button>`}</td>
+    </tr>`;
+  }).join('');
   csmUpdateCount();
 }
 
@@ -3154,24 +3275,39 @@ function csmUpdateCount() {
   all.indeterminate = n > 0 && n < total;
 }
 
+// v2.17.0 — مصدر واحد لإضافة أوردرات من نافذة الاختيار (المحدد بالـ checkbox أو «+ إضافة» لصف واحد).
+function csmAddIds(picked, closeAfter) {
+  picked.forEach(id => {
+    // v4.2.1 — كان `r.id`؛ الـ Worker بيرجّع الحقل باسم orderId من v3.7.0
+    const o = csmResults.find(r => r.orderId === id);
+    if (o) orderInfo[id] = { name: o.name, s1: o.s1, s2: o.s2, courier: o.courier, zone: o.zone, isCancelled: o.isCancelled };
+  });
+  const before = orders.length;
+  addOrders(picked);
+  const added = orders.length - before;
+  picked.forEach(id => {
+    const cell = document.getElementById('csmAct-' + id);
+    if (cell) cell.innerHTML = '<span class="csm-added">✓ مضاف</span>';
+    const cb = document.querySelector(`.csm-cb[value="${id}"]`);
+    if (cb) { cb.checked = false; cb.disabled = true; }
+  });
+  csmUpdateCount();
+  if (added) { if (closeAfter) showToast(`✅ تمت إضافة ${added} أوردر`, 'success'); playBeep('scan'); }
+  else if (closeAfter) showToast('كل الأوردرات المحددة موجودة بالفعل', 'warning');
+  if (closeAfter) closeCourierSearch();
+}
+
 function csmAddSelected() {
   if (isUpdating) { showToast('التحديث شغّال — استنى لحد ما يخلص', 'warning'); return; }
   const picked = [...document.querySelectorAll('.csm-cb:checked')].map(c => c.value);
   if (!picked.length) { showToast('اختر أوردر واحد على الأقل', 'warning'); return; }
+  csmAddIds(picked, true);
+}
 
-  picked.forEach(id => {
-    // v4.2.1 — كان `r.id`؛ الـ Worker بيرجّع الحقل باسم orderId من v3.7.0
-    const o = csmResults.find(r => r.orderId === id);
-    if (o) orderInfo[id] = { name: o.name, s1: o.s1, s2: o.s2, courier: o.courier, isCancelled: o.isCancelled };
-  });
-
-  const before = orders.length;
-  addOrders(picked);
-  const added = orders.length - before;
-
-  if (added) { showToast(`✅ تمت إضافة ${added} أوردر`, 'success'); playBeep('scan'); }
-  else showToast('كل الأوردرات المحددة موجودة بالفعل', 'warning');
-  closeCourierSearch();
+// v2.17.0 — «+ إضافة» لصف واحد: النافذة بتفضل مفتوحة عشان الموظف يكمّل يضيف.
+function csmAddOne(id) {
+  if (isUpdating) { showToast('التحديث شغّال — استنى لحد ما يخلص', 'warning'); return; }
+  csmAddIds([String(id)], false);
 }
 
 // ─── §TOOL-JS::printManifest ───

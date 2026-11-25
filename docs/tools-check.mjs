@@ -51,7 +51,7 @@ const TOOLS = [
     workerKey: 'orderStatus',
     host:      'order-status-updater-worker.ecommoda-dev.workers.dev',
     oldSecret: 'order_status_worker_secret',
-    tabs:      2,
+    tabs:      3,                       // تحديث الأوردرات · الشو روم (v2.17.0) · سجل العمليات
     // ⛔ صفر `source` من v2.6.0 (18-11-2026) — ريبو `Order-Status-Updater` بقى Worker وبس والصفحة هنا هي النسخة الوحيدة.
   },
   {

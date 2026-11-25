@@ -77,6 +77,16 @@
 > 🔄 **أسماء قديمة في الملف ده (تاريخية):** قبل المرحلة ٣/٤ (هب المخزن v1.45.0 · هب الشحن v1.49.0) كان فيه `shared/shell.js` و`shared/shell.css` والبادئات `woc*`/`dco*`. دلوقتي:
 > `shell.js` ← **`core.js`** (المشترك) + **`hub-config.js`** (`ECO_WORKERS` · `TOOL_VERSION` · مفاتيح الجلسة والسر) + **`dco-rules.js`**، و`shell.css` ← **`core.css`** (المشترك) + **`hub.css`** (ألوان الهب)، والبادئات ← **`eco*`** / `eco-` (`wocApi`←`ecoApi` · `WOC_WORKERS`/`DCO_WORKERS`←`ECO_WORKERS` · `.woc-*`/`.dco-*`←`.eco-*`). **قيم مفاتيح التخزين ما اتغيّرتش** (`woc_session` · `dco_session` · `*_worker_secret`). أي نص تحت بيقول «في الـ shell» معناه الملف المناسب من دول.
 
+## 🏬 تمريرة v2.17.0 — تاب «الشو روم» في «تحديث حالة الأوردرات»: Delivered/Returned مباشرة من Ready بعد Fulfillment (طلب أحمد 25-11-2026)
+
+- الـ Worker `order-status-updater-worker` **4.9.0** (ريبو `Order-Status-Updater`) · `ECO_WORKERS.orderStatus.min` → **`4.9.0`** (🔴 انشره قبل الصفحة) · `TOOL_VERSION` → `v2.17.0`. التفاصيل في `CLAUDE.md` بتاع `Order-Status-Updater` (قسم v4.9.0).
+- **الفكرة:** أوردر Shopify بـ S1 = `Ready` + `custom.zone = Show_Room` + `custom.courier = Showroom` بيتحدّث لـ `Delivered` أو `Returned` من غير Shipped (العميل بيعاين وبعدين بيستلم أو بيرفض). S1 فقط — S2 مؤجّل لحد ما معناه يتحدد.
+- **الصفحة (`Order-Status-Updater.html`):** تاب تالت «🏬 الشو روم» على **نفس الإطار** — زرارين بس (Shipped + Delivered · Shipped + Returned بألوان Delivered/Returned)، والضغط يفتح نافذة «أوردرات المندوب» بالأوردرات المؤهلة (`search_showroom_orders`). **زرار «+ إضافة»** لكل صف (النافذة بتفضل مفتوحة والصف بيتعلّم ✓ مضاف) جنب الـ checkbox و«إضافة المحدد» — وبيشتغل في بحث المناديب العادي كمان. خطوة المندوب مخفية والمندوب ثابت `Showroom`. بانر «مسار الشو روم — استثناء». عمود «المراجعة» بيقول سبب عدم الأهلية.
+- 🔴 **التبديل بين التابين والقايمة مليانة = تأكيد «القايمة هتتمسح، تكمّل؟»** (القايمة والإطار مشتركين، وقواعد المسارين مختلفة). قايمة فاضية = تبديل بلا تأكيد. `flowMode` + `resetWorkspace()` (مشتركة مع «تسجيل أوردرات جديدة»).
+- 🔴 **الأهلية بيحكم عليها الـ Worker** (`flow:'showroom'` + قراءة جديدة)؛ `showroomWhy()` في الصفحة للتغذية الفورية بس — شرط واحد مكرّر، **مش جدول انتقالات تالت**. `TRANSITION_*` ما اتلمستش.
+- ✅ **عقد التحصيل متأكَّد (cod-payment-center §TODAY-IMPORT):** بيقرا `tool='order_status'` · `result ∈ success/warning` · `extra.courier` · `extra.targetLabel='Delivered'` · `timestamp` — صفوف الشو روم بتظهر في «تسليمات اليوم» لمندوب Showroom. مابيقراش `s1Before` ولا `field`. `Returned` برّه نطاقه. `extra.courier` = قيمة `custom.courier` الفعلية على الأوردر.
+- ✅ الفحص: `docs/showroom-check.mjs` **43** (متصفح فعلي + Worker وهمي) · tools-check (`tabs: 3`) · rules 90 · queues 656 · order-status-log 114. Worker: `showroom-check.mjs` **37** (Worker الفعلي على Shopify/D1 وهميين). ⚠️ **ما اتجرّبش على شوبيفاي حقيقية** — أول أوردر شو روم حقيقي هو الاختبار، وراجع إن event الـ Fulfillment ظهر على الأوردر.
+
 ## 📦 تمريرة v2.16.0 — «التسليم الجزئي» على أوردر Ready لـ Showroom (طلب أحمد 25-11-2026)
 
 - الـ Worker `partial-delivery-worker` **1.4.0** (ريبو `Partial-Delivery`) · `ECO_WORKERS.partialDelivery.min` → **`1.4.0`** (🔴 انشره قبل الصفحة) · `TOOL_VERSION` → `v2.16.0`. التفاصيل في `CLAUDE.md` بتاع `Partial-Delivery` (قسم v1.4.0).
