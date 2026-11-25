@@ -754,7 +754,7 @@ body.col-resizing{cursor:col-resize;user-select:none;}
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>مربع إدخال موحّد</strong> (<code>unified-entry-box</code>): حقل واحد + chips «رقم الأوردر / فاتورة شوبيفاي» بتتبع الطول، والإضافة بـ Enter أو «إضافة» بس. المدخل المرفوض (حروف · طول غير معروف · أوردر مش موجود) بيروح <strong>صندوق أحمر</strong> بسطر قصير، والتحديث مقفول لحد ما يتفضّى.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>خطوة المندوب:</strong> بلاطات بصورة المندوب (من Worker «أسماء المناديب»، والحرف الأول بديل)، اختيار بلاطة = تأكيد بضغطة واحدة، وبلاطة «اختيار مندوب آخر» حمرا ونصها حسب الحالة. اتشالت جمل الشرح القديمة، والخطوة بتظهر لما يبقى فيه أوردرات.</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الملخص:</strong> الحالة في المنتصف بخط أكبر، المندوب بصورته، العدد في مربع واضح، وزرار <strong>«تحديث (N) أوردر»</strong> بالعدد في مربع. <strong>الزرار مقفول طول ما فيه انتقال غير مسموح أو أوردر لسه بيتفحص أو مدخل مرفوض</strong>، فمفيش حاجة لنافذة «احذفهم أولاً».</span></li>
-          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>جدول الأوردرات اتنقل تحت زرار التحديث وبقى بترتيب الإدخال</strong> (أول أوردر رقم 1) على معيار الجداول: عناوين ثابتة، فلاتر رأس العمود (المسار · المندوب · المراجعة)، ترتيب، «النتائج: N». وعمود <strong>«المراجعة»</strong> جديد بنافذة بتشرح السبب والمطلوب (زي «المشحون»). الجدول مفتوح طول ما فيه أوردرات، والطيّ اليدوي هو السيد.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>جدول الأوردرات اتنقل تحت زرار التحديث وبقى بترتيب الإدخال</strong> (أول أوردر رقم 1) على معيار الجداول: عناوين ثابتة، فلاتر رأس العمود (المسار · المندوب · المراجعة)، ترتيب، «النتائج: N». وعمود <strong>«المراجعة»</strong> جديد بنافذة بتشرح السبب والمطلوب (زي «المشحون»). الجدول بيفضل مقفول تلقائيًا ويفتح لوحده بس لو فيه أوردر غير مطابق أو ناقصه سبب (زي ما كان).</span></li>
           <li class="cl-item"><span class="cl-tag change">تغيير</span><span>صفر تعديل في الـ Worker ولا <code>ECO_WORKERS.orderStatus.min</code>. صور المناديب بتستخدم <code>get_courier_photo</code> الموجود في Worker «أسماء المناديب» (2.0.0)، وفشلها مابيأثرش على الأداة. ⚠️ ما اتجرّبش على Worker/شوبيفاي حقيقيين.</span></li>
         </ul>
       </div>
@@ -1158,7 +1158,7 @@ body.col-resizing{cursor:col-resize;user-select:none;}
             <li><code>مربع الإدخال الموحّد (Enter فقط · chip بيتبع الطول · صندوق أحمر)</code> — HTML §SCAN — <code>submitEntry()</code> / <code>syncEntry()</code> / <code>entryFail()</code></li>
             <li><code>إضافة رقم أوردر</code> — HTML §SCAN — <code>submitEntry()</code> → <code>resolve_by_name</code> (١–٧ أرقام) · باركود فاتورة (١٣–١٥) بيتضاف كـ Order ID وبيتفحص بـ <code>hydrateOrders()</code></li>
             <li><code>تصنيف S1/S2 تلقائي + التحقق</code> — HTML §TOOL-JS — <code>hydrateOrders()</code> / <code>clientResolveSpecifier()</code> — Worker §STATUS — <code>resolveSpecifier()</code></li>
-            <li><code>جدول الأوردرات — تحت زرار التحديث، بترتيب الإدخال، عمود «المراجعة» بنافذة سبب، فلاتر رأس العمود (المسار · المندوب · المراجعة)، ترتيب، عناوين ثابتة، مفتوح طول ما فيه أوردرات (الطيّ اليدوي هو السيد)</code> — HTML §TOOL-JS — <code>renderOrders()</code> / <code>orderFlags()</code> / <code>openOrderFlags()</code> / <code>openOrdPop()</code> / <code>applyAutoCollapseRule()</code></li>
+            <li><code>جدول الأوردرات — تحت زرار التحديث، بترتيب الإدخال، عمود «المراجعة» بنافذة سبب، فلاتر رأس العمود (المسار · المندوب · المراجعة)، ترتيب، عناوين ثابتة، مقفول تلقائيًا ويفتح بس عند الخطأ أو نقص السبب (الطيّ اليدوي هو السيد)</code> — HTML §TOOL-JS — <code>renderOrders()</code> / <code>orderFlags()</code> / <code>openOrderFlags()</code> / <code>openOrdPop()</code> / <code>applyAutoCollapseRule()</code></li>
             <li><code>خطوة المندوب — بلاطات بصورة + تأكيد بضغطة + «اختيار مندوب آخر» أحمر بنص حسب الحالة</code> — HTML §TOOL-JS — <code>renderCourierStep()</code> / <code>chooseCourier()</code> / <code>ensureCourierPhotos()</code> / <code>cAvatar()</code></li>
             <li><code>بحث أوردرات مندوب (S1+S2 مدموجين) + خيار "بدون مندوب"</code> — HTML §TOOL-JS — <code>openCourierSearch()</code> — Worker §STATUS — <code>search_courier_orders</code> (<code>noCourier</code>)</li>
             <li><code>سبب الإلغاء/الإرجاع — عمود في جدول الأوردرات، Cancelled/Returned فقط، إلزامي بس لأوردرات S1 (v4.0.0، دقّقها v4.1.0)</code> — HTML §TOOL-JS — <code>needsReasonFor()</code> / <code>orderNeedsReason()</code> / <code>reasonSelectHTML()</code> / <code>setOrderReason()</code> / <code>ensureReasonValues()</code> — Worker §STATUS — <code>reason_values</code> / <code>applyDirect()</code></li>
@@ -2275,7 +2275,6 @@ function entryFail(label, reason) {
 function entryDup(id, name) {
   showToast(`⚠️ موجود بالفعل: ${name || id}`, 'warning', 3200);
   playBeep('warn');
-  ordersCollapsed = false; renderOrdersCollapseUI();
   renderOrders(id);
 }
 
@@ -2328,9 +2327,9 @@ function addOrders(ids) {
   const fresh = ids.filter(id => !orders.includes(id));
   if (!fresh.length) return;
   orders = orders.concat(fresh);        // v2.14.0 — بترتيب الإدخال: أول أوردر = رقم 1
-  if (!ordersManualOverride) { ordersCollapsed = false; renderOrdersCollapseUI(); }   // الجدول مفتوح تحت الزرار ما لم الموظف طواه بإيده
   renderOrders(fresh[fresh.length - 1]);
   renderCourierStep();
+  applyAutoCollapseRule();
   updateActionState();
   hydrateOrders(fresh);
 }
@@ -2451,10 +2450,12 @@ function removeUnknownOrders() {
 // (حالة جديدة/مسح الكل/تسجيل خروج/تحديث ناجح) — عشان كده حذف أوردر واحد من
 // الجدول مبيقفلوش تلقائي على المستخدم بعد كده.
 function applyAutoCollapseRule() {
-  // v2.14.0 — الجدول بقى تحت زرار التحديث ومفتوح طول ما فيه أوردرات (كان مقفول إلا عند الخطأ)،
-  // واختيار الموظف اليدوي (طيّ) هو السيد لحد ما حدث يصفّره (حالة جديدة · مسح الكل · تحديث ناجح).
+  // القاعدة القديمة: مقفول افتراضيًا، ويفتح تلقائيًا بس لو فيه أوردر محظور أو ناقصه سبب —
+  // إلا لو الموظف تدخّل يدويًا (ordersManualOverride).
   if (ordersManualOverride) { renderOrdersCollapseUI(); return; }
-  ordersCollapsed = !orders.length;
+  const hasBlocked = orders.some(id => orderIsBlocked(id));
+  const hasMissingReason = orders.some(id => orderReasonMissing(id));
+  ordersCollapsed = !hasBlocked && !hasMissingReason;
   renderOrdersCollapseUI();
 }
 function toggleOrdersTable() {
