@@ -1627,7 +1627,17 @@ body.bt-resizing, body.bt-resizing * { cursor:col-resize !important; user-select
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.7.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.15.1</span>
+          <span class="cl-ver-date">25-11-2026 · أوردر بأكتر من دورة مرتجع كان بيخصم رسوم كل الدورات من تحصيل المندوب كل مرة (#61997: 75 − 225 = −150 بدل 0) ·
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>رسوم المرتجع:</strong> بيتخصم بس رسوم الدورات اللي اتفتحت بعد آخر تسجيل للأوردر. اللي اتحاسب في جلسة سابقة ما بيتخصمش تاني. «Return Shipping» في التفاصيل لسه بيعرض الإجمالي.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>مطلوب Worker 3.29.0</strong> (<code>codPayment.min</code>) — انشره قبل الصفحة، وإلا الصفحة بتفضل تخصم الإجمالي.</span></li>
+        </ul>
+      </div>
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge">v2.7.0</span>
           <span class="cl-ver-date">19-11-2026 · «أجر مشوار فقط»: استبدال بنفس السعر (رصيد صفر) كان أجر المندوب بتاعه بيضيع (#65513) — دلوقتي بيتسجّل بصف −75 على الخزنة · الشحن الأصلي مابقاش بيمنع أجر المرتجع/الاستبدال</span>
         </div>
         <ul class="cl-items">
@@ -2911,7 +2921,10 @@ async function addOrder(numericId) {
         order.orderDiscount  = d.orderDiscount ?? null;
         order.saleTransactions = d.saleTransactions || [];
         order.hasReturn       = d.hasReturn || false;
-        order.returnShipping  = d.returnShipping || '0.00';
+        // 🆕 Worker ≥ 3.29.0 — اللي بيتخصم من تحصيل المندوب = رسوم الدورات بعد آخر تسجيل (`returnShippingDue`)؛ الإجمالي كله في `returnShippingAll` للعرض بس.
+        //    Worker أقدم = `returnShippingDue` غايب فبنرجع للإجمالي (السلوك القديم).
+        order.returnShippingAll = d.returnShipping || '0.00';
+        order.returnShipping  = (d.returnShippingDue ?? d.returnShipping) || '0.00';
         order.returnedItems   = d.returnedItems || [];
         order.orderKind       = d.orderKind || null;       // Worker ≥ 3.9.0 — النوع من أحدث دورة
         order.cycleCount      = d.cycleCount || 0;
@@ -3388,8 +3401,8 @@ function renderTable() {
       detailContent = `<div class="detail-box"><div class="detail-section"><div class="detail-label">SKUs</div>
         <table class="sku-table"><thead><tr><th>SKU</th><th class="th-center">Qty</th><th class="th-ltr">Unit Price</th><th class="th-ltr">Total</th></tr></thead>
         <tbody>${normalRows}${returnRows}</tbody></table></div>
-        ${o.hasReturn&&parseFloat(o.returnShipping)>0?`<div class="detail-section return-section"><div class="detail-label">Return Shipping</div>
-        <span style="font-family:var(--font-mono);font-size:13px;color:var(--red);font-weight:700">−${fmt(parseFloat(o.returnShipping))} EGP</span></div>`:''}
+        ${o.hasReturn&&parseFloat(o.returnShippingAll ?? o.returnShipping)>0?`<div class="detail-section return-section"><div class="detail-label">Return Shipping</div>
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--red);font-weight:700">−${fmt(parseFloat(o.returnShippingAll ?? o.returnShipping))} EGP</span></div>`:''}
       </div>`;
     }
     rows.push(`<tr class="detail-row" data-idx="${i}"><td colspan="11">${hasDetails?detailContent:''}</td></tr>`);

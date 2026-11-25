@@ -173,7 +173,8 @@ const ECO_WORKERS = {
   // 🔴 `codPayment.min = '3.24.0'` (16-11-2026) — نافذة «فحص شحنات بوسطة» بتقرا `courierMismatch`/`needsCourierAck` (المندوب على شوبيفاي مش Bosta · #51802) وبتبعت `courierMismatch:{ack}`.
   // 🔴 `codPayment.min = '3.25.0'` (16-11-2026) — نافذة «فحص شحنات بوسطة» بتقرا `shopifyCapture`/`needsCaptureConfirm` (تحصيل على شوبيفاي لاستبدال بلا تحصيل · #51153) وبتبعت `shopifyCapture:{ack}`.
   // 🔴 `codPayment.min = '3.28.0'` (19-11-2026) — «أجر مشوار فقط» (استبدال بنفس السعر · رصيد صفر · #65513): الصفحة بتقرا `feeOnly`/`feeOnlyState` من `preview` وبتبعت `refund` بـ`feeOnly:true` وتأكيد فيه `feeOnly`. على Worker أقدم الأوردر بيتعلّم «مدفوع بالكامل» وأجر المشوار بيضيع. وكمان شرط «الشحن الأصلي = 0» اتشال من أجر المرتجع/الاستبدال (الأجر بيتحسب حتى لو شحن الأوردر الأصلي > 0).
-  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.28.0', label: 'تحصيل الأوردرات COD' },
+  // 🔴 `codPayment.min = '3.29.0'` (25-11-2026) — الصفحة بتخصم `returnShippingDue` (رسوم الدورات بعد آخر تسجيل · #61997). على Worker أقدم بتفضل تخصم إجمالي رسوم كل الدورات.
+  codPayment:  { url: 'https://cod-payment-center-worker.ecommoda-dev.workers.dev',   min: '3.29.0', label: 'تحصيل الأوردرات COD' },
 
   // 🔴 **التسليم الجزئي (v1.10.0) — تالت أداة مدموجة، وأول واحدة من غير
   //    رابط قديم شغّال.** الأداتين اللي فوق (`orderStatus`/`codPayment`)
@@ -268,7 +269,7 @@ const ECO_WORKERS = {
   deliveryFollowUp: { url: 'https://bosta-delivery-follow-up-worker.ecommoda-dev.workers.dev', min: '2.1.0', label: 'متابعة التأجيلات' },   // 2.0.0: get_sends + تعريف «محاولة ≥ 1» + queue_summary بـ unsent
 };
 
-const TOOL_VERSION = 'v2.15.0';                     // الهب كله — مصدر واحد (#24)
+const TOOL_VERSION = 'v2.15.1';                     // الهب كله — مصدر واحد (#24)
 
 // 🔴 **مفتاح سر مجموعة `delivery_cod_ops` — مجموعة مستقلة عن محطة المخزن.**
 //    الهب ده بقى **مكتفي بنفسه**: تلات Workers كلهم بتوعه (الدخول +
