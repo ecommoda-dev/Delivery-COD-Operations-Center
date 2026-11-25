@@ -321,8 +321,10 @@
 .otbl td.c-reason { min-width: 190px; }
 /* v4.3.0 — شارة "السبب جاي من شوبيفاي" جنب قائمة الاختيار */
 .reason-src { display: block; margin-top: 4px; font-size: 10.5px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; cursor: help; }
-.del-x { background: none; border: none; color: var(--red); font-size: 15px; cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 5px; }
-.del-x:hover { background: var(--red-light); }
+.del-x { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 1.5px solid var(--red-border); background: var(--red-light); color: var(--red); cursor: pointer; transition: all .15s; }
+.del-x svg { width: 14px; height: 14px; display: block; }
+.del-x:hover:not(:disabled) { background: var(--red); border-color: var(--red); color: var(--on-accent); }
+.del-x:disabled { opacity: .45; cursor: not-allowed; }
 .pill { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 700; white-space: nowrap; border: 1px solid; }
 .pill.p-accent { background: var(--accent-light); color: var(--accent); border-color: var(--accent-border); }
 .pill.p-green  { background: var(--green-light);  color: var(--green);  border-color: var(--green-border); }
@@ -595,6 +597,10 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 .osu-tile.sm { padding: 7px 10px; border-radius: 12px; }
 .osu-tile.sm .nm { font-size: 13px; }
 .osu-tile.on { border-color: var(--sc); background: var(--sc-l); }
+/* زرار «تأكيد المندوب» — أخضر */
+.osu-ok { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; padding: 10px 16px; border-radius: 14px; border: 2px solid var(--green); background: var(--green); color: var(--on-accent); font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer; transition: filter .15s; }
+.osu-ok:hover { filter: brightness(.93); }
+.osu-ok .ck { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,.28); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
 /* «اختيار مندوب آخر» — دايمًا بثيم أحمر */
 .osu-more { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 68px; padding: 10px 14px; border-radius: 14px; border: 2px dashed var(--red); background: var(--red-light); color: var(--red); font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer; }
 .osu-more:hover { border-style: solid; }
@@ -604,6 +610,8 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 .osu-confirmed .sp { flex: 1; }
 .av { --s: 36px; width: var(--s); height: var(--s); border-radius: 50%; overflow: hidden; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--sc-l); border: 2px solid var(--surface); box-shadow: 0 0 0 1.5px var(--border-strong); color: var(--sc); font-weight: 800; font-size: calc(var(--s) * .42); }
 .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.av .av-def { width: 100%; height: 100%; display: block; }
+.av.def { background: #9ca3af; }
 .osu-cbody { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; }
 .osu-sec { font-size: 12px; font-weight: 800; color: var(--text-secondary); }
 
@@ -616,6 +624,12 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 .osu-val { display: flex; align-items: center; gap: 10px; min-height: 40px; font-weight: 800; font-size: 16px; }
 .osu-cell.st .osu-val { justify-content: center; width: 100%; }
 .osu-val .dash { color: var(--text-muted); }
+/* v2.15.0 — المندوب وعدد الأوردرات في المنتصف */
+.osu-cell.ctr { align-items: center; text-align: center; }
+.osu-cell.ctr .osu-val { flex-direction: column; justify-content: center; width: 100%; gap: 8px; }
+.osu-cell.ctr .av { --s: 72px; }
+.osu-cell.ctr .cnt-badge { min-width: 64px; height: 64px; font-size: 34px; border-radius: 16px; }
+.osu-cell.ctr .sum-box-sub { justify-content: center; }
 .st-chip { display: inline-flex; align-items: center; gap: 8px; border-radius: 11px; padding: 10px 38px; background: var(--sc); color: var(--on-accent); font-weight: 800; font-size: 25px; }
 .cnt-badge { min-width: 44px; height: 44px; border-radius: 12px; background: var(--sc-l); border: 2px solid var(--sc-b); color: var(--sc); display: inline-flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; padding: 0 10px; font-variant-numeric: tabular-nums; }
 .cnt-badge.zero { background: var(--surface); border-color: var(--border-strong); color: var(--text-secondary); }
@@ -745,7 +759,21 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.14.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.15.0</span>
+          <span class="cl-ver-date">25-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>خطوة المندوب:</strong> لو فيه مندوب واحد بيظهر زرار أخضر «تأكيد المندوب - الاسم»، ولو أكتر من مندوب الزرار الأحمر بقى «اختر المندوب الصحيح».</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>نافذة تأكيد المندوب:</strong> صورة المندوب الجديد بحجم كبير، والسؤال بقى «تأكيد اختيار الاسم».</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>الملخص:</strong> صورة المندوب أكبر وفي المنتصف، وعدد الأوردرات رقم كبير في المنتصف وتحته S1 (أخضر) / S2.</span></li>
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>جدول النتائج:</strong> زرار حذف الأوردر بقى دايرة حمرا بعلامة × واضحة.</span></li>
+          <li class="cl-item"><span class="cl-tag new">جديد</span><span><strong>صورة افتراضية للمندوب</strong> (شخص رمادي) بدل أول حرف من الاسم لما مفيش صورة. صفر تعديل في الـ Worker.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v2.14.0</span>
           <span class="cl-ver-date">24-11-2026</span>
         </div>
         <ul class="cl-items">
@@ -1305,8 +1333,8 @@ body.col-resizing{cursor:col-resize;user-select:none;}
     <div class="card osu-sum" style="--i:2">
       <div class="osu-sum-grid" id="sumGrid">
         <div class="osu-cell st"><span class="osu-lbl">الحالة المستهدفة</span><div class="osu-val" id="sumTargetVal"><span class="dash">—</span></div></div>
-        <div class="osu-cell" id="sumCourierBox"><span class="osu-lbl">المندوب</span><div class="osu-val" id="sumCourierVal"><span class="dash">—</span></div></div>
-        <div class="osu-cell"><span class="osu-lbl">عدد الأوردرات</span><div class="osu-val"><span class="cnt-badge zero" id="sumCount">0</span><span class="sum-box-sub" id="sumCountSub"></span></div></div>
+        <div class="osu-cell ctr" id="sumCourierBox"><span class="osu-lbl">المندوب</span><div class="osu-val" id="sumCourierVal"><span class="dash">—</span></div></div>
+        <div class="osu-cell ctr"><span class="osu-lbl">عدد الأوردرات</span><div class="osu-val"><span class="cnt-badge zero" id="sumCount">0</span><span class="sum-box-sub" id="sumCountSub"></span></div></div>
       </div>
       <button class="btn-update" id="updateBtn" onclick="startUpdate()" disabled>تحديث الأوردرات</button>
       <div class="prog-wrap" id="progWrap"><div class="prog-bar" id="progBar"></div></div>
@@ -1821,7 +1849,9 @@ const courierPhotos = {};          // name → dataUrl | null (مفيش صورة
 const photoQueue = new Set();
 let courierProf = null, courierProfAt = 0, courierProfBusy = null, courierProfOk = false;
 
-function cInitial(name) { return escHtml(String(name || '?').trim().charAt(0).toUpperCase() || '?'); }
+// v2.15.0 — الصورة الافتراضية (بدل أول حرف): دايرة رمادي + راس وكتاف غامقين
+const DEFAULT_AVATAR_SVG = '<svg class="av-def" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#9ca3af"/><circle cx="20" cy="15.5" r="7.2" fill="#111827"/><path d="M5.5 40c0-8.6 6.5-14 14.5-14s14.5 5.4 14.5 14z" fill="#111827"/></svg>';
+function cInitial() { return DEFAULT_AVATAR_SVG; }
 function cAvatar(name, size) {
   const url = courierPhotos[name];
   return `<span class="av" data-av="${escAttr(name)}" style="--s:${size || 36}px">${url ? `<img src="${url}" alt="">` : cInitial(name)}</span>`;
@@ -2063,13 +2093,17 @@ function renderCourierStep() {
 
   // «اختيار مندوب آخر» — دايمًا بثيم أحمر، والنص على حسب الحالة
   const moreText = step3ListOpen ? 'إخفاء باقي المناديب'
-    : registered.length > 1 ? 'اختر مندوب واحد فقط'
+    : registered.length > 1 ? 'اختر المندوب الصحيح'
     : registered.length === 1 ? 'اختيار مندوب آخر'
     : 'اختر المندوب';
   const more = `<button class="osu-more" onclick="toggleStep3FullList()"><span class="plus">${step3ListOpen ? '–' : '+'}</span>${moreText}</button>`;
 
+  // v2.15.0 — مندوب واحد مسجَّل: زرار أخضر بتأكيد صريح بالاسم
+  const okBtn = (registered.length === 1 && labels.length === 1)
+    ? `<button class="osu-ok" onclick="chooseCourier('${escJsAttr(registered[0])}')"><span class="ck">✓</span>تأكيد المندوب - ${escHtml(registered[0])}</button>` : '';
   const cancel = courierConfirmed ? `<div><button class="osu-pill" onclick="cancelCourierPicker()">إلغاء</button></div>` : '';
   body.innerHTML = `<div class="osu-cbody" style="padding:0">
+      ${okBtn}
       <div class="osu-tiles">${tiles}${more}</div>
       ${step3ListOpen ? '<div class="osu-sec">كل المناديب</div><div class="osu-grid" id="step3FullList"><div class="courier-hint">⏳ جاري التحميل...</div></div>' : ''}
       ${cancel}
@@ -2157,9 +2191,13 @@ function chooseCourier(courier) {
       </thead>
       <tbody>${rows}</tbody>
     </table>
-    <div style="font-weight:700">تأكيد تغيير المندوب؟</div>`;
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:6px">
+      <span class="av" data-av="${escAttr(courier)}" style="--s:110px;--sc-l:var(--surface-2);--sc:var(--accent)">${courierPhotos[courier] ? `<img src="${courierPhotos[courier]}" alt="">` : DEFAULT_AVATAR_SVG}</span>
+      <div style="font-weight:800;font-size:16px;text-align:center">تأكيد اختيار ${escHtml(courier)}</div>
+    </div>`;
 
   showConfirm(html, apply, { okText: 'تأكيد التغيير', html: true });
+  ensureCourierPhotos([courier]);
 }
 
 // ─── §TOOL-JS::updateActionState (v2.14.0) ───
@@ -2183,7 +2221,7 @@ function updateActionState() {
 
   document.getElementById('sumTargetVal').innerHTML = cfg ? `<span class="st-chip">${cfg.icon} ${escHtml(currentTargetLabel)}</span>` : '<span class="dash">—</span>';
   document.getElementById('sumCourierVal').innerHTML = (cfg?.needsCourier && currentCourier)
-    ? `${cAvatar(currentCourier, 40)}<span>${escHtml(currentCourier)}</span>` : '<span class="dash">—</span>';
+    ? `${cAvatar(currentCourier, 72)}<span>${escHtml(currentCourier)}</span>` : '<span class="dash">—</span>';
   if (cfg?.needsCourier && currentCourier) ensureCourierPhotos([currentCourier]);
   const cnt = document.getElementById('sumCount');
   cnt.textContent = n.toLocaleString('en-US');
@@ -2198,7 +2236,7 @@ function updateActionState() {
       const spec = clientResolveSpecifier(currentTargetLabel, info.s1, info.s2);
       if (spec && spec.endsWith('_S2')) s2n++; else s1n++;
     });
-    sub.innerHTML = `<span class="pill p-accent">S1: ${s1n.toLocaleString('en-US')}</span><span class="pill p-amber">S2: ${s2n.toLocaleString('en-US')}</span>`;
+    sub.innerHTML = `<span class="pill p-green">S1: ${s1n.toLocaleString('en-US')}</span><span class="pill p-amber">S2: ${s2n.toLocaleString('en-US')}</span>`;
   } else {
     sub.innerHTML = '';
   }
@@ -2636,7 +2674,7 @@ function renderOrders(flashId) {
       : '<span class="pill-empty">—</span>';
 
     return `<tr class="${cls}" id="ordrow-${escAttr(id)}">
-      <td class="c-del"><button class="del-x" onclick="removeOrder('${escJsAttr(id)}')" ${isUpdating ? 'disabled' : ''}>✕</button></td>
+      <td class="c-del"><button class="del-x" onclick="removeOrder('${escJsAttr(id)}')" ${isUpdating ? 'disabled' : ''} aria-label="حذف الأوردر" title="حذف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button></td>
       <td>${i + 1}</td>
       <td class="c-name">${orderLink(info.name, id)}</td>
       <td>${statusPill(info.s1)}</td>
