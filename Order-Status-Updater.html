@@ -60,6 +60,7 @@
 .confirm-modal         { background: var(--surface); border-radius: var(--radius); width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,.18); overflow: hidden; animation: modalIn .2s ease; }
 .confirm-modal-hdr     { padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 700; color: var(--amber); display: flex; justify-content: space-between; align-items: center; }
 .confirm-modal-body    { padding: 16px 18px; font-size: 13px; line-height: 1.7; color: var(--text-primary); white-space: pre-line; max-height: 40vh; overflow-y: auto; }
+.confirm-modal-body.fit { white-space: normal; max-height: calc(100vh - 170px); }
 .confirm-modal-ftr     { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
 .btn-confirm-ok        { padding: 8px 18px; background: var(--red); color: var(--on-accent); border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s; }
 .btn-confirm-ok:hover  { background: var(--red-dark); }
@@ -761,7 +762,18 @@ body.col-resizing{cursor:col-resize;user-select:none;}
 
       <div class="cl-version-block">
         <div class="cl-version-row">
-          <span class="cl-ver-badge" id="clLatestVerBadge">v2.15.0</span>
+          <span class="cl-ver-badge" id="clLatestVerBadge">v2.16.0</span>
+          <span class="cl-ver-date">25-11-2026</span>
+        </div>
+        <ul class="cl-items">
+          <li class="cl-item"><span class="cl-tag change">تغيير</span><span><strong>ورقة المانفيست:</strong> أرقام تليفونات المندوب تحت اسمه (لو مسجّلة) · شيلنا خانتي التحصيل والاسترداد من الرأس و«الصافي» بقت «الإجمالي» · صورة المندوب بدل السكوتر · «الصافي المستحق» بقت «الإجمالي المستحق» · اتشال مربع توقيع المستلم · سطر في آخر الورقة باسم موظف الطباعة وتاريخها ووقتها. صفر تعديل في الـ Worker.</span></li>
+          <li class="cl-item"><span class="cl-tag fix">إصلاح</span><span><strong>نافذة تأكيد تغيير المندوب</strong> بقت بتتعرض كاملة بدون scroll.</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-version-block">
+        <div class="cl-version-row">
+          <span class="cl-ver-badge old">v2.15.0</span>
           <span class="cl-ver-date">25-11-2026</span>
         </div>
         <ul class="cl-items">
@@ -1529,6 +1541,10 @@ function orderLink(orderNumber, orderId) {
 function showConfirm(message, onConfirm, opts = {}) {
   const msgEl = document.getElementById('confirmMsg');
   if (opts.html) msgEl.innerHTML = message; else msgEl.textContent = message;
+  // v2.16.0 — محتوى HTML (جدول + صورة المندوب) بيتعرض كامل بلا scroll: سقف الارتفاع بقى حدود الشاشة،
+  // و`pre-line` مقفول عشان فواصل أسطر الـ template ما تتحسبش فراغات.
+  const bodyEl = msgEl.closest('.confirm-modal-body');
+  bodyEl.classList.toggle('fit', !!opts.html);
   const oldBtn = document.getElementById('confirmOkBtn');
   const newBtn = oldBtn.cloneNode(true);
   oldBtn.parentNode.replaceChild(newBtn, oldBtn);
@@ -3150,7 +3166,24 @@ async function printManifest(orderIds, courier) {
     return;
   }
 
-  const date = formatDateForExport(new Date().toISOString());
+  const nowIso = new Date().toISOString();
+  const date = formatDateForExport(nowIso);
+  // v2.16.0 — «طُبع بواسطة» في آخر الورقة: اسم الموظف + تاريخ ووقت الطباعة (بتوقيت القاهرة)
+  const printedBy = (currentEmployee && (currentEmployee.displayName || currentEmployee.username)) || '—';
+  const printedAt = `${date} — ${formatTimeForExport(nowIso)}`;
+
+  // v2.16.0 — صورة المندوب وتليفوناته (من Worker «أسماء المناديب») — تحسين عرض: الفشل = ورقة بلا صورة/أرقام.
+  //    ⚠️ بس لما المانفيست لمندوب واحد معروف (مش «N مناديب» ولا «—»).
+  let courierPhones = [], courierPhoto = null;
+  if (courier && courier !== '—' && courier !== NO_COURIER_LABEL && !/ مناديب$/.test(courier)) {
+    try {
+      const prof = await loadCourierProfiles();
+      const pr = prof && prof[courier];
+      if (pr) courierPhones = [pr.phonePrimary, pr.phoneSecondary].filter(Boolean);
+      await ensureCourierPhotos([courier]);
+      courierPhoto = courierPhotos[courier] || null;
+    } catch { /* الورقة بتتطبع من غيرهم */ }
+  }
 
   // ⚠️ `cod` بيوصل نص (toFixed) أو `null`. `parseFloat(null)` = NaN — فالفحص
   //    على النوع الأول، مش على القيمة. `d.cod || 0` كان هيحوّل صفر مشروع
@@ -3252,20 +3285,24 @@ svg rect,svg path{shape-rendering:crispEdges}
 .tl{font-size:12px;color:#6b7280}
 .tv{font-size:18px;font-weight:800;direction:ltr}
 .sb{border:1px solid #e2e5ed;border-radius:8px;padding:8px 18px;font-size:11px;color:#9ca3af;text-align:center;min-width:140px}
+.cph{width:64px;height:64px;border-radius:50%;object-fit:cover;border:1px solid #d1d5db;flex:none}
+.cph-def{width:64px;height:64px;border-radius:50%;flex:none;overflow:hidden}
+.cph-def svg{width:100%;height:100%;display:block}
+.mph{display:flex;gap:10px;margin-top:2px;direction:ltr;justify-content:flex-end;font-size:12px;font-weight:600;color:#374151}
+.pf{margin-top:18px;padding-top:6px;border-top:1px solid #e2e5ed;display:flex;justify-content:space-between;font-size:10px;color:#6b7280}
 @media print{body{padding:10px}@page{margin:10mm;size:A4}}
 </style></head><body>
 <div class="mh"><div>
   <div class="mt">📦 Manifest — بيان شحن</div>
   <div class="mm">
-    <div class="mi"><span class="ml">المندوب</span><span class="mv">${escHtml(courier)}</span></div>
+    <div class="mi"><span class="ml">المندوب</span><span class="mv">${escHtml(courier)}</span>
+      ${courierPhones.length ? `<span class="mph">${courierPhones.map(p => `<span>${escHtml(p)}</span>`).join('')}</span>` : ''}</div>
     <div class="mi"><span class="ml">التاريخ</span><span class="mv">${date}</span></div>
     <div class="mi"><span class="ml">عدد الأوردرات</span><span class="mv">${orderIds.length}</span>
       ${typeChips ? `<span class="tcs">${typeChips}</span>` : ''}</div>
-    <div class="mi"><span class="ml">تحصيل</span><span class="mv" style="direction:ltr;color:#15803d">${nf(collectTotal)} EGP</span></div>
-    <div class="mi"><span class="ml">استرداد</span><span class="mv" style="direction:ltr;color:#b91c1c">${refundTotal ? '− ' : ''}${nf(refundTotal)} EGP</span></div>
-    <div class="mi"><span class="ml">الصافي</span><span class="mv" style="direction:ltr">${netTotal < 0 ? '− ' : ''}${nf(netTotal)} EGP</span></div>
+    <div class="mi"><span class="ml">الإجمالي</span><span class="mv" style="direction:ltr">${netTotal < 0 ? '− ' : ''}${nf(netTotal)} EGP</span></div>
   </div>
-</div><div style="font-size:28px">🛵</div></div>
+</div>${courierPhoto ? `<img class="cph" src="${courierPhoto}" alt="">` : (courierPhones.length || (courier && courier !== '—' && !/ مناديب$/.test(courier)) ? `<span class="cph-def">${DEFAULT_AVATAR_SVG}</span>` : '')}</div>
 ${warnHtml}
 <table>
   <colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"><col class="c6"><col class="c7"><col class="c8"></colgroup>
@@ -3282,11 +3319,11 @@ ${warnHtml}
   <div class="tot">
     <div><div class="tl">إجمالي التحصيل</div><div class="tv" style="color:#15803d">${nf(collectTotal)} EGP</div></div>
     <div><div class="tl">إجمالي الاسترداد</div><div class="tv" style="color:#b91c1c">${refundTotal ? '− ' : ''}${nf(refundTotal)} EGP</div></div>
-    <div><div class="tl">الصافي المستحق</div><div class="tv">${netTotal < 0 ? '− ' : ''}${nf(netTotal)} EGP</div></div>
+    <div><div class="tl">الإجمالي المستحق</div><div class="tv">${netTotal < 0 ? '− ' : ''}${nf(netTotal)} EGP</div></div>
   </div>
   <div class="sb">توقيع المندوب<br><br><br></div>
-  <div class="sb">توقيع المستلم<br><br><br></div>
 </div>
+<div class="pf"><span>طُبع بواسطة: <b>${escHtml(printedBy)}</b></span><span style="direction:ltr">${escHtml(printedAt)}</span></div>
 <script>window.onload=function(){${barcodes}
 setTimeout(function(){window.print()},400)};<\/script>
 </body></html>`;
